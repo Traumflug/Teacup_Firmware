@@ -4,6 +4,8 @@
 #include	<stdint.h>
 #include	<avr/io.h>
 
+#include	"ringbuffer.h"
+
 #define	rx_buffer	((ringbuffer *) _rx_buffer)
 #define	tx_buffer	((ringbuffer *) _tx_buffer)
 
