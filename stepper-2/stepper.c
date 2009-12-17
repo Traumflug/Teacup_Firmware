@@ -189,8 +189,9 @@ int main (void)
 
 	// disable interrupt
 	TIMSK1 = 0;
-	// set speed
-	speed = STEP_TIME;
+
+	// set speed: divide by 2 because we toggle each interrupt rather than full pulse
+	speed = STEP_TIME / 2;
 	OCR1A = speed;
 
 	// enable interrupts
@@ -248,13 +249,11 @@ int main (void)
 						npos -= rv;
 					break;
 				case 'g':
-					r = scanf("%li", &rv);
-					if (r != 0)
+					if (scanf("%li", &rv))
 						npos = rv;
 					break;
 				case 's':
-					r = scanf("%li", &rv);
-					if (r != 0)
+					if (scanf("%li", &rv))
 						speed = rv;
 					break;
 				case 'h':
