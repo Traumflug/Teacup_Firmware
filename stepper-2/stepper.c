@@ -24,20 +24,23 @@
 #define		READ_DIR			RPORT_AIO3
 #define		DDR_DIR				DDR_AIO3
 
-// outputs (PWM) - dir lines only below, en lines MUST connect to OCR0A/B (DIO 5/6)
-#define		PIN_DIR1			PIN_AIO0
-#define		PORT_DIR1			WPORT_AIO0
-#define		DDR_DIR1			DDR_AIO0
+// step output
+#define		PIN_STEPOUT		PIN_AIO4
+#define		PORT_STEPOUT	WPORT_AIO4
+#define		READ_STEPOUT	RPORT_AIO4
+#define		DDR_STEPOUT		DDR_AIO4
 
-#define		PIN_DIR2			PIN_AIO1
-#define		PORT_DIR2			WPORT_AIO1
-#define		DDR_DIR2			DDR_AIO1
-
+// direction output
+#define		PIN_DIROUT		PIN_AIO5
+#define		PORT_DIROUT		WPORT_AIO5
+#define		READ_DIROUT		RPORT_AIO5
+#define		DDR_DIROUT		DDR_AIO5
 
 // *** machine-specific constants ***
 
 // 1/2 step, NSTEPPING=2, for 1/4 step, NSTEPPING = 4 etc
-#define		NSTEPPING			8
+#define		NSTEPPING			16
+
 // FULL steps per mm (calculate from 200 steps/rev)
 #define		FULL_STEPS_PER_MM	5
 
@@ -57,47 +60,9 @@
 
 #define		SPEED					(15 MM_PER_SEC)
 
-// *** step table ***
-// sinstepi MUST satisfy 2^n for integer values of n where n = 2 for 1/2 step, 4 for 1/4 step etc
-// generate with:
-// perl -e 'my $n = 4; my @st; for (0..$n) { push @st, sprintf "%i", sin($_ * 90 * 3.1415926535897932384626433832795029 * 2 / 360 / $n) * 255 }; print "#define sinstepi $n\nstatic uint8_t sintable[sinstepi + 1] = { "; print join ", ", @st; print " };\n";';
-
-#if   NSTEPPING == 1
-#define sinstepi 1
-static const uint8_t sintable[sinstepi + 1] = { 0, 255 };
-
-#elif NSTEPPING == 2
-#define sinstepi 2
-static const uint8_t sintable[sinstepi + 1] = { 0, 180, 255 };
-
-#elif NSTEPPING == 4
-#define sinstepi 4
-static uint8_t sintable[sinstepi + 1] = { 0, 97, 180, 235, 255 };
-
-#elif NSTEPPING == 8
-#define sinstepi 8
-static uint8_t sintable[sinstepi + 1] = { 0, 49, 97, 141, 180, 212, 235, 250, 255 };
-
-#elif NSTEPPING == 16
-#define sinstepi 16
-static uint8_t sintable[sinstepi + 1] = { 0, 24, 49, 74, 97, 120, 141, 161, 180, 197, 212, 224, 235, 244, 250, 253, 255 };
-
-#elif NSTEPPING == 32
-#define sinstepi 32
-static uint8_t sintable[sinstepi + 1] = { 0, 12, 24, 37, 49, 61, 74, 85, 97, 109, 120, 131, 141, 151, 161, 171, 180, 188, 197, 204, 212, 218, 224, 230, 235, 240, 244, 247, 250, 252, 253, 254, 255 };
-
-#else
-#error Invalid NSTEPPING value
-
-#endif
-
 // recalculations - don't touch!
 #define		STEP_TIME			F_CPU / SPEED / PRESCALER
 #define		MIN_STEP_TIME	F_CPU / 1000 / PRESCALER
-#define sinstepi2   (sinstepi * 2)
-#define sinstepi3   (sinstepi * 3)
-#define sinstepi4   (sinstepi * 4)
-#define	sinsteplast (sinstepi4 - 1)
 
 // utilities
 #define		MASK(a)			(1 << a)
@@ -129,99 +94,39 @@ static FILE serio = FDEV_SETUP_STREAM(serial_putc_fdev, serial_getc_fdev, _FDEV_
 volatile int32_t pos;
 volatile int32_t npos;
 volatile uint16_t speed;
-volatile uint16_t speed_sync;
-volatile uint8_t superstep; // for disabling microstep during high speed runs
-volatile uint8_t superstep_sync;
-volatile int step1;
-volatile int step2;
-// uint8_t power0;
-// uint8_t power1;
-
-// integer sine approximation
-int sinstep(uint8_t sequence) {
-	while (sequence >= sinstepi4)
-		sequence -= sinstepi4;
-	if (sequence < (sinstepi + 1))
-		return sintable[sequence];
-	if ((sequence >= (sinstepi + 1)) && (sequence < (sinstepi2 + 1)))
-		return sintable[sinstepi2 - sequence];
-	if ((sequence >= (sinstepi2 + 1)) && (sequence < (sinstepi3 + 1)))
-		return -sintable[sequence - sinstepi2];
-	//if ((sequence >= (sinstepi3 + 1)) && (sequence < (sinstepi4 + 1)))
-		return -sintable[sinstepi4 - sequence];
-}
-
-// generate appropriate stepper signals for a sequence number
-void stepperseq(uint8_t sequence) {
-	step1 = sinstep(sequence);
-	step2 = sinstep(sequence + sinstepi);
-
-	// set directions
-	if (step1 >= 0)
-		PORT_DIR1 |= MASK(PIN_DIR1);
-	else {
-		PORT_DIR1 &= ~MASK(PIN_DIR1);
-	}
-
-// 	PORT_DIR1 = (PORT_DIR1 & ~MASK(PIN_DIR1)) | ((((step1 >= 0)?255:0) ^ wx) & MASK(PIN_DIR1));
-
-	if (step2 >= 0)
-		PORT_DIR2 |= MASK(PIN_DIR2);
-	else {
-		PORT_DIR2 &= ~MASK(PIN_DIR2);
-	}
-
-// 	PORT_DIR2 = (PORT_DIR2 & ~MASK(PIN_DIR2)) | ((((step2 >= 0)?255:0) ^ wx) & MASK(PIN_DIR2));
-
-	// set power
-	TCNT0 = 0xFD;
-	OCR0A = ((uint8_t) abs(step1));
-	OCR0B = ((uint8_t) abs(step2));
-}
-
-// // PWM reset interrupt
-// ISR(TIMER0_OVF_vect) {
-// 	// now that our counter is at zero, load new power levels
-// 	OCR0A = power0;
-// 	OCR0B = power1;
-// }
 
 // next step interrupt
 ISR(TIMER1_COMPA_vect) {
-	uint8_t i;
-
 	// toggle "L" led
 	PINB = MASK(PB5);
 
-	// update position
-	if (npos > pos)
-		pos += MASK(superstep_sync);
-	else if (npos < pos)
-		pos -= MASK(superstep_sync);
+	if (READ_STEPOUT & MASK(PIN_STEPOUT)) {
+		if (npos > pos)
+			PORT_DIROUT |= MASK(PIN_DIROUT);
+		else if (npos < pos)
+			PORT_DIROUT &= ~MASK(PIN_DIROUT);
+		else
+			TIMSK1 &= ~MASK(OCIE1A);
 
-	// write new position
-	i = pos & sinsteplast;
-	stepperseq(i);
-	// if we're at a sync point and we're changing microstep rate
-	if ((i & (sinstepi2 - 1)) == 0)
-		// do the change now
-		superstep_sync = superstep;
+		PORT_STEPOUT &= ~MASK(PIN_STEPOUT);
+	}
+	else {
+		PORT_STEPOUT |= MASK(PIN_STEPOUT);
+
+		if (READ_DIROUT & MASK(PIN_DIROUT))
+			pos++;
+		else
+			pos--;
+	}
+
 	// update speed
-	OCR1A = speed << superstep_sync;
+	OCR1A = speed;
 }
 
 void startstep(void) {
 	if ((TIMSK1 & MASK(OCIE1A)) == 0)
 	{
 		OCR1A = speed;
-// 		while ((OCR1A < MIN_STEP_TIME) && (superstep < sinstepi)) {
-// 			OCR1A <<= 1;
-// 			superstep <<= 1;
-// 		}
-// 		while (((OCR1A > (MIN_STEP_TIME * 2)) && (superstep > 1)) || (abs(npos - pos) < superstep)) {
-// 			OCR1A >>= 1;
-// 			superstep >>= 1;
-// 		}
 		TCNT1 = 0;
 	}
 
@@ -261,16 +166,9 @@ int main (void)
 	PORT_STEP |= MASK(PIN_STEP);
 	PORT_DIR |= MASK(PIN_DIR);
 
-	// direction pins to h-bridge
-	DDR_DIR1 |= MASK(PIN_DIR1);
-	DDR_DIR2 |= MASK(PIN_DIR2);
-	// enable pins to h-bridge - must be DIO5/6 for PWM operation
-	DDR_DIO5 |= MASK(PIN_DIO5);
-	DDR_DIO6 |= MASK(PIN_DIO6);
-
-	// setup timer 0 (PWM timer)
-	TCCR0A = MASK(COM0A1) | MASK(COM0B1) | MASK(WGM01) | MASK(WGM00); // enable PWM output pins (DIO5/6), fast PWM
-	TCCR0B = MASK(CS00);	// prescaler = 1 (max speed)
+	// direction pins to motor controller
+	DDR_STEPOUT |= MASK(PIN_STEPOUT);
+	DDR_DIROUT |= MASK(PIN_DIROUT);
 
 	// setup timer 1 (step timer)
 	TCCR1A = 0;
@@ -293,11 +191,7 @@ int main (void)
 	TIMSK1 = 0;
 	// set speed
 	speed = STEP_TIME;
-	OCR1A = speed << superstep;
-
-	// initialize stepper drive
-	//PORT_OUT = (PORT_OUT & ~PORT_OUT_MASK) | ((steps[0] ^ wmod) << PIN_LSB_OUT);
-	stepperseq(0);
+	OCR1A = speed;
 
 	// enable interrupts
 	sei();
@@ -311,8 +205,8 @@ int main (void)
 	{
 		// check logic inputs
 		if ((READ_STEP & MASK(PIN_STEP)) == 0) {
-			if (stepdebounce >= 32) {
-				if (stepdebounce == 32) {
+			if (stepdebounce >= 128) {
+				if (stepdebounce == 128) {
 					if (READ_DIR & MASK(PIN_DIR))
 						npos++;
 					else
@@ -366,11 +260,6 @@ int main (void)
 				case 'h':
 					npos = 0;
 					break;
-				case 'x':
-					r = scanf("%i", &rs);
-					if (r != 0)
-						superstep = rs;
-					break;
 				case 'R':
 					npos = pos = 0;
 					break;
@@ -389,8 +278,8 @@ int main (void)
 			printf("t:%7li", npos);
 			lcd_gotoxy(8, 1);
 			// printf("p:%i", PORT_STEP);
-			printf("%i %i", step1, step2);
-			// printf("%02X", READ_STEP);
+			// printf("%i %i", step1, step2);
+			printf("%02X", READ_STEP);
 		}
 	}
 }
