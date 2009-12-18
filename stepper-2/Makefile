@@ -39,7 +39,7 @@ LDFLAGS = -Wl,-u,vfprintf -lprintf_min -Wl,--as-needed -Wl,--gc-sections -finlin
 CC = $(ARCH)gcc
 OBJDUMP = $(ARCH)objdump
 OBJCOPY = $(ARCH)objcopy
-AVRDUDE = avrdude -F
+AVRDUDE = avrdude
 
 PROGPORT = /dev/arduino
 PROGBAUD = 19200
