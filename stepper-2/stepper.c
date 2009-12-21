@@ -165,6 +165,10 @@ int main (void)
 	PORT_STEP |= MASK(PIN_STEP);
 	PORT_DIR |= MASK(PIN_DIR);
 
+	// noise rejection
+	WPORT_AIO0 |= MASK(PIN_AIO0);
+	WPORT_AIO1 |= MASK(PIN_AIO1);
+
 	// outputs to motor controller
 	PORT_STEPOUT &= ~MASK(PIN_STEPOUT);
 	PORT_DIROUT &= ~MASK(PIN_DIROUT);
