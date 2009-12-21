@@ -156,7 +156,6 @@ int main (void)
 	uint16_t spinner = 0;
 	int r;
 	int32_t	rv;
-	int rs;
 
 	// setup inputs
 	DDR_STEP &= ~MASK(PIN_STEP);
@@ -166,7 +165,9 @@ int main (void)
 	PORT_STEP |= MASK(PIN_STEP);
 	PORT_DIR |= MASK(PIN_DIR);
 
-	// direction pins to motor controller
+	// outputs to motor controller
+	PORT_STEPOUT &= ~MASK(PIN_STEPOUT);
+	PORT_DIROUT &= ~MASK(PIN_DIROUT);
 	DDR_STEPOUT |= MASK(PIN_STEPOUT);
 	DDR_DIROUT |= MASK(PIN_DIROUT);
 
