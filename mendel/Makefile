@@ -34,7 +34,7 @@ F_CPU = 16000000L
 ARCH = avr-
 OPTIMIZE = -Os
 CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) -DF_CPU=$(F_CPU) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -ffunction-sections -save-temps
-LDFLAGS = -Wl,-u,vfprintf -lprintf_min -Wl,--as-needed -Wl,--gc-sections -finline-functions-called-once
+LDFLAGS = -lprintf_min -Wl,--as-needed -Wl,--gc-sections -finline-functions-called-once
 
 CC = $(ARCH)gcc
 OBJDUMP = $(ARCH)objdump

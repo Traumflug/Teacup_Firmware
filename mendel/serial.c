@@ -8,7 +8,7 @@
 volatile uint8_t _rx_buffer[BUFSIZE];
 volatile uint8_t _tx_buffer[BUFSIZE];
 
-void serial_init(uint16_t baud)
+void serial_init()
 {
 	ringbuffer_init(rx_buffer, BUFSIZE);
 	ringbuffer_init(tx_buffer, BUFSIZE);
@@ -17,7 +17,7 @@ void serial_init(uint16_t baud)
 	UCSR0B = (1 << RXEN0) | (1 << TXEN0);
 	UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
 
-	UBRR0 = ((F_CPU / 16) / baud) - 1;
+	UBRR0 = ((F_CPU / 16) / BAUD) - 1;
 
 	UCSR0B |= (1 << RXCIE0) | (1 << UDRIE0);
 }

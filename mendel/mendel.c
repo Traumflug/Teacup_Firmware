@@ -6,14 +6,6 @@
 #include	<avr/interrupt.h>
 
 #include	"serial.h"
-#include	"lcd.h"
-
-// write to lcd function for fdev_setup_stream
-// static int lcd_putc_fdev(char c, FILE *stream)
-// {
-// 	lcd_putc(c);
-// 	return 0;
-// }
 
 int serial_putc_fdev(char c, FILE *stream)
 {
@@ -27,8 +19,20 @@ int serial_getc_fdev(FILE *stream)
 	return (int) serial_popchar();
 }
 
-// static FILE lcdo = FDEV_SETUP_STREAM(lcd_putc_fdev, NULL, _FDEV_SETUP_WRITE);
 static FILE serio = FDEV_SETUP_STREAM(serial_putc_fdev, serial_getc_fdev, _FDEV_SETUP_RW);
+
+volatile uint32_t xpos;
+volatile uint32_t ypos;
+volatile uint32_t zpos;
+volatile uint32_t edelta;
+
+uint32_t xtarget;
+uint32_t ytarget;
+uint32_t ztarget;
+
+uint16_t xspeed;
+uint16_t yspeed;
+uint16_t zspeed;
 
 int main (void)
 {
@@ -38,7 +42,7 @@ int main (void)
 	stderr = &serio;
 
 	// set up serial
-	serial_init(19200);
+	serial_init();
 
 	sei();
 

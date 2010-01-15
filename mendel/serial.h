@@ -12,7 +12,7 @@
 extern volatile uint8_t _rx_buffer[];
 extern volatile uint8_t _tx_buffer[];
 
-void serial_init(uint16_t baud);
+void serial_init(void);
 
 uint16_t serial_rxchars(void);
 uint16_t serial_txchars(void);
