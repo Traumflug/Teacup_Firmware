@@ -230,7 +230,7 @@ int main (void)
 				}
 				// approach threshold
 				else {
-					stepdebounce++
+					stepdebounce++;
 				}
 			}
 			// if input changed, reset debouncer
