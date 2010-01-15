@@ -58,7 +58,7 @@ program: $(PROGRAM).hex
 	stty -hup -echo < $(PROGPORT)
 
 clean:
-	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al
+	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) -Wa,-adhlns=$(<:.c=.al) -o $@ $^
