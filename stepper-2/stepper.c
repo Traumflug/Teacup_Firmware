@@ -156,6 +156,7 @@ int main (void)
 	uint16_t spinner = 0;
 	int r;
 	int32_t	rv;
+	uint8_t input_lastreading;
 
 	// setup inputs
 	DDR_STEP &= ~MASK(PIN_STEP);
@@ -210,21 +211,33 @@ int main (void)
 	for (;;)
 	{
 		// check logic inputs
-		if ((READ_STEP & MASK(PIN_STEP)) == 0) {
-			if (stepdebounce >= 128) {
-				if (stepdebounce == 128) {
-					if (READ_DIR & MASK(PIN_DIR))
-						npos++;
-					else
-						npos--;
-					stepdebounce++;
+		if (1) {
+			uint8_t input_thisreading = (READ_STEP & (MASK(PIN_STEP) | MASK(PIN_DIR)));
+			// if same as last time
+			if (input_thisreading == input_lastreading) {
+				// if we're near debounce threshold
+				if (stepdebounce >= 32) {
+					// if we're exactly on the threshold
+					if (stepdebounce == 32) {
+						// adjust target position
+						if (input_thisreading & MASK(PIN_DIR))
+							npos++;
+						else
+							npos--;
+						// go over threshold so inputs must change before next move
+						stepdebounce++;
+					}
+				}
+				// approach threshold
+				else {
+					stepdebounce++
 				}
 			}
-			else
-				stepdebounce++;
+			// if input changed, reset debouncer
+			else {
+				stepdebounce = 0;
+			}
 		}
-		else
-			stepdebounce = 0;
 
 		// check serial input
 		if (serial_rxchars()) {
