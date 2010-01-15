@@ -21,7 +21,6 @@
 #define	MAX_IMMED_MM_PER_SEC	20
 #define	ACCEL									10
 
-
 /*
 	state machine variables
 */
@@ -68,22 +67,17 @@ struct axis {
 } axes[AXIS_COUNT];
 
 uint8_t axis_char_to_id(uint8_t c) {
-	if (c >= 'X')
+	if (c >= 'X' && c <= 'Z')
 		return c - 'X';
 	if (c == 'E')
 		return 3;
-	if (c == 'T')
+	if (c == 'F')
 		return 4;
 	return 255;
 }
 
 int main (void)
 {
-	// set up STDIN/OUT/ERR
-// 	stdin = &serio;
-// 	stdout = &serio;
-// 	stderr = &serio;
-
 	// set up serial
 	serial_init();
 
