@@ -5,9 +5,6 @@
 #include	"machine.h"
 #include	"dda.h"
 
-extern uint8_t	mb_head;
-extern uint8_t	mb_tail;
-extern DDA movebuffer[16];
 extern uint8_t	option_bitfield;
 
 #define	PI	3.1415926535
@@ -135,7 +132,7 @@ void scan_char(uint8_t c) {
 	else if ((c == '.') && ((exp & 0x7F) == 0))
 		exp |= 1;
 	else if (c >= '0' && c <= '9') {
-		mantissa = (mantissa * 10) + (c - '0');
+		mantissa = ((mantissa << 3) + (mantissa << 1)) + (c - '0');
 		if (exp & 0x7F)
 			exp++;
 	}
@@ -189,6 +186,6 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 	}
 
 	if (do_move) {
-		dda_create(gcmd, movebuffer);
+		dda_create(&gcmd->target, movebuffer);
 	}
 }

@@ -9,12 +9,9 @@
 
 #include	"dda.h"
 #include	"gcode.h"
+#include	"timer.h"
 
 #include	"machine.h"
-
-uint8_t	mb_head = 0;
-uint8_t	mb_tail = 0;
-DDA movebuffer[16];
 
 uint8_t	option_bitfield;
 
@@ -30,6 +27,9 @@ int main (void)
 {
 	// set up serial
 	serial_init();
+
+	// set up timers
+	setupTimerInterrupt();
 
 	// enable interrupts
 	sei();

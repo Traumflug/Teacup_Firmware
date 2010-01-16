@@ -4,9 +4,7 @@
 /*
 	machine variables
 */
-#define	AXIS_COUNT 5
-#define	AXIS_HOMING_COUNT	3
-
+#define	MOVEBUFFER_SIZE	8
 /*
 	axis calculations, adjust as necessary
 */

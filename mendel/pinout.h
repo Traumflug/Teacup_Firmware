@@ -7,74 +7,59 @@
 #define		MASK(PIN)				(1 << PIN)
 #endif
 
-#define		_PIN(P)		#P
-
 #define		READ(IO)				(RPORT_ ## IO & MASK(PIN_ ## IO))
 #define		WRITE(IO, v)		if (v) { WPORT_ ## IO |= MASK(PIN_ ## IO); } else { WPORT_ ## IO &= ~MASK(PIN_ ## IO); }
+
 #define		SET_INPUT(IO)		(DDR_ ## IO |= MASK(PIN_ ## IO))
 #define		SET_OUTPUT(IO)	(DDR_ ## IO &= ~MASK(PIN ## IO))
 
-// #define		X_STEP_PIN	DIO0
-// #define		X_DIR_PIN		DIO1
-// #define		X_MIN_MIN		DIO2
-// #define		X_MAX_PIN		DIO3
+// void x_step(void);
+// void y_step(void);
+// void z_step(void);
+// void e_step(void);
 
-// #define		Y_STEP_PIN	DIO4
-// #define		Y_DIR_PIN		DIO5
-// #define		Y_MIN_MIN		DIO6
-// #define		Y_MAX_PIN		DIO7
+#define	_x_step(st)					WRITE(AIO0, st)
+#define	x_step()						_x_step(1);
+#define	x_direction(dir)		WRITE(AIO1, dir)
+#define	x_min()							READ(AIO2)
+#ifdef	MAX_ENDSTOPS
+#define	x_max()							READ(AIO3)
+#else
+#define	x_max()							(0)
+#endif
 
-// #define		Z_STEP_PIN	DIO8
-// #define		Z_DIR_PIN		DIO9
-// #define		Z_MIN_MIN		DIO10
-// #define		Z_MAX_PIN		DIO11
+#define	_y_step(st)					WRITE(DIO2, st)
+#define	y_step()						_y_step(1);
+#define	y_direction(dir)		WRITE(DIO3, dir)
+#define	y_min()							READ(DIO4)
+#ifdef	MAX_ENDSTOPS
+#define	y_max()							READ(DIO5)
+#else
+#define	y_max()							(0)
+#endif
 
-// #define		E_STEP_PIN	DIO12
-// #define		E_DIR_PIN		DIO13
+#define	_z_step(st)					WRITE(DIO6, st)
+#define	z_step()						_z_step(1);
+#define	z_direction(dir)		WRITE(DIO7, dir)
+#define	z_min()							READ(DIO8)
+#ifdef	MAX_ENDSTOPS
+#define	z_max()							READ(DIO9)
+#else
+#define	z_max()							(0)
+#endif
 
-void x_step(void);
-void y_step(void);
-void z_step(void);
-void e_step(void);
+#define	_e_step(st)					WRITE(AIO4, st)
+#define	e_step()						_e_step(1);
+#define	e_direction(dir)		WRITE(AIO5, dir)
 
-inline void x_direction(uint8_t dir) {
-	WRITE(DIO1, dir);
-}
+#define	enable_steppers()		WRITE(DIO10, 1)
+#define	disable_steppers()	WRITE(DIO10, 0)
 
-inline uint8_t x_min(void) {
-	return READ(DIO2);
-}
-
-inline uint8_t x_max(void) {
-	return READ(DIO3);
-}
-
-inline void y_direction(uint8_t dir) {
-	WRITE(DIO5, dir);
-}
-
-inline uint8_t y_min(void) {
-	return READ(DIO6);
-}
-
-inline uint8_t y_max(void) {
-	return READ(DIO7);
-}
-
-inline void z_direction(uint8_t dir) {
-	WRITE(DIO9, dir);
-}
-
-inline uint8_t z_min(void) {
-	return READ(DIO10);
-}
-
-inline uint8_t z_max(void) {
-	return READ(DIO11);
-}
-
-inline void e_direction(uint8_t dir) {
-	WRITE(DIO13, dir);
+inline void unstep(void) {
+	_x_step(0);
+	_y_step(0);
+	_z_step(0);
+	_e_step(0);
 }
 
 #endif	/* _PINOUT_H */
