@@ -13,11 +13,6 @@
 #define		SET_INPUT(IO)		(DDR_ ## IO |= MASK(PIN_ ## IO))
 #define		SET_OUTPUT(IO)	(DDR_ ## IO &= ~MASK(PIN ## IO))
 
-// void x_step(void);
-// void y_step(void);
-// void z_step(void);
-// void e_step(void);
-
 #define	_x_step(st)					WRITE(AIO0, st)
 #define	x_step()						_x_step(1);
 #define	x_direction(dir)		WRITE(AIO1, dir)

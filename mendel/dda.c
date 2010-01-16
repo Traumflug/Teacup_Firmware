@@ -12,6 +12,10 @@ extern struct {
 	volatile int32_t	F;
 } current_position;
 
+/*
+	move queue
+*/
+
 uint8_t	mb_head = 0;
 uint8_t	mb_tail = 0;
 DDA movebuffer[MOVEBUFFER_SIZE];
@@ -21,10 +25,6 @@ uint8_t queue_full() {
 		return mb_head == (MOVEBUFFER_SIZE - 1);
 	else
 		return mb_head == (mb_tail - 1);
-}
-
-inline uint8_t queue_empty() {
-	return (mb_tail == mb_head) && !movebuffer[tail].live;
 }
 
 void enqueue(TARGET *t) {
@@ -54,6 +54,10 @@ void next_move() {
 		dda_start(&movebuffer[t]);
 	}
 }
+
+/*
+	utility functions
+*/
 
 // courtesy of http://www.oroboro.com/rafael/docserv.php/index/programming/article/distance
 uint32_t approx_distance( int32_t dx, int32_t dy )
@@ -127,7 +131,7 @@ void dda_create(TARGET *target, DDA *dda) {
 	static TARGET startpoint = { 0, 0, 0, 0, 0 };
 
 	// we start at the previous endpoint
-	memcpy(&dda->currentpoint, &startpoint, sizeof(TARGET));
+// 	memcpy(&dda->currentpoint, &startpoint, sizeof(TARGET));
 	// we end at the passed command's endpoint
 	memcpy(&dda->endpoint, target, sizeof(TARGET));
 
@@ -166,14 +170,6 @@ void dda_create(TARGET *target, DDA *dda) {
 	if (dda->total_steps == 0)
 		dda->nullmove = 1;
 
-	// MM = sqrt(X^2 + Y^2)
-	// STEPS = max(X * STEPS_PER_MM_X, Y * STEPS_PER_MM_Y)
-	// DURATION = MM / MM_PER_MIN * 60 SEC_PER_MIN * 1000000 US_PER_SEC
-	// US/STEP = DURATION / STEPS
-	// intF = sqrt(X^2 + Y^2) / max(X * STEPS_PER_MM_X, Y * STEPS_PER_MM_Y)
-
-// 	dda->endpoint.F = distance / total_steps;
-
 	if (dda->f_delta > dda->total_steps) {
 		dda->f_scale = dda->f_delta / dda->total_steps;
 		if (dda->f_scale > 3) {
@@ -196,12 +192,14 @@ void dda_create(TARGET *target, DDA *dda) {
 
 	// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 	// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
-	// mm.us per step.min / mm/min (F) = us per step
+	// so in the interrupt we must simply calculate
+	// mm.us per step.min / mm per min (F) = us per step
 	dda->move_duration = dda->distance * 60000000 / dda->total_steps;
 
 	// next dda starts where we finish
 	memcpy(&startpoint, &dda->endpoint, sizeof(TARGET));
 
+	// make sure we're not running
 	dda->live = 0;
 }
 
@@ -220,6 +218,7 @@ void dda_start(DDA *dda) {
 	e_direction(dda->e_direction);
 
 	enable_steppers();
+
 	dda->live = 1;
 }
 
@@ -257,8 +256,8 @@ void dda_step(DDA *dda) {
 		step_option |= can_step(x_min(), x_max(), current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
 		step_option |= can_step(y_min(), y_max(), current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
 		step_option |= can_step(z_min(), z_max(), current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
-		step_option |= can_step(-1     , -1     , current_position.E, dda->endpoint.E, dda->e_direction) & E_CAN_STEP;
-		step_option |= can_step(-1     , -1     , current_position.F, dda->endpoint.F, dda->f_direction) & F_CAN_STEP;
+		step_option |= can_step(0      , 0      , current_position.E, dda->endpoint.E, dda->e_direction) & E_CAN_STEP;
+		step_option |= can_step(0      , 0      , current_position.F, dda->endpoint.F, dda->f_direction) & F_CAN_STEP;
 
 		if (step_option & X_CAN_STEP) {
 			dda->x_counter -= dda->x_delta;
@@ -339,11 +338,13 @@ void dda_step(DDA *dda) {
 	} while (	((step_option & REAL_MOVE ) == 0) &&
 						((step_option & F_CAN_STEP) != 0)	);
 
+	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	unstep();
 
-	if (step_option & REAL_MOVE) {
+	// we have stepped and now need to wait
+	if (step_option & REAL_MOVE)
 		setTimer(dda->move_duration / current_position.F);
-	}
 
+	// if we could step, we're still running
 	dda->live = (step_option & (X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP));
 }

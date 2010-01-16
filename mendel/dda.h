@@ -9,7 +9,7 @@
 #include	"machine.h"
 
 typedef struct {
-	TARGET						currentpoint;
+// 	TARGET						currentpoint;
 	TARGET						endpoint;
 
 	uint8_t						x_direction		:1;
@@ -43,9 +43,15 @@ extern uint8_t	mb_head;
 extern uint8_t	mb_tail;
 extern DDA movebuffer[MOVEBUFFER_SIZE];
 
-uint32_t approx_distance( int32_t dx, int32_t dy );
+uint8_t queue_full(void);
+inline uint8_t queue_empty(void) { return (mb_tail == mb_head) && !movebuffer[mb_tail].live; }
+void enqueue(TARGET *t);
+void next_move(void);
 
-void dda_create(GCODE_COMMAND *cmd, DDA *dda);
+uint32_t approx_distance( int32_t dx, int32_t dy );
+uint32_t approx_distance_3( int32_t dx, int32_t dy, int32_t dz );
+
+void dda_create(TARGET *target, DDA *dda);
 void dda_start(DDA *dda);
 void dda_step(DDA *dda);
 

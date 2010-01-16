@@ -9,6 +9,7 @@
 #define	MS	* (F_CPU / 1000)
 
 #define	DEFAULT_TICK	(100 US)
+#define	WAITING_DELAY	(10 MS)
 
 void setupTimerInterrupt(void);
 uint8_t getTimerResolution(const uint32_t delay);
@@ -17,6 +18,7 @@ uint16_t getTimerCeiling(const uint32_t delay);
 
 void setTimer(uint32_t delay);
 
+void delay(uint32_t delay);
 void delayMicrosecondsInterruptible(unsigned int us);
 
 inline void enableTimerInterrupt(void)
