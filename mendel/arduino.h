@@ -1,6 +1,8 @@
 #ifndef	_ARDUINO_H
 #define	_ARDUINO_H
 
+#include	<avr/io.h>
+
 #define PIN_DIO0 PD0
 #define RPORT_DIO0 PIND
 #define WPORT_DIO0 PORTD

@@ -14,7 +14,7 @@
 
 PROGRAM = mendel
 
-SOURCES = $(PROGRAM).c ringbuffer.c serial.c
+SOURCES = $(PROGRAM).c ringbuffer.c serial.c dda.c gcode.c pinout.c
 
 ##############################################################################
 #                                                                            #
