@@ -8,6 +8,8 @@
 
 extern uint8_t	option_bitfield;
 
+decfloat read_digit;
+
 #define	PI	3.1415926535
 
 /*
@@ -23,21 +25,30 @@ uint8_t indexof(uint8_t c, char *string) {
 	return 255;
 }
 
-float manexp_to_float(uint32_t mantissa, uint8_t exp) {
-	float v = mantissa;
+int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator) {
+	int32_t	r = df->mantissa;
+	uint8_t	e = df->exponent - 1;
 
-	if (exp == 2)
-		v /= 10;
-	else if (exp == 3)
-		v /= 100;
-	else if (exp == 4)
-		v /= 1000;
-	else if (exp == 5)
-		v /= 10000;
-	else if (exp == 6)
-		v /= 100000;
+	if (multiplicand != 1)
+		r *= multiplicand;
+	if (denominator != 1)
+		r /= denominator;
 
-	return v;
+	while (e >= 5) {
+		r /= 100000;
+		e -= 5;
+	}
+
+	if (e == 1)
+		r /= 10;
+	else if (e == 2)
+		r /= 100;
+	else if (e == 3)
+		r /= 1000;
+	else if (e == 4)
+		r /= 10000;
+
+	return r;
 }
 
 /*
@@ -46,8 +57,8 @@ float manexp_to_float(uint32_t mantissa, uint8_t exp) {
 
 void scan_char(uint8_t c) {
 	static uint8_t last_field = 0;
-	static uint32_t mantissa = 0;
-	static uint8_t exp = 0;
+// 	static uint32_t mantissa = 0;
+// 	static uint8_t exp = 0;
 	static GCODE_COMMAND next_target = { 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
 
 	// uppercase
@@ -59,30 +70,31 @@ void scan_char(uint8_t c) {
 		if (last_field) {
 			switch (last_field) {
 				case 'G':
-					next_target.G = mantissa;
+					next_target.G = read_digit.mantissa;
 					break;
 				case 'M':
-					next_target.M = mantissa;
+					next_target.M = read_digit.mantissa;
 					break;
 				case 'X':
-					next_target.target.X = manexp_to_float(mantissa, exp) * STEPS_PER_MM_X;
+					next_target.target.X = decfloat_to_int(&read_digit, STEPS_PER_MM_X, 1);
 					break;
 				case 'Y':
-					next_target.target.Y = manexp_to_float(mantissa, exp) * STEPS_PER_MM_Y;
+					next_target.target.Y = decfloat_to_int(&read_digit, STEPS_PER_MM_Y, 1);
 					break;
 				case 'Z':
-					next_target.target.Z = manexp_to_float(mantissa, exp) * STEPS_PER_MM_Z;
+					next_target.target.Z = decfloat_to_int(&read_digit, STEPS_PER_MM_Z, 1);
 					break;
 				case 'E':
-					next_target.target.E = manexp_to_float(mantissa, exp) * STEPS_PER_MM_E;
+					next_target.target.E = decfloat_to_int(&read_digit, STEPS_PER_MM_E, 1);
 					break;
 				case 'F':
 					// just save an integer value for F, we need move distance and n_steps to convert it to a useful value, so wait until we have those to convert it
-					next_target.target.F = mantissa;
+					next_target.target.F = read_digit.mantissa;
 					break;
 			}
-			mantissa = 0;
-			exp = 0;
+			read_digit.sign = 0;
+			read_digit.mantissa = 0;
+			read_digit.exponent = 0;
 		}
 		last_field = c;
 		switch (c) {
@@ -126,13 +138,13 @@ void scan_char(uint8_t c) {
 
 	// process digits
 	else if (c == '-')
-		exp |= 0x80;
-	else if ((c == '.') && ((exp & 0x7F) == 0))
-		exp |= 1;
+		read_digit.sign = 1;
+	else if ((c == '.') && (read_digit.exponent == 0))
+		read_digit.exponent = 1;
 	else if (c >= '0' && c <= '9') {
-		mantissa = ((mantissa << 3) + (mantissa << 1)) + (c - '0');
-		if (exp & 0x7F)
-			exp++;
+		read_digit.mantissa = (read_digit.mantissa << 3) + (read_digit.mantissa << 1) + (c - '0');
+		if (read_digit.exponent)
+			read_digit.exponent++;
 	}
 }
 

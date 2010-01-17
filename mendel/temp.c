@@ -17,11 +17,11 @@ int16_t		heater_p     = 0;
 int16_t		heater_i     = 0;
 int16_t		heater_d     = 0;
 
-int16_t		p_factor			= 680;
-int16_t		i_factor			= 18;
-int16_t		d_factor			= 200;
+int32_t		p_factor			= 680;
+int32_t		i_factor			= 18;
+int32_t		d_factor			= 200;
 
-#define		PID_SCALE			1024
+#define		PID_SCALE			1024L
 
 uint16_t temp_read() {
 	uint16_t temp;
@@ -69,12 +69,18 @@ void temp_tick() {
 	// note: D follows temp rather than error so there's no large derivative when the target temperature changes
 	heater_d = (current_temp - last_temp);
 
-	int16_t pid_output = ((heater_p * p_factor) + (heater_i * i_factor) + (heater_d * d_factor)) / PID_SCALE;
+	uint8_t pid_output = (
+			(
+				(((int32_t) heater_p) * p_factor) +
+				(((int32_t) heater_i) * i_factor) +
+				(((int32_t) heater_d) * d_factor)
+			) / PID_SCALE
+		);
 
 #ifdef	HEATER_PIN_PWMABLE
 	HEATER_PIN_PWMABLE = pid_output
 #else
-	if (pid_output > 0) {
+	if (pid_output >= 128) {
 		enable_heater();
 	}
 	else {

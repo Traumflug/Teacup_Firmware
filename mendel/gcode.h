@@ -3,6 +3,14 @@
 
 #include	"target.h"
 
+#include	<stdint.h>
+
+typedef struct {
+	uint16_t	sign			:1;
+	uint16_t	mantissa	:11;
+	uint16_t	exponent	:4;
+} decfloat;
+
 typedef struct {
 	uint16_t					seen;
 #define							SEEN_G	1
