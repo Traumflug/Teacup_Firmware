@@ -3,6 +3,31 @@
 
 #include	<avr/io.h>
 
+/*
+	utility functions
+*/
+
+#ifndef		MASK
+#define		MASK(PIN)				(1 << PIN)
+#endif
+
+#define		_READ(IO)					(RPORT_ ## IO & MASK(PIN_ ## IO))
+#define		_WRITE(IO, v)			if (v) { WPORT_ ## IO |= MASK(PIN_ ## IO); } else { WPORT_ ## IO &= ~MASK(PIN_ ## IO); }
+
+#define		_SET_INPUT(IO)		(DDR_ ## IO |= MASK(PIN_ ## IO))
+#define		_SET_OUTPUT(IO)		(DDR_ ## IO &= ~MASK(PIN_ ## IO))
+
+// why double up on macros? see http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
+
+#define		READ(IO)					_READ(IO)
+#define		WRITE(IO, v)			_WRITE(IO, v)
+#define		SET_INPUT(IO)			_SET_INPUT(IO)
+#define		SET_OUTPUT(IO)		_SET_OUTPUT(IO)
+
+/*
+	pins
+*/
+
 #define PIN_DIO0 PD0
 #define RPORT_DIO0 PIND
 #define WPORT_DIO0 PORTD

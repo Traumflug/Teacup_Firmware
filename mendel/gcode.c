@@ -4,6 +4,7 @@
 
 #include	"machine.h"
 #include	"dda.h"
+#include	"serial.h"
 
 extern uint8_t	option_bitfield;
 
@@ -76,13 +77,8 @@ void scan_char(uint8_t c) {
 					next_target.target.E = manexp_to_float(mantissa, exp) * STEPS_PER_MM_E;
 					break;
 				case 'F':
-					// TODO: calculate end speed in microseconds per step from millimeters per minute
-					// MM = sqrt(X^2 + Y^2)
-					// STEPS = max(X * STEPS_PER_MM_X, Y * STEPS_PER_MM_Y)
-					// DURATION = MM / MM_PER_MIN * 60 SEC_PER_MIN * 1000000 US_PER_SEC
-					// US/STEP = DURATION / STEPS
-					// intF = sqrt(X^2 + Y^2) / max(X * STEPS_PER_MM_X, Y * STEPS_PER_MM_Y)
-					next_target.target.F = manexp_to_float(mantissa, exp) * STEPS_PER_MM_F;
+					// just save an integer value for F, we need move distance and n_steps to convert it to a useful value, so wait until we have those to convert it
+					next_target.target.F = mantissa;
 					break;
 			}
 			mantissa = 0;
@@ -122,6 +118,8 @@ void scan_char(uint8_t c) {
 				last_field = 0;
 				memset(&next_target, 0, sizeof(GCODE_COMMAND));
 				next_target.option = option_bitfield;
+
+				serial_writeblock((uint8_t *) "OK\n", 3);
 				break;
 		}
 	}

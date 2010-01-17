@@ -2,6 +2,7 @@
 
 #include	<string.h>
 
+#include	"pinout.h"
 #include	"timer.h"
 
 extern struct {
@@ -128,7 +129,8 @@ uint32_t approx_distance_3( int32_t dx, int32_t dy, int32_t dz )
 */
 
 void dda_create(TARGET *target, DDA *dda) {
-	static TARGET startpoint = { 0, 0, 0, 0, 0 };
+	static		TARGET startpoint = { 0, 0, 0, 0, 0 };
+	uint32_t	distance;
 
 	// we start at the previous endpoint
 // 	memcpy(&dda->currentpoint, &startpoint, sizeof(TARGET));
@@ -145,16 +147,16 @@ void dda_create(TARGET *target, DDA *dda) {
 
 	// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
 	if (dda->z_delta == 0)
-		dda->distance = approx_distance(dda->x_delta, dda->y_delta);
+		distance = approx_distance(dda->x_delta, dda->y_delta);
 	else if (dda->x_delta == 0 && dda->y_delta == 0)
-		dda->distance = dda->z_delta;
+		distance = dda->z_delta;
 	else
-		dda->distance = approx_distance_3(dda->x_delta, dda->y_delta, dda->z_delta);
+		distance = approx_distance_3(dda->x_delta, dda->y_delta, dda->z_delta);
 
-	if (dda->distance < 2)
-		dda->distance = dda->e_delta;
-	if (dda->distance < 2)
-		dda->distance = dda->f_delta;
+	if (distance < 2)
+		distance = dda->e_delta;
+	if (distance < 2)
+		distance = dda->f_delta;
 
 	dda->total_steps = dda->x_delta;
 	if (dda->y_delta > dda->total_steps)
@@ -194,7 +196,7 @@ void dda_create(TARGET *target, DDA *dda) {
 	// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
 	// so in the interrupt we must simply calculate
 	// mm.us per step.min / mm per min (F) = us per step
-	dda->move_duration = dda->distance * 60000000 / dda->total_steps;
+	dda->move_duration = distance * 60000000 / dda->total_steps;
 
 	// next dda starts where we finish
 	memcpy(&startpoint, &dda->endpoint, sizeof(TARGET));

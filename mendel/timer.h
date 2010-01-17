@@ -31,9 +31,6 @@ inline void disableTimerInterrupt(void)
 	TIMSK1 &= ~(1<<OCIE1A);
 }
 
-inline void setTimerCeiling(uint16_t c)
-{
-	OCR1A = c;
-}
+#define setTimerCeiling(c)		OCR1A = c
 
 #endif	/* _TIMER_H */
