@@ -11,13 +11,13 @@
 #define		MASK(PIN)				(1 << PIN)
 #endif
 
-#define		_READ(IO)					(RPORT_ ## IO & MASK(PIN_ ## IO))
-#define		_WRITE(IO, v)			if (v) { WPORT_ ## IO |= MASK(PIN_ ## IO); } else { WPORT_ ## IO &= ~MASK(PIN_ ## IO); }
+#define		_READ(IO)					(IO ## _RPORT & MASK(IO ## _PIN))
+#define		_WRITE(IO, v)			if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } else { IO ## _WPORT &= ~MASK(IO ## _PIN); }
 
-#define		_SET_INPUT(IO)		(DDR_ ## IO |= MASK(PIN_ ## IO))
-#define		_SET_OUTPUT(IO)		(DDR_ ## IO &= ~MASK(PIN_ ## IO))
+#define		_SET_INPUT(IO)		(IO ## _DDR |= MASK(IO ## _PIN))
+#define		_SET_OUTPUT(IO)		(IO ## _DDR &= ~MASK(IO ## _PIN))
 
-// why double up on macros? see http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
+// why double up on these macros? see http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
 
 #define		READ(IO)					_READ(IO)
 #define		WRITE(IO, v)			_WRITE(IO, v)
@@ -28,104 +28,140 @@
 	pins
 */
 
-#define PIN_DIO0 PD0
-#define RPORT_DIO0 PIND
-#define WPORT_DIO0 PORTD
-#define DDR_DIO0 DDRD
+#define DIO0_PIN		PD0
+#define DIO0_RPORT	PIND
+#define DIO0_WPORT	PORTD
+#define DIO0_DDR		DDRD
 
-#define PIN_DIO1 PD1
-#define RPORT_DIO1 PIND
-#define WPORT_DIO1 PORTD
-#define DDR_DIO1 DDRD
+#define DIO1_PIN		PD1
+#define DIO1_RPORT	PIND
+#define DIO1_WPORT	PORTD
+#define DIO1_DDR		DDRD
 
-#define PIN_DIO2 PD2
-#define RPORT_DIO2 PIND
-#define WPORT_DIO2 PORTD
-#define DDR_DIO2 DDRD
+#define DIO2_PIN		PD2
+#define DIO2_RPORT	PIND
+#define DIO2_WPORT	PORTD
+#define DIO2_DDR		DDRD
 
-#define PIN_DIO3 PD3
-#define RPORT_DIO3 PIND
-#define WPORT_DIO3 PORTD
-#define DDR_DIO3 DDRD
+#define DIO3_PIN		PD3
+#define DIO3_RPORT	PIND
+#define DIO3_WPORT	PORTD
+#define DIO3_DDR		DDRD
 
-#define PIN_DIO4 PD4
-#define RPORT_DIO4 PIND
-#define WPORT_DIO4 PORTD
-#define DDR_DIO4 DDRD
+#define DIO4_PIN		PD4
+#define DIO4_RPORT	PIND
+#define DIO4_WPORT	PORTD
+#define DIO4_DDR		DDRD
 
-#define PIN_DIO5 PD5
-#define RPORT_DIO5 PIND
-#define WPORT_DIO5 PORTD
-#define DDR_DIO5 DDRD
+#define DIO5_PIN		PD5
+#define DIO5_RPORT	PIND
+#define DIO5_WPORT	PORTD
+#define DIO5_DDR		DDRD
 
-#define PIN_DIO6 PD6
-#define RPORT_DIO6 PIND
-#define WPORT_DIO6 PORTD
-#define DDR_DIO6 DDRD
+#define DIO6_PIN		PD6
+#define DIO6_RPORT	PIND
+#define DIO6_WPORT	PORTD
+#define DIO6_DDR		DDRD
 
-#define PIN_DIO7 PD7
-#define RPORT_DIO7 PIND
-#define WPORT_DIO7 PORTD
-#define DDR_DIO7 DDRD
+#define DIO7_PIN		PD7
+#define DIO7_RPORT	PIND
+#define DIO7_WPORT	PORTD
+#define DIO7_DDR		DDRD
 
-#define PIN_DIO8 PB0
-#define RPORT_DIO8 PINB
-#define WPORT_DIO8 PORTB
-#define DDR_DIO8 DDRB
+#define DIO8_PIN		PB0
+#define DIO8_RPORT	PINB
+#define DIO8_WPORT	PORTB
+#define DIO8_DDR		DDRB
 
-#define PIN_DIO9 PB1
-#define RPORT_DIO9 PINB
-#define WPORT_DIO9 PORTB
-#define DDR_DIO9 DDRB
+#define DIO9_PIN		PB1
+#define DIO9_RPORT	PINB
+#define DIO9_WPORT	PORTB
+#define DIO9_DDR		DDRB
 
-#define PIN_DIO10 PB2
-#define RPORT_DIO10 PINB
-#define WPORT_DIO10 PORTB
-#define DDR_DIO10 DDRB
+#define DIO10_PIN 	PB2
+#define DIO10_RPORT	PINB
+#define DIO10_WPORT	PORTB
+#define DIO10_DDR		DDRB
 
-#define PIN_DIO11 PB3
-#define RPORT_DIO11 PINB
-#define WPORT_DIO11 PORTB
-#define DDR_DIO11 DDRB
+#define DIO11_PIN		PB3
+#define DIO11_RPORT	PINB
+#define DIO11_WPORT	PORTB
+#define DIO11_DDR		DDRB
 
-#define PIN_DIO12 PB4
-#define RPORT_DIO12 PINB
-#define WPORT_DIO12 PORTB
-#define DDR_DIO12 DDRB
+#define DIO12_PIN		PB4
+#define DIO12_RPORT	PINB
+#define DIO12_WPORT	PORTB
+#define DIO12_DDR		DDRB
 
-#define PIN_DIO13 PB5
-#define RPORT_DIO13 PINB
-#define WPORT_DIO13 PORTB
-#define DDR_DIO13 DDRB
+#define DIO13_PIN		PB5
+#define DIO13_RPORT	PINB
+#define DIO13_WPORT	PORTB
+#define DIO13_DDR		DDRB
 
-#define PIN_AIO0 PC0
-#define RPORT_AIO0 PINC
-#define WPORT_AIO0 PORTC
-#define DDR_AIO0 DDRC
+#define AIO0_PIN		PC0
+#define AIO0_RPORT	PINC
+#define AIO0_WPORT	PORTC
+#define AIO0_DDR		DDRC
 
-#define PIN_AIO1 PC1
-#define RPORT_AIO1 PINC
-#define WPORT_AIO1 PORTC
-#define DDR_AIO1 DDRC
+#define AIO1_PIN		PC1
+#define AIO1_RPORT	PINC
+#define AIO1_WPORT	PORTC
+#define AIO1_DDR		DDRC
 
-#define PIN_AIO2 PC2
-#define RPORT_AIO2 PINC
-#define WPORT_AIO2 PORTC
-#define DDR_AIO2 DDRC
+#define AIO2_PIN		PC2
+#define AIO2_RPORT	PINC
+#define AIO2_WPORT	PORTC
+#define AIO2_DDR		DDRC
 
-#define PIN_AIO3 PC3
-#define RPORT_AIO3 PINC
-#define WPORT_AIO3 PORTC
-#define DDR_AIO3 DDRC
+#define AIO3_PIN		PC3
+#define AIO3_RPORT	PINC
+#define AIO3_WPORT	PORTC
+#define AIO3_DDR		DDRC
 
-#define PIN_AIO4 PC4
-#define RPORT_AIO4 PINC
-#define WPORT_AIO4 PORTC
-#define DDR_AIO4 DDRC
+#define AIO4_PIN		PC4
+#define AIO4_RPORT	PINC
+#define AIO4_WPORT	PORTC
+#define AIO4_DDR		DDRC
 
-#define PIN_AIO5 PC5
-#define RPORT_AIO5 PINC
-#define WPORT_AIO5 PORTC
-#define DDR_AIO5 DDRC
+#define AIO5_PIN		PC5
+#define AIO5_RPORT	PINC
+#define AIO5_WPORT	PORTC
+#define AIO5_DDR		DDRC
+
+/*
+	timers
+*/
+
+// list of PWM-able pins and corresponding timers
+// OC0A											DIO6
+// OC0B											DIO5
+// OC1A											DIO9
+// OC1B											DIO10
+// OC2A											DIO11
+// OC2B											DIO3
+
+
+#define	OC0A_PIN				DIO6
+#define	OC0A_CMR				OCR0A
+#define	OC0A_COM_PORT		TCCR0A
+#define	OC0A_COM0				COM0A0
+#define	OC0A_COM1				COM0A1
+#define	OC0A_WGM0_PORT	TCCR0A
+#define	OC0A_WGM0_PIN		WGM00
+#define	OC0A_WGM1_PORT	TCCR0A
+#define	OC0A_WGM1_PIN		WGM01
+#define	OC0A_WGM2_PORT	TCCR0B
+#define	OC0A_WGM2_PIN		WGM02
+#define	OC0A_MSK_PORT		TIMSK0
+#define	OC0A_MSK_PIN		OCIE0A
+#define	OC0A_INT_PORT		TIFR0
+#define	OC0A_INT_PIN		OCF0A
+
+#define	OC0B_PIN		DIO5
+#define	OC1A_PIN		DIO9
+#define	OC1B_PIN		DIO10
+#define	OC2A_PIN		DIO11
+#define	OC2B_PIN		DIO3
+
 
 #endif /* _ARDUINO_H */

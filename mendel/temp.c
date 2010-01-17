@@ -1,3 +1,9 @@
+/*
+	temp.c
+
+	This file currently reads temp from a MAX6675 on the SPI bus
+*/
+
 #include "temp.h"
 
 #include	"machine.h"
@@ -23,6 +29,8 @@ uint16_t temp_read() {
 	uint16_t temp;
 	SPCR = MASK(MSTR) | MASK(SPE);
 
+	WRITE(SS, 1);
+
 	SPDR = 0;
 	for (;(SPSR & MASK(SPIF)) == 0;);
 	temp = SPDR << 8;
@@ -41,6 +49,8 @@ uint16_t temp_read() {
 			return current_temp;
 		}
 	}
+
+	WRITE(SS, 0);
 
 	return 0;
 }

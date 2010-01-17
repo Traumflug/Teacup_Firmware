@@ -7,6 +7,11 @@
 	Machine Pin Definitions
 */
 
+/*
+	RESERVED pins
+	we NEED these for communication
+*/
+
 // RXD											DIO0
 // TXD											DIO1
 
@@ -25,7 +30,7 @@
 #define	E_STEP_PIN					DIO2
 #define	E_DIR_PIN						DIO3
 
-// list of PWM-able pins
+// list of PWM-able pins and corresponding timers
 // OC0A											DIO6
 // OC0B											DIO5
 // OC1A											DIO9
