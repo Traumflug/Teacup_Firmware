@@ -8,22 +8,20 @@
 
 #include	"machine.h"
 #include	"pinout.h"
+#include	"clock.h"
 
-uint16_t	current_temp;
-uint16_t	target_temp;
+uint16_t	current_temp = 0;
+uint16_t	target_temp  = 0;
 
-int16_t		heater_p;
-int16_t		heater_i;
-int16_t		heater_d;
+int16_t		heater_p     = 0;
+int16_t		heater_i     = 0;
+int16_t		heater_d     = 0;
 
-void temp_setup() {
-	SET_OUTPUT(SCK);
-	SET_INPUT(MISO);
-	SET_OUTPUT(SS);
+int16_t		p_factor			= 680;
+int16_t		i_factor			= 18;
+int16_t		d_factor			= 200;
 
-	WRITE(SS, 0);
-	WRITE(SCK, 0);
-}
+#define		PID_SCALE			1024
 
 uint16_t temp_read() {
 	uint16_t temp;
@@ -71,7 +69,7 @@ void temp_tick() {
 	// note: D follows temp rather than error so there's no large derivative when the target temperature changes
 	heater_d = (current_temp - last_temp);
 
-	int16_t pid_output = (heater_p * P_FACTOR) + (heater_i * I_FACTOR) + (heater_d * D_FACTOR);
+	int16_t pid_output = ((heater_p * p_factor) + (heater_i * i_factor) + (heater_d * d_factor)) / PID_SCALE;
 
 #ifdef	HEATER_PIN_PWMABLE
 	HEATER_PIN_PWMABLE = pid_output

@@ -24,13 +24,4 @@
 #define	STEPS_PER_MM_Z				(3200)
 #define	STEPS_PER_MM_E				(EXTRUDER_STEPS_PER_REV * EXTRUDER_SHAFT_RADIUS * PI * EXTRUDER_INLET_DIAMETER / EXTRUDER_NOZZLE_DIAMETER)
 
-/*
-	heater PID variables
-	used as int16_t * FACTOR so don't put brackets around them
-*/
-
-#define	P_FACTOR	133 / 1024
-#define	I_FACTOR	17 / 1024
-#define	D_FACTOR  180 / 1024
-
 #endif	/* _MACHINE_H */

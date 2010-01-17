@@ -5,13 +5,14 @@
 #include	<avr/io.h>
 #include	<avr/interrupt.h>
 
-#include	"serial.h"
+#include	"machine.h"
 
+#include	"serial.h"
 #include	"dda.h"
 #include	"gcode.h"
 #include	"timer.h"
-
-#include	"machine.h"
+#include	"clock.h"
+#include	"temp.h"
 
 uint8_t	option_bitfield;
 
@@ -46,17 +47,30 @@ int main (void)
 
 	WRITE(HEATER_PIN, 0);	SET_OUTPUT(HEATER_PIN);
 
+	WRITE(SCK, 0);	SET_OUTPUT(SCK);
+	WRITE(MISO, 1);	SET_INPUT(MISO);
+	WRITE(SS, 0);		SET_OUTPUT(SS);
+
+
 	// set up timers
 	setupTimerInterrupt();
 
 	// enable interrupts
 	sei();
 
+	serial_writeblock((uint8_t *) "Start\n", 6);
+
+	// main loop
 	for (;;)
 	{
-		for (;serial_rxchars() == 0;);
-		uint8_t c = serial_popchar();
+		if (serial_rxchars()) {
+			uint8_t c = serial_popchar();
+			scan_char(c);
+		}
 
-		scan_char(c);
+		if (clock_flag_250ms & CLOCK_FLAG_250MS_TEMPCHECK) {
+			clock_flag_250ms &= ~CLOCK_FLAG_250MS_TEMPCHECK;
+			temp_tick();
+		}
 	}
 }
