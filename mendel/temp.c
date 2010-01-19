@@ -57,6 +57,10 @@ void temp_set(uint16_t t) {
 	target_temp = t;
 }
 
+uint16_t temp_get() {
+	return current_temp;
+}
+
 void temp_tick() {
 	uint16_t last_temp = current_temp;
 	temp_read();

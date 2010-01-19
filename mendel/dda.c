@@ -5,14 +5,6 @@
 #include	"pinout.h"
 #include	"timer.h"
 
-extern struct {
-	volatile int32_t	X;
-	volatile int32_t	Y;
-	volatile int32_t	Z;
-	volatile int32_t	E;
-	volatile int32_t	F;
-} current_position;
-
 /*
 	move queue
 */
@@ -20,6 +12,13 @@ extern struct {
 uint8_t	mb_head = 0;
 uint8_t	mb_tail = 0;
 DDA movebuffer[MOVEBUFFER_SIZE];
+
+/*
+	position tracking
+*/
+
+TARGET startpoint = { 0, 0, 0, 0, 0 };
+TARGET current_position = { 0, 0, 0, 0, 0 };
 
 uint8_t queue_full() {
 	if (mb_tail == 0)
@@ -41,7 +40,7 @@ void enqueue(TARGET *t) {
 }
 
 void next_move() {
-	if ((mb_tail == mb_head) && (!movebuffer[mb_tail].live)) {
+	if (queue_empty()) {
 		// queue is empty
 		disable_steppers();
 		setTimer(DEFAULT_TICK);
@@ -129,7 +128,6 @@ uint32_t approx_distance_3( int32_t dx, int32_t dy, int32_t dz )
 */
 
 void dda_create(TARGET *target, DDA *dda) {
-	static		TARGET startpoint = { 0, 0, 0, 0, 0 };
 	uint32_t	distance;
 
 	// we start at the previous endpoint

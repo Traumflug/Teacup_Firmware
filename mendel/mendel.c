@@ -14,16 +14,6 @@
 #include	"clock.h"
 #include	"temp.h"
 
-uint8_t	option_bitfield;
-
-struct {
-	volatile int32_t	X;
-	volatile int32_t	Y;
-	volatile int32_t	Z;
-	volatile int32_t	E;
-	volatile int32_t	F;
-} current_position = { 0, 0, 0, 0, 0 };
-
 int main (void)
 {
 	// set up serial

@@ -14,7 +14,7 @@
 
 PROGRAM = mendel
 
-SOURCES = $(PROGRAM).c ringbuffer.c serial.c dda.c gcode.c timer.c clock.c temp.c
+SOURCES = $(PROGRAM).c ringbuffer.c serial.c dda.c gcode.c timer.c clock.c temp.c sermsg.c
 
 ##############################################################################
 #                                                                            #
@@ -34,7 +34,7 @@ F_CPU = 16000000L
 ARCH = avr-
 OPTIMIZE = -Os
 CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) -DF_CPU=$(F_CPU) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -ffunction-sections -save-temps
-LDFLAGS = -lprintf_min -Wl,--as-needed -Wl,--gc-sections -finline-functions-called-once
+LDFLAGS = -Wl,--as-needed -Wl,--gc-sections -finline-functions-called-once
 
 CC = $(ARCH)gcc
 OBJDUMP = $(ARCH)objdump

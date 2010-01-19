@@ -3,7 +3,6 @@
 
 #include	<stdint.h>
 
-#include	"target.h"
 #include	"pinout.h"
 #include	"gcode.h"
 #include	"machine.h"
@@ -41,6 +40,8 @@ typedef struct {
 extern uint8_t	mb_head;
 extern uint8_t	mb_tail;
 extern DDA movebuffer[MOVEBUFFER_SIZE];
+extern TARGET startpoint;
+extern TARGET current_position;
 
 uint8_t queue_full(void);
 inline uint8_t queue_empty(void) { return (mb_tail == mb_head) && !movebuffer[mb_tail].live; }
