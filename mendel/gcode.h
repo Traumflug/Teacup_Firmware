@@ -3,13 +3,7 @@
 
 #include	<stdint.h>
 
-typedef struct {
-	int32_t						X;
-	int32_t						Y;
-	int32_t						Z;
-	uint32_t					E;
-	uint32_t					F;
-} TARGET;
+#include	"dda.h"
 
 typedef struct {
 	uint16_t	sign			:1;

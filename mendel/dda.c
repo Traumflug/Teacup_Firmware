@@ -2,7 +2,6 @@
 
 #include	<string.h>
 
-#include	"pinout.h"
 #include	"timer.h"
 
 /*

@@ -3,7 +3,6 @@
 #include	<string.h>
 
 #include	"machine.h"
-#include	"dda.h"
 #include	"serial.h"
 #include	"sermsg.h"
 #include	"temp.h"
