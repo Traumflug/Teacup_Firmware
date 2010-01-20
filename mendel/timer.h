@@ -19,6 +19,10 @@ uint16_t getTimerCeiling(const uint32_t delay);
 void setTimer(uint32_t delay);
 
 void delay(uint32_t delay);
+
+void delay_ms(uint32_t delay);
+
+#define	delay_us(d) delayMicrosecondsInterruptible(d)
 void delayMicrosecondsInterruptible(unsigned int us);
 
 inline void enableTimerInterrupt(void)

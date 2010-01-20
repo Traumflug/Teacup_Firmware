@@ -7,6 +7,7 @@
 #include	"serial.h"
 #include	"sermsg.h"
 #include	"temp.h"
+#include	"timer.h"
 
 uint8_t	option_bitfield;
 
@@ -94,7 +95,7 @@ void scan_char(uint8_t c) {
 		c &= ~32;
 
 	// process field
-	if (indexof(c, "GMXYZEFS\n") >= 0) {
+	if (indexof(c, "GMXYZEFSP\n") >= 0) {
 		if (last_field) {
 			switch (last_field) {
 				case 'G':
@@ -120,7 +121,20 @@ void scan_char(uint8_t c) {
 					next_target.target.F = read_digit.mantissa;
 					break;
 				case 'S':
-					next_target.S = decfloat_to_int(&read_digit, 1, 1);
+					// if this is temperature, multiply by 4 to convert to quarter-degree units
+					// cosmetically this should be done in the temperature section,
+					// but it takes less code, less memory and loses no precision if we do it here instead
+					if (next_target.M == 104)
+						next_target.S = decfloat_to_int(&read_digit, 4, 1);
+					else
+						next_target.S = decfloat_to_int(&read_digit, 1, 1);
+					break;
+				case 'P':
+					// if this is dwell, multiply by 1 million to convert seconds to milliseconds
+					if (next_target.G == 4)
+						next_target.P = decfloat_to_int(&read_digit, 1000, 1);
+					else
+						next_target.P = decfloat_to_int(&read_digit, 1, 1);
 					break;
 			}
 			read_digit.sign = 0;
@@ -152,6 +166,10 @@ void scan_char(uint8_t c) {
 				break;
 			case 'S':
 				next_target.seen |= SEEN_S;
+				break;
+			case 'P':
+				next_target.seen |= SEEN_P;
+				break;
 			case '\n':
 				// process
 				process_gcode_command(&next_target);
@@ -161,9 +179,7 @@ void scan_char(uint8_t c) {
 
 				// reset variables
 				last_field = 0;
-// 				memset(&next_target, 0, sizeof(GCODE_COMMAND));
 				next_target.seen = 0;
-// 				next_target.option = option_bitfield;
 
 				serial_writeblock((uint8_t *) "OK\n", 3);
 				break;
@@ -189,40 +205,44 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 		gcmd->target.Z += startpoint.Z;
 		gcmd->target.E += startpoint.E;
 	}
-// 	if ((gcmd->seen & SEEN_X) == 0)
-// 		gcmd->target.X = startpoint.X;
-// 	if ((gcmd->seen & SEEN_Y) == 0)
-// 		gcmd->target.X = startpoint.Y;
-// 	if ((gcmd->seen & SEEN_Z) == 0)
-// 		gcmd->target.X = startpoint.Z;
-// 	if ((gcmd->seen & SEEN_E) == 0)
-// 		gcmd->target.X = startpoint.E;
 
 	if (gcmd->seen & SEEN_G) {
 		switch (gcmd->G) {
 			// 	G0 - rapid, unsynchronised motion
+			// since it would be a major hassle to force the dda to not synchronise, just provide a fast feedrate and hope it's close enough to what host expects
 			case 0:
 				gcmd->target.F = FEEDRATE_FAST_XY;
 				enqueue(&gcmd->target);
 				break;
+
 			//	G1 - synchronised motion
 			case 1:
 				enqueue(&gcmd->target);
 				break;
+
 			//	G2 - Arc Clockwise
+
 			//	G3 - Arc Counter-clockwise
+
 			//	G4 - Dwell
+			case 4:
+				delay_ms(gcmd->P);
+				break;
+
 			//	G20 - inches as units
 			case 20:
 				gcmd->option |= OPTION_UNIT_INCHES;
 				break;
+
 			//	G21 - mm as units
 			case 21:
 				gcmd->option &= ~OPTION_UNIT_INCHES;
 				break;
+
 			//	G30 - go home via point
 			case 30:
 				enqueue(&gcmd->target);
+				// no break here, G30 is move and then go home
 			//	G28 - go home
 			case 28:
 				/*
@@ -269,18 +289,22 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				startpoint.E = current_position.E = 0;
 
 				break;
+
 			//	G90 - absolute positioning
 			case 90:
 				gcmd->option &= ~OPTION_RELATIVE;
 				break;
+
 			//	G91 - relative positioning
 			case 91:
 				gcmd->option |= OPTION_RELATIVE;
 				break;
+
 			//	G92 - set home
 			case 92:
 				startpoint.X = startpoint.Y = startpoint.Z = 0;
 				break;
+
 			// TODO: spit an error
 			default:
 				serial_writeblock((uint8_t *) "E: Bad G-code ", 14);
@@ -294,20 +318,53 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			case 101:
 				SpecialMoveE(E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
 				break;
+
+			// M102- extruder reverse
+
 			// M103- extruder off
 			case 103:
 				SpecialMoveE(-E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
 				break;
+
 			// M104- set temperature
 			case 104:
 				temp_set(gcmd->S);
 				break;
+
 			// M105- get temperature
 			case 105:
-				serial_writeblock((uint8_t *) "T: ", 3);
-				serwrite_uint16(temp_get());
-				serial_writechar('\n');
+				// do .. while block here to provide local scope for temp
+				do {
+					uint16_t t = temp_get();
+					serial_writeblock((uint8_t *) "T: ", 3);
+					serwrite_uint16(t >> 2);
+					serial_writechar('.');
+					if (t & 3) {
+						if ((t & 3) == 1)
+							serial_writechar('2');
+						else if ((t & 3) == 3)
+							serial_writechar('7');
+						serial_writechar('5');
+					}
+					else {
+						serial_writechar('0');
+					}
+					serial_writechar('\n');
+				} while (0);
 				break;
+
+			// M106- fan on
+			#ifdef	FAN_PIN
+			case 106:
+				WRITE(FAN_PIN, 1);
+				break;
+
+			// M107- fan off
+			case 107:
+				WRITE(FAN_PIN, 0);
+				break;
+			#endif
+
 			// TODO: spit an error
 			default:
 				serial_writeblock((uint8_t *) "E: Bad M-code ", 14);

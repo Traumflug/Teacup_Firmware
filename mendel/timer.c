@@ -135,10 +135,18 @@ void setTimer(uint32_t delay)
 
 void delay(uint32_t delay) {
 	while (delay > 65535) {
-		delayMicrosecondsInterruptible(delay);
+		delayMicrosecondsInterruptible(65534);
 		delay -= 65535;
 	}
 	delayMicrosecondsInterruptible(delay & 0xFFFF);
+}
+
+void delay_ms(uint32_t delay) {
+	while (delay > 65) {
+		delayMicrosecondsInterruptible(64999);
+		delay -= 65;
+	}
+	delayMicrosecondsInterruptible(delay * 1000);
 }
 
 // from reprap project 5D firmware

@@ -24,8 +24,8 @@
 #define	Y_MIN_PIN						AIO5
 
 #define	Z_STEP_PIN					DIO5
-#define	Z_DIR_PIN						DIO6
-#define	Z_MIN_PIN						DIO7
+#define	Z_DIR_PIN						DIO7
+#define	Z_MIN_PIN						DIO8
 
 #define	E_STEP_PIN					DIO2
 #define	E_DIR_PIN						DIO3
@@ -40,6 +40,8 @@
 
 #define	HEATER_PIN					DIO6
 #define	HEATER_PIN_PWM			OC0A
+
+#define	FAN_PIN							DIO9
 
 #define	SCK									DIO13
 #define	MISO								DIO12

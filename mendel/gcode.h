@@ -18,7 +18,7 @@ typedef struct {
 } decfloat;
 
 typedef struct {
-	uint8_t					seen;
+	uint16_t					seen;
 #define							SEEN_G	1
 #define							SEEN_M	2
 #define							SEEN_X	4
@@ -27,6 +27,7 @@ typedef struct {
 #define							SEEN_E	32
 #define							SEEN_F	64
 #define							SEEN_S	128
+#define							SEEN_P	256
 
 	uint8_t						option;
 #define	OPTION_RELATIVE						1
@@ -38,6 +39,7 @@ typedef struct {
 	TARGET						target;
 
 	uint16_t					S;
+	uint16_t					P;
 } GCODE_COMMAND;
 
 int8_t indexof(uint8_t c, char *string);

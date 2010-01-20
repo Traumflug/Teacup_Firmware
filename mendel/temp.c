@@ -1,7 +1,17 @@
 /*
 	temp.c
 
-	This file currently reads temp from a MAX6675 on the SPI bus
+	This file currently reads temp from a MAX6675 on the SPI bus.
+
+	ALL VALUES are in units of 0.25 degrees celsius, so temp_set(500) will set the temperature to 125 celsius, and temp_get() = 600 is reporting a temperature of 150 celsius.
+
+	the conversion to/from this unit is done in gcode.c, near:
+					if (next_target.M == 104)
+						next_target.S = decfloat_to_int(&read_digit, 4, 1);
+	and
+			// M105- get temperature
+			case 105:
+				uint16_t t = temp_get();
 */
 
 #include "temp.h"
