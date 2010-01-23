@@ -25,15 +25,8 @@ void delay_ms(uint32_t delay);
 #define	delay_us(d) delayMicrosecondsInterruptible(d)
 void delayMicrosecondsInterruptible(unsigned int us);
 
-inline void enableTimerInterrupt(void)
-{
-	TIMSK1 |= (1<<OCIE1A);
-}
-
-inline void disableTimerInterrupt(void)
-{
-	TIMSK1 &= ~(1<<OCIE1A);
-}
+#define enableTimerInterrupt()	do { TIMSK1 |= (1<<OCIE1A); } while (0)
+#define disableTimerInterrupt() do { TIMSK1 &= ~(1<<OCIE1A); } while (0)
 
 #define setTimerCeiling(c)		OCR1A = c
 

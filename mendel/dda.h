@@ -26,11 +26,11 @@ typedef struct {
 	uint8_t						nullmove			:1;
 	uint8_t						live					:1;
 
-	int16_t						x_delta;
-	int16_t						y_delta;
-	int16_t						z_delta;
-	int16_t						e_delta;
-	int16_t						f_delta;
+	uint32_t					x_delta;
+	uint32_t					y_delta;
+	uint32_t					z_delta;
+	uint32_t					e_delta;
+	uint32_t					f_delta;
 
 	int32_t						x_counter;
 	int32_t						y_counter;
@@ -51,7 +51,7 @@ extern TARGET startpoint;
 extern TARGET current_position;
 
 uint8_t queue_full(void);
-inline uint8_t queue_empty(void) { return (mb_tail == mb_head) && !movebuffer[mb_tail].live; }
+uint8_t queue_empty(void);
 void enqueue(TARGET *t);
 void next_move(void);
 

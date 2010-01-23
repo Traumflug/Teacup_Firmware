@@ -3,6 +3,16 @@
 #include	<string.h>
 
 #include	"timer.h"
+#include	"serial.h"
+#include	"sermsg.h"
+
+#ifndef	ABS
+#define	ABS(v)		(((v) >= 0)?(v):(-(v)))
+#endif
+
+#ifndef	ABSDELTA
+#define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
+#endif
 
 /*
 	move queue
@@ -16,14 +26,18 @@ DDA movebuffer[MOVEBUFFER_SIZE];
 	position tracking
 */
 
-TARGET startpoint = { 0, 0, 0, 0, 0 };
-TARGET current_position = { 0, 0, 0, 0, 0 };
+TARGET startpoint = { 0, 0, 0, 0, FEEDRATE_SLOW_Z };
+TARGET current_position = { 0, 0, 0, 0, FEEDRATE_SLOW_Z };
 
 uint8_t queue_full() {
 	if (mb_tail == 0)
 		return mb_head == (MOVEBUFFER_SIZE - 1);
 	else
 		return mb_head == (mb_tail - 1);
+}
+
+uint8_t queue_empty() {
+	return (mb_tail == mb_head) && !movebuffer[mb_tail].live;
 }
 
 void enqueue(TARGET *t) {
@@ -43,6 +57,7 @@ void next_move() {
 		// queue is empty
 		disable_steppers();
 		setTimer(DEFAULT_TICK);
+		disableTimerInterrupt();
 	}
 	else {
 		uint8_t t = mb_tail;
@@ -122,6 +137,12 @@ uint32_t approx_distance_3( int32_t dx, int32_t dy, int32_t dz )
 	return (( approx + 512 ) >> 10 );
 }
 
+uint32_t abs32(int32_t v) {
+	if (v < 0)
+		return -v;
+	return v;
+}
+
 /*
 	CREATE
 */
@@ -129,18 +150,14 @@ uint32_t approx_distance_3( int32_t dx, int32_t dy, int32_t dz )
 void dda_create(TARGET *target, DDA *dda) {
 	uint32_t	distance;
 
-	// we start at the previous endpoint
-// 	memcpy(&dda->currentpoint, &startpoint, sizeof(TARGET));
-	// we end at the passed command's endpoint
+	// we end at the passed target
 	memcpy(&dda->endpoint, target, sizeof(TARGET));
 
-	dda->x_delta = dda->endpoint.X - startpoint.X;
-	dda->y_delta = dda->endpoint.Y - startpoint.Y;
-	dda->z_delta = dda->endpoint.Z - startpoint.Z;
-	// always relative
-	dda->e_delta = dda->endpoint.E;
-	// always absolute
-	dda->f_delta = dda->endpoint.F - startpoint.F;
+	dda->x_delta = abs32(dda->endpoint.X - startpoint.X);
+	dda->y_delta = abs32(dda->endpoint.Y - startpoint.Y);
+	dda->z_delta = abs32(dda->endpoint.Z - startpoint.Z);
+	dda->e_delta = abs32(dda->endpoint.E - startpoint.E);
+	dda->f_delta = abs32(dda->endpoint.F - startpoint.F);
 
 	// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
 	if (dda->z_delta == 0)
@@ -163,21 +180,26 @@ void dda_create(TARGET *target, DDA *dda) {
 
 	if (dda->e_delta > dda->total_steps)
 		dda->total_steps = dda->e_delta;
-	if (dda->f_delta > dda->total_steps)
-		dda->total_steps = dda->f_delta;
 
-	if (dda->total_steps == 0)
+	if (dda->total_steps == 0) {
 		dda->nullmove = 1;
+		// copy F in case we're doing a null move speed change
+		startpoint.F = dda->endpoint.F;
+		current_position.F = dda->endpoint.F;
+	}
 
 	if (dda->f_delta > dda->total_steps) {
 		dda->f_scale = dda->f_delta / dda->total_steps;
 		if (dda->f_scale > 3) {
-			dda->f_delta /= dda->f_scale;
+			dda->f_delta = dda->total_steps;
 		}
 		else {
 			dda->f_scale = 1;
 			dda->total_steps = dda->f_delta;
 		}
+	}
+	else {
+		dda->f_scale = 1;
 	}
 
 	dda->x_direction = (dda->endpoint.X > startpoint.X)?1:0;
@@ -200,6 +222,9 @@ void dda_create(TARGET *target, DDA *dda) {
 
 	// make sure we're not running
 	dda->live = 0;
+
+	// fire up
+	enableTimerInterrupt();
 }
 
 /*
@@ -226,14 +251,23 @@ void dda_start(DDA *dda) {
 */
 
 uint8_t	can_step(uint8_t min, uint8_t max, int32_t current, int32_t target, uint8_t dir) {
-	if (target == current)
+	if (current == target)
 		return 0;
 
-	if (min && !dir)
-		return 0;
-
-	if (max && dir)
-		return 0;
+	if (dir) {
+		// forwards/positive
+		if (max)
+			return 0;
+		if (current > target)
+			return 0;
+	}
+	else {
+		// backwards/negative
+		if (min)
+			return 0;
+		if (target > current)
+			return 0;
+	}
 
 	return 255;
 }
@@ -251,10 +285,15 @@ void dda_step(DDA *dda) {
 #define	F_CAN_STEP	16
 #define	REAL_MOVE		32
 
+	WRITE(SCK, 1);
+
 	do {
-		step_option |= can_step(x_min(), x_max(), current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
-		step_option |= can_step(y_min(), y_max(), current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
-		step_option |= can_step(z_min(), z_max(), current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
+// 		step_option |= can_step(x_min(), x_max(), current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
+// 		step_option |= can_step(y_min(), y_max(), current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
+// 		step_option |= can_step(z_min(), z_max(), current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
+		step_option |= can_step(0      , 0      , current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
+		step_option |= can_step(0      , 0      , current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
+		step_option |= can_step(0      , 0      , current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
 		step_option |= can_step(0      , 0      , current_position.E, dda->endpoint.E, dda->e_direction) & E_CAN_STEP;
 		step_option |= can_step(0      , 0      , current_position.F, dda->endpoint.F, dda->f_direction) & F_CAN_STEP;
 
@@ -264,13 +303,12 @@ void dda_step(DDA *dda) {
 				step_option |= REAL_MOVE;
 
 				x_step();
-
-				dda->x_counter += dda->total_steps;
-
 				if (dda->x_direction)
 					current_position.X++;
 				else
 					current_position.X--;
+
+				dda->x_counter += dda->total_steps;
 			}
 		}
 
@@ -280,13 +318,12 @@ void dda_step(DDA *dda) {
 				step_option |= REAL_MOVE;
 
 				y_step();
-
-				dda->y_counter += dda->total_steps;
-
 				if (dda->y_direction)
 					current_position.Y++;
 				else
 					current_position.Y--;
+
+				dda->y_counter += dda->total_steps;
 			}
 		}
 
@@ -296,13 +333,12 @@ void dda_step(DDA *dda) {
 				step_option |= REAL_MOVE;
 
 				z_step();
-
-				dda->z_counter += dda->total_steps;
-
 				if (dda->z_direction)
 					current_position.Z++;
 				else
 					current_position.Z--;
+
+				dda->z_counter += dda->total_steps;
 			}
 		}
 
@@ -312,13 +348,12 @@ void dda_step(DDA *dda) {
 				step_option |= REAL_MOVE;
 
 				e_step();
-
-				dda->e_counter += dda->total_steps;
-
 				if (dda->e_direction)
 					current_position.E++;
 				else
 					current_position.E--;
+
+				dda->e_counter += dda->total_steps;
 			}
 		}
 
@@ -328,13 +363,32 @@ void dda_step(DDA *dda) {
 
 				dda->f_counter += dda->total_steps;
 
-				if (dda->f_direction)
+				if (dda->f_scale == 0)
+					dda->f_scale = 1;
+
+				if (dda->f_direction) {
 					current_position.F += dda->f_scale;
-				else
+					if (current_position.F > dda->endpoint.F)
+						current_position.F = dda->endpoint.F;
+				}
+				else {
 					current_position.F -= dda->f_scale;
+					if (current_position.F < dda->endpoint.F)
+						current_position.F = dda->endpoint.F;
+				}
 			}
 		}
-	} while (	((step_option & REAL_MOVE ) == 0) &&
+
+		serial_writechar('[');
+		serwrite_uint16(dda->f_scale);
+		serial_writechar(',');
+		serwrite_int32(current_position.F);
+		serial_writechar('/');
+		serwrite_int32(dda->endpoint.F);
+		serial_writechar('#');
+		serwrite_uint32(dda->move_duration);
+		serial_writechar(']');
+	} while (	((step_option & REAL_MOVE ) == 0)	&&
 						((step_option & F_CAN_STEP) != 0)	);
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
@@ -346,4 +400,6 @@ void dda_step(DDA *dda) {
 
 	// if we could step, we're still running
 	dda->live = (step_option & (X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP));
+
+	WRITE(SCK, 0);
 }

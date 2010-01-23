@@ -13,14 +13,16 @@
 
 #define		_READ(IO)					(IO ## _RPORT & MASK(IO ## _PIN))
 #define		_WRITE(IO, v)			if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } else { IO ## _WPORT &= ~MASK(IO ## _PIN); }
+#define		_TOGGLE(IO)				(IO ## _RPORT = MASK(IO ## _PIN))
 
-#define		_SET_INPUT(IO)		(IO ## _DDR |= MASK(IO ## _PIN))
-#define		_SET_OUTPUT(IO)		(IO ## _DDR &= ~MASK(IO ## _PIN))
+#define		_SET_INPUT(IO)		(IO ## _DDR &= ~MASK(IO ## _PIN))
+#define		_SET_OUTPUT(IO)		(IO ## _DDR |=  MASK(IO ## _PIN))
 
 // why double up on these macros? see http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
 
 #define		READ(IO)					_READ(IO)
 #define		WRITE(IO, v)			_WRITE(IO, v)
+#define		TOGGLE(IO)				_TOGGLE(IO)
 #define		SET_INPUT(IO)			_SET_INPUT(IO)
 #define		SET_OUTPUT(IO)		_SET_OUTPUT(IO)
 

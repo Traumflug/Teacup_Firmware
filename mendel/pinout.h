@@ -23,12 +23,12 @@
 #define	Y_DIR_PIN						AIO4
 #define	Y_MIN_PIN						AIO5
 
-#define	Z_STEP_PIN					DIO5
-#define	Z_DIR_PIN						DIO7
-#define	Z_MIN_PIN						DIO8
+#define	Z_STEP_PIN					DIO2
+#define	Z_DIR_PIN						DIO3
+#define	Z_MIN_PIN						DIO4
 
-#define	E_STEP_PIN					DIO2
-#define	E_DIR_PIN						DIO3
+#define	E_STEP_PIN					DIO7
+#define	E_DIR_PIN						DIO8
 
 // list of PWM-able pins and corresponding timers
 // OC0A											DIO6
@@ -41,7 +41,7 @@
 #define	HEATER_PIN					DIO6
 #define	HEATER_PIN_PWM			OC0A
 
-#define	FAN_PIN							DIO9
+#define	FAN_PIN							DIO5
 
 #define	SCK									DIO13
 #define	MISO								DIO12

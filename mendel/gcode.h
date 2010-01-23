@@ -12,21 +12,21 @@ typedef struct {
 } decfloat;
 
 typedef struct {
-	uint16_t					seen;
-#define							SEEN_G	1
-#define							SEEN_M	2
-#define							SEEN_X	4
-#define							SEEN_Y	8
-#define							SEEN_Z	16
-#define							SEEN_E	32
-#define							SEEN_F	64
-#define							SEEN_S	128
-#define							SEEN_P	256
+	uint8_t					seen_G	:1;
+	uint8_t					seen_M	:1;
+	uint8_t					seen_X	:1;
+	uint8_t					seen_Y	:1;
+	uint8_t					seen_Z	:1;
+	uint8_t					seen_E	:1;
+	uint8_t					seen_F	:1;
+	uint8_t					seen_S	:1;
+	uint8_t					seen_P	:1;
 
 	uint8_t						option;
 #define	OPTION_RELATIVE						1
 #define	OPTION_SYNCHRONISE				2
 #define	OPTION_UNIT_INCHES				4
+#define	OPTION_COMMENT						128
 
 	uint8_t						G;
 	uint8_t						M;
@@ -36,7 +36,7 @@ typedef struct {
 	uint16_t					P;
 } GCODE_COMMAND;
 
-int8_t indexof(uint8_t c, char *string);
+int8_t indexof(uint8_t c, const char *string);
 int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator);
 
 void scan_char(uint8_t c);

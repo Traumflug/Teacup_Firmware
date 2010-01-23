@@ -3,14 +3,7 @@
 
 #include	<stdint.h>
 #include	<avr/io.h>
-
-#include	"ringbuffer.h"
-
-#define	rx_buffer	((ringbuffer *) _rx_buffer)
-#define	tx_buffer	((ringbuffer *) _tx_buffer)
-
-extern volatile uint8_t _rx_buffer[];
-extern volatile uint8_t _tx_buffer[];
+#include	<avr/pgmspace.h>
 
 void serial_init(void);
 
@@ -21,6 +14,11 @@ uint8_t serial_popchar(void);
 void serial_writechar(uint8_t data);
 
 uint16_t serial_recvblock(uint8_t *block, int blocksize);
-void serial_writeblock(uint8_t *data, int datalen);
+void serial_writeblock(void *data, int datalen);
+
+void serial_writechar_P(PGM_P data);
+void serial_writeblock_P(PGM_P data, int datalen);
+
+void serial_writestr_P(PGM_P data);
 
 #endif	/* _SERIAL_H */
