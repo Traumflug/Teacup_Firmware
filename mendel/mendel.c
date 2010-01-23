@@ -107,15 +107,15 @@ int main (void)
 
 				// target position
 				serial_writestr_P(PSTR("Tar: "));
-				serwrite_int32(movebuffer[mb_head].endpoint.X);
+				serwrite_int32(movebuffer[mb_tail].endpoint.X);
 				serial_writechar(',');
-				serwrite_int32(movebuffer[mb_head].endpoint.Y);
+				serwrite_int32(movebuffer[mb_tail].endpoint.Y);
 				serial_writechar(',');
-				serwrite_int32(movebuffer[mb_head].endpoint.Z);
+				serwrite_int32(movebuffer[mb_tail].endpoint.Z);
 				serial_writechar(',');
-				serwrite_uint32(movebuffer[mb_head].endpoint.E);
+				serwrite_uint32(movebuffer[mb_tail].endpoint.E);
 				serial_writechar(',');
-				serwrite_uint32(movebuffer[mb_head].endpoint.F);
+				serwrite_uint32(movebuffer[mb_tail].endpoint.F);
 				serial_writechar('\n');
 
 				// Queue

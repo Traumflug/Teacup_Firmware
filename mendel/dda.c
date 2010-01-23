@@ -151,7 +151,7 @@ void dda_create(TARGET *target, DDA *dda) {
 	uint32_t	distance;
 
 	// we end at the passed target
-	memcpy(&dda->endpoint, target, sizeof(TARGET));
+	memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
 	dda->x_delta = abs32(dda->endpoint.X - startpoint.X);
 	dda->y_delta = abs32(dda->endpoint.Y - startpoint.Y);
@@ -202,14 +202,14 @@ void dda_create(TARGET *target, DDA *dda) {
 		dda->f_scale = 1;
 	}
 
-	dda->x_direction = (dda->endpoint.X > startpoint.X)?1:0;
-	dda->y_direction = (dda->endpoint.Y > startpoint.Y)?1:0;
-	dda->z_direction = (dda->endpoint.Z > startpoint.Z)?1:0;
-	dda->e_direction = (dda->endpoint.E > startpoint.E)?1:0;
-	dda->f_direction = (dda->endpoint.F > startpoint.F)?1:0;
+	dda->x_direction = (dda->endpoint.X >= startpoint.X)?1:0;
+	dda->y_direction = (dda->endpoint.Y >= startpoint.Y)?1:0;
+	dda->z_direction = (dda->endpoint.Z >= startpoint.Z)?1:0;
+	dda->e_direction = (dda->endpoint.E >= startpoint.E)?1:0;
+	dda->f_direction = (dda->endpoint.F >= startpoint.F)?1:0;
 
-	dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter = dda->f_counter
-		= -(dda->total_steps >> 1);
+	dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter = dda->f_counter =
+		-(dda->total_steps >> 1);
 
 	// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 	// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
@@ -218,10 +218,10 @@ void dda_create(TARGET *target, DDA *dda) {
 	dda->move_duration = distance * 60000000 / dda->total_steps;
 
 	// next dda starts where we finish
-	memcpy(&startpoint, &dda->endpoint, sizeof(TARGET));
+	memcpy(&startpoint, target, sizeof(TARGET));
 
-	// make sure we're not running
-	dda->live = 0;
+	// make sure we can run
+	dda->live = 1;
 
 	// fire up
 	enableTimerInterrupt();
