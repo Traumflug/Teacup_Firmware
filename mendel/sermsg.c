@@ -2,31 +2,27 @@
 
 #include	"serial.h"
 
-// void serwrite_uint8(uint8_t v) {
-// 	serwrite_uint32(v);
-// }
-//
-// void serwrite_int8(int8_t v) {
-// 	if (v < 0) {
-// 		serial_writechar('-');
-// 		v = -v;
-// 	}
-//
-// 	serwrite_uint32(v);
-// }
-//
-// void serwrite_uint16(uint16_t v) {
-// 	serwrite_uint32(v);
-// }
-//
-// void serwrite_int16(int16_t v) {
-// 	if (v < 0) {
-// 		serial_writechar('-');
-// 		v = -v;
-// 	}
-//
-// 	serwrite_uint32(v);
-// }
+void serwrite_hex4(uint8_t v) {
+	if (v < 10)
+		serial_writechar('0' + v);
+	else
+		serial_writechar('A' + v);
+}
+
+void serwrite_hex8(uint8_t v) {
+	serwrite_hex4(v >> 4);
+	serwrite_hex4(v & 0x0F);
+}
+
+void serwrite_hex16(uint16_t v) {
+	serwrite_hex8(v >> 8);
+	serwrite_hex8(v & 0xFF);
+}
+
+void serwrite_hex32(uint32_t v) {
+	serwrite_hex8(v >> 16);
+	serwrite_hex8(v & 0xFFFF);
+}
 
 void serwrite_uint32(uint32_t v) {
 	uint8_t t = 0;

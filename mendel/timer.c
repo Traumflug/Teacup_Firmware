@@ -8,6 +8,7 @@
 ISR(TIMER1_COMPA_vect) {
 	if(movebuffer[mb_tail].live) {
 		// this interrupt can be interruptible
+		// TODO: remove when not debugging
 		disableTimerInterrupt();
 		sei();
 

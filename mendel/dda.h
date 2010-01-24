@@ -55,8 +55,8 @@ uint8_t queue_empty(void);
 void enqueue(TARGET *t);
 void next_move(void);
 
-uint32_t approx_distance( int32_t dx, int32_t dy );
-uint32_t approx_distance_3( int32_t dx, int32_t dy, int32_t dz );
+uint32_t approx_distance( uint32_t dx, uint32_t dy );
+uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz );
 
 void dda_create(TARGET *target, DDA *dda);
 void dda_start(DDA *dda);

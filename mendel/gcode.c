@@ -235,11 +235,11 @@ void scan_char(uint8_t c) {
 
 		// save options
 		option_bitfield = next_target.option;
-		option_bitfield &= ~OPTION_COMMENT;
+// 		option_bitfield &= ~OPTION_COMMENT;
 
 		// reset variables
-		last_field = 0;
 		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = next_target.seen_E = next_target.seen_F = next_target.seen_S = next_target.seen_P = 0;
+		last_field = 0;
 		read_digit.sign = 0;
 		read_digit.mantissa = 0;
 		read_digit.exponent = 0;

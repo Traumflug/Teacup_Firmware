@@ -74,12 +74,9 @@ void next_move() {
 */
 
 // courtesy of http://www.oroboro.com/rafael/docserv.php/index/programming/article/distance
-uint32_t approx_distance( int32_t dx, int32_t dy )
+uint32_t approx_distance( uint32_t dx, uint32_t dy )
 {
 	uint32_t min, max, approx;
-
-	if ( dx < 0 ) dx = -dx;
-	if ( dy < 0 ) dy = -dy;
 
 	if ( dx < dy )
 	{
@@ -99,13 +96,9 @@ uint32_t approx_distance( int32_t dx, int32_t dy )
 }
 
 // courtesy of http://www.oroboro.com/rafael/docserv.php/index/programming/article/distance
-uint32_t approx_distance_3( int32_t dx, int32_t dy, int32_t dz )
+uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz )
 {
 	uint32_t min, med, max, approx;
-
-	if ( dx < 0 ) dx = -dx;
-	if ( dy < 0 ) dy = -dy;
-	if ( dz < 0 ) dz = -dz;
 
 	if ( dx < dy )
 	{
@@ -116,12 +109,12 @@ uint32_t approx_distance_3( int32_t dx, int32_t dy, int32_t dz )
 		med = dy;
 	}
 
-	if ( dz < (int32_t)min )
+	if ( dz < min )
 	{
 		max = med;
 		med = min;
 		min = dz;
-	} else if ( dz < (int32_t)med ) {
+	} else if ( dz < med ) {
 		max = med;
 		med = dz;
 	} else {
@@ -139,8 +132,8 @@ uint32_t approx_distance_3( int32_t dx, int32_t dy, int32_t dz )
 
 uint32_t abs32(int32_t v) {
 	if (v < 0)
-		return -v;
-	return v;
+		return (uint32_t) (-v);
+	return (uint32_t) (v);
 }
 
 /*
@@ -150,6 +143,8 @@ uint32_t abs32(int32_t v) {
 void dda_create(TARGET *target, DDA *dda) {
 	uint32_t	distance;
 
+	serial_writestr_P("\n{DDA_CREATE: [");
+
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
@@ -158,6 +153,12 @@ void dda_create(TARGET *target, DDA *dda) {
 	dda->z_delta = abs32(dda->endpoint.Z - startpoint.Z);
 	dda->e_delta = abs32(dda->endpoint.E - startpoint.E);
 	dda->f_delta = abs32(dda->endpoint.F - startpoint.F);
+
+	serwrite_uint32(dda->x_delta); serial_writechar(',');
+	serwrite_uint32(dda->y_delta); serial_writechar(',');
+	serwrite_uint32(dda->z_delta); serial_writechar(',');
+	serwrite_uint32(dda->e_delta); serial_writechar(',');
+	serwrite_uint32(dda->f_delta); serial_writestr_P("] [");
 
 	// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
 	if (dda->z_delta == 0)
@@ -181,12 +182,10 @@ void dda_create(TARGET *target, DDA *dda) {
 	if (dda->e_delta > dda->total_steps)
 		dda->total_steps = dda->e_delta;
 
-	if (dda->total_steps == 0) {
+	if (dda->total_steps == 0)
 		dda->nullmove = 1;
-		// copy F in case we're doing a null move speed change
-		startpoint.F = dda->endpoint.F;
-		current_position.F = dda->endpoint.F;
-	}
+
+	serwrite_uint32(dda->total_steps); serial_writechar(',');
 
 	if (dda->f_delta > dda->total_steps) {
 		dda->f_scale = dda->f_delta / dda->total_steps;
@@ -202,6 +201,8 @@ void dda_create(TARGET *target, DDA *dda) {
 		dda->f_scale = 1;
 	}
 
+	serwrite_uint32(dda->total_steps); serial_writechar(',');
+
 	dda->x_direction = (dda->endpoint.X >= startpoint.X)?1:0;
 	dda->y_direction = (dda->endpoint.Y >= startpoint.Y)?1:0;
 	dda->z_direction = (dda->endpoint.Z >= startpoint.Z)?1:0;
@@ -216,6 +217,8 @@ void dda_create(TARGET *target, DDA *dda) {
 	// so in the interrupt we must simply calculate
 	// mm.us per step.min / mm per min (F) = us per step
 	dda->move_duration = distance * 60000000 / dda->total_steps;
+
+	serwrite_uint32(dda->move_duration); serial_writestr_P("] }\n");
 
 	// next dda starts where we finish
 	memcpy(&startpoint, target, sizeof(TARGET));
@@ -284,6 +287,7 @@ void dda_step(DDA *dda) {
 #define	E_CAN_STEP	8
 #define	F_CAN_STEP	16
 #define	REAL_MOVE		32
+#define	F_REAL_STEP	64
 
 	WRITE(SCK, 1);
 
@@ -376,10 +380,14 @@ void dda_step(DDA *dda) {
 					if (current_position.F < dda->endpoint.F)
 						current_position.F = dda->endpoint.F;
 				}
+
+				step_option |= F_REAL_STEP;
 			}
 		}
 
 		serial_writechar('[');
+		serwrite_hex8(step_option);
+		serial_writechar(':');
 		serwrite_uint16(dda->f_scale);
 		serial_writechar(',');
 		serwrite_int32(current_position.F);
@@ -394,12 +402,12 @@ void dda_step(DDA *dda) {
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	unstep();
 
-	// we have stepped and now need to wait
-	if (step_option & REAL_MOVE)
+	// we have stepped in speed and now need to recalculate our delay
+	if ((step_option & REAL_MOVE) && (step_option & F_REAL_STEP))
 		setTimer(dda->move_duration / current_position.F);
 
 	// if we could step, we're still running
-	dda->live = (step_option & (X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP));
+	dda->live = (step_option & (X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP))?1:0;
 
 	WRITE(SCK, 0);
 }
