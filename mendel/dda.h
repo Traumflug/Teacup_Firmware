@@ -25,6 +25,7 @@ typedef struct {
 	uint8_t						f_direction		:1;
 	uint8_t						nullmove			:1;
 	uint8_t						live					:1;
+	uint8_t						firstep				:1;
 
 	uint32_t					x_delta;
 	uint32_t					y_delta;

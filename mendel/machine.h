@@ -32,4 +32,9 @@
 #define	E_STARTSTOP_STEPS			20
 #define	FEEDRATE_FAST_E				1200
 
+/*
+	should be the same for all machines ;)
+*/
+#define	PI	3.1415926535
+
 #endif	/* _MACHINE_H */

@@ -12,8 +12,6 @@ uint8_t	option_bitfield;
 
 decfloat read_digit;
 
-#define	PI	3.1415926535
-
 const char alphabet[] = "GMXYZEFSP";
 
 /*

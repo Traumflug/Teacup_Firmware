@@ -12,8 +12,9 @@ ISR(TIMER1_COMPA_vect) {
 		disableTimerInterrupt();
 		sei();
 
-		dda_step(&movebuffer[mb_tail]);
+		dda_step(&(movebuffer[mb_tail]));
 
+		cli();
 		enableTimerInterrupt();
 	}
 	else

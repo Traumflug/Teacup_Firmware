@@ -3,6 +3,7 @@
 #include	"serial.h"
 
 void serwrite_hex4(uint8_t v) {
+	v &= 0xF;
 	if (v < 10)
 		serial_writechar('0' + v);
 	else

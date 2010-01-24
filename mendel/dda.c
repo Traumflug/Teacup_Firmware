@@ -48,8 +48,8 @@ void enqueue(TARGET *t) {
 	h++;
 	if (h == MOVEBUFFER_SIZE)
 		h = 0;
-	mb_head = h;
 	dda_create(t, &movebuffer[h]);
+	mb_head = h;
 }
 
 void next_move() {
@@ -57,15 +57,15 @@ void next_move() {
 		// queue is empty
 		disable_steppers();
 		setTimer(DEFAULT_TICK);
-		disableTimerInterrupt();
+// 		disableTimerInterrupt();
 	}
 	else {
 		uint8_t t = mb_tail;
 		t++;
 		if (t == MOVEBUFFER_SIZE)
 			t = 0;
-		mb_tail = t;
 		dda_start(&movebuffer[t]);
+		mb_tail = t;
 	}
 }
 
@@ -143,7 +143,7 @@ uint32_t abs32(int32_t v) {
 void dda_create(TARGET *target, DDA *dda) {
 	uint32_t	distance;
 
-	serial_writestr_P("\n{DDA_CREATE: [");
+	serial_writestr_P(PSTR("\n{DDA_CREATE: ["));
 
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
@@ -158,20 +158,7 @@ void dda_create(TARGET *target, DDA *dda) {
 	serwrite_uint32(dda->y_delta); serial_writechar(',');
 	serwrite_uint32(dda->z_delta); serial_writechar(',');
 	serwrite_uint32(dda->e_delta); serial_writechar(',');
-	serwrite_uint32(dda->f_delta); serial_writestr_P("] [");
-
-	// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
-	if (dda->z_delta == 0)
-		distance = approx_distance(dda->x_delta, dda->y_delta);
-	else if (dda->x_delta == 0 && dda->y_delta == 0)
-		distance = dda->z_delta;
-	else
-		distance = approx_distance_3(dda->x_delta, dda->y_delta, dda->z_delta);
-
-	if (distance < 2)
-		distance = dda->e_delta;
-	if (distance < 2)
-		distance = dda->f_delta;
+	serwrite_uint32(dda->f_delta); serial_writestr_P(PSTR("] ["));
 
 	dda->total_steps = dda->x_delta;
 	if (dda->y_delta > dda->total_steps)
@@ -212,19 +199,35 @@ void dda_create(TARGET *target, DDA *dda) {
 	dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter = dda->f_counter =
 		-(dda->total_steps >> 1);
 
+	// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
+	if (dda->z_delta == 0)
+		distance = approx_distance(dda->x_delta * 1000, dda->y_delta * 1000) / STEPS_PER_MM_X;
+	else if (dda->x_delta == 0 && dda->y_delta == 0)
+		distance = dda->z_delta * 1000 / STEPS_PER_MM_Z;
+	else
+		distance = approx_distance_3(dda->x_delta * 1000 * STEPS_PER_MM_Z / STEPS_PER_MM_X, dda->y_delta * 1000 * STEPS_PER_MM_Z / STEPS_PER_MM_Y, dda->z_delta * 1000) / STEPS_PER_MM_Z;
+
+	if (distance < 2)
+		distance = dda->e_delta * 1000 / STEPS_PER_MM_E;
+	if (distance < 2)
+		distance = dda->f_delta;
+
 	// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
-	// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
+	// mm (distance) * 1000 us/ms * 60000000 us/min / step (total_steps) = mm.us per step.min
 	// so in the interrupt we must simply calculate
 	// mm.us per step.min / mm per min (F) = us per step
-	dda->move_duration = distance * 60000000 / dda->total_steps;
+	if (dda->total_steps > 0)
+		dda->move_duration = distance * 60000 / dda->total_steps;
+	else
+		dda->move_duration = 0;
 
-	serwrite_uint32(dda->move_duration); serial_writestr_P("] }\n");
+	serwrite_uint32(dda->move_duration); serial_writestr_P(PSTR("] }\n"));
 
 	// next dda starts where we finish
 	memcpy(&startpoint, target, sizeof(TARGET));
 
-	// make sure we can run
-	dda->live = 1;
+	// not running yet, we fire up in dda_start()
+	dda->live = 0;
 
 	// fire up
 	enableTimerInterrupt();
@@ -236,8 +239,11 @@ void dda_create(TARGET *target, DDA *dda) {
 
 void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!
-	if (dda->nullmove)
+	if (dda->nullmove) {
+		// just change speed?
+		current_position.F = dda->endpoint.F;
 		return;
+	}
 
 	x_direction(dda->x_direction);
 	y_direction(dda->y_direction);
@@ -245,6 +251,8 @@ void dda_start(DDA *dda) {
 	e_direction(dda->e_direction);
 
 	enable_steppers();
+
+	dda->firstep = 1;
 
 	dda->live = 1;
 }
@@ -403,8 +411,10 @@ void dda_step(DDA *dda) {
 	unstep();
 
 	// we have stepped in speed and now need to recalculate our delay
-	if ((step_option & REAL_MOVE) && (step_option & F_REAL_STEP))
+	if ((step_option & REAL_MOVE) && ((step_option & F_REAL_STEP) || (dda->firstep))) {
 		setTimer(dda->move_duration / current_position.F);
+		dda->firstep = 0;
+	}
 
 	// if we could step, we're still running
 	dda->live = (step_option & (X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP))?1:0;

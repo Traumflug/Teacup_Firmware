@@ -3,7 +3,7 @@
 #include	"ringbuffer.h"
 
 #define		BUFSIZE		64 + sizeof(ringbuffer)
-#define		BAUD		19200
+#define		BAUD		57600
 
 volatile uint8_t _rx_buffer[BUFSIZE];
 volatile uint8_t _tx_buffer[BUFSIZE];
