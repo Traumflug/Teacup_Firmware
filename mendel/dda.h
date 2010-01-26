@@ -55,6 +55,7 @@ uint8_t queue_full(void);
 uint8_t queue_empty(void);
 void enqueue(TARGET *t);
 void next_move(void);
+void print_queue(void);
 
 uint32_t approx_distance( uint32_t dx, uint32_t dy );
 uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz );

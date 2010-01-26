@@ -14,6 +14,10 @@
 #define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
 #endif
 
+#ifndef	DEBUG
+#define	DEBUG 0
+#endif
+
 /*
 	move queue
 */
@@ -136,6 +140,19 @@ uint32_t abs32(int32_t v) {
 	return (uint32_t) (v);
 }
 
+
+void print_queue() {
+	serial_writechar('Q');
+	serwrite_uint8(mb_tail);
+	serial_writechar('/');
+	serwrite_uint8(mb_head);
+	if (queue_full())
+		serial_writechar('F');
+	if (queue_empty())
+		serial_writechar('E');
+	serial_writechar('\n');
+}
+
 /*
 	CREATE
 */
@@ -143,7 +160,8 @@ uint32_t abs32(int32_t v) {
 void dda_create(TARGET *target, DDA *dda) {
 	uint32_t	distance;
 
-	serial_writestr_P(PSTR("\n{DDA_CREATE: ["));
+	if (DEBUG)
+		serial_writestr_P(PSTR("\n{DDA_CREATE: ["));
 
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
@@ -154,11 +172,13 @@ void dda_create(TARGET *target, DDA *dda) {
 	dda->e_delta = abs32(dda->endpoint.E - startpoint.E);
 	dda->f_delta = abs32(dda->endpoint.F - startpoint.F);
 
-	serwrite_uint32(dda->x_delta); serial_writechar(',');
-	serwrite_uint32(dda->y_delta); serial_writechar(',');
-	serwrite_uint32(dda->z_delta); serial_writechar(',');
-	serwrite_uint32(dda->e_delta); serial_writechar(',');
-	serwrite_uint32(dda->f_delta); serial_writestr_P(PSTR("] ["));
+	if (DEBUG) {
+		serwrite_uint32(dda->x_delta); serial_writechar(',');
+		serwrite_uint32(dda->y_delta); serial_writechar(',');
+		serwrite_uint32(dda->z_delta); serial_writechar(',');
+		serwrite_uint32(dda->e_delta); serial_writechar(',');
+		serwrite_uint32(dda->f_delta); serial_writestr_P(PSTR("] ["));
+	}
 
 	dda->total_steps = dda->x_delta;
 	if (dda->y_delta > dda->total_steps)
@@ -172,7 +192,8 @@ void dda_create(TARGET *target, DDA *dda) {
 	if (dda->total_steps == 0)
 		dda->nullmove = 1;
 
-	serwrite_uint32(dda->total_steps); serial_writechar(',');
+	if (DEBUG)
+		serwrite_uint32(dda->total_steps); serial_writechar(',');
 
 	if (dda->f_delta > dda->total_steps) {
 		dda->f_scale = dda->f_delta / dda->total_steps;
@@ -188,7 +209,8 @@ void dda_create(TARGET *target, DDA *dda) {
 		dda->f_scale = 1;
 	}
 
-	serwrite_uint32(dda->total_steps); serial_writechar(',');
+	if (DEBUG)
+		serwrite_uint32(dda->total_steps); serial_writechar(',');
 
 	dda->x_direction = (dda->endpoint.X >= startpoint.X)?1:0;
 	dda->y_direction = (dda->endpoint.Y >= startpoint.Y)?1:0;
@@ -201,19 +223,20 @@ void dda_create(TARGET *target, DDA *dda) {
 
 	// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
 	if (dda->z_delta == 0)
-		distance = approx_distance(dda->x_delta * 1000, dda->y_delta * 1000) / ((uint32_t) STEPS_PER_MM_X);
+		distance = approx_distance(dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y);
 	else if (dda->x_delta == 0 && dda->y_delta == 0)
-		distance = dda->z_delta * ((uint32_t) (1000 / STEPS_PER_MM_Z));
+		distance = dda->z_delta * UM_PER_STEP_Z;
 	else
-		distance = approx_distance_3(dda->x_delta * ((uint32_t) (1000 * STEPS_PER_MM_Z / STEPS_PER_MM_X)), dda->y_delta * ((uint32_t) (1000 * STEPS_PER_MM_Z / STEPS_PER_MM_Y)), dda->z_delta * 1000) / ((uint32_t) STEPS_PER_MM_Z);
+		distance = approx_distance_3(dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y, dda->z_delta * UM_PER_STEP_Z);
 
 	if (distance < 2)
-		distance = dda->e_delta * ((uint32_t) (1000 / STEPS_PER_MM_E));
+		distance = dda->e_delta * UM_PER_STEP_E;
 	if (distance < 2)
 		distance = dda->f_delta;
 
 	// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
-	// mm (distance) * 1000 us/ms * 60000000 us/min / step (total_steps) = mm.us per step.min
+	// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
+	//   note: um (distance) * 60000 == mm * 60000000
 	// so in the interrupt we must simply calculate
 	// mm.us per step.min / mm per min (F) = us per step
 	if (dda->total_steps > 0)
@@ -221,7 +244,8 @@ void dda_create(TARGET *target, DDA *dda) {
 	else
 		dda->move_duration = 0;
 
-	serwrite_uint32(dda->move_duration); serial_writestr_P(PSTR("] }\n"));
+	if (DEBUG)
+		serwrite_uint32(dda->move_duration); serial_writestr_P(PSTR("] }\n"));
 
 	// next dda starts where we finish
 	memcpy(&startpoint, target, sizeof(TARGET));
@@ -393,17 +417,19 @@ void dda_step(DDA *dda) {
 			}
 		}
 
-		serial_writechar('[');
-		serwrite_hex8(step_option);
-		serial_writechar(':');
-		serwrite_uint16(dda->f_scale);
-		serial_writechar(',');
-		serwrite_int32(current_position.F);
-		serial_writechar('/');
-		serwrite_int32(dda->endpoint.F);
-		serial_writechar('#');
-		serwrite_uint32(dda->move_duration);
-		serial_writechar(']');
+		if (DEBUG) {
+			serial_writechar('[');
+			serwrite_hex8(step_option);
+			serial_writechar(':');
+			serwrite_uint16(dda->f_scale);
+			serial_writechar(',');
+			serwrite_int32(current_position.F);
+			serial_writechar('/');
+			serwrite_int32(dda->endpoint.F);
+			serial_writechar('#');
+			serwrite_uint32(dda->move_duration);
+			serial_writechar(']');
+		}
 	} while (	((step_option & REAL_MOVE ) == 0)	&&
 						((step_option & F_CAN_STEP) != 0)	);
 
@@ -411,7 +437,7 @@ void dda_step(DDA *dda) {
 	unstep();
 
 	// we have stepped in speed and now need to recalculate our delay
-	if ((step_option & REAL_MOVE) && ((step_option & F_REAL_STEP) || (dda->firstep))) {
+	if (((step_option & REAL_MOVE) && (step_option & F_REAL_STEP)) || (dda->firstep)) {
 		setTimer(dda->move_duration / current_position.F);
 		dda->firstep = 0;
 	}

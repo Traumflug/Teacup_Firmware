@@ -4,7 +4,10 @@
 #include	<stdint.h>
 
 void			clock_setup(void);
+
+#ifdef	GLOBAL_CLOCK
 uint32_t	clock_read(void);
+#endif
 
 extern volatile uint8_t	clock_flag_250ms;
 

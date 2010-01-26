@@ -12,7 +12,9 @@
 #include	"arduino.h"
 
 // global clock
+#ifdef	GLOBAL_CLOCK
 volatile uint32_t	clock = 0;
+#endif
 
 // 1/4 second tick
 uint8_t						clock_counter_250ms = 0;
@@ -37,8 +39,9 @@ void clock_setup() {
 
 ISR(TIMER2_COMPA_vect) {
 	// global clock
+#ifdef	GLOBAL_CLOCK
 	clock++;
-
+#endif
 	// 1/4 second tick
 	if (++clock_counter_250ms == 250) {
 		clock_flag_250ms = 255;
@@ -46,6 +49,7 @@ ISR(TIMER2_COMPA_vect) {
 	}
 }
 
+#ifdef	GLOBAL_CLOCK
 uint32_t clock_read() {
 	uint32_t	c;
 
@@ -55,3 +59,4 @@ uint32_t clock_read() {
 
 	return c;
 }
+#endif

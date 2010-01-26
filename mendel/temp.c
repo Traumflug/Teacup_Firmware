@@ -12,6 +12,8 @@
 			// M105- get temperature
 			case 105:
 				uint16_t t = temp_get();
+
+	note that the MAX6675 can't do more than approx 4 conversions per second
 */
 
 #include "temp.h"
@@ -19,6 +21,8 @@
 #include	"machine.h"
 #include	"pinout.h"
 #include	"clock.h"
+#include	"serial.h"
+#include	"sermsg.h"
 
 uint16_t	current_temp = 0;
 uint16_t	target_temp  = 0;
@@ -30,6 +34,10 @@ int16_t		heater_d     = 0;
 int32_t		p_factor			= 680;
 int32_t		i_factor			= 18;
 int32_t		d_factor			= 200;
+
+uint8_t		temp_flags		= 0;
+#define		TEMP_FLAG_PRESENT		1
+#define		TEMP_FLAG_TCOPEN		2
 
 #define		PID_SCALE			1024L
 
@@ -47,10 +55,13 @@ uint16_t temp_read() {
 	for (;(SPSR & MASK(SPIF)) == 0;);
 	temp |= SPDR;
 
+	temp_flags = 0;
 	if ((temp & 0x8002) == 0) {
 		// got "device id"
+		temp_flags |= TEMP_FLAG_PRESENT;
 		if (temp & 4) {
 			// thermocouple open
+			temp_flags |= TEMP_FLAG_TCOPEN;
 		}
 		else {
 			current_temp = temp >> 3;
@@ -69,6 +80,18 @@ void temp_set(uint16_t t) {
 
 uint16_t temp_get() {
 	return current_temp;
+}
+
+void temp_print() {
+	serial_writestr_P(PSTR("T: "));
+	if (temp_flags & TEMP_FLAG_TCOPEN) {
+		serial_writestr_P(PSTR("no thermocouple!"));
+	}
+	else {
+		serwrite_uint16(temp_get());
+		serial_writestr_P(PSTR("°C"));
+	}
+	serial_writechar('\n');
 }
 
 void temp_tick() {
