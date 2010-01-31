@@ -6,22 +6,25 @@
 #include	"dda.h"
 
 ISR(TIMER1_COMPA_vect) {
-	if(movebuffer[mb_tail].live) {
+// 	WRITE(SCK, 0);
+	if (movebuffer[mb_tail].live) {
 		// this interrupt can be interruptible
 		// TODO: remove when not debugging
 // 		disableTimerInterrupt();
 // 		sei();
 
-// 	WRITE(SCK, 0);
 		dda_step(&(movebuffer[mb_tail]));
-// 	WRITE(SCK, 1);
 
 // 		cli();
 // 		enableTimerInterrupt();
 	}
-	else {
+// 	WRITE(SCK, 1);
+
+	// perhaps we can fall directly into dda_start instead of waiting for another step
+	if (movebuffer[mb_tail].live == 0) {
 		next_move();
 	}
+
 }
 
 void setupTimerInterrupt()

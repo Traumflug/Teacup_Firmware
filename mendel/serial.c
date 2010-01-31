@@ -1,6 +1,7 @@
 #include	"serial.h"
 
 #include	"ringbuffer.h"
+#include	"arduino.h"
 
 #define		BUFSIZE		64 + sizeof(ringbuffer)
 #define		BAUD		57600
@@ -60,8 +61,19 @@ uint16_t serial_recvblock(uint8_t *block, int blocksize)
 
 void serial_writechar(uint8_t data)
 {
-	for (;ringbuffer_canwrite(tx_buffer) == 0;);
-	ringbuffer_writechar(tx_buffer, data);
+	// check if interrupts are enabled
+	if (SREG & MASK(SREG_I)) {
+		// if they are, we should be ok to block
+		for (;ringbuffer_canwrite(tx_buffer) == 0;);
+		ringbuffer_writechar(tx_buffer, data);
+	}
+	else {
+		// interrupts are disabled- maybe we're in one?
+		// anyway, instead of blocking, only write if we have room
+		if (ringbuffer_canwrite(tx_buffer))
+			ringbuffer_writechar(tx_buffer, data);
+	}
+	// enable TX interrupt so we can send this character
 	UCSR0B |= (1 << UDRIE0);
 }
 

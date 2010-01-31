@@ -36,8 +36,8 @@ DDA movebuffer[MOVEBUFFER_SIZE];
 	position tracking
 */
 
-TARGET startpoint = { 0, 0, 0, 0, FEEDRATE_SLOW_Z };
-TARGET current_position = { 0, 0, 0, 0, FEEDRATE_SLOW_Z };
+TARGET startpoint = { 0, 0, 0, 0, 0 };
+TARGET current_position = { 0, 0, 0, 0, 0 };
 
 uint8_t queue_full() {
 	if (mb_tail == 0)
@@ -47,7 +47,7 @@ uint8_t queue_full() {
 }
 
 uint8_t queue_empty() {
-	return (mb_tail == mb_head) && !movebuffer[mb_tail].live;
+	return ((mb_tail == mb_head) && (movebuffer[mb_tail].live == 0))?255:0;
 }
 
 void enqueue(TARGET *t) {
@@ -60,14 +60,17 @@ void enqueue(TARGET *t) {
 		h = 0;
 	dda_create(t, &movebuffer[h]);
 	mb_head = h;
+
+	// fire up in case we're not running yet
+	enableTimerInterrupt();
 }
 
 void next_move() {
 	if (queue_empty()) {
 		// queue is empty
-		disable_steppers();
-		setTimer(DEFAULT_TICK);
-// 		disableTimerInterrupt();
+// 		disable_steppers();
+// 		setTimer(DEFAULT_TICK);
+		disableTimerInterrupt();
 	}
 	else {
 		uint8_t t = mb_tail;
@@ -166,17 +169,22 @@ void print_queue() {
 void dda_create(TARGET *target, DDA *dda) {
 	uint32_t	distance;
 
+	// initialise DDA to a known state
+	dda->move_duration = 0;
+	dda->live = 0;
+	dda->total_steps = 0;
+
 	if (DEBUG)
 		serial_writestr_P(PSTR("\n{DDA_CREATE: ["));
 
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
-	dda->x_delta = abs32(dda->endpoint.X - startpoint.X);
-	dda->y_delta = abs32(dda->endpoint.Y - startpoint.Y);
-	dda->z_delta = abs32(dda->endpoint.Z - startpoint.Z);
-	dda->e_delta = abs32(dda->endpoint.E - startpoint.E);
-	dda->f_delta = abs32(dda->endpoint.F - startpoint.F);
+	dda->x_delta = abs32(target->X - startpoint.X);
+	dda->y_delta = abs32(target->Y - startpoint.Y);
+	dda->z_delta = abs32(target->Z - startpoint.Z);
+	dda->e_delta = abs32(target->E - startpoint.E);
+	dda->f_delta = abs32(target->F - startpoint.F);
 
 	if (DEBUG) {
 		serwrite_uint32(dda->x_delta); serial_writechar(',');
@@ -186,86 +194,85 @@ void dda_create(TARGET *target, DDA *dda) {
 		serwrite_uint32(dda->f_delta); serial_writestr_P(PSTR("] ["));
 	}
 
-	dda->total_steps = dda->x_delta;
+	if (dda->x_delta > dda->total_steps)
+		dda->total_steps = dda->x_delta;
 	if (dda->y_delta > dda->total_steps)
 		dda->total_steps = dda->y_delta;
 	if (dda->z_delta > dda->total_steps)
 		dda->total_steps = dda->z_delta;
-
 	if (dda->e_delta > dda->total_steps)
 		dda->total_steps = dda->e_delta;
 
-	if (dda->total_steps == 0)
+	if (dda->total_steps == 0) {
 		dda->nullmove = 1;
+	}
+	else {
 
-	if (DEBUG)
-		serwrite_uint32(dda->total_steps); serial_writechar(',');
+		if (DEBUG) {
+			serwrite_uint32(dda->total_steps); serial_writechar(',');
+		}
 
-// 	if (dda->f_delta > dda->total_steps) {
-// 		dda->f_scale = dda->f_delta / dda->total_steps;
-// 		if (dda->f_scale > 3) {
-// 			dda->f_delta = dda->total_steps;
-// 		}
-// 		else {
-// 			// if we boost the number of steps here, many will only be F-steps which take no time- maybe we should calculate move_distance first?
-// 			dda->f_scale = 1;
-// 			dda->total_steps = dda->f_delta;
-// 		}
-// 	}
-// 	else {
-// 		dda->f_scale = 1;
-// 	}
+	// 	if (dda->f_delta > dda->total_steps) {
+	// 		dda->f_scale = dda->f_delta / dda->total_steps;
+	// 		if (dda->f_scale > 3) {
+	// 			dda->f_delta = dda->total_steps;
+	// 		}
+	// 		else {
+	// 			// if we boost the number of steps here, many will only be F-steps which take no time- maybe we should calculate move_distance first?
+	// 			dda->f_scale = 1;
+	// 			dda->total_steps = dda->f_delta;
+	// 		}
+	// 	}
+	// 	else {
+	// 		dda->f_scale = 1;
+	// 	}
+	//
+	// 	if (DEBUG) {
+	// 		serwrite_uint32(dda->total_steps); serial_writechar(',');
+	// 	}
 
-	if (DEBUG)
-		serwrite_uint32(dda->total_steps); serial_writechar(',');
+		dda->x_direction = (target->X >= startpoint.X)?1:0;
+		dda->y_direction = (target->Y >= startpoint.Y)?1:0;
+		dda->z_direction = (target->Z >= startpoint.Z)?1:0;
+		dda->e_direction = (target->E >= startpoint.E)?1:0;
+		dda->f_direction = (target->F >= startpoint.F)?1:0;
 
-	dda->x_direction = (dda->endpoint.X >= startpoint.X)?1:0;
-	dda->y_direction = (dda->endpoint.Y >= startpoint.Y)?1:0;
-	dda->z_direction = (dda->endpoint.Z >= startpoint.Z)?1:0;
-	dda->e_direction = (dda->endpoint.E >= startpoint.E)?1:0;
-	dda->f_direction = (dda->endpoint.F >= startpoint.F)?1:0;
+		dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter = dda->f_counter =
+			-(dda->total_steps >> 1);
 
-	dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter = dda->f_counter =
-		-(dda->total_steps >> 1);
+		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
+		if (dda->z_delta == 0)
+			distance = approx_distance(dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y);
+		else if (dda->x_delta == 0 && dda->y_delta == 0)
+			distance = dda->z_delta * UM_PER_STEP_Z;
+		else
+			distance = approx_distance_3(dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y, dda->z_delta * UM_PER_STEP_Z);
 
-	// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
-	if (dda->z_delta == 0)
-		distance = approx_distance(dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y);
-	else if (dda->x_delta == 0 && dda->y_delta == 0)
-		distance = dda->z_delta * UM_PER_STEP_Z;
-	else
-		distance = approx_distance_3(dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y, dda->z_delta * UM_PER_STEP_Z);
+		if (distance < 2)
+			distance = dda->e_delta * UM_PER_STEP_E;
+	// 	if (distance < 2)
+	// 		distance = dda->f_delta;
 
-	if (distance < 2)
-		distance = dda->e_delta * UM_PER_STEP_E;
-// 	if (distance < 2)
-// 		distance = dda->f_delta;
-
-	// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
-	// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
-	//   note: um (distance) * 60000 == mm * 60000000
-	// so in the interrupt we must simply calculate
-	// mm.us per step.min / mm per min (F) = us per step
-	if (dda->total_steps > 0)
+		// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
+		// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
+		//   note: um (distance) * 60000 == mm * 60000000
+		// so in the interrupt we must simply calculate
+		// mm.us per step.min / mm per min (F) = us per step
 		dda->move_duration = distance * 60000 / dda->total_steps;
-	else
-		dda->move_duration = 0;
+
+		if (DEBUG)
+			serwrite_uint32(dda->move_duration);
+	}
 
 	if (DEBUG)
-		serwrite_uint32(dda->move_duration); serial_writestr_P(PSTR("] }\n"));
+		serial_writestr_P(PSTR("] }\n"));
 
 	// next dda starts where we finish
 	memcpy(&startpoint, target, sizeof(TARGET));
 
-	// not running yet, we fire up in dda_start()
-	dda->live = 0;
-
 	// get steppers ready to go
 	steptimeout = 0;
 	enable_steppers();
-
-	// fire up
-	enableTimerInterrupt();
 }
 
 /*
@@ -274,11 +281,21 @@ void dda_create(TARGET *target, DDA *dda) {
 
 void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!
-	if (dda->nullmove) {
+	if (
+			(current_position.X == dda->endpoint.X) &&
+			(current_position.Y == dda->endpoint.Y) &&
+			(current_position.Z == dda->endpoint.Z) &&
+			(current_position.E == dda->endpoint.E)
+		 ) {
+// 	if (dda->nullmove) {
 		// just change speed?
 		current_position.F = dda->endpoint.F;
 		return;
 	}
+
+	// ensure steppers are ready to go
+	steptimeout = 0;
+	enable_steppers();
 
 	// set direction outputs
 	x_direction(dda->x_direction);
@@ -286,9 +303,8 @@ void dda_start(DDA *dda) {
 	z_direction(dda->z_direction);
 	e_direction(dda->e_direction);
 
-	// ensure steppers are ready to go
-	steptimeout = 0;
-	enable_steppers();
+	// ensure this dda starts
+	dda->live = 1;
 
 	// set timeout for first step
 	setTimer(dda->move_duration / current_position.F);
@@ -334,8 +350,12 @@ void dda_step(DDA *dda) {
 #define	REAL_MOVE		32
 #define	F_REAL_STEP	64
 
+	serial_writechar('!');
+
+	WRITE(SCK, 0);
+
 	do {
-		WRITE(SCK, 0);
+// 		WRITE(SCK, 0);
 
 		step_option = 0;
 // 		step_option |= can_step(x_min(), x_max(), current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
@@ -447,7 +467,7 @@ void dda_step(DDA *dda) {
 			serial_writechar(']');
 		}
 
-		WRITE(SCK, 1);
+// 		WRITE(SCK, 1);
 
 	} while (	((step_option & REAL_MOVE ) == 0)	&&
 						((step_option & F_CAN_STEP) != 0)	);
@@ -455,19 +475,29 @@ void dda_step(DDA *dda) {
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	unstep();
 
-	if (step_option & REAL_MOVE) {
+	if (step_option & REAL_MOVE)
 		// we stepped, reset timeout
 		steptimeout = 0;
 
-		// we have stepped in speed and now need to recalculate our delay
-		// WARNING: this is a divide in interrupt context! (which unfortunately seems unavoidable)
-		// we simply don't have the memory to precalculate this for each step,
-		// can't use a simplified process because the denominator changes rather than the numerator so the curve is non-linear
-		// and don't have a process framework to force it to be done outside interrupt context within a usable period of time
-		if (step_option & F_REAL_STEP)
-			setTimer(dda->move_duration / current_position.F);
-	}
+	// we have stepped in speed and now need to recalculate our delay
+	// WARNING: this is a divide in interrupt context! (which unfortunately seems unavoidable)
+	// we simply don't have the memory to precalculate this for each step,
+	// can't use a simplified process because the denominator changes rather than the numerator so the curve is non-linear
+	// and don't have a process framework to force it to be done outside interrupt context within a usable period of time
+	if (step_option & F_REAL_STEP)
+		setTimer(dda->move_duration / current_position.F);
 
 	// if we could step, we're still running
-	dda->live = (step_option & (X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP))?1:0;
+// 	dda->live = (step_option & (X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP))?1:0;
+	if (
+			(current_position.X == dda->endpoint.X) &&
+			(current_position.Y == dda->endpoint.Y) &&
+			(current_position.Z == dda->endpoint.Z) &&
+			(current_position.E == dda->endpoint.E) &&
+			(current_position.F == dda->endpoint.F)
+		 ) {
+		dda->live = 0;
+	}
+
+	WRITE(SCK, 1);
 }

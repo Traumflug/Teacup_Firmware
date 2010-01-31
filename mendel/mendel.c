@@ -36,15 +36,15 @@ inline void io_init(void) {
 	WRITE(E_DIR_PIN,  0);	SET_OUTPUT(E_DIR_PIN);
 
 	#ifdef	HEATER_PIN
-	disable_heater();			SET_OUTPUT(HEATER_PIN);
+	disable_heater();
 	#endif
 
 	#ifdef	FAN_PIN
-	disable_fan();				SET_OUTPUT(FAN_PIN);
+	disable_fan();
 	#endif
 
 	#ifdef	STEPPER_ENABLE_PIN
-	disable_steppers();		SET_OUTPUT(STEPPER_ENABLE_PIN);
+	disable_steppers();
 	#endif
 
 	WRITE(SCK, 1);				SET_OUTPUT(SCK);
@@ -64,6 +64,13 @@ inline void init(void) {
 
 	// set up clock
 	clock_setup();
+
+	// set up variables
+
+	// slow default
+	current_position.F = FEEDRATE_SLOW_Z;
+	memcpy(&startpoint, &current_position, sizeof(TARGET));
+	memcpy(&(next_target.target), &current_position, sizeof(TARGET));
 
 	// enable interrupts
 	sei();

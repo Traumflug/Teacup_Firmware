@@ -14,6 +14,8 @@ decfloat read_digit;
 
 const char alphabet[] = "GMXYZEFSP";
 
+GCODE_COMMAND next_target = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
+
 /*
 	utility functions
 */
@@ -91,7 +93,6 @@ void SpecialMoveE(int32_t e, uint32_t f) {
 
 void scan_char(uint8_t c) {
 	static uint8_t last_field = 0;
-	static GCODE_COMMAND next_target = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
 
 	// uppercase
 	if (c >= 'a' && c <= 'z')
@@ -141,7 +142,7 @@ void scan_char(uint8_t c) {
 					serwrite_uint16(next_target.S);
 					break;
 				case 'P':
-					// if this is dwell, multiply by 1 million to convert seconds to milliseconds
+					// if this is dwell, multiply by 1000 to convert seconds to milliseconds
 					if (next_target.G == 4)
 						next_target.P = decfloat_to_int(&read_digit, 1000, 1);
 					else

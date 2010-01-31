@@ -107,7 +107,7 @@
 */
 
 #define	enable_heater()			WRITE(HEATER_PIN, 1)
-#define	disable_heater()		WRITE(HEATER_PIN, 0)
+#define	disable_heater()		do { WRITE(HEATER_PIN, 0); SET_OUTPUT(HEATER_PIN); } while (0)
 
 /*
 	fan
@@ -115,7 +115,7 @@
 
 #ifdef	FAN_PIN
 	#define	enable_fan()				WRITE(FAN_PIN, 1)
-	#define	disable_fan()				WRITE(FAN_PIN, 0)
+	#define	disable_fan()				do { WRITE(FAN_PIN, 0); SET_OUTPUT(FAN_PIN); } while (0)
 #else
 	#define	enable_fan()				if (0) {}
 	#define	disable_fan()				if (0) {}
@@ -126,8 +126,12 @@
 */
 
 #ifdef	STEPPER_ENABLE_PIN
-	#define	enable_steppers()		WRITE(STEPPER_ENABLE_PIN, 0)
-	#define	disable_steppers()	WRITE(STEPPER_ENABLE_PIN, 1)
+	// for connection to stepper driver ENABLE pins
+// 	#define	enable_steppers()		WRITE(STEPPER_ENABLE_PIN, 0)
+// 	#define	disable_steppers()	WRITE(STEPPER_ENABLE_PIN, 1)
+	// for connection to ATX PSU PWR_ON signal
+	#define	enable_steppers()		do { WRITE(STEPPER_ENABLE_PIN, 0); SET_OUTPUT(STEPPER_ENABLE_PIN); } while (0)
+	#define	disable_steppers()	SET_INPUT(STEPPER_ENABLE_PIN)
 #else
 	#define	enable_steppers()		if (0) {}
 	#define	disable_steppers()	if (0) {}

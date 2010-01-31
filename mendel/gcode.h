@@ -36,6 +36,8 @@ typedef struct {
 	uint16_t					P;
 } GCODE_COMMAND;
 
+extern GCODE_COMMAND next_target;
+
 int8_t indexof(uint8_t c, const char *string);
 int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator);
 
