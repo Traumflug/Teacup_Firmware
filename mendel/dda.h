@@ -41,7 +41,7 @@ typedef struct {
 
 	uint32_t					total_steps;
 
-	uint16_t					f_scale;
+// 	uint16_t					f_scale;
 	uint32_t					move_duration;
 } DDA;
 

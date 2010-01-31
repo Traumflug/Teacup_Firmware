@@ -117,8 +117,8 @@ int main (void)
 					serial_writestr_P(PSTR("DDA: f#"));
 					serwrite_int32(movebuffer[mb_head].f_counter);
 					serial_writechar('/');
-					serwrite_uint16(movebuffer[mb_head].f_scale);
-					serial_writechar('/');
+// 					serwrite_uint16(movebuffer[mb_head].f_scale);
+// 					serial_writechar('/');
 					serwrite_int16(movebuffer[mb_head].f_delta);
 					serial_writechar('\n');
 

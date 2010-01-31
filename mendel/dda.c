@@ -201,20 +201,20 @@ void dda_create(TARGET *target, DDA *dda) {
 	if (DEBUG)
 		serwrite_uint32(dda->total_steps); serial_writechar(',');
 
-	if (dda->f_delta > dda->total_steps) {
-		dda->f_scale = dda->f_delta / dda->total_steps;
-		if (dda->f_scale > 3) {
-			dda->f_delta = dda->total_steps;
-		}
-		else {
-			// if we boost the number of steps here, many will only be F-steps which take no time- maybe we should calculate move_distance first?
-			dda->f_scale = 1;
-			dda->total_steps = dda->f_delta;
-		}
-	}
-	else {
-		dda->f_scale = 1;
-	}
+// 	if (dda->f_delta > dda->total_steps) {
+// 		dda->f_scale = dda->f_delta / dda->total_steps;
+// 		if (dda->f_scale > 3) {
+// 			dda->f_delta = dda->total_steps;
+// 		}
+// 		else {
+// 			// if we boost the number of steps here, many will only be F-steps which take no time- maybe we should calculate move_distance first?
+// 			dda->f_scale = 1;
+// 			dda->total_steps = dda->f_delta;
+// 		}
+// 	}
+// 	else {
+// 		dda->f_scale = 1;
+// 	}
 
 	if (DEBUG)
 		serwrite_uint32(dda->total_steps); serial_writechar(',');
@@ -238,8 +238,8 @@ void dda_create(TARGET *target, DDA *dda) {
 
 	if (distance < 2)
 		distance = dda->e_delta * UM_PER_STEP_E;
-	if (distance < 2)
-		distance = dda->f_delta;
+// 	if (distance < 2)
+// 		distance = dda->f_delta;
 
 	// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 	// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
@@ -409,20 +409,22 @@ void dda_step(DDA *dda) {
 
 		if (step_option & F_CAN_STEP) {
 			dda->f_counter -= dda->f_delta;
-			if (dda->f_counter < 0) {
+			while (dda->f_counter < 0) {
 
 				dda->f_counter += dda->total_steps;
 
-				if (dda->f_scale == 0)
-					dda->f_scale = 1;
+// 				if (dda->f_scale == 0)
+// 					dda->f_scale = 1;
 
 				if (dda->f_direction) {
-					current_position.F += dda->f_scale;
+// 					current_position.F += dda->f_scale;
+					current_position.F += 1;
 					if (current_position.F > dda->endpoint.F)
 						current_position.F = dda->endpoint.F;
 				}
 				else {
-					current_position.F -= dda->f_scale;
+// 					current_position.F -= dda->f_scale;
+					current_position.F -= 1;
 					if (current_position.F < dda->endpoint.F)
 						current_position.F = dda->endpoint.F;
 				}
@@ -435,8 +437,8 @@ void dda_step(DDA *dda) {
 			serial_writechar('[');
 			serwrite_hex8(step_option);
 			serial_writechar(':');
-			serwrite_uint16(dda->f_scale);
-			serial_writechar(',');
+// 			serwrite_uint16(dda->f_scale);
+// 			serial_writechar(',');
 			serwrite_int32(current_position.F);
 			serial_writechar('/');
 			serwrite_int32(dda->endpoint.F);
