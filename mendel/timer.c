@@ -9,16 +9,19 @@ ISR(TIMER1_COMPA_vect) {
 	if(movebuffer[mb_tail].live) {
 		// this interrupt can be interruptible
 		// TODO: remove when not debugging
-		disableTimerInterrupt();
-		sei();
+// 		disableTimerInterrupt();
+// 		sei();
 
+// 	WRITE(SCK, 0);
 		dda_step(&(movebuffer[mb_tail]));
+// 	WRITE(SCK, 1);
 
-		cli();
-		enableTimerInterrupt();
+// 		cli();
+// 		enableTimerInterrupt();
 	}
-	else
+	else {
 		next_move();
+	}
 }
 
 void setupTimerInterrupt()

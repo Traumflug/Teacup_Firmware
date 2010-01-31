@@ -19,14 +19,7 @@
 #define	DEBUG 0
 #endif
 
-int main (void)
-{
-	uint8_t report;
-
-	// set up serial
-	serial_init();
-
-	// set up inputs and outputs
+inline void io_init(void) {
 	WRITE(X_STEP_PIN, 0);	SET_OUTPUT(X_STEP_PIN);
 	WRITE(X_DIR_PIN,  0);	SET_OUTPUT(X_DIR_PIN);
 	WRITE(X_MIN_PIN,  1);	SET_INPUT(X_MIN_PIN);
@@ -42,15 +35,29 @@ int main (void)
 	WRITE(E_STEP_PIN, 0);	SET_OUTPUT(E_STEP_PIN);
 	WRITE(E_DIR_PIN,  0);	SET_OUTPUT(E_DIR_PIN);
 
-	WRITE(HEATER_PIN, 0);	SET_OUTPUT(HEATER_PIN);
-
-	#ifdef	FAN_PIN
-	WRITE(FAN_PIN, 0); SET_OUTPUT(FAN_PIN);
+	#ifdef	HEATER_PIN
+	disable_heater();			SET_OUTPUT(HEATER_PIN);
 	#endif
 
-	WRITE(SCK, 0);	SET_OUTPUT(SCK);
-	WRITE(MISO, 1);	SET_INPUT(MISO);
-	WRITE(SS, 0);		SET_OUTPUT(SS);
+	#ifdef	FAN_PIN
+	disable_fan();				SET_OUTPUT(FAN_PIN);
+	#endif
+
+	#ifdef	STEPPER_ENABLE_PIN
+	disable_steppers();		SET_OUTPUT(STEPPER_ENABLE_PIN);
+	#endif
+
+	WRITE(SCK, 1);				SET_OUTPUT(SCK);
+	WRITE(MISO, 1);				SET_INPUT(MISO);
+	WRITE(SS, 0);					SET_OUTPUT(SS);
+}
+
+inline void init(void) {
+	// set up serial
+	serial_init();
+
+	// set up inputs and outputs
+	io_init();
 
 	// set up timers
 	setupTimerInterrupt();
@@ -66,6 +73,13 @@ int main (void)
 
 	// start queue
 	//enableTimerInterrupt();
+}
+
+int main (void)
+{
+	uint8_t report;
+
+	init();
 
 	// main loop
 	for (;;)
@@ -79,6 +93,17 @@ int main (void)
 		if (clock_flag_250ms & CLOCK_FLAG_250MS_TEMPCHECK) {
 			clock_flag_250ms &= ~CLOCK_FLAG_250MS_TEMPCHECK;
 			temp_tick();
+		}
+
+		if (clock_flag_250ms & CLOCK_FLAG_250MS_STEPTIMEOUT) {
+			clock_flag_250ms &= ~CLOCK_FLAG_250MS_STEPTIMEOUT;
+
+			if (steptimeout > 25) {
+				disable_steppers();
+			}
+			else {
+				steptimeout++;
+			}
 		}
 
 		if (clock_flag_250ms & CLOCK_FLAG_250MS_REPORT) {

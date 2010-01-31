@@ -10,6 +10,7 @@
 #include	<avr/interrupt.h>
 
 #include	"arduino.h"
+#include	"pinout.h"
 
 // global clock
 #ifdef	GLOBAL_CLOCK
@@ -38,6 +39,7 @@ void clock_setup() {
 }
 
 ISR(TIMER2_COMPA_vect) {
+// 	WRITE(SCK, 0);
 	// global clock
 #ifdef	GLOBAL_CLOCK
 	clock++;
@@ -47,6 +49,7 @@ ISR(TIMER2_COMPA_vect) {
 		clock_flag_250ms = 255;
 		clock_counter_250ms = 0;
 	}
+// 	WRITE(SCK, 1);
 }
 
 #ifdef	GLOBAL_CLOCK

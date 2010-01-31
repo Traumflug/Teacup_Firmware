@@ -45,7 +45,7 @@ int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator)
 	if (df->sign)
 		r = -r;
 
-	// exponent- try to keep divides to a minimum at expense of slightly more code
+	// exponent- try to keep divides to a minimum for common (small) values at expense of slightly more code
 	while (e >= 5) {
 		r /= 100000;
 		e -= 5;
@@ -126,8 +126,8 @@ void scan_char(uint8_t c) {
 					serwrite_uint32(next_target.target.E);
 					break;
 				case 'F':
-					// just save an integer value for F, we need move distance and n_steps to convert it to a useful value, so wait until we have those to convert it
-					next_target.target.F = read_digit.mantissa;
+					// just use raw integer, we need move distance and n_steps to convert it to a useful value, so wait until we have those to convert it
+					next_target.target.F = decfloat_to_int(&read_digit, 1, 1);
 					serwrite_uint32(next_target.target.F);
 					break;
 				case 'S':

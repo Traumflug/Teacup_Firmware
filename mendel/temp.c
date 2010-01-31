@@ -71,6 +71,8 @@ uint16_t temp_read() {
 
 	WRITE(SS, 0);
 
+	SPCR = 0;
+
 	return 0;
 }
 

@@ -12,8 +12,14 @@
 	we NEED these for communication
 */
 
-// RXD											DIO0
-// TXD											DIO1
+#define	RESERVED_RXD				DIO0
+#define	RESERVED_TXD				DIO1
+
+/*
+	user defined pins
+	adjust to suit your electronics,
+	or adjust your electronics to suit this
+*/
 
 #define	X_STEP_PIN					AIO0
 #define	X_DIR_PIN						AIO1
@@ -30,7 +36,10 @@
 #define	E_STEP_PIN					DIO7
 #define	E_DIR_PIN						DIO8
 
+#define	STEPPER_ENABLE_PIN	DIO9
+
 // list of PWM-able pins and corresponding timers
+// timer1 is reserved for step timing
 // OC0A											DIO6
 // OC0B											DIO5
 // OC1A											DIO9
@@ -41,12 +50,7 @@
 #define	HEATER_PIN					DIO6
 #define	HEATER_PIN_PWM			OC0A
 
-#define	FAN_PIN							DIO5
-
-#define	SCK									DIO13
-#define	MISO								DIO12
-#define	MOSI								DIO11
-#define	SS									DIO10
+// #define	FAN_PIN							DIO5
 
 /*
 	X Stepper
@@ -106,12 +110,24 @@
 #define	disable_heater()		WRITE(HEATER_PIN, 0)
 
 /*
+	fan
+*/
+
+#ifdef	FAN_PIN
+	#define	enable_fan()				WRITE(FAN_PIN, 1)
+	#define	disable_fan()				WRITE(FAN_PIN, 0)
+#else
+	#define	enable_fan()				if (0) {}
+	#define	disable_fan()				if (0) {}
+#endif
+
+/*
 	Stepper Enable (ATX PSU pwr_good signal?)
 */
 
 #ifdef	STEPPER_ENABLE_PIN
-	#define	enable_steppers()		WRITE(STEPPER_ENABLE_PIN, 1)
-	#define	disable_steppers()	WRITE(STEPPER_ENABLE_PIN, 0)
+	#define	enable_steppers()		WRITE(STEPPER_ENABLE_PIN, 0)
+	#define	disable_steppers()	WRITE(STEPPER_ENABLE_PIN, 1)
 #else
 	#define	enable_steppers()		if (0) {}
 	#define	disable_steppers()	if (0) {}

@@ -11,7 +11,8 @@ uint32_t	clock_read(void);
 
 extern volatile uint8_t	clock_flag_250ms;
 
-#define	CLOCK_FLAG_250MS_TEMPCHECK	1
-#define	CLOCK_FLAG_250MS_REPORT			2
+#define	CLOCK_FLAG_250MS_TEMPCHECK		1
+#define	CLOCK_FLAG_250MS_REPORT				2
+#define	CLOCL_FLAG_250MS_STEPTIMEOUT	4
 
 #endif	/* _CLOCK_H */

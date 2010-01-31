@@ -51,6 +51,8 @@ extern DDA movebuffer[MOVEBUFFER_SIZE];
 extern TARGET startpoint;
 extern TARGET current_position;
 
+extern uint8_t	steptimeout;
+
 uint8_t queue_full(void);
 uint8_t queue_empty(void);
 void enqueue(TARGET *t);

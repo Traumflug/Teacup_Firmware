@@ -27,6 +27,34 @@
 #define		SET_OUTPUT(IO)		_SET_OUTPUT(IO)
 
 /*
+	ports and functions
+*/
+
+// UART
+#define	RXD									DIO0
+#define	TXD									DIO1
+
+// SPI
+#define	SCK									DIO13
+#define	MISO								DIO12
+#define	MOSI								DIO11
+#define	SS									DIO10
+
+// TWI (I2C)
+#define	SCL									AIO5
+#define	SDA									AIO4
+
+// timers and PWM
+#define	OC0A								DIO6
+#define	OC0B								DIO5
+#define	OC1A								DIO9
+#define	OC1B								DIO10
+#define	OC2A								DIO11
+#define	OC2B								DIO3
+
+#define	ICP1								DIO8
+
+/*
 	pins
 */
 

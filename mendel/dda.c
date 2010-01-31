@@ -19,6 +19,12 @@
 #endif
 
 /*
+	step timeout
+*/
+
+uint8_t	steptimeout = 0;
+
+/*
 	move queue
 */
 
@@ -201,6 +207,7 @@ void dda_create(TARGET *target, DDA *dda) {
 			dda->f_delta = dda->total_steps;
 		}
 		else {
+			// if we boost the number of steps here, many will only be F-steps which take no time- maybe we should calculate move_distance first?
 			dda->f_scale = 1;
 			dda->total_steps = dda->f_delta;
 		}
@@ -253,6 +260,10 @@ void dda_create(TARGET *target, DDA *dda) {
 	// not running yet, we fire up in dda_start()
 	dda->live = 0;
 
+	// get steppers ready to go
+	steptimeout = 0;
+	enable_steppers();
+
 	// fire up
 	enableTimerInterrupt();
 }
@@ -269,16 +280,18 @@ void dda_start(DDA *dda) {
 		return;
 	}
 
+	// set direction outputs
 	x_direction(dda->x_direction);
 	y_direction(dda->y_direction);
 	z_direction(dda->z_direction);
 	e_direction(dda->e_direction);
 
+	// ensure steppers are ready to go
+	steptimeout = 0;
 	enable_steppers();
 
-	dda->firstep = 1;
-
-	dda->live = 1;
+	// set timeout for first step
+	setTimer(dda->move_duration / current_position.F);
 }
 
 /*
@@ -321,9 +334,10 @@ void dda_step(DDA *dda) {
 #define	REAL_MOVE		32
 #define	F_REAL_STEP	64
 
-	WRITE(SCK, 1);
-
 	do {
+		WRITE(SCK, 0);
+
+		step_option = 0;
 // 		step_option |= can_step(x_min(), x_max(), current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
 // 		step_option |= can_step(y_min(), y_max(), current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
 // 		step_option |= can_step(z_min(), z_max(), current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
@@ -417,7 +431,7 @@ void dda_step(DDA *dda) {
 			}
 		}
 
-		if (DEBUG) {
+		if (0 && DEBUG) {
 			serial_writechar('[');
 			serwrite_hex8(step_option);
 			serial_writechar(':');
@@ -430,20 +444,28 @@ void dda_step(DDA *dda) {
 			serwrite_uint32(dda->move_duration);
 			serial_writechar(']');
 		}
+
+		WRITE(SCK, 1);
+
 	} while (	((step_option & REAL_MOVE ) == 0)	&&
 						((step_option & F_CAN_STEP) != 0)	);
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	unstep();
 
-	// we have stepped in speed and now need to recalculate our delay
-	if (((step_option & REAL_MOVE) && (step_option & F_REAL_STEP)) || (dda->firstep)) {
-		setTimer(dda->move_duration / current_position.F);
-		dda->firstep = 0;
+	if (step_option & REAL_MOVE) {
+		// we stepped, reset timeout
+		steptimeout = 0;
+
+		// we have stepped in speed and now need to recalculate our delay
+		// WARNING: this is a divide in interrupt context! (which unfortunately seems unavoidable)
+		// we simply don't have the memory to precalculate this for each step,
+		// can't use a simplified process because the denominator changes rather than the numerator so the curve is non-linear
+		// and don't have a process framework to force it to be done outside interrupt context within a usable period of time
+		if (step_option & F_REAL_STEP)
+			setTimer(dda->move_duration / current_position.F);
 	}
 
 	// if we could step, we're still running
 	dda->live = (step_option & (X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP))?1:0;
-
-	WRITE(SCK, 0);
 }

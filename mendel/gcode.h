@@ -6,9 +6,9 @@
 #include	"dda.h"
 
 typedef struct {
-	uint16_t	sign			:1;
-	uint16_t	mantissa	:11;
-	uint16_t	exponent	:4;
+	uint32_t	sign			:1;
+	uint32_t	mantissa	:24;
+	uint32_t	exponent	:7;
 } decfloat;
 
 typedef struct {
