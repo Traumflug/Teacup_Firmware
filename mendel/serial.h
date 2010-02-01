@@ -21,4 +21,7 @@ void serial_writeblock_P(PGM_P data, int datalen);
 
 void serial_writestr_P(PGM_P data);
 
+void xoff(void);
+void xon(void);
+
 #endif	/* _SERIAL_H */

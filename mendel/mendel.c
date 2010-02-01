@@ -35,16 +35,21 @@ inline void io_init(void) {
 	WRITE(E_STEP_PIN, 0);	SET_OUTPUT(E_STEP_PIN);
 	WRITE(E_DIR_PIN,  0);	SET_OUTPUT(E_DIR_PIN);
 
+	// setup PWM timer: phase-correct PWM, no prescaler, no outputs enabled yet
+	TCCR0A = MASK(WGM00);
+	TCCR0B = MASK(CS00);
+	TIMSK0 = 0;
+
 	#ifdef	HEATER_PIN
-	disable_heater();
+		disable_heater();
 	#endif
 
 	#ifdef	FAN_PIN
-	disable_fan();
+		disable_fan();
 	#endif
 
 	#ifdef	STEPPER_ENABLE_PIN
-	disable_steppers();
+		disable_steppers();
 	#endif
 
 	WRITE(SCK, 1);				SET_OUTPUT(SCK);
@@ -84,7 +89,7 @@ inline void init(void) {
 
 int main (void)
 {
-	uint8_t report;
+	uint8_t report = 0;
 
 	init();
 
@@ -93,28 +98,21 @@ int main (void)
 	{
 		if (serial_rxchars()) {
 			uint8_t c = serial_popchar();
-// 			TOGGLE(SCK);
 			scan_char(c);
 		}
 
-		if (clock_flag_250ms & CLOCK_FLAG_250MS_TEMPCHECK) {
-			clock_flag_250ms &= ~CLOCK_FLAG_250MS_TEMPCHECK;
+		ifclock(CLOCK_FLAG_250MS_TEMPCHECK) {
 			temp_tick();
 		}
 
-		if (clock_flag_250ms & CLOCK_FLAG_250MS_STEPTIMEOUT) {
-			clock_flag_250ms &= ~CLOCK_FLAG_250MS_STEPTIMEOUT;
-
-			if (steptimeout > 25) {
+		ifclock(CLOCK_FLAG_250MS_STEPTIMEOUT) {
+			if (steptimeout > (30 * 4))
 				disable_steppers();
-			}
-			else {
+			else
 				steptimeout++;
-			}
 		}
 
-		if (clock_flag_250ms & CLOCK_FLAG_250MS_REPORT) {
-			clock_flag_250ms &= ~CLOCK_FLAG_250MS_REPORT;
+		ifclock(CLOCK_FLAG_250MS_REPORT) {
 			report++;
 			if (report == 4) {
 				report = 0;

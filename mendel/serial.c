@@ -6,8 +6,17 @@
 #define		BUFSIZE		64 + sizeof(ringbuffer)
 #define		BAUD		57600
 
+#define		ASCII_XOFF	19
+#define		ASCII_XON		17
+
 volatile uint8_t _rx_buffer[BUFSIZE];
 volatile uint8_t _tx_buffer[BUFSIZE];
+
+volatile uint8_t flowflags = 0;
+#define		FLOWFLAG_SEND_XOFF	1
+#define		FLOWFLAG_SEND_XON		2
+#define		FLOWFLAG_SENT_XOFF	4
+#define		FLOWFLAG_SENT_XON		8
 
 #define	rx_buffer	((ringbuffer *) _rx_buffer)
 #define	tx_buffer	((ringbuffer *) _tx_buffer)
@@ -33,7 +42,15 @@ ISR(USART_RX_vect)
 
 ISR(USART_UDRE_vect)
 {
-	if (ringbuffer_canread(tx_buffer))
+	if (flowflags & FLOWFLAG_SEND_XOFF) {
+		UDR0 = ASCII_XOFF;
+		flowflags = (flowflags & ~FLOWFLAG_SEND_XOFF) | FLOWFLAG_SENT_XOFF;
+	}
+	else if (flowflags & FLOWFLAG_SEND_XON) {
+		UDR0 = ASCII_XON;
+		flowflags = (flowflags & ~FLOWFLAG_SEND_XON) | FLOWFLAG_SENT_XON;
+	}
+	else if (ringbuffer_canread(tx_buffer))
 		UDR0 = ringbuffer_readchar(tx_buffer);
 	else
 		UCSR0B &= ~(1 << UDRIE0);
@@ -102,4 +119,17 @@ void serial_writestr_P(PGM_P data)
 	// yes, this is *supposed* to be assignment rather than comparison
 	for (uint8_t r; (r = pgm_read_byte(&data[i])); i++)
 		serial_writechar(r);
+}
+
+void xoff() {
+	flowflags = FLOWFLAG_SEND_XOFF;
+	// enable TX interrupt so we can send this character
+	UCSR0B |= (1 << UDRIE0);
+}
+
+void xon() {
+	if (flowflags & FLOWFLAG_SENT_XOFF)
+		flowflags = FLOWFLAG_SEND_XON;
+	// enable TX interrupt so we can send this character
+	UCSR0B |= (1 << UDRIE0);
 }

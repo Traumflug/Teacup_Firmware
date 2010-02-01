@@ -57,7 +57,7 @@ program: $(PROGRAM).hex
 	@sleep 0.2
 	@stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
 	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C/etc/avrdude.conf -U flash:w:$^
-	stty 57600 raw ignbrk -hup -echo < $(PROGPORT)
+	stty 57600 raw ignbrk -hup -echo ixon < $(PROGPORT)
 
 clean:
 	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~

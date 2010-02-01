@@ -58,7 +58,13 @@ void enqueue(TARGET *t) {
 	h++;
 	if (h == MOVEBUFFER_SIZE)
 		h = 0;
+
 	dda_create(t, &movebuffer[h]);
+
+	// if queue only has one space left, stop transmition
+	if (((h + 2) & (MOVEBUFFER_SIZE - 1)) == mb_tail)
+		xoff();
+
 	mb_head = h;
 
 	// fire up in case we're not running yet
@@ -80,6 +86,20 @@ void next_move() {
 		dda_start(&movebuffer[t]);
 		mb_tail = t;
 	}
+	// restart transmission
+	xon();
+}
+
+void print_queue() {
+	serial_writechar('Q');
+	serwrite_uint8(mb_tail);
+	serial_writechar('/');
+	serwrite_uint8(mb_head);
+	if (queue_full())
+		serial_writechar('F');
+	if (queue_empty())
+		serial_writechar('E');
+	serial_writechar('\n');
 }
 
 /*
@@ -149,19 +169,6 @@ uint32_t abs32(int32_t v) {
 	return (uint32_t) (v);
 }
 
-
-void print_queue() {
-	serial_writechar('Q');
-	serwrite_uint8(mb_tail);
-	serial_writechar('/');
-	serwrite_uint8(mb_head);
-	if (queue_full())
-		serial_writechar('F');
-	if (queue_empty())
-		serial_writechar('E');
-	serial_writechar('\n');
-}
-
 /*
 	CREATE
 */
@@ -207,6 +214,9 @@ void dda_create(TARGET *target, DDA *dda) {
 		dda->nullmove = 1;
 	}
 	else {
+		// get steppers ready to go
+		steptimeout = 0;
+		enable_steppers();
 
 		if (DEBUG) {
 			serwrite_uint32(dda->total_steps); serial_writechar(',');
@@ -269,10 +279,6 @@ void dda_create(TARGET *target, DDA *dda) {
 
 	// next dda starts where we finish
 	memcpy(&startpoint, target, sizeof(TARGET));
-
-	// get steppers ready to go
-	steptimeout = 0;
-	enable_steppers();
 }
 
 /*
@@ -354,10 +360,11 @@ void dda_step(DDA *dda) {
 
 	WRITE(SCK, 0);
 
+		step_option = 0;
 	do {
 // 		WRITE(SCK, 0);
 
-		step_option = 0;
+		step_option &= ~(X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP);
 // 		step_option |= can_step(x_min(), x_max(), current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
 // 		step_option |= can_step(y_min(), y_max(), current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
 // 		step_option |= can_step(z_min(), z_max(), current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
@@ -433,17 +440,12 @@ void dda_step(DDA *dda) {
 
 				dda->f_counter += dda->total_steps;
 
-// 				if (dda->f_scale == 0)
-// 					dda->f_scale = 1;
-
 				if (dda->f_direction) {
-// 					current_position.F += dda->f_scale;
 					current_position.F += 1;
 					if (current_position.F > dda->endpoint.F)
 						current_position.F = dda->endpoint.F;
 				}
 				else {
-// 					current_position.F -= dda->f_scale;
 					current_position.F -= 1;
 					if (current_position.F < dda->endpoint.F)
 						current_position.F = dda->endpoint.F;
@@ -457,8 +459,6 @@ void dda_step(DDA *dda) {
 			serial_writechar('[');
 			serwrite_hex8(step_option);
 			serial_writechar(':');
-// 			serwrite_uint16(dda->f_scale);
-// 			serial_writechar(',');
 			serwrite_int32(current_position.F);
 			serial_writechar('/');
 			serwrite_int32(dda->endpoint.F);
@@ -488,16 +488,16 @@ void dda_step(DDA *dda) {
 		setTimer(dda->move_duration / current_position.F);
 
 	// if we could step, we're still running
-// 	dda->live = (step_option & (X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP))?1:0;
-	if (
-			(current_position.X == dda->endpoint.X) &&
-			(current_position.Y == dda->endpoint.Y) &&
-			(current_position.Z == dda->endpoint.Z) &&
-			(current_position.E == dda->endpoint.E) &&
-			(current_position.F == dda->endpoint.F)
-		 ) {
-		dda->live = 0;
-	}
+	dda->live = (step_option != 0)?1:0;
+// 	if (
+// 			(current_position.X == dda->endpoint.X) &&
+// 			(current_position.Y == dda->endpoint.Y) &&
+// 			(current_position.Z == dda->endpoint.Z) &&
+// 			(current_position.E == dda->endpoint.E) &&
+// 			(current_position.F == dda->endpoint.F)
+// 		 ) {
+// 		dda->live = 0;
+// 	}
 
 	WRITE(SCK, 1);
 }
