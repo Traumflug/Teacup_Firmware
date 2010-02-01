@@ -22,11 +22,9 @@ typedef struct {
 	uint8_t					seen_S	:1;
 	uint8_t					seen_P	:1;
 
-	uint8_t						option;
-#define	OPTION_RELATIVE						1
-#define	OPTION_SYNCHRONISE				2
-#define	OPTION_UNIT_INCHES				4
-#define	OPTION_COMMENT						128
+	uint8_t					option_relative			:1;
+	uint8_t					option_inches				:1;
+// 	uint8_t					option_synchronise	:1;
 
 	uint8_t						G;
 	uint8_t						M;

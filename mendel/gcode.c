@@ -9,12 +9,13 @@
 #include	"timer.h"
 
 uint8_t	option_bitfield;
+#define	OPTION_COMMENT						128
 
 decfloat read_digit;
 
 const char alphabet[] = "GMXYZEFSP";
 
-GCODE_COMMAND next_target = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
+GCODE_COMMAND next_target = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
 
 /*
 	utility functions
@@ -233,8 +234,8 @@ void scan_char(uint8_t c) {
 		process_gcode_command(&next_target);
 
 		// save options
-		option_bitfield = next_target.option;
-// 		option_bitfield &= ~OPTION_COMMENT;
+// 		option_bitfield = next_target.option;
+		option_bitfield &= ~OPTION_COMMENT;
 
 		// reset variables
 		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = next_target.seen_E = next_target.seen_F = next_target.seen_S = next_target.seen_P = 0;
@@ -248,12 +249,26 @@ void scan_char(uint8_t c) {
 }
 
 void process_gcode_command(GCODE_COMMAND *gcmd) {
-	if (gcmd->option & OPTION_RELATIVE) {
+
+	// convert relative to absolute
+	if (gcmd->option_relative) {
 		gcmd->target.X += startpoint.X;
 		gcmd->target.Y += startpoint.Y;
 		gcmd->target.Z += startpoint.Z;
 		gcmd->target.E += startpoint.E;
 	}
+
+	// explicitly make unseen values equal to startpoint, otherwise relative position mode is a clusterfuck and who knows what other bugs could occur?
+	if (gcmd->seen_X == 0)
+		gcmd->target.X = startpoint.X;
+	if (gcmd->seen_Y == 0)
+		gcmd->target.Y = startpoint.Y;
+	if (gcmd->seen_Z == 0)
+		gcmd->target.Z = startpoint.Z;
+	if (gcmd->seen_E == 0)
+		gcmd->target.E = startpoint.E;
+	if (gcmd->seen_F == 0)
+		gcmd->target.F = startpoint.F;
 
 	if (gcmd->seen_G) {
 		switch (gcmd->G) {
@@ -275,17 +290,19 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 
 			//	G4 - Dwell
 			case 4:
+				xoff();
 				delay_ms(gcmd->P);
+				xon();
 				break;
 
 			//	G20 - inches as units
 			case 20:
-				gcmd->option |= OPTION_UNIT_INCHES;
+				gcmd->option_inches = 1;
 				break;
 
 			//	G21 - mm as units
 			case 21:
-				gcmd->option &= ~OPTION_UNIT_INCHES;
+				gcmd->option_inches = 0;
 				break;
 
 			//	G30 - go home via point
@@ -341,17 +358,17 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 
 			//	G90 - absolute positioning
 			case 90:
-				gcmd->option &= ~OPTION_RELATIVE;
+				gcmd->option_relative = 0;
 				break;
 
 			//	G91 - relative positioning
 			case 91:
-				gcmd->option |= OPTION_RELATIVE;
+				gcmd->option_relative = 1;
 				break;
 
 			//	G92 - set home
 			case 92:
-				startpoint.X = startpoint.Y = startpoint.Z = 0;
+				startpoint.X = startpoint.Y = startpoint.Z = startpoint.E = 0;
 				break;
 
 			// TODO: spit an error
