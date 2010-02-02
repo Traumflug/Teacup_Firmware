@@ -135,7 +135,7 @@ int main (void)
 					serial_writechar(',');
 					serwrite_int32(current_position.Z);
 					serial_writechar(',');
-					serwrite_uint32(current_position.E);
+					serwrite_int32(current_position.E);
 					serial_writechar(',');
 					serwrite_uint32(current_position.F);
 					serial_writechar('\n');
@@ -148,7 +148,7 @@ int main (void)
 					serial_writechar(',');
 					serwrite_int32(movebuffer[mb_tail].endpoint.Z);
 					serial_writechar(',');
-					serwrite_uint32(movebuffer[mb_tail].endpoint.E);
+					serwrite_int32(movebuffer[mb_tail].endpoint.E);
 					serial_writechar(',');
 					serwrite_uint32(movebuffer[mb_tail].endpoint.F);
 					serial_writechar('\n');

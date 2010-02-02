@@ -321,21 +321,18 @@ void dda_start(DDA *dda) {
 */
 
 uint8_t	can_step(uint8_t min, uint8_t max, int32_t current, int32_t target, uint8_t dir) {
-	if (current == target)
-		return 0;
-
 	if (dir) {
 		// forwards/positive
 		if (max)
 			return 0;
-		if (current > target)
+		if ((current - target) >= 0)
 			return 0;
 	}
 	else {
 		// backwards/negative
 		if (min)
 			return 0;
-		if (target > current)
+		if ((target - current) >= 0)
 			return 0;
 	}
 
@@ -487,7 +484,7 @@ void dda_step(DDA *dda) {
 	if (step_option & F_REAL_STEP)
 		setTimer(dda->move_duration / current_position.F);
 
-	// if we could step, we're still running
+	// if we could do anything at all, we're still running
 	dda->live = (step_option != 0)?1:0;
 // 	if (
 // 			(current_position.X == dda->endpoint.X) &&

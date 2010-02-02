@@ -10,7 +10,7 @@ typedef struct {
 	int32_t						X;
 	int32_t						Y;
 	int32_t						Z;
-	uint32_t					E;
+	int32_t						E;
 	uint32_t					F;
 } TARGET;
 

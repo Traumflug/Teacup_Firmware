@@ -16,8 +16,6 @@
 #define	Y_STEPS_PER_REV						X_STEPS_PER_REV
 // we need more speed than precision on Z, turn off microstepping
 #define	Z_STEPS_PER_REV						200.0
-// we need more torque and smoothness at very low speeds on E, maximum microstepping
-#define	E_STEPS_PER_REV						3200.0
 
 #define	X_COG_CIRCUMFERENCE				(4.77 * 16.0)
 #define	Y_COG_CIRCUMFERENCE				X_COG_CIRCUMFERENCE
@@ -26,7 +24,8 @@
 // #define	XY_COG_CIRCUMFERENCE	(XY_COG_RADIUS * PI * 2)
 #define	Z_GEAR_RATIO							1.0
 
-#define	EXTRUDER_STEPS_PER_REV		E_STEPS_PER_REV
+// we need more torque and smoothness at very low speeds on E, maximum microstepping
+#define	E_STEPS_PER_REV						3200.0
 #define	EXTRUDER_SHAFT_RADIUS			5.0
 #define	EXTRUDER_INLET_DIAMETER		3.0
 #define	EXTRUDER_NOZZLE_DIAMETER	0.8
@@ -37,8 +36,8 @@
 
 // http://blog.arcol.hu/?p=157 may help with this next one
 // I haven't tuned this at all- it's just a placeholder until I read the above carefully enough
-// does this refer to filament or extrudate? extrudate depends on layer thickness.. hm
-#define	STEPS_PER_MM_E						((uint32_t) ((EXTRUDER_STEPS_PER_REV / (EXTRUDER_SHAFT_RADIUS * PI * EXTRUDER_INLET_DIAMETER / EXTRUDER_NOZZLE_DIAMETER)) + 0.5))
+// does this refer to filament or extrudate? extrudate depends on XY distance vs E distance.. hm lets go with filament
+#define	STEPS_PER_MM_E						((uint32_t) ((E_STEPS_PER_REV / (EXTRUDER_SHAFT_RADIUS * PI * EXTRUDER_INLET_DIAMETER)) + 0.5))
 
 #define	FEEDRATE_FAST_XY					6000
 #define	FEEDRATE_SLOW_XY					300
