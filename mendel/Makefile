@@ -32,16 +32,25 @@ F_CPU = 16000000L
 ##############################################################################
 
 ARCH = avr-
+CC = $(ARCH)gcc
+OBJDUMP = $(ARCH)objdump
+OBJCOPY = $(ARCH)objcopy
+
 OPTIMIZE = -Os -ffunction-sections  -finline-functions-called-once -DDEBUG=1
 # OPTIMIZE = -O0
 CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) -DF_CPU=$(F_CPU) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
 LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
 
-CC = $(ARCH)gcc
-OBJDUMP = $(ARCH)objdump
-OBJCOPY = $(ARCH)objcopy
 AVRDUDE = avrdude
 
+##############################################################################
+#                                                                            #
+# udev rule for /dev/arduino (insert into /etc/udev/rules.d/99-local.rules)  #
+# SUBSYSTEMS=="usb", ATTRS{idProduct}=="6001", ATTRS{idVendor}=="0403",      #
+#     NAME="%k", SYMLINK+="arduino", SYMLINK+="arduino_$attr{serial}",       #
+#     MODE="0660"                                                            #
+#                                                                            #
+##############################################################################
 PROGPORT = /dev/arduino
 PROGBAUD = 19200
 
@@ -54,8 +63,6 @@ all: $(PROGRAM).hex $(PROGRAM).lst size
 
 program: $(PROGRAM).hex
 	stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
-	@sleep 0.2
-	@stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
 	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C/etc/avrdude.conf -U flash:w:$^
 	stty 57600 raw ignbrk -hup -echo ixon < $(PROGPORT)
 

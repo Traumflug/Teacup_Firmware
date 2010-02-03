@@ -25,6 +25,13 @@
 uint8_t	steptimeout = 0;
 
 /*
+	position tracking
+*/
+
+TARGET startpoint = { 0, 0, 0, 0, 0 };
+TARGET current_position = { 0, 0, 0, 0, 0 };
+
+/*
 	move queue
 */
 
@@ -32,12 +39,6 @@ uint8_t	mb_head = 0;
 uint8_t	mb_tail = 0;
 DDA movebuffer[MOVEBUFFER_SIZE];
 
-/*
-	position tracking
-*/
-
-TARGET startpoint = { 0, 0, 0, 0, 0 };
-TARGET current_position = { 0, 0, 0, 0, 0 };
 
 uint8_t queue_full() {
 	if (mb_tail == 0)
@@ -176,7 +177,7 @@ uint32_t delta32(uint32_t v1, uint32_t v2) {
 }
 
 /*
-	CREATE
+	CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
 */
 
 void dda_create(TARGET *target, DDA *dda) {
@@ -279,12 +280,20 @@ void dda_create(TARGET *target, DDA *dda) {
 	// 	if (distance < 2)
 	// 		distance = dda->f_delta;
 
+		if (DEBUG) {
+			serwrite_uint32(distance); serial_writechar(',');
+		}
+
 		// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 		// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
 		//   note: um (distance) * 60000 == mm * 60000000
 		// so in the interrupt we must simply calculate
 		// mm.us per step.min / mm per min (F) = us per step
-		dda->move_duration = distance * 60000 / dda->total_steps;
+
+		// break this calculation up a bit and lose some precision because 300,000um * 60000 is too big for a uint32
+		// calculate this with a uint64 if you need the precision, but it'll take longer so routines with lots of short moves may suffer
+		// 2^32/6000 is about 715mm which should be plenty
+		dda->move_duration = ((distance * 6000) / dda->total_steps) * 10;
 
 		if (DEBUG)
 			serwrite_uint32(dda->move_duration);
@@ -298,7 +307,7 @@ void dda_create(TARGET *target, DDA *dda) {
 }
 
 /*
-	START
+	Start a prepared DDA
 */
 
 void dda_start(DDA *dda) {
@@ -369,11 +378,14 @@ void dda_step(DDA *dda) {
 #define	REAL_MOVE		32
 #define	F_REAL_STEP	64
 
-	serial_writechar('!');
+	if (DEBUG)
+		serial_writechar('!');
 
-	WRITE(SCK, 0);
+	// turn 'L' light OFF so it's obvious if we froze in this routine
+// 	if (DEBUG)
+// 		WRITE(SCK, 0);
 
-	do {
+// 	do {
 // 		WRITE(SCK, 0);
 
 		step_option &= ~(X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP);
@@ -468,6 +480,7 @@ void dda_step(DDA *dda) {
 			}
 		}
 
+		// this generates too much debug output for all but the slowest step rates
 		if (0 && DEBUG) {
 			serial_writechar('[');
 			serwrite_hex8(step_option);
@@ -484,10 +497,7 @@ void dda_step(DDA *dda) {
 
 // 	} while (	((step_option & REAL_MOVE ) == 0)	&&
 // 						((step_option & F_CAN_STEP) != 0)	);
-	} while (0);
-
-	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
-	unstep();
+// 	} while (0);
 
 	if (step_option & REAL_MOVE)
 		// we stepped, reset timeout
@@ -502,15 +512,20 @@ void dda_step(DDA *dda) {
 		setTimer(dda->move_duration / current_position.F);
 
 	// if we could do anything at all, we're still running
-// 	dda->live = (step_option != 0)?1:0;
 	// otherwise, must have finished
-	if (step_option == 0) {
+	else if (step_option == 0) {
 		dda->live = 0;
 		#ifdef	STUPIDLY_HIDE_BUGS
-			// this magically makes bugs disappear after each move, probably a bad move
+			// this magically makes bugs disappear after each move, probably a bad idea
 			memcpy(&current_position, &(dda->endpoint), sizeof(TARGET));
 		#endif
 	}
 
-	WRITE(SCK, 1);
+	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
+	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something
+	unstep();
+
+	// turn 'L' light back on again
+// 	if (DEBUG)
+// 		WRITE(SCK, 1);
 }
