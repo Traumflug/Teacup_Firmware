@@ -169,6 +169,12 @@ uint32_t abs32(int32_t v) {
 	return (uint32_t) (v);
 }
 
+uint32_t delta32(uint32_t v1, uint32_t v2) {
+	if (v1 >= v2)
+		return v1 - v2;
+	return v2 - v1;
+}
+
 /*
 	CREATE
 */
@@ -191,13 +197,29 @@ void dda_create(TARGET *target, DDA *dda) {
 	dda->y_delta = abs32(target->Y - startpoint.Y);
 	dda->z_delta = abs32(target->Z - startpoint.Z);
 	dda->e_delta = abs32(target->E - startpoint.E);
-	dda->f_delta = abs32(target->F - startpoint.F);
+	dda->f_delta = delta32(target->F, startpoint.F);
+
+	dda->x_direction = (target->X >= startpoint.X)?1:0;
+	dda->y_direction = (target->Y >= startpoint.Y)?1:0;
+	dda->z_direction = (target->Z >= startpoint.Z)?1:0;
+	dda->e_direction = (target->E >= startpoint.E)?1:0;
+	dda->f_direction = (target->F >= startpoint.F)?1:0;
 
 	if (DEBUG) {
+		if (dda->x_direction == 0)
+			serial_writechar('-');
 		serwrite_uint32(dda->x_delta); serial_writechar(',');
+		if (dda->y_direction == 0)
+			serial_writechar('-');
 		serwrite_uint32(dda->y_delta); serial_writechar(',');
+		if (dda->z_direction == 0)
+			serial_writechar('-');
 		serwrite_uint32(dda->z_delta); serial_writechar(',');
+		if (dda->e_direction == 0)
+			serial_writechar('-');
 		serwrite_uint32(dda->e_delta); serial_writechar(',');
+		if (dda->f_direction == 0)
+			serial_writechar('-');
 		serwrite_uint32(dda->f_delta); serial_writestr_P(PSTR("] ["));
 	}
 
@@ -241,12 +263,6 @@ void dda_create(TARGET *target, DDA *dda) {
 	// 		serwrite_uint32(dda->total_steps); serial_writechar(',');
 	// 	}
 
-		dda->x_direction = (target->X >= startpoint.X)?1:0;
-		dda->y_direction = (target->Y >= startpoint.Y)?1:0;
-		dda->z_direction = (target->Z >= startpoint.Z)?1:0;
-		dda->e_direction = (target->E >= startpoint.E)?1:0;
-		dda->f_direction = (target->F >= startpoint.F)?1:0;
-
 		dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter = dda->f_counter =
 			-(dda->total_steps >> 1);
 
@@ -287,13 +303,13 @@ void dda_create(TARGET *target, DDA *dda) {
 
 void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!
-	if (
-			(current_position.X == dda->endpoint.X) &&
-			(current_position.Y == dda->endpoint.Y) &&
-			(current_position.Z == dda->endpoint.Z) &&
-			(current_position.E == dda->endpoint.E)
-		 ) {
-// 	if (dda->nullmove) {
+// 	if (
+// 			(current_position.X == dda->endpoint.X) &&
+// 			(current_position.Y == dda->endpoint.Y) &&
+// 			(current_position.Z == dda->endpoint.Z) &&
+// 			(current_position.E == dda->endpoint.E)
+// 		 ) {
+	if (dda->nullmove) {
 		// just change speed?
 		current_position.F = dda->endpoint.F;
 		return;
@@ -325,14 +341,14 @@ uint8_t	can_step(uint8_t min, uint8_t max, int32_t current, int32_t target, uint
 		// forwards/positive
 		if (max)
 			return 0;
-		if ((current - target) >= 0)
+		if (current >= target)
 			return 0;
 	}
 	else {
 		// backwards/negative
 		if (min)
 			return 0;
-		if ((target - current) >= 0)
+		if (target >= current)
 			return 0;
 	}
 
@@ -357,7 +373,6 @@ void dda_step(DDA *dda) {
 
 	WRITE(SCK, 0);
 
-		step_option = 0;
 	do {
 // 		WRITE(SCK, 0);
 
@@ -433,6 +448,7 @@ void dda_step(DDA *dda) {
 
 		if (step_option & F_CAN_STEP) {
 			dda->f_counter -= dda->f_delta;
+			// since we don't allow total_steps to be defined by F, we may need to step multiple times if f_delta is greater than total_steps
 			while (dda->f_counter < 0) {
 
 				dda->f_counter += dda->total_steps;
@@ -466,8 +482,9 @@ void dda_step(DDA *dda) {
 
 // 		WRITE(SCK, 1);
 
-	} while (	((step_option & REAL_MOVE ) == 0)	&&
-						((step_option & F_CAN_STEP) != 0)	);
+// 	} while (	((step_option & REAL_MOVE ) == 0)	&&
+// 						((step_option & F_CAN_STEP) != 0)	);
+	} while (0);
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	unstep();
@@ -485,16 +502,15 @@ void dda_step(DDA *dda) {
 		setTimer(dda->move_duration / current_position.F);
 
 	// if we could do anything at all, we're still running
-	dda->live = (step_option != 0)?1:0;
-// 	if (
-// 			(current_position.X == dda->endpoint.X) &&
-// 			(current_position.Y == dda->endpoint.Y) &&
-// 			(current_position.Z == dda->endpoint.Z) &&
-// 			(current_position.E == dda->endpoint.E) &&
-// 			(current_position.F == dda->endpoint.F)
-// 		 ) {
-// 		dda->live = 0;
-// 	}
+// 	dda->live = (step_option != 0)?1:0;
+	// otherwise, must have finished
+	if (step_option == 0) {
+		dda->live = 0;
+		#ifdef	STUPIDLY_HIDE_BUGS
+			// this magically makes bugs disappear after each move, probably a bad move
+			memcpy(&current_position, &(dda->endpoint), sizeof(TARGET));
+		#endif
+	}
 
 	WRITE(SCK, 1);
 }
