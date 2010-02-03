@@ -6,6 +6,10 @@
 #include	"pinout.h"
 #include	"machine.h"
 
+/*
+	types
+*/
+
 typedef struct {
 	int32_t						X;
 	int32_t						Y;
@@ -43,24 +47,23 @@ typedef struct {
 	uint32_t					move_duration;
 } DDA;
 
-extern uint8_t	mb_head;
-extern uint8_t	mb_tail;
-extern DDA movebuffer[MOVEBUFFER_SIZE];
-extern TARGET startpoint;
-extern TARGET current_position;
+/*
+	variables
+*/
 
 extern uint8_t	steptimeout;
 
-uint8_t queue_full(void);
-uint8_t queue_empty(void);
-void enqueue(TARGET *t);
-void next_move(void);
-void print_queue(void);
+extern TARGET startpoint;
+extern TARGET current_position;
+
+/*
+	methods
+*/
 
 uint32_t approx_distance( uint32_t dx, uint32_t dy );
 uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz );
 
-void dda_create(TARGET *target, DDA *dda);
+void dda_create(DDA *dda, TARGET *target);
 void dda_start(DDA *dda);
 void dda_step(DDA *dda);
 

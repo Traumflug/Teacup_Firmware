@@ -6,6 +6,7 @@
 uint16_t temp_read(void);
 void temp_set(uint16_t t);
 uint16_t temp_get(void);
+uint8_t	temp_achieved(void);
 void temp_print(void);
 void temp_tick(void);
 

@@ -84,6 +84,16 @@ uint16_t temp_get() {
 	return current_temp;
 }
 
+uint8_t	temp_achieved() {
+	if (current_temp >= target_temp)
+		if ((current_temp - target_temp) < TEMP_HYSTERESIS)
+			return 255;
+	if (current_temp < target_temp)
+		if ((target_temp - current_temp) < TEMP_HYSTERESIS)
+			return 255;
+	return 0;
+}
+
 void temp_print() {
 	serial_writestr_P(PSTR("T: "));
 	if (temp_flags & TEMP_FLAG_TCOPEN) {

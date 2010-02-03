@@ -3,6 +3,7 @@
 #include	<avr/interrupt.h>
 
 #include	"pinout.h"
+#include	"dda_queue.h"
 #include	"dda.h"
 
 ISR(TIMER1_COMPA_vect) {

@@ -7,6 +7,9 @@
 #include	"sermsg.h"
 #include	"temp.h"
 #include	"timer.h"
+#include	"dda_queue.h"
+#include	"dda.h"
+#include	"clock.h"
 
 uint8_t	option_bitfield;
 #define	OPTION_COMMENT						128
@@ -382,6 +385,14 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 		switch (gcmd->M) {
 			// M101- extruder on
 			case 101:
+				// here we wait until target temperature is reached, and emulate main loop so the temperature can actually be updated
+				while (!temp_achieved()) {
+					ifclock(CLOCK_FLAG_250MS) {
+						// this is cosmetically nasty, but exactly what needs to happen
+						void clock_250ms(void);
+						clock_250ms();
+					}
+				}
 				SpecialMoveE(E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
 				break;
 

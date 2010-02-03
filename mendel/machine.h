@@ -48,6 +48,12 @@
 #define	FEEDRATE_FAST_E						1200
 
 /*
+	extruder settings
+*/
+
+#define	TEMP_HYSTERESIS						2
+
+/*
 	calculated values - you shouldn't need to touch these
 	however feel free to put in your own values if they can be more precise than the calculated approximations, remembering that they must end up being integers- floating point by preprocessor only thanks!
 */
