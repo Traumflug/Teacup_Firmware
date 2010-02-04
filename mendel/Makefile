@@ -63,8 +63,10 @@ all: $(PROGRAM).hex $(PROGRAM).lst size
 
 program: $(PROGRAM).hex
 	stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
+	@sleep 0.1
+	@stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
 	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C/etc/avrdude.conf -U flash:w:$^
-	stty 57600 raw ignbrk -hup -echo ixon < $(PROGPORT)
+	stty 115200 raw ignbrk -hup -echo ixon < $(PROGPORT)
 
 clean:
 	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~
@@ -73,16 +75,21 @@ size: $(PROGRAM).hex
 	@objdump -h mendel.elf | perl -ne '/.(data|text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "%d bytes (%d%% of %dkb)\n", $$a, $$a * 100 / 16384, 16 }'
 
 %.o: %.c
-	$(CC) -c $(CFLAGS) -Wa,-adhlns=$(<:.c=.al) -o $@ $^
+	@echo "  CC        $@"
+	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(<:.c=.al) -o $@ $^
 
 %.elf: $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
+	@echo "  LINK      $@"
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 %.lst: %.elf
-	$(OBJDUMP) -h -S $< > $@
+	@echo "  OBJDUMP   $@"
+	@$(OBJDUMP) -h -S $< > $@
 
 %.hex: %.elf
-	$(OBJCOPY) -j .text -j .data -O ihex $< $@
+	@echo "  OBJCOPY   $@"
+	@$(OBJCOPY) -j .text -j .data -O ihex $< $@
 
 %.bin: %.elf
-	$(OBJCOPY) -j .text -j .data -O binary $< $@
+	@echo "  OBJCOPY   $@"
+	@$(OBJCOPY) -j .text -j .data -O binary $< $@

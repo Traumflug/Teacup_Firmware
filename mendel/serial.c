@@ -4,7 +4,7 @@
 #include	"arduino.h"
 
 #define		BUFSIZE		64 + sizeof(ringbuffer)
-#define		BAUD		57600
+#define		BAUD		115200
 
 #define		ASCII_XOFF	19
 #define		ASCII_XON		17
@@ -26,11 +26,19 @@ void serial_init()
 	ringbuffer_init(rx_buffer, BUFSIZE);
 	ringbuffer_init(tx_buffer, BUFSIZE);
 
+#if BAUD > 38401
+	UCSR0A = MASK(U2X0);
+#else
 	UCSR0A = 0;
+#endif
 	UCSR0B = (1 << RXEN0) | (1 << TXEN0);
 	UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
 
-	UBRR0 = ((F_CPU / 16) / BAUD) - 1;
+#if BAUD > 38401
+	UBRR0 = (((F_CPU / 8) / BAUD) - 0.5);
+#else
+	UBRR0 = (((F_CPU / 16) / BAUD) - 0.5);
+#endif
 
 	UCSR0B |= (1 << RXCIE0) | (1 << UDRIE0);
 }
