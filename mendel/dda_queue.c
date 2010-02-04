@@ -8,7 +8,6 @@ uint8_t	mb_head = 0;
 uint8_t	mb_tail = 0;
 DDA movebuffer[MOVEBUFFER_SIZE];
 
-
 uint8_t queue_full() {
 	if (mb_tail == 0)
 		return mb_head == (MOVEBUFFER_SIZE - 1);
@@ -21,6 +20,7 @@ uint8_t queue_empty() {
 }
 
 void enqueue(TARGET *t) {
+	// don't call this function when the queue is full, but just in case, wait for a move to complete and free up the space for the passed target
 	while (queue_full())
 		delay(WAITING_DELAY);
 
@@ -31,11 +31,13 @@ void enqueue(TARGET *t) {
 
 	dda_create(&movebuffer[h], t);
 
-	// if queue only has one space left, stop transmition
-	if (((h + 2) & (MOVEBUFFER_SIZE - 1)) == mb_tail)
-		xoff();
-
 	mb_head = h;
+
+	#ifdef	XONXOFF
+		// if queue is full, stop transmition
+		if (queue_full())
+			xoff();
+	#endif
 
 	// fire up in case we're not running yet
 	enableTimerInterrupt();
@@ -43,12 +45,10 @@ void enqueue(TARGET *t) {
 
 void next_move() {
 	if (queue_empty()) {
-		// queue is empty
-// 		disable_steppers();
-// 		setTimer(DEFAULT_TICK);
 		disableTimerInterrupt();
 	}
 	else {
+		// next item
 		uint8_t t = mb_tail;
 		t++;
 		if (t == MOVEBUFFER_SIZE)
@@ -56,8 +56,11 @@ void next_move() {
 		dda_start(&movebuffer[t]);
 		mb_tail = t;
 	}
-	// restart transmission
-	xon();
+
+	#ifdef	XONXOFF
+		// restart transmission
+		xon();
+	#endif
 }
 
 void print_queue() {

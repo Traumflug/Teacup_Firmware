@@ -39,7 +39,7 @@
 #define	STEPPER_ENABLE_PIN	DIO9
 
 // list of PWM-able pins and corresponding timers
-// timer1 is reserved for step timing
+// timer1 is used for step timing so don't use OC1A/OC1B (DIO9/DIO10)
 // OC0A											DIO6
 // OC0B											DIO5
 // OC1A											DIO9
@@ -132,7 +132,7 @@
 */
 
 #ifdef	STEPPER_ENABLE_PIN
-	// for connection to stepper driver ENABLE pins
+	// for connection to stepper driver ENABLE pins (negative asserted)
 // 	#define	enable_steppers()		WRITE(STEPPER_ENABLE_PIN, 0)
 // 	#define	disable_steppers()	WRITE(STEPPER_ENABLE_PIN, 1)
 	// for connection to ATX PSU PWR_ON signal

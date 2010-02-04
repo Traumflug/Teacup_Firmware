@@ -174,25 +174,6 @@ void dda_create(DDA *dda, TARGET *target) {
 			serwrite_uint32(dda->total_steps); serial_writechar(',');
 		}
 
-	// 	if (dda->f_delta > dda->total_steps) {
-	// 		dda->f_scale = dda->f_delta / dda->total_steps;
-	// 		if (dda->f_scale > 3) {
-	// 			dda->f_delta = dda->total_steps;
-	// 		}
-	// 		else {
-	// 			// if we boost the number of steps here, many will only be F-steps which take no time- maybe we should calculate move_distance first?
-	// 			dda->f_scale = 1;
-	// 			dda->total_steps = dda->f_delta;
-	// 		}
-	// 	}
-	// 	else {
-	// 		dda->f_scale = 1;
-	// 	}
-	//
-	// 	if (DEBUG) {
-	// 		serwrite_uint32(dda->total_steps); serial_writechar(',');
-	// 	}
-
 		dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter = dda->f_counter =
 			-(dda->total_steps >> 1);
 
@@ -206,8 +187,6 @@ void dda_create(DDA *dda, TARGET *target) {
 
 		if (distance < 2)
 			distance = dda->e_delta * UM_PER_STEP_E;
-	// 	if (distance < 2)
-	// 		distance = dda->f_delta;
 
 		if (DEBUG) {
 			serwrite_uint32(distance); serial_writechar(',');
@@ -241,12 +220,6 @@ void dda_create(DDA *dda, TARGET *target) {
 
 void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!
-// 	if (
-// 			(current_position.X == dda->endpoint.X) &&
-// 			(current_position.Y == dda->endpoint.Y) &&
-// 			(current_position.Z == dda->endpoint.Z) &&
-// 			(current_position.E == dda->endpoint.E)
-// 		 ) {
 	if (dda->nullmove) {
 		// just change speed?
 		current_position.F = dda->endpoint.F;
@@ -310,123 +283,110 @@ void dda_step(DDA *dda) {
 	if (DEBUG)
 		serial_writechar('!');
 
-	// turn 'L' light OFF so it's obvious if we froze in this routine
-// 	if (DEBUG)
-// 		WRITE(SCK, 0);
-
-// 	do {
-// 		WRITE(SCK, 0);
-
-		step_option &= ~(X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP);
+	step_option &= ~(X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP);
 // 		step_option |= can_step(x_min(), x_max(), current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
 // 		step_option |= can_step(y_min(), y_max(), current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
 // 		step_option |= can_step(z_min(), z_max(), current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
-		step_option |= can_step(0      , 0      , current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
-		step_option |= can_step(0      , 0      , current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
-		step_option |= can_step(0      , 0      , current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
-		step_option |= can_step(0      , 0      , current_position.E, dda->endpoint.E, dda->e_direction) & E_CAN_STEP;
-		step_option |= can_step(0      , 0      , current_position.F, dda->endpoint.F, dda->f_direction) & F_CAN_STEP;
+	step_option |= can_step(0      , 0      , current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
+	step_option |= can_step(0      , 0      , current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
+	step_option |= can_step(0      , 0      , current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
+	step_option |= can_step(0      , 0      , current_position.E, dda->endpoint.E, dda->e_direction) & E_CAN_STEP;
+	step_option |= can_step(0      , 0      , current_position.F, dda->endpoint.F, dda->f_direction) & F_CAN_STEP;
 
-		if (step_option & X_CAN_STEP) {
-			dda->x_counter -= dda->x_delta;
-			if (dda->x_counter < 0) {
-				step_option |= REAL_MOVE;
+	if (step_option & X_CAN_STEP) {
+		dda->x_counter -= dda->x_delta;
+		if (dda->x_counter < 0) {
+			step_option |= REAL_MOVE;
 
-				x_step();
-				if (dda->x_direction)
-					current_position.X++;
-				else
-					current_position.X--;
+			x_step();
+			if (dda->x_direction)
+				current_position.X++;
+			else
+				current_position.X--;
 
-				dda->x_counter += dda->total_steps;
+			dda->x_counter += dda->total_steps;
+		}
+	}
+
+	if (step_option & Y_CAN_STEP) {
+		dda->y_counter -= dda->y_delta;
+		if (dda->y_counter < 0) {
+			step_option |= REAL_MOVE;
+
+			y_step();
+			if (dda->y_direction)
+				current_position.Y++;
+			else
+				current_position.Y--;
+
+			dda->y_counter += dda->total_steps;
+		}
+	}
+
+	if (step_option & Z_CAN_STEP) {
+		dda->z_counter -= dda->z_delta;
+		if (dda->z_counter < 0) {
+			step_option |= REAL_MOVE;
+
+			z_step();
+			if (dda->z_direction)
+				current_position.Z++;
+			else
+				current_position.Z--;
+
+			dda->z_counter += dda->total_steps;
+		}
+	}
+
+	if (step_option & E_CAN_STEP) {
+		dda->e_counter -= dda->e_delta;
+		if (dda->e_counter < 0) {
+			step_option |= REAL_MOVE;
+
+			e_step();
+			if (dda->e_direction)
+				current_position.E++;
+			else
+				current_position.E--;
+
+			dda->e_counter += dda->total_steps;
+		}
+	}
+
+	if (step_option & F_CAN_STEP) {
+		dda->f_counter -= dda->f_delta;
+		// since we don't allow total_steps to be defined by F, we may need to step multiple times if f_delta is greater than total_steps
+		while (dda->f_counter < 0) {
+
+			dda->f_counter += dda->total_steps;
+
+			if (dda->f_direction) {
+				current_position.F += 1;
+				if (current_position.F > dda->endpoint.F)
+					current_position.F = dda->endpoint.F;
 			}
-		}
-
-		if (step_option & Y_CAN_STEP) {
-			dda->y_counter -= dda->y_delta;
-			if (dda->y_counter < 0) {
-				step_option |= REAL_MOVE;
-
-				y_step();
-				if (dda->y_direction)
-					current_position.Y++;
-				else
-					current_position.Y--;
-
-				dda->y_counter += dda->total_steps;
+			else {
+				current_position.F -= 1;
+				if (current_position.F < dda->endpoint.F)
+					current_position.F = dda->endpoint.F;
 			}
+
+			step_option |= F_REAL_STEP;
 		}
+	}
 
-		if (step_option & Z_CAN_STEP) {
-			dda->z_counter -= dda->z_delta;
-			if (dda->z_counter < 0) {
-				step_option |= REAL_MOVE;
-
-				z_step();
-				if (dda->z_direction)
-					current_position.Z++;
-				else
-					current_position.Z--;
-
-				dda->z_counter += dda->total_steps;
-			}
-		}
-
-		if (step_option & E_CAN_STEP) {
-			dda->e_counter -= dda->e_delta;
-			if (dda->e_counter < 0) {
-				step_option |= REAL_MOVE;
-
-				e_step();
-				if (dda->e_direction)
-					current_position.E++;
-				else
-					current_position.E--;
-
-				dda->e_counter += dda->total_steps;
-			}
-		}
-
-		if (step_option & F_CAN_STEP) {
-			dda->f_counter -= dda->f_delta;
-			// since we don't allow total_steps to be defined by F, we may need to step multiple times if f_delta is greater than total_steps
-			while (dda->f_counter < 0) {
-
-				dda->f_counter += dda->total_steps;
-
-				if (dda->f_direction) {
-					current_position.F += 1;
-					if (current_position.F > dda->endpoint.F)
-						current_position.F = dda->endpoint.F;
-				}
-				else {
-					current_position.F -= 1;
-					if (current_position.F < dda->endpoint.F)
-						current_position.F = dda->endpoint.F;
-				}
-
-				step_option |= F_REAL_STEP;
-			}
-		}
-
-		// this generates too much debug output for all but the slowest step rates
-		if (0 && DEBUG) {
-			serial_writechar('[');
-			serwrite_hex8(step_option);
-			serial_writechar(':');
-			serwrite_int32(current_position.F);
-			serial_writechar('/');
-			serwrite_int32(dda->endpoint.F);
-			serial_writechar('#');
-			serwrite_uint32(dda->move_duration);
-			serial_writechar(']');
-		}
-
-// 		WRITE(SCK, 1);
-
-// 	} while (	((step_option & REAL_MOVE ) == 0)	&&
-// 						((step_option & F_CAN_STEP) != 0)	);
-// 	} while (0);
+	// this generates too much debug output for all but the slowest step rates
+	if (0 && DEBUG) {
+		serial_writechar('[');
+		serwrite_hex8(step_option);
+		serial_writechar(':');
+		serwrite_int32(current_position.F);
+		serial_writechar('/');
+		serwrite_int32(dda->endpoint.F);
+		serial_writechar('#');
+		serwrite_uint32(dda->move_duration);
+		serial_writechar(']');
+	}
 
 	if (step_option & REAL_MOVE)
 		// we stepped, reset timeout
@@ -453,8 +413,4 @@ void dda_step(DDA *dda) {
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something
 	unstep();
-
-	// turn 'L' light back on again
-// 	if (DEBUG)
-// 		WRITE(SCK, 1);
 }

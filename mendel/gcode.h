@@ -5,12 +5,14 @@
 
 #include	"dda.h"
 
+// this is a very crude decimal-based floating point structure. a real floating point would at least have signed exponent
 typedef struct {
 	uint32_t	sign			:1;
 	uint32_t	mantissa	:24;
 	uint32_t	exponent	:7;
 } decfloat;
 
+// this holds all the possible data from a received command
 typedef struct {
 	uint8_t					seen_G	:1;
 	uint8_t					seen_M	:1;
@@ -30,16 +32,26 @@ typedef struct {
 	uint8_t						M;
 	TARGET						target;
 
-	uint16_t					S;
+	int16_t						S;
 	uint16_t					P;
 } GCODE_COMMAND;
 
+// the command being processed
 extern GCODE_COMMAND next_target;
 
+// utility functions
 int8_t indexof(uint8_t c, const char *string);
 int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator);
 
+// this is where we construct a move without a gcode command, useful for gcodes which require multiple moves eg; homing
+void SpecialMoveXY(int32_t x, int32_t y, uint32_t f);
+void SpecialMoveZ(int32_t z, uint32_t f);
+void SpecialMoveE(int32_t e, uint32_t f);
+
+// accept the next character and process it
 void scan_char(uint8_t c);
+
+// when we have a whole line, feed it to this
 void process_gcode_command(GCODE_COMMAND *gcmd);
 
 #endif	/* _GCODE_H */

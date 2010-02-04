@@ -11,6 +11,12 @@
 #define		MASK(PIN)				(1 << PIN)
 #endif
 
+/*
+	magic I/O routines
+
+	now you can simply SET_OUTPUT(STEP); WRITE(STEP, 1); WRITE(STEP, 0);
+*/
+
 #define		_READ(IO)					(IO ## _RPORT & MASK(IO ## _PIN))
 #define		_WRITE(IO, v)			do { if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } else { IO ## _WPORT &= ~MASK(IO ## _PIN); }; } while (0)
 #define		_TOGGLE(IO)				(IO ## _RPORT = MASK(IO ## _PIN))
@@ -33,6 +39,10 @@
 
 /*
 	ports and functions
+
+	added as necessary or if I feel like it- not a comprehensive list!
+
+	probably needs some #ifdefs for various chip types
 */
 
 // UART

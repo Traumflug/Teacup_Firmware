@@ -72,8 +72,6 @@ inline void init(void) {
 	clock_setup();
 
 	// set up variables
-
-	// slow default
 	current_position.F = FEEDRATE_SLOW_Z;
 	memcpy(&startpoint, &current_position, sizeof(TARGET));
 	memcpy(&(next_target.target), &current_position, sizeof(TARGET));
@@ -83,14 +81,10 @@ inline void init(void) {
 
 	// say hi to host
 	serial_writestr_P(PSTR("Start\n"));
-
-	// start queue
-	//enableTimerInterrupt();
 }
 
+void clock_250ms(void);
 void clock_250ms() {
-	static uint8_t report = 0;
-
 	temp_tick();
 
 	if (steptimeout > (30 * 4))
@@ -98,18 +92,13 @@ void clock_250ms() {
 	else
 		steptimeout++;
 
-	report++;
-	if (report == 4) {
-		report = 0;
-
+	ifclock (CLOCK_FLAG_1S) {
 		if (DEBUG) {
 			// current move
 			serial_writestr_P(PSTR("DDA: f#"));
-			serwrite_int32(movebuffer[mb_head].f_counter);
+			serwrite_int32(movebuffer[mb_tail].f_counter);
 			serial_writechar('/');
-			// serwrite_uint16(movebuffer[mb_head].f_scale);
-			// serial_writechar('/');
-			serwrite_int16(movebuffer[mb_head].f_delta);
+			serwrite_int16(movebuffer[mb_tail].f_delta);
 			serial_writechar('\n');
 
 			// current position
@@ -155,7 +144,7 @@ int main (void)
 	for (;;)
 	{
 		// if queue is full, no point in reading chars- host will just have to wait
-		if (serial_rxchars() && !queue_full()) {
+		if ((serial_rxchars() != 0) && (queue_full() == 0)) {
 			uint8_t c = serial_popchar();
 			scan_char(c);
 		}
@@ -163,66 +152,5 @@ int main (void)
 		ifclock(CLOCK_FLAG_250MS) {
 			clock_250ms();
 		}
-
-// 		ifclock(CLOCK_FLAG_250MS_TEMPCHECK) {
-// 			temp_tick();
-// 		}
-//
-// 		ifclock(CLOCK_FLAG_250MS_STEPTIMEOUT) {
-// 			if (steptimeout > (30 * 4))
-// 				disable_steppers();
-// 			else
-// 				steptimeout++;
-// 		}
-//
-// 		ifclock(CLOCK_FLAG_250MS_REPORT) {
-// 			report++;
-// 			if (report == 4) {
-// 				report = 0;
-//
-// 				if (DEBUG) {
-// 					// current move
-// 					serial_writestr_P(PSTR("DDA: f#"));
-// 					serwrite_int32(movebuffer[mb_head].f_counter);
-// 					serial_writechar('/');
-// // 					serwrite_uint16(movebuffer[mb_head].f_scale);
-// // 					serial_writechar('/');
-// 					serwrite_int16(movebuffer[mb_head].f_delta);
-// 					serial_writechar('\n');
-//
-// 					// current position
-// 					serial_writestr_P(PSTR("Pos: "));
-// 					serwrite_int32(current_position.X);
-// 					serial_writechar(',');
-// 					serwrite_int32(current_position.Y);
-// 					serial_writechar(',');
-// 					serwrite_int32(current_position.Z);
-// 					serial_writechar(',');
-// 					serwrite_int32(current_position.E);
-// 					serial_writechar(',');
-// 					serwrite_uint32(current_position.F);
-// 					serial_writechar('\n');
-//
-// 					// target position
-// 					serial_writestr_P(PSTR("Dst: "));
-// 					serwrite_int32(movebuffer[mb_tail].endpoint.X);
-// 					serial_writechar(',');
-// 					serwrite_int32(movebuffer[mb_tail].endpoint.Y);
-// 					serial_writechar(',');
-// 					serwrite_int32(movebuffer[mb_tail].endpoint.Z);
-// 					serial_writechar(',');
-// 					serwrite_int32(movebuffer[mb_tail].endpoint.E);
-// 					serial_writechar(',');
-// 					serwrite_uint32(movebuffer[mb_tail].endpoint.F);
-// 					serial_writechar('\n');
-// 				}
-//
-// 				// Queue
-// 				print_queue();
-//
-// 				// temperature
-// 				temp_print();
-// 			}
-// 		}
 	}
 }

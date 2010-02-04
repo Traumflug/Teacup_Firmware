@@ -7,7 +7,6 @@
 #include	"dda.h"
 
 ISR(TIMER1_COMPA_vect) {
-// 	WRITE(SCK, 0);
 	if (movebuffer[mb_tail].live) {
 		// this interrupt can be interruptible
 		// TODO: remove when not debugging
@@ -19,19 +18,14 @@ ISR(TIMER1_COMPA_vect) {
 // 		cli();
 // 		enableTimerInterrupt();
 	}
-// 	WRITE(SCK, 1);
 
-	// perhaps we can fall directly into dda_start instead of waiting for another step
-	if (movebuffer[mb_tail].live == 0) {
+	// fall directly into dda_start instead of waiting for another step
+	if (movebuffer[mb_tail].live == 0)
 		next_move();
-	}
-
 }
 
 void setupTimerInterrupt()
 {
-	//clear the registers
-
 	// no outputs
 	TCCR1A = 0;
 	// CTC mode
@@ -42,6 +36,8 @@ void setupTimerInterrupt()
 	//start off with a slow frequency.
 	setTimer(10000);
 }
+
+// the following are all from reprap project 5D firmware
 
 uint8_t getTimerResolution(const uint32_t delay)
 {
@@ -142,7 +138,6 @@ void delay_ms(uint32_t delay) {
 	delayMicrosecondsInterruptible(delay * 1000);
 }
 
-// from reprap project 5D firmware
 void delayMicrosecondsInterruptible(uint16_t us)
 {
   // for a one-microsecond delay, simply return.  the overhead

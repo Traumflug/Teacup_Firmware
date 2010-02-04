@@ -121,15 +121,17 @@ void serial_writestr_P(PGM_P data)
 		serial_writechar(r);
 }
 
-void xoff() {
-	flowflags = FLOWFLAG_SEND_XOFF;
-	// enable TX interrupt so we can send this character
-	UCSR0B |= (1 << UDRIE0);
-}
+#ifdef	XONXOFF
+	void xon() {
+		if (flowflags & FLOWFLAG_SENT_XOFF)
+			flowflags = FLOWFLAG_SEND_XON;
+		// enable TX interrupt so we can send this character
+		UCSR0B |= (1 << UDRIE0);
+	}
 
-void xon() {
-	if (flowflags & FLOWFLAG_SENT_XOFF)
-		flowflags = FLOWFLAG_SEND_XON;
-	// enable TX interrupt so we can send this character
-	UCSR0B |= (1 << UDRIE0);
-}
+	void xoff() {
+		flowflags = FLOWFLAG_SEND_XOFF;
+		// enable TX interrupt so we can send this character
+		UCSR0B |= (1 << UDRIE0);
+	}
+#endif

@@ -69,6 +69,10 @@ int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator)
 	return r;
 }
 
+/*
+	public functions
+*/
+
 void SpecialMoveXY(int32_t x, int32_t y, uint32_t f) {
 	TARGET t = startpoint;
 	t.X = x;
@@ -91,10 +95,6 @@ void SpecialMoveE(int32_t e, uint32_t f) {
 	enqueue(&t);
 }
 
-/*
-	public functions
-*/
-
 void scan_char(uint8_t c) {
 	static uint8_t last_field = 0;
 
@@ -102,38 +102,61 @@ void scan_char(uint8_t c) {
 	if (c >= 'a' && c <= 'z')
 		c &= ~32;
 
-	// process field
+	// process previous field
 	if (last_field) {
+		// check if we're seeing a new field or end of line
 		if ((indexof(c, alphabet) >= 0) || (c == 10)) {
 			switch (last_field) {
 				case 'G':
 					next_target.G = read_digit.mantissa;
-					serwrite_uint8(next_target.G);
+					if (DEBUG)
+						serwrite_uint8(next_target.G);
 					break;
 				case 'M':
 					next_target.M = read_digit.mantissa;
-					serwrite_uint8(next_target.M);
+					if (DEBUG)
+						serwrite_uint8(next_target.M);
 					break;
 				case 'X':
-					next_target.target.X = decfloat_to_int(&read_digit, STEPS_PER_MM_X, 1);
-					serwrite_int32(next_target.target.X);
+					if (next_target.option_inches)
+						next_target.target.X = decfloat_to_int(&read_digit, STEPS_PER_IN_X, 1);
+					else
+						next_target.target.X = decfloat_to_int(&read_digit, STEPS_PER_MM_X, 1);
+					if (DEBUG)
+						serwrite_int32(next_target.target.X);
 					break;
 				case 'Y':
-					next_target.target.Y = decfloat_to_int(&read_digit, STEPS_PER_MM_Y, 1);
-					serwrite_int32(next_target.target.Y);
+					if (next_target.option_inches)
+						next_target.target.Y = decfloat_to_int(&read_digit, STEPS_PER_IN_Y, 1);
+					else
+						next_target.target.Y = decfloat_to_int(&read_digit, STEPS_PER_MM_Y, 1);
+					if (DEBUG)
+						serwrite_int32(next_target.target.Y);
 					break;
 				case 'Z':
-					next_target.target.Z = decfloat_to_int(&read_digit, STEPS_PER_MM_Z, 1);
-					serwrite_int32(next_target.target.Z);
+					if (next_target.option_inches)
+						next_target.target.Z = decfloat_to_int(&read_digit, STEPS_PER_IN_Z, 1);
+					else
+						next_target.target.Z = decfloat_to_int(&read_digit, STEPS_PER_MM_Z, 1);
+					if (DEBUG)
+						serwrite_int32(next_target.target.Z);
 					break;
 				case 'E':
-					next_target.target.E = decfloat_to_int(&read_digit, STEPS_PER_MM_E, 1);
-					serwrite_uint32(next_target.target.E);
+					if (next_target.option_inches)
+						next_target.target.E = decfloat_to_int(&read_digit, STEPS_PER_IN_E, 1);
+					else
+						next_target.target.E = decfloat_to_int(&read_digit, STEPS_PER_MM_E, 1);
+					if (DEBUG)
+						serwrite_uint32(next_target.target.E);
 					break;
 				case 'F':
 					// just use raw integer, we need move distance and n_steps to convert it to a useful value, so wait until we have those to convert it
-					next_target.target.F = decfloat_to_int(&read_digit, 1, 1);
-					serwrite_uint32(next_target.target.F);
+					if (next_target.option_inches)
+						next_target.target.F = decfloat_to_int(&read_digit, 254, 10);
+					else
+						next_target.target.F = decfloat_to_int(&read_digit, 1, 1);
+					if (DEBUG)
+						serwrite_uint32(next_target.target.F);
 					break;
 				case 'S':
 					// if this is temperature, multiply by 4 to convert to quarter-degree units
@@ -141,9 +164,13 @@ void scan_char(uint8_t c) {
 					// but it takes less code, less memory and loses no precision if we do it here instead
 					if (next_target.M == 104)
 						next_target.S = decfloat_to_int(&read_digit, 4, 1);
+					// if this is heater PID stuff, multiply by PID_SCALE because we divide by PID_SCALE later on
+					else if ((next_target.M >= 130) && (next_target.M <= 132))
+						next_target.S = decfloat_to_int(&read_digit, PID_SCALE, 1);
 					else
 						next_target.S = decfloat_to_int(&read_digit, 1, 1);
-					serwrite_uint16(next_target.S);
+					if (DEBUG)
+						serwrite_uint16(next_target.S);
 					break;
 				case 'P':
 					// if this is dwell, multiply by 1000 to convert seconds to milliseconds
@@ -151,9 +178,11 @@ void scan_char(uint8_t c) {
 						next_target.P = decfloat_to_int(&read_digit, 1000, 1);
 					else
 						next_target.P = decfloat_to_int(&read_digit, 1, 1);
-					serwrite_uint16(next_target.P);
+					if (DEBUG)
+						serwrite_uint16(next_target.P);
 					break;
 			}
+			// reset for next field
 			last_field = 0;
 			read_digit.sign = 0;
 			read_digit.mantissa = 0;
@@ -161,11 +190,13 @@ void scan_char(uint8_t c) {
 		}
 	}
 
-	// not in a comment?
+	// skip comments
 	if ((option_bitfield & OPTION_COMMENT) == 0) {
+		// new field?
 		if (indexof(c, alphabet) >= 0) {
 			last_field = c;
-			serial_writechar(c);
+			if (DEBUG)
+				serial_writechar(c);
 		}
 
 		// process character
@@ -223,6 +254,7 @@ void scan_char(uint8_t c) {
 			default:
 				// can't do ranges in switch..case, so process actual digits here
 				if (c >= '0' && c <= '9') {
+					// this is simply mantissa = (mantissa * 10) + atoi(c) in different clothes
 					read_digit.mantissa = (read_digit.mantissa << 3) + (read_digit.mantissa << 1) + (c - '0');
 					if (read_digit.exponent)
 						read_digit.exponent++;
@@ -230,14 +262,13 @@ void scan_char(uint8_t c) {
 		}
 	}
 
-	// got a command
+	// end of line
 	if (c == 10) {
 		serial_writechar(c);
 		// process
 		process_gcode_command(&next_target);
 
-		// save options
-// 		option_bitfield = next_target.option;
+		// reset 'seen comment'
 		option_bitfield &= ~OPTION_COMMENT;
 
 		// reset variables
@@ -252,7 +283,6 @@ void scan_char(uint8_t c) {
 }
 
 void process_gcode_command(GCODE_COMMAND *gcmd) {
-
 	// convert relative to absolute
 	if (gcmd->option_relative) {
 		gcmd->target.X += startpoint.X;
@@ -261,7 +291,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 		gcmd->target.E += startpoint.E;
 	}
 
-	// explicitly make unseen values equal to startpoint, otherwise relative position mode is a clusterfuck and who knows what other bugs could occur?
+	// explicitly make unseen values equal to startpoint, otherwise relative position mode is a clusterfuck
 	if (gcmd->seen_X == 0)
 		gcmd->target.X = startpoint.X;
 	if (gcmd->seen_Y == 0)
@@ -288,14 +318,20 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				break;
 
 			//	G2 - Arc Clockwise
+			// unimplemented
 
 			//	G3 - Arc Counter-clockwise
+			// unimplemented
 
 			//	G4 - Dwell
 			case 4:
-				xoff();
+				#ifdef	XONXOFF
+					xoff();
+				#endif
 				delay_ms(gcmd->P);
-				xon();
+				#ifdef	XONXOFF
+					xon();
+				#endif
 				break;
 
 			//	G20 - inches as units
@@ -312,6 +348,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			case 30:
 				enqueue(&gcmd->target);
 				// no break here, G30 is move and then go home
+
 			//	G28 - go home
 			case 28:
 				/*
@@ -321,6 +358,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				SpecialMoveXY(-250L * STEPS_PER_MM_X, -250L * STEPS_PER_MM_Y, FEEDRATE_FAST_XY);
 				startpoint.X = startpoint.Y = 0;
 
+				// move forward a bit
 				SpecialMoveXY(5 * STEPS_PER_MM_X, 5 * STEPS_PER_MM_Y, FEEDRATE_SLOW_XY);
 
 				// move back in to endstops slowly
@@ -339,7 +377,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				SpecialMoveZ(-250L * STEPS_PER_MM_Z, FEEDRATE_FAST_Z);
 				startpoint.Z = 0;
 
-				// move out a bit
+				// move forward a bit
 				SpecialMoveZ(5 * STEPS_PER_MM_Z, FEEDRATE_SLOW_Z);
 
 				// move back into endstop slowly
@@ -354,7 +392,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				/*
 					Home E
 				*/
-				// extruder only runs one way anyway
+				// extruder only runs one way and we have no "endstop", just set this point as home
 				startpoint.E = current_position.E = 0;
 
 				break;
@@ -374,7 +412,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				startpoint.X = startpoint.Y = startpoint.Z = startpoint.E = 0;
 				break;
 
-			// TODO: spit an error
+			// unknown gcode: spit an error
 			default:
 				serial_writestr_P(PSTR("E: Bad G-code "));
 				serwrite_uint8(gcmd->G);
@@ -435,14 +473,29 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			case 106:
 				WRITE(FAN_PIN, 1);
 				break;
-
 			// M107- fan off
 			case 107:
 				WRITE(FAN_PIN, 0);
 				break;
 			#endif
 
-			// TODO: spit an error
+			// M130- heater P factor
+			case 130:
+				if (gcmd->seen_S)
+					p_factor = gcmd->S;
+				break;
+			// M131- heater I factor
+			case 131:
+				if (gcmd->seen_S)
+					i_factor = gcmd->S;
+				break;
+			// M132- heater D factor
+			case 132:
+				if (gcmd->seen_S)
+					d_factor = gcmd->S;
+				break;
+
+			// unknown mcode: spit an error
 			default:
 				serial_writestr_P(PSTR("E: Bad M-code "));
 				serwrite_uint8(gcmd->M);

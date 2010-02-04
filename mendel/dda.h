@@ -10,6 +10,7 @@
 	types
 */
 
+// target is simply a point in space/time
 typedef struct {
 	int32_t						X;
 	int32_t						Y;
@@ -18,8 +19,8 @@ typedef struct {
 	uint32_t					F;
 } TARGET;
 
+// this is a digital differential analyser data struct, holding both the initial values and the counters as it progresses
 typedef struct {
-// 	TARGET						currentpoint;
 	TARGET						endpoint;
 
 	uint8_t						x_direction		:1;
@@ -51,9 +52,13 @@ typedef struct {
 	variables
 */
 
+// steptimeout is set to zero when we step, and increases over time so we can turn the motors off when they've been idle for a while
 extern uint8_t	steptimeout;
 
+// startpoint holds the end position of the most recently created DDA, so we know where the next one starts
 extern TARGET startpoint;
+
+// current_position holds the machine's current position. this is only updated when we step, or when G92 (set home) is received.
 extern TARGET current_position;
 
 /*

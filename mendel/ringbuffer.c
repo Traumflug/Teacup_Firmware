@@ -43,7 +43,6 @@ void ringbuffer_writechar(ringbuffer *buf, uint8_t data)
 	}
 }
 
-
 uint8_t ringbuffer_peekchar(ringbuffer *buf, RB_BITS index)
 {
 	return buf->data[_rb_mod(buf->read_pointer + index, buf->size)];

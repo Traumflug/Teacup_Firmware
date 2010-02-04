@@ -39,8 +39,6 @@ uint8_t		temp_flags		= 0;
 #define		TEMP_FLAG_PRESENT		1
 #define		TEMP_FLAG_TCOPEN		2
 
-#define		PID_SCALE			1024L
-
 uint16_t temp_read() {
 	uint16_t temp;
 	SPCR = MASK(MSTR) | MASK(SPE);
@@ -55,6 +53,10 @@ uint16_t temp_read() {
 	for (;(SPSR & MASK(SPIF)) == 0;);
 	temp |= SPDR;
 
+	WRITE(SS, 0);
+
+	SPCR = 0;
+
 	temp_flags = 0;
 	if ((temp & 0x8002) == 0) {
 		// got "device id"
@@ -68,10 +70,6 @@ uint16_t temp_read() {
 			return current_temp;
 		}
 	}
-
-	WRITE(SS, 0);
-
-	SPCR = 0;
 
 	return 0;
 }
@@ -110,21 +108,41 @@ void temp_tick() {
 	uint16_t last_temp = current_temp;
 	temp_read();
 
-	int16_t	t_delta = target_temp - current_temp;
+	int16_t	t_error = target_temp - current_temp;
 
 	// PID stuff
-	heater_p = t_delta;
-	heater_i += t_delta;
-	// note: D follows temp rather than error so there's no large derivative when the target temperature changes
+	// proportional
+	heater_p = t_error;
+
+	// integral
+	heater_i += t_error;
+	// prevent integrator wind-up
+	if (heater_i > I_LIMIT)
+		heater_i = I_LIMIT;
+	else if (heater_i < -I_LIMIT)
+		heater_i = -I_LIMIT;
+
+	// derivative
+	// note: D follows temp rather than error so there's no large derivative when the target changes
 	heater_d = (current_temp - last_temp);
 
-	uint8_t pid_output = (
+	// combine factors
+	int32_t pid_output_intermed = (
 			(
 				(((int32_t) heater_p) * p_factor) +
 				(((int32_t) heater_i) * i_factor) +
 				(((int32_t) heater_d) * d_factor)
 			) / PID_SCALE
 		);
+
+	// rebase and limit factors
+	uint8_t pid_output;
+	if (pid_output_intermed > 127)
+		pid_output = 255;
+	else if (pid_output_intermed < -128)
+		pid_output = 0;
+	else
+		pid_output = (pid_output_intermed + 128);
 
 #ifdef	HEATER_PIN_PWMABLE
 	HEATER_PIN_PWMABLE = pid_output

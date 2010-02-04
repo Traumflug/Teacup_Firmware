@@ -8,13 +8,16 @@
 #define	US	* (F_CPU / 1000000)
 #define	MS	* (F_CPU / 1000)
 
-#define	DEFAULT_TICK	(100 US)
+// #define	DEFAULT_TICK	(100 US)
 #define	WAITING_DELAY	(10 MS)
 
 void setupTimerInterrupt(void);
+
 uint8_t getTimerResolution(const uint32_t delay);
 void setTimerResolution(uint8_t r);
+
 uint16_t getTimerCeiling(const uint32_t delay);
+#define setTimerCeiling(c)		OCR1A = c
 
 void setTimer(uint32_t delay);
 
@@ -27,7 +30,5 @@ void delayMicrosecondsInterruptible(unsigned int us);
 
 #define enableTimerInterrupt()	do { TIMSK1 |= (1<<OCIE1A); } while (0)
 #define disableTimerInterrupt() do { TIMSK1 &= ~(1<<OCIE1A); } while (0)
-
-#define setTimerCeiling(c)		OCR1A = c
 
 #endif	/* _TIMER_H */

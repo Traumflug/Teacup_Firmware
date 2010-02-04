@@ -9,25 +9,24 @@ void			clock_setup(void);
 uint32_t	clock_read(void);
 #endif
 
-extern volatile uint8_t	clock_flag_250ms;
+extern volatile uint8_t	clock_flag;
 
 #define	CLOCK_FLAG_250MS							1
-// #define	CLOCK_FLAG_250MS_TEMPCHECK		1
-// #define	CLOCK_FLAG_250MS_REPORT				2
-// #define	CLOCK_FLAG_250MS_STEPTIMEOUT	4
+#define	CLOCK_FLAG_1S									2
 
 /*
 	ifclock() {}
 
 	so we can do stuff like:
-	ifclock(CLOCK_FLAG_250MS_REPORT) {
+	ifclock(CLOCK_FLAG_250MS) {
 		report();
 	}
 
 	or:
-	ifclock(CLOCK_FLAG_250MS_STEPTIMEOUT)
+	ifclock(CLOCK_FLAG_1S)
 		disable_steppers();
 */
-#define	ifclock(F)	for (;clock_flag_250ms & (F);clock_flag_250ms &= ~(F))
+
+#define	ifclock(F)	for (;clock_flag & (F);clock_flag &= ~(F))
 
 #endif	/* _CLOCK_H */

@@ -19,7 +19,8 @@ volatile uint32_t	clock = 0;
 
 // 1/4 second tick
 uint8_t						clock_counter_250ms = 0;
-volatile uint8_t	clock_flag_250ms = 0;
+uint8_t						clock_counter_1s = 0;
+volatile uint8_t	clock_flag = 0;
 
 void clock_setup() {
 	// use system clock
@@ -39,17 +40,19 @@ void clock_setup() {
 }
 
 ISR(TIMER2_COMPA_vect) {
-// 	WRITE(SCK, 0);
 	// global clock
 #ifdef	GLOBAL_CLOCK
 	clock++;
 #endif
 	// 1/4 second tick
 	if (++clock_counter_250ms == 250) {
-		clock_flag_250ms = 255;
+		clock_flag |= CLOCK_FLAG_250MS;
 		clock_counter_250ms = 0;
+		if (++clock_counter_1s == 4) {
+			clock_flag |= CLOCK_FLAG_1S;
+			clock_counter_1s = 0;
+		}
 	}
-// 	WRITE(SCK, 1);
 }
 
 #ifdef	GLOBAL_CLOCK

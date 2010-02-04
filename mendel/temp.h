@@ -3,11 +3,31 @@
 
 #include	<stdint.h>
 
+// extruder heater PID factors
+// google "PID without a PHD" if you don't understand this PID stuff
+extern int32_t p_factor;
+extern int32_t i_factor;
+extern int32_t d_factor;
+
+#define		PID_SCALE			1024L
+#define		I_LIMIT				4000
+
+// read temperature from sensor
 uint16_t temp_read(void);
+
+// set target temperature
 void temp_set(uint16_t t);
+
+// return last read temperature
 uint16_t temp_get(void);
+
+// true if last read temp is close to target temp, false otherwise
 uint8_t	temp_achieved(void);
+
+// send current temperature to host
 void temp_print(void);
+
+// periodically read temperature and update heater with PID
 void temp_tick(void);
 
 #endif	/* _TIMER_H */
