@@ -1,6 +1,7 @@
 #include	"copier.h"
 
 #include	<avr/pgmspace.h>
+#include	<avr/boot.h>
 
 #include	"arduino.h"
 #include	"timer.h"
@@ -65,18 +66,15 @@ void copy() {
 	uint8_t f;
 	// copy fuses
 	// first low byte
-	SPMCSR |= MASK(BLBSET) | MASK(SELFPRGEN);
-	f = pgm_read_byte_near(0);
+	f = boot_lock_fuse_bits_get(GET_LOW_FUSE_BITS);
 	copier_xchange(CMD_WRITE_FUSE_BITS | f);
 
 	// high byte
-	SPMCSR |= MASK(BLBSET) | MASK(SELFPRGEN);
-	f = pgm_read_byte_near(3);
+	f = boot_lock_fuse_bits_get(GET_HIGH_FUSE_BITS);
 	copier_xchange(CMD_WRITE_FUSE_HIGH_BITS | f);
 
 	// extended byte
-	SPMCSR |= MASK(BLBSET) | MASK(SELFPRGEN);
-	f = pgm_read_byte_near(2);
+	f = boot_lock_fuse_bits_get(GET_EXTENDED_FUSE_BITS);
 	copier_xchange(CMD_WRITE_FUSE_EXTENDED_BITS | f);
 
 	// start copying flash
@@ -93,7 +91,6 @@ void copy() {
 	}
 
 	// reset
-	WRITE(COPIER_RESET, 0);
 	delay_ms(10);
 	SET_INPUT(MOSI);
 	SET_INPUT(SCK);
