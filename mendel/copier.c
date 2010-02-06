@@ -91,4 +91,11 @@ void copy() {
 		copier_xchange(CMD_WRITE_PROGMEM_PAGE | ((i / (SPM_PAGESIZE / 2)) << 8));
 		delay_ms(10); //minimum is 4.5ms
 	}
+
+	// reset
+	WRITE(COPIER_RESET, 0);
+	delay_ms(10);
+	SET_INPUT(MOSI);
+	SET_INPUT(SCK);
+	SET_INPUT(COPIER_RESET);
 }
