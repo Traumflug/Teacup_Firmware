@@ -36,8 +36,8 @@ CC = $(ARCH)gcc
 OBJDUMP = $(ARCH)objdump
 OBJCOPY = $(ARCH)objcopy
 
-OPTIMIZE = -Os -ffunction-sections  -finline-functions-called-once -DDEBUG=1
-# OPTIMIZE = -O0
+# OPTIMIZE = -Os -ffunction-sections  -finline-functions-called-once -DDEBUG=1
+OPTIMIZE = -O0
 CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) -DF_CPU=$(F_CPU) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
 LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
 
@@ -72,6 +72,7 @@ clean:
 	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~
 
 size: $(PROGRAM).hex
+	@echo -n "  SIZE      "
 	@objdump -h mendel.elf | perl -ne '/.(data|text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "%d bytes (%d%% of %dkb)\n", $$a, $$a * 100 / 16384, 16 }'
 
 %.o: %.c
