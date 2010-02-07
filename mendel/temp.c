@@ -23,6 +23,7 @@
 #include	"clock.h"
 #include	"serial.h"
 #include	"sermsg.h"
+#include	"timer.h"
 
 uint16_t	current_temp = 0;
 uint16_t	target_temp  = 0;
@@ -41,21 +42,37 @@ uint8_t		temp_flags		= 0;
 
 uint16_t temp_read() {
 	uint16_t temp;
-	SPCR = MASK(MSTR) | MASK(SPE);
 
-	WRITE(SS, 1);
+/*	if (DEBUG)
+		serial_writestr_P(PSTR("T["));*/
+
+	// very slow for debugging
+	SPCR = MASK(MSTR) | MASK(SPE) | MASK(SPR1) | MASK(SPR0);
+
+	WRITE(SS, 0);
+
+	delay(1);
 
 	SPDR = 0;
 	for (;(SPSR & MASK(SPIF)) == 0;);
-	temp = SPDR << 8;
+	temp = SPDR;
+
+// 	if (DEBUG)
+// 		serwrite_hex8(temp & 0xFF);
+
+	temp <<= 8;
 
 	SPDR = 0;
 	for (;(SPSR & MASK(SPIF)) == 0;);
 	temp |= SPDR;
 
-	WRITE(SS, 0);
+// 	if (DEBUG)
+// 		serwrite_hex8(temp & 0xFF);
 
-	SPCR = 0;
+	WRITE(SS, 1);
+
+	// turn off SPI system
+// 	SPCR = 0;
 
 	temp_flags = 0;
 	if ((temp & 0x8002) == 0) {
@@ -71,6 +88,9 @@ uint16_t temp_read() {
 		}
 	}
 
+// 	if (DEBUG)
+// 		serial_writechar(']');
+
 	return 0;
 }
 
@@ -80,6 +100,10 @@ void temp_set(uint16_t t) {
 
 uint16_t temp_get() {
 	return current_temp;
+}
+
+uint16_t temp_get_target() {
+	return target_temp;
 }
 
 uint8_t	temp_achieved() {
@@ -98,7 +122,18 @@ void temp_print() {
 		serial_writestr_P(PSTR("no thermocouple!"));
 	}
 	else {
-		serwrite_uint16(temp_get());
+		serwrite_uint16(temp_get() >> 2);
+		serial_writechar('.');
+		if (current_temp) {
+			if ((current_temp & 3) == 3)
+				serial_writechar('7');
+			else if ((current_temp & 3) == 1)
+				serial_writechar('2');
+			serial_writechar('5');
+		}
+		else {
+			serial_writechar('0');
+		}
 		serial_writestr_P(PSTR("°C"));
 	}
 	serial_writechar('\n');
@@ -108,7 +143,15 @@ void temp_tick() {
 	uint16_t last_temp = current_temp;
 	temp_read();
 
+	if (DEBUG)
+		serial_writestr_P(PSTR("T{"));
+
 	int16_t	t_error = target_temp - current_temp;
+
+	if (DEBUG) {
+		serial_writestr_P(PSTR("E:"));
+		serwrite_int16(t_error);
+	}
 
 	// PID stuff
 	// proportional
@@ -144,8 +187,13 @@ void temp_tick() {
 	else
 		pid_output = (pid_output_intermed + 128);
 
-#ifdef	HEATER_PIN_PWMABLE
-	HEATER_PIN_PWMABLE = pid_output
+	if (DEBUG) {
+		serial_writestr_P(PSTR("O:"));
+		serwrite_uint8(pid_output);
+	}
+
+#ifdef	HEATER_PWM
+	HEATER_PWM = pid_output;
 #else
 	if (pid_output >= 128) {
 		enable_heater();
@@ -154,4 +202,7 @@ void temp_tick() {
 		disable_heater();
 	}
 #endif
+
+	if (DEBUG)
+		serial_writechar('}');
 }

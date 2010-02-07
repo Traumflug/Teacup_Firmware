@@ -48,7 +48,7 @@
 // OC2B											DIO3
 
 #define	HEATER_PIN					DIO6
-#define	HEATER_PIN_PWM			OC0A
+#define	HEATER_PWM					OCR0A
 
 // #define	FAN_PIN							DIO5
 // #define	FAN_PIN_PWM					OC0B
@@ -107,12 +107,12 @@
 	Heater
 */
 
-#ifdef	HEATER_PIN_PWM
-	#define	enable_heater()			WRITE(HEATER_PIN, 1)
-	#define	disable_heater()		do { WRITE(HEATER_PIN, 0); } while (0)
+#ifdef	HEATER_PWM
+	#define	enable_heater()			do { OCR0A = 255; } while (0)
+	#define	disable_heater()		do { OCR0A = 0; } while (0)
 #else
-	#define	enable_heater()			do { TCCR0A = (TCCR0A & MASK(COM0A0)) | MASK(COM0A1); SET_OUTPUT(HEATER_PIN);  } while (0)
-	#define	disable_heater()		do { WRITE(HEATER_PIN, 0); HEATER_PIN_PWM = 0; TCCR0A &= ~(MASK(COM0A0) | MASK(COM0A1)); SET_OUTPUT(HEATER_PIN); } while (0)
+	#define	enable_heater()			WRITE(HEATER_PIN, 1)
+	#define	disable_heater()		WRITE(HEATER_PIN, 0)
 #endif
 
 /*

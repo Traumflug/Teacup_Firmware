@@ -36,13 +36,15 @@ inline void io_init(void) {
 	WRITE(E_STEP_PIN, 0);	SET_OUTPUT(E_STEP_PIN);
 	WRITE(E_DIR_PIN,  0);	SET_OUTPUT(E_DIR_PIN);
 
-	// setup PWM timer: phase-correct PWM, no prescaler, no outputs enabled yet
-	TCCR0A = MASK(WGM00);
-	TCCR0B = MASK(CS00);
-	TIMSK0 = 0;
-
 	#ifdef	HEATER_PIN
-		disable_heater();
+		WRITE(HEATER_PIN, 0); SET_OUTPUT(HEATER_PIN);
+		#ifdef	HEATER_PWM
+			// setup PWM timer: fast PWM, no prescaler
+			OCR0A = 0;
+			TCCR0A = MASK(COM0A1) | MASK(WGM01) | MASK(WGM00);
+			TCCR0B = MASK(CS00);
+			TIMSK0 = 0;
+		#endif
 	#endif
 
 	#ifdef	FAN_PIN
@@ -53,12 +55,13 @@ inline void io_init(void) {
 		disable_steppers();
 	#endif
 
-	WRITE(SCK, 1);				SET_OUTPUT(SCK);
+	WRITE(SCK, 0);				SET_OUTPUT(SCK);
 	WRITE(MISO, 1);				SET_INPUT(MISO);
-	WRITE(SS, 0);					SET_OUTPUT(SS);
+	WRITE(SS, 1);					SET_OUTPUT(SS);
 }
 
-inline void init(void) {
+inline void init(void);
+inline void init() {
 	// set up serial
 	serial_init();
 
@@ -87,8 +90,10 @@ void clock_250ms(void);
 void clock_250ms() {
 	temp_tick();
 
-	if (steptimeout > (30 * 4))
-		disable_steppers();
+	if (steptimeout > (30 * 4)) {
+		if (temp_get_target() == 0)
+			disable_steppers();
+	}
 	else
 		steptimeout++;
 
