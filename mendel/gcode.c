@@ -105,7 +105,7 @@ void scan_char(uint8_t c) {
 	// process previous field
 	if (last_field) {
 		// check if we're seeing a new field or end of line
-		if ((indexof(c, alphabet) >= 0) || (c == 10)) {
+		if ((indexof(c, alphabet) >= 0) || (c == 10) || (c ==13)) {
 			switch (last_field) {
 				case 'G':
 					next_target.G = read_digit.mantissa;
@@ -263,7 +263,7 @@ void scan_char(uint8_t c) {
 	}
 
 	// end of line
-	if (c == 10) {
+	if ((c == 10) || (c == 13)) {
 		serial_writechar(c);
 		// process
 		process_gcode_command(&next_target);
