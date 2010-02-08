@@ -8,9 +8,9 @@
 // initialise serial subsystem
 void serial_init(void);
 
-// return number of characters in the receive and send buffer
-uint16_t serial_rxchars(void);
-uint16_t serial_txchars(void);
+// return number of characters in the receive buffer, and number of spaces in the send buffer
+uint8_t serial_rxchars(void);
+// uint8_t serial_txchars(void);
 
 // read one character
 uint8_t serial_popchar(void);
@@ -18,7 +18,7 @@ uint8_t serial_popchar(void);
 void serial_writechar(uint8_t data);
 
 // read/write many characters
-uint16_t serial_recvblock(uint8_t *block, int blocksize);
+// uint8_t serial_recvblock(uint8_t *block, int blocksize);
 void serial_writeblock(void *data, int datalen);
 
 // write from flash

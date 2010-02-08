@@ -505,6 +505,10 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				if (gcmd->seen_S)
 					d_factor = gcmd->S;
 				break;
+			case 133:
+				if (gcmd->seen_S)
+					i_limit = gcmd->S;
+				break;
 
 			// unknown mcode: spit an error
 			default:

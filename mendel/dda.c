@@ -376,9 +376,11 @@ void dda_step(DDA *dda) {
 		}
 	}
 
+	#if STEP_INTERRUPT_INTERRUPTIBLE
 	// this interrupt can now be interruptible
 	disableTimerInterrupt();
 	sei();
+	#endif
 
 	// this generates too much debug output for all but the slowest step rates
 	if (0 && DEBUG) {
@@ -418,8 +420,4 @@ void dda_step(DDA *dda) {
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something
 	unstep();
-
-	// reset interruptible so we can return in the same state we started
-	cli();
-	enableTimerInterrupt();
 }

@@ -9,10 +9,11 @@ uint8_t	mb_tail = 0;
 DDA movebuffer[MOVEBUFFER_SIZE];
 
 uint8_t queue_full() {
-	if (mb_tail == 0)
-		return mb_head == (MOVEBUFFER_SIZE - 1);
-	else
-		return mb_head == (mb_tail - 1);
+// 	if (mb_tail == 0)
+// 		return mb_head == (MOVEBUFFER_SIZE - 1);
+// 	else
+// 		return mb_head == (mb_tail - 1);
+	return (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) == 0)?255:0;
 }
 
 uint8_t queue_empty() {
@@ -44,10 +45,14 @@ void enqueue(TARGET *t) {
 }
 
 void next_move() {
+	#if STEP_INTERRUPT_INTERRUPTIBLE
+	if (!queue_empty()) {
+	#else
 	if (queue_empty()) {
 		disableTimerInterrupt();
 	}
 	else {
+	#endif
 		// next item
 		uint8_t t = mb_tail;
 		t++;

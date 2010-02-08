@@ -7,21 +7,28 @@
 #include	"dda.h"
 
 ISR(TIMER1_COMPA_vect) {
-	if (movebuffer[mb_tail].live) {
-		// this interrupt can be interruptible
-		// TODO: remove when not debugging
-// 		disableTimerInterrupt();
-// 		sei();
-
+	// do our next step
+	// NOTE: dda_step makes this interrupt interruptible after steps have been sent but before new speed is calculated.
+	if (movebuffer[mb_tail].live)
 		dda_step(&(movebuffer[mb_tail]));
 
-// 		cli();
-// 		enableTimerInterrupt();
-	}
+	#if STEP_INTERRUPT_INTERRUPTIBLE
+		// this interrupt can now be interruptible
+		disableTimerInterrupt();
+		sei();
+	#endif
 
 	// fall directly into dda_start instead of waiting for another step
 	if (movebuffer[mb_tail].live == 0)
 		next_move();
+
+	#if STEP_INTERRUPT_INTERRUPTIBLE
+		// return from interrupt in a way that prevents this interrupt nesting with itself at high step rates
+		cli();
+		// check queue, if empty we don't need to interrupt again until re-enabled in dda_create
+		if (!queue_empty())
+			enableTimerInterrupt();
+	#endif
 }
 
 void setupTimerInterrupt()

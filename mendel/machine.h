@@ -16,8 +16,8 @@
 #define	X_STEPS_PER_REV						3200.0
 #define	Y_STEPS_PER_REV						X_STEPS_PER_REV
 
-// we need far more speed than precision on Z due to the threaded rod drive, turn off microstepping
-#define	Z_STEPS_PER_REV						200.0
+// we need far more speed than precision on Z due to the threaded rod drive, maybe just half stepping
+#define	Z_STEPS_PER_REV						400.0
 
 #define	X_COG_CIRCUMFERENCE				(4.77 * 16.0)
 #define	Y_COG_CIRCUMFERENCE				X_COG_CIRCUMFERENCE
@@ -77,5 +77,16 @@
 
 // should be the same for all machines! ;)
 #define	PI	3.1415926535
+
+/*
+	firmware build options
+*/
+
+// this option makes the step interrupt interruptible.
+// this should help immensely with dropped serial characters, but may also make debugging infuriating due to the complexities arising from nested interrupts
+#define		STEP_INTERRUPT_INTERRUPTIBLE	1
+
+// Xon/Xoff flow control. Should be redundant
+// #define	XONXOFF
 
 #endif	/* _MACHINE_H */

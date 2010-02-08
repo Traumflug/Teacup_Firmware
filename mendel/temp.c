@@ -35,6 +35,7 @@ int16_t		heater_d     = 0;
 int32_t		p_factor			= 680;
 int32_t		i_factor			= 18;
 int32_t		d_factor			= 200;
+int16_t		i_limit	= 500;
 
 uint8_t		temp_flags		= 0;
 #define		TEMP_FLAG_PRESENT		1
@@ -152,10 +153,10 @@ void temp_tick() {
 		// integral
 		heater_i += t_error;
 		// prevent integrator wind-up
-		if (heater_i > I_LIMIT)
-			heater_i = I_LIMIT;
-		else if (heater_i < -I_LIMIT)
-			heater_i = -I_LIMIT;
+		if (heater_i > i_limit)
+			heater_i = i_limit;
+		else if (heater_i < -i_limit)
+			heater_i = -i_limit;
 
 		// derivative
 		// note: D follows temp rather than error so there's no large derivative when the target changes

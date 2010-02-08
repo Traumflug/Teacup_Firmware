@@ -8,6 +8,7 @@
 extern int32_t p_factor;
 extern int32_t i_factor;
 extern int32_t d_factor;
+extern int16_t i_limit;
 
 #define		PID_SCALE			1024L
 #define		I_LIMIT				4000

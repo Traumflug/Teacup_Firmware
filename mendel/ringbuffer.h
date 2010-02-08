@@ -4,14 +4,14 @@
 #include	<stdint.h>
 #include	<avr/interrupt.h>
 
-// ringbuffer head/tail/length precision. change to uint16_t if you want a buffer bigger than 252 bytes or so
+// ringbuffer head/tail/length precision. change to uint16_t if you want a buffer bigger than 250 bytes or so
 #define	RB_BITS	uint8_t
 
 typedef struct {
 	volatile RB_BITS		read_pointer;
 	volatile RB_BITS		write_pointer;
 	volatile RB_BITS		size;
-	volatile RB_BITS		data[];
+	volatile uint8_t		data[];
 } ringbuffer;
 
 // initialize a ringbuffer
