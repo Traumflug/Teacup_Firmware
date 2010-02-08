@@ -43,36 +43,27 @@ uint8_t		temp_flags		= 0;
 uint16_t temp_read() {
 	uint16_t temp;
 
-/*	if (DEBUG)
-		serial_writestr_P(PSTR("T["));*/
+	SPCR = MASK(MSTR) | MASK(SPE) | MASK(SPR0);
 
-	// very slow for debugging
-	SPCR = MASK(MSTR) | MASK(SPE) | MASK(SPR1) | MASK(SPR0);
-
+	// enable MAX6675
 	WRITE(SS, 0);
 
+	// ensure 100ns delay - a bit extra is fine
 	delay(1);
 
+	// read MSB
 	SPDR = 0;
 	for (;(SPSR & MASK(SPIF)) == 0;);
 	temp = SPDR;
-
-// 	if (DEBUG)
-// 		serwrite_hex8(temp & 0xFF);
-
 	temp <<= 8;
 
+	// read LSB
 	SPDR = 0;
 	for (;(SPSR & MASK(SPIF)) == 0;);
 	temp |= SPDR;
 
-// 	if (DEBUG)
-// 		serwrite_hex8(temp & 0xFF);
-
+	// disable MAX6675
 	WRITE(SS, 1);
-
-	// turn off SPI system
-// 	SPCR = 0;
 
 	temp_flags = 0;
 	if ((temp & 0x8002) == 0) {
@@ -134,7 +125,7 @@ void temp_print() {
 		else {
 			serial_writechar('0');
 		}
-		serial_writestr_P(PSTR("°C"));
+// 		serial_writestr_P(PSTR("°C"));
 	}
 	serial_writechar('\n');
 }
@@ -143,15 +134,15 @@ void temp_tick() {
 	uint16_t last_temp = current_temp;
 	temp_read();
 
-	if (DEBUG)
-		serial_writestr_P(PSTR("T{"));
+// 	if (DEBUG)
+// 		serial_writestr_P(PSTR("T{"));
 
 	int16_t	t_error = target_temp - current_temp;
 
-	if (DEBUG) {
-		serial_writestr_P(PSTR("E:"));
-		serwrite_int16(t_error);
-	}
+// 	if (DEBUG) {
+// 		serial_writestr_P(PSTR("E:"));
+// 		serwrite_int16(t_error);
+// 	}
 
 	// PID stuff
 	// proportional
@@ -187,10 +178,10 @@ void temp_tick() {
 	else
 		pid_output = (pid_output_intermed + 128);
 
-	if (DEBUG) {
-		serial_writestr_P(PSTR("O:"));
-		serwrite_uint8(pid_output);
-	}
+// 	if (DEBUG) {
+// 		serial_writestr_P(PSTR(",O:"));
+// 		serwrite_uint8(pid_output);
+// 	}
 
 #ifdef	HEATER_PWM
 	HEATER_PWM = pid_output;
@@ -203,6 +194,6 @@ void temp_tick() {
 	}
 #endif
 
-	if (DEBUG)
-		serial_writechar('}');
+// 	if (DEBUG)
+// 		serial_writechar('}');
 }

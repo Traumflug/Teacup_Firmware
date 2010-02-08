@@ -109,12 +109,12 @@ void scan_char(uint8_t c) {
 			switch (last_field) {
 				case 'G':
 					next_target.G = read_digit.mantissa;
-					if (DEBUG)
+// 					if (DEBUG)
 						serwrite_uint8(next_target.G);
 					break;
 				case 'M':
 					next_target.M = read_digit.mantissa;
-					if (DEBUG)
+// 					if (DEBUG)
 						serwrite_uint8(next_target.M);
 					break;
 				case 'X':
@@ -122,7 +122,7 @@ void scan_char(uint8_t c) {
 						next_target.target.X = decfloat_to_int(&read_digit, STEPS_PER_IN_X, 1);
 					else
 						next_target.target.X = decfloat_to_int(&read_digit, STEPS_PER_MM_X, 1);
-					if (DEBUG)
+// 					if (DEBUG)
 						serwrite_int32(next_target.target.X);
 					break;
 				case 'Y':
@@ -130,7 +130,7 @@ void scan_char(uint8_t c) {
 						next_target.target.Y = decfloat_to_int(&read_digit, STEPS_PER_IN_Y, 1);
 					else
 						next_target.target.Y = decfloat_to_int(&read_digit, STEPS_PER_MM_Y, 1);
-					if (DEBUG)
+// 					if (DEBUG)
 						serwrite_int32(next_target.target.Y);
 					break;
 				case 'Z':
@@ -138,7 +138,7 @@ void scan_char(uint8_t c) {
 						next_target.target.Z = decfloat_to_int(&read_digit, STEPS_PER_IN_Z, 1);
 					else
 						next_target.target.Z = decfloat_to_int(&read_digit, STEPS_PER_MM_Z, 1);
-					if (DEBUG)
+// 					if (DEBUG)
 						serwrite_int32(next_target.target.Z);
 					break;
 				case 'E':
@@ -146,7 +146,7 @@ void scan_char(uint8_t c) {
 						next_target.target.E = decfloat_to_int(&read_digit, STEPS_PER_IN_E, 1);
 					else
 						next_target.target.E = decfloat_to_int(&read_digit, STEPS_PER_MM_E, 1);
-					if (DEBUG)
+// 					if (DEBUG)
 						serwrite_uint32(next_target.target.E);
 					break;
 				case 'F':
@@ -155,7 +155,7 @@ void scan_char(uint8_t c) {
 						next_target.target.F = decfloat_to_int(&read_digit, 254, 10);
 					else
 						next_target.target.F = decfloat_to_int(&read_digit, 1, 1);
-					if (DEBUG)
+// 					if (DEBUG)
 						serwrite_uint32(next_target.target.F);
 					break;
 				case 'S':
@@ -169,7 +169,7 @@ void scan_char(uint8_t c) {
 						next_target.S = decfloat_to_int(&read_digit, PID_SCALE, 1);
 					else
 						next_target.S = decfloat_to_int(&read_digit, 1, 1);
-					if (DEBUG)
+// 					if (DEBUG)
 						serwrite_uint16(next_target.S);
 					break;
 				case 'P':
@@ -178,7 +178,7 @@ void scan_char(uint8_t c) {
 						next_target.P = decfloat_to_int(&read_digit, 1000, 1);
 					else
 						next_target.P = decfloat_to_int(&read_digit, 1, 1);
-					if (DEBUG)
+// 					if (DEBUG)
 						serwrite_uint16(next_target.P);
 					break;
 			}
@@ -195,7 +195,7 @@ void scan_char(uint8_t c) {
 		// new field?
 		if (indexof(c, alphabet) >= 0) {
 			last_field = c;
-			if (DEBUG)
+// 			if (DEBUG)
 				serial_writechar(c);
 		}
 
@@ -264,21 +264,24 @@ void scan_char(uint8_t c) {
 
 	// end of line
 	if ((c == 10) || (c == 13)) {
-		serial_writechar(c);
+// 		if (DEBUG)
+			serial_writechar(c);
 		// process
-		process_gcode_command(&next_target);
+// 		if (next_target.seen_G || next_target.seen_M) {
+			process_gcode_command(&next_target);
 
-		// reset 'seen comment'
-		option_bitfield &= ~OPTION_COMMENT;
+			// reset 'seen comment'
+			option_bitfield &= ~OPTION_COMMENT;
 
-		// reset variables
-		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = next_target.seen_E = next_target.seen_F = next_target.seen_S = next_target.seen_P = 0;
-		last_field = 0;
-		read_digit.sign = 0;
-		read_digit.mantissa = 0;
-		read_digit.exponent = 0;
+			// reset variables
+			next_target.seen_X = next_target.seen_Y = next_target.seen_Z = next_target.seen_E = next_target.seen_F = next_target.seen_S = next_target.seen_P = 0;
+			last_field = 0;
+			read_digit.sign = 0;
+			read_digit.mantissa = 0;
+			read_digit.exponent = 0;
 
-		serial_writestr_P(PSTR("OK\n"));
+			serial_writestr_P(PSTR("OK\n"));
+// 		}
 	}
 }
 
@@ -423,6 +426,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 		switch (gcmd->M) {
 			// M101- extruder on
 			case 101:
+				serial_writestr_P(PSTR("Waiting for extruder to reach target temperature\n"));
 				// here we wait until target temperature is reached, and emulate main loop so the temperature can actually be updated
 				while (!temp_achieved()) {
 					ifclock(CLOCK_FLAG_250MS) {

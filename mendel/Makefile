@@ -36,7 +36,7 @@ CC = $(ARCH)gcc
 OBJDUMP = $(ARCH)objdump
 OBJCOPY = $(ARCH)objcopy
 
-OPTIMIZE = -Os -ffunction-sections  -finline-functions-called-once -DDEBUG=1
+OPTIMIZE = -Os -ffunction-sections  -finline-functions-called-once -DDEBUG=0
 # OPTIMIZE = -O0
 CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) -DF_CPU=$(F_CPU) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
 LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
@@ -66,7 +66,7 @@ program: $(PROGRAM).hex
 	@sleep 0.1
 	@stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
 	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C/etc/avrdude.conf -U flash:w:$^
-	stty 115200 raw ignbrk -hup -echo ixon < $(PROGPORT)
+	stty 38400 raw ignbrk -hup -echo ixon < $(PROGPORT)
 
 clean:
 	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~

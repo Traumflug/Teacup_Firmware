@@ -47,7 +47,7 @@
 #define	E_STARTSTOP_STEPS					20
 
 // extruder settings
-#define	TEMP_HYSTERESIS						2
+#define	TEMP_HYSTERESIS						20
 
 /*
 	calculated values - you shouldn't need to touch these

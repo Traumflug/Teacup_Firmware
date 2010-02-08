@@ -40,10 +40,10 @@ inline void io_init(void) {
 		WRITE(HEATER_PIN, 0); SET_OUTPUT(HEATER_PIN);
 		#ifdef	HEATER_PWM
 			// setup PWM timer: fast PWM, no prescaler
-			OCR0A = 0;
-			TCCR0A = MASK(COM0A1) | MASK(WGM01) | MASK(WGM00);
+			TCCR0A = MASK(WGM01) | MASK(WGM00);
 			TCCR0B = MASK(CS00);
 			TIMSK0 = 0;
+			OCR0A = 0;
 		#endif
 	#endif
 
@@ -55,7 +55,9 @@ inline void io_init(void) {
 		disable_steppers();
 	#endif
 
+	// setup SPI
 	WRITE(SCK, 0);				SET_OUTPUT(SCK);
+	WRITE(MOSI, 1);				SET_OUTPUT(MOSI);
 	WRITE(MISO, 1);				SET_INPUT(MISO);
 	WRITE(SS, 1);					SET_OUTPUT(SS);
 }
@@ -135,9 +137,9 @@ void clock_250ms() {
 			// Queue
 			print_queue();
 		}
-
 		// temperature
-		temp_print();
+		if (temp_get_target())
+			temp_print();
 	}
 }
 

@@ -4,7 +4,7 @@
 #include	"arduino.h"
 
 #define		BUFSIZE		64 + sizeof(ringbuffer)
-#define		BAUD		115200
+#define		BAUD		38400
 
 #define		ASCII_XOFF	19
 #define		ASCII_XON		17

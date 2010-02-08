@@ -14,6 +14,10 @@
 
 #define	RESERVED_RXD				DIO0
 #define	RESERVED_TXD				DIO1
+#define	RESERVED_SCK				DIO13
+#define	RESERVED_MISO				DIO12
+#define	RESERVED_MOSI				DIO11
+#define	RESERVED_SS					DIO10
 
 /*
 	user defined pins
@@ -108,8 +112,8 @@
 */
 
 #ifdef	HEATER_PWM
-	#define	enable_heater()			do { OCR0A = 255; } while (0)
-	#define	disable_heater()		do { OCR0A = 0; } while (0)
+	#define	enable_heater()			do { TCCR0A |=  MASK(COM0A1); } while (0)
+	#define	disable_heater()		do { TCCR0A &= ~MASK(COM0A1); } while (0)
 #else
 	#define	enable_heater()			WRITE(HEATER_PIN, 1)
 	#define	disable_heater()		WRITE(HEATER_PIN, 0)
