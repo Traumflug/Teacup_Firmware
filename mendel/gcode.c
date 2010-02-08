@@ -448,8 +448,13 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			// M104- set temperature
 			case 104:
 				temp_set(gcmd->S);
-				enable_heater();
-				enable_steppers();
+				if (gcmd->S) {
+					enable_heater();
+					enable_steppers();
+				}
+				else {
+					disable_heater();
+				}
 				break;
 
 			// M105- get temperature

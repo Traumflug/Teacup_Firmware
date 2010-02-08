@@ -131,69 +131,71 @@ void temp_print() {
 }
 
 void temp_tick() {
-	uint16_t last_temp = current_temp;
-	temp_read();
+	if (target_temp) {
+		uint16_t last_temp = current_temp;
+		temp_read();
 
-// 	if (DEBUG)
-// 		serial_writestr_P(PSTR("T{"));
+	// 	if (DEBUG)
+	// 		serial_writestr_P(PSTR("T{"));
 
-	int16_t	t_error = target_temp - current_temp;
+		int16_t	t_error = target_temp - current_temp;
 
-// 	if (DEBUG) {
-// 		serial_writestr_P(PSTR("E:"));
-// 		serwrite_int16(t_error);
-// 	}
+	// 	if (DEBUG) {
+	// 		serial_writestr_P(PSTR("E:"));
+	// 		serwrite_int16(t_error);
+	// 	}
 
-	// PID stuff
-	// proportional
-	heater_p = t_error;
+		// PID stuff
+		// proportional
+		heater_p = t_error;
 
-	// integral
-	heater_i += t_error;
-	// prevent integrator wind-up
-	if (heater_i > I_LIMIT)
-		heater_i = I_LIMIT;
-	else if (heater_i < -I_LIMIT)
-		heater_i = -I_LIMIT;
+		// integral
+		heater_i += t_error;
+		// prevent integrator wind-up
+		if (heater_i > I_LIMIT)
+			heater_i = I_LIMIT;
+		else if (heater_i < -I_LIMIT)
+			heater_i = -I_LIMIT;
 
-	// derivative
-	// note: D follows temp rather than error so there's no large derivative when the target changes
-	heater_d = (current_temp - last_temp);
+		// derivative
+		// note: D follows temp rather than error so there's no large derivative when the target changes
+		heater_d = (current_temp - last_temp);
 
-	// combine factors
-	int32_t pid_output_intermed = (
-			(
-				(((int32_t) heater_p) * p_factor) +
-				(((int32_t) heater_i) * i_factor) +
-				(((int32_t) heater_d) * d_factor)
-			) / PID_SCALE
-		);
+		// combine factors
+		int32_t pid_output_intermed = (
+				(
+					(((int32_t) heater_p) * p_factor) +
+					(((int32_t) heater_i) * i_factor) +
+					(((int32_t) heater_d) * d_factor)
+				) / PID_SCALE
+			);
 
-	// rebase and limit factors
-	uint8_t pid_output;
-	if (pid_output_intermed > 127)
-		pid_output = 255;
-	else if (pid_output_intermed < -128)
-		pid_output = 0;
-	else
-		pid_output = (pid_output_intermed + 128);
+		// rebase and limit factors
+		uint8_t pid_output;
+		if (pid_output_intermed > 127)
+			pid_output = 255;
+		else if (pid_output_intermed < -128)
+			pid_output = 0;
+		else
+			pid_output = (pid_output_intermed + 128);
 
-// 	if (DEBUG) {
-// 		serial_writestr_P(PSTR(",O:"));
-// 		serwrite_uint8(pid_output);
-// 	}
+	// 	if (DEBUG) {
+	// 		serial_writestr_P(PSTR(",O:"));
+	// 		serwrite_uint8(pid_output);
+	// 	}
 
-#ifdef	HEATER_PWM
-	HEATER_PWM = pid_output;
-#else
-	if (pid_output >= 128) {
-		enable_heater();
+		#ifdef	HEATER_PWM
+			HEATER_PWM = pid_output;
+		#else
+			if (pid_output >= 128) {
+				enable_heater();
+			}
+			else {
+				disable_heater();
+			}
+		#endif
+
+	// 	if (DEBUG)
+	// 		serial_writechar('}');
 	}
-	else {
-		disable_heater();
-	}
-#endif
-
-// 	if (DEBUG)
-// 		serial_writechar('}');
 }
