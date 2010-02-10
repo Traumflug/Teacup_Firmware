@@ -332,6 +332,9 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				#ifdef	XONXOFF
 					xoff();
 				#endif
+				// wait for all moves to complete
+				for (;queue_empty() == 0;);
+				// delay
 				delay_ms(gcmd->P);
 				#ifdef	XONXOFF
 					xon();
@@ -358,7 +361,8 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				/*
 					Home XY first
 				*/
-				// hit endstops
+				// hit endstops, no acceleration- we don't care about skipped steps
+				startpoint.F = FEEDRATE_FAST_XY;
 				SpecialMoveXY(-250L * STEPS_PER_MM_X, -250L * STEPS_PER_MM_Y, FEEDRATE_FAST_XY);
 				startpoint.X = startpoint.Y = 0;
 
@@ -377,7 +381,8 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				/*
 					Home Z
 				*/
-				// hit endstop
+				// hit endstop, no acceleration- we don't care about skipped steps
+				startpoint.F = FEEDRATE_FAST_Z;
 				SpecialMoveZ(-250L * STEPS_PER_MM_Z, FEEDRATE_FAST_Z);
 				startpoint.Z = 0;
 
@@ -398,6 +403,14 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				*/
 				// extruder only runs one way and we have no "endstop", just set this point as home
 				startpoint.E = current_position.E = 0;
+
+				/*
+					Home F
+				*/
+
+				// F has been left at FEEDRATE_SLOW_Z by the last move, this is a usable "home"
+				// uncomment the following or substitute if you prefer a different default feedrate
+				// startpoint.F = FEEDRATE_SLOW_XY
 
 				break;
 
@@ -439,14 +452,26 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 					// reset watchdog
 					wd_reset();
 				}
-				SpecialMoveE(E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
+				do {
+					// backup feedrate, move E very quickly then restore feedrate
+					uint32_t	f = startpoint.F;
+					startpoint.F = FEEDRATE_FAST_E;
+					SpecialMoveE(E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
+					startpoint.F = f;
+				} while (0);
 				break;
 
 			// M102- extruder reverse
 
 			// M103- extruder off
 			case 103:
-				SpecialMoveE(-E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
+				do {
+					// backup feedrate, move E very quickly then restore feedrate
+					uint32_t	f = startpoint.F;
+					startpoint.F = FEEDRATE_FAST_E;
+					SpecialMoveE(-E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
+					startpoint.F = f;
+				} while (0);
 				break;
 
 			// M104- set temperature
