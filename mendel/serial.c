@@ -93,9 +93,8 @@ ISR(USART_UDRE_vect)
 	}
 	else
 	#endif
-	if (buf_canread(tx)) {
+	if (buf_canread(tx))
 		buf_pop(tx, UDR0);
-	}
 	else
 		UCSR0B &= ~MASK(UDRIE0);
 }
@@ -112,6 +111,7 @@ uint8_t serial_rxchars()
 uint8_t serial_popchar()
 {
 	uint8_t c = 0;
+	// it's imperative that we check, because if the buffer is empty and we pop, we'll go through the whole buffer again
 	if (buf_canread(rx))
 		buf_pop(rx, c);
 	return c;
@@ -130,16 +130,15 @@ void serial_writechar(uint8_t data)
 {
 	// check if interrupts are enabled
 	if (SREG & MASK(SREG_I)) {
-		// if they are, we should be ok to block
+		// if they are, we should be ok to block since the tx buffer is emptied from an interrupt
 		for (;buf_canwrite(tx) == 0;);
 		buf_push(tx, data);
 	}
 	else {
 		// interrupts are disabled- maybe we're in one?
 		// anyway, instead of blocking, only write if we have room
-		if (buf_canwrite(tx)) {
+		if (buf_canwrite(tx))
 			buf_push(tx, data);
-		}
 	}
 	// enable TX interrupt so we can send this character
 	UCSR0B |= MASK(UDRIE0);

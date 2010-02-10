@@ -272,6 +272,7 @@ uint8_t	can_step(uint8_t min, uint8_t max, int32_t current, int32_t target, uint
 */
 
 void dda_step(DDA *dda) {
+	// called from interrupt context! keep it as simple as possible
 	uint8_t	step_option = 0;
 #define	X_CAN_STEP	1
 #define	Y_CAN_STEP	2
@@ -284,12 +285,11 @@ void dda_step(DDA *dda) {
 	if (DEBUG)
 		serial_writechar('!');
 
-	step_option &= ~(X_CAN_STEP | Y_CAN_STEP | Z_CAN_STEP | E_CAN_STEP | F_CAN_STEP);
 // 		step_option |= can_step(x_min(), x_max(), current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
-// 		step_option |= can_step(y_min(), y_max(), current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
-// 		step_option |= can_step(z_min(), z_max(), current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
 	step_option |= can_step(0      , 0      , current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
+// 		step_option |= can_step(y_min(), y_max(), current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
 	step_option |= can_step(0      , 0      , current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
+// 		step_option |= can_step(z_min(), z_max(), current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
 	step_option |= can_step(0      , 0      , current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
 	step_option |= can_step(0      , 0      , current_position.E, dda->endpoint.E, dda->e_direction) & E_CAN_STEP;
 	step_option |= can_step(0      , 0      , current_position.F, dda->endpoint.F, dda->f_direction) & F_CAN_STEP;
@@ -354,9 +354,17 @@ void dda_step(DDA *dda) {
 		}
 	}
 
+	#if STEP_INTERRUPT_INTERRUPTIBLE
+	// since we have sent steps to all the motors that will be stepping and the rest of this function isn't so time critical,
+	// this interrupt can now be interruptible
+	disableTimerInterrupt();
+	sei();
+	#endif
+
 	if (step_option & F_CAN_STEP) {
 		dda->f_counter -= dda->f_delta;
 		// since we don't allow total_steps to be defined by F, we may need to step multiple times if f_delta is greater than total_steps
+		// loops in interrupt context are a bad idea, but this is the best way to do this that I've come up with so far
 		while (dda->f_counter < 0) {
 
 			dda->f_counter += dda->total_steps;
@@ -376,25 +384,6 @@ void dda_step(DDA *dda) {
 		}
 	}
 
-	#if STEP_INTERRUPT_INTERRUPTIBLE
-	// this interrupt can now be interruptible
-	disableTimerInterrupt();
-	sei();
-	#endif
-
-	// this generates too much debug output for all but the slowest step rates
-	if (0 && DEBUG) {
-		serial_writechar('[');
-		serwrite_hex8(step_option);
-		serial_writechar(':');
-		serwrite_int32(current_position.F);
-		serial_writechar('/');
-		serwrite_int32(dda->endpoint.F);
-		serial_writechar('#');
-		serwrite_uint32(dda->move_duration);
-		serial_writechar(']');
-	}
-
 	if (step_option & REAL_MOVE)
 		// we stepped, reset timeout
 		steptimeout = 0;
@@ -409,13 +398,8 @@ void dda_step(DDA *dda) {
 
 	// if we could do anything at all, we're still running
 	// otherwise, must have finished
-	else if (step_option == 0) {
+	else if (step_option == 0)
 		dda->live = 0;
-		#ifdef	STUPIDLY_HIDE_BUGS
-			// this magically makes bugs disappear after each move, probably a bad idea
-			memcpy(&current_position, &(dda->endpoint), sizeof(TARGET));
-		#endif
-	}
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something

@@ -15,12 +15,18 @@
 #include	"clock.h"
 #include	"temp.h"
 #include	"sermsg.h"
+#include	"watchdog.h"
 
 #ifndef	DEBUG
 #define	DEBUG 0
 #endif
 
 inline void io_init(void) {
+	// disable modules we don't use
+	PRR = MASK(PRTWI) | MASK(PRTIM2) | MASK(PRADC);
+	ACSR = MASK(ACD);
+
+	// setup I/O pins
 	WRITE(X_STEP_PIN, 0);	SET_OUTPUT(X_STEP_PIN);
 	WRITE(X_DIR_PIN,  0);	SET_OUTPUT(X_DIR_PIN);
 	WRITE(X_MIN_PIN,  1);	SET_INPUT(X_MIN_PIN);
@@ -62,8 +68,11 @@ inline void io_init(void) {
 	WRITE(SS, 1);					SET_OUTPUT(SS);
 }
 
-inline void init(void);
-inline void init() {
+inline void init(void) {
+
+	// set up watchdog
+	wd_init();
+
 	// set up serial
 	serial_init();
 
@@ -86,10 +95,12 @@ inline void init() {
 
 	// say hi to host
 	serial_writestr_P(PSTR("Start\n"));
+
+	// reset watchdog
+	wd_reset();
 }
 
-void clock_250ms(void);
-void clock_250ms() {
+void clock_250ms(void) {
 	temp_tick();
 
 	if (steptimeout > (30 * 4)) {
@@ -159,5 +170,8 @@ int main (void)
 		ifclock(CLOCK_FLAG_250MS) {
 			clock_250ms();
 		}
+
+		// reset watchdog
+		wd_reset();
 	}
 }

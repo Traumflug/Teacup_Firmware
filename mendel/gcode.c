@@ -10,6 +10,7 @@
 #include	"dda_queue.h"
 #include	"dda.h"
 #include	"clock.h"
+#include	"watchdog.h"
 
 uint8_t	option_bitfield;
 #define	OPTION_COMMENT						128
@@ -267,7 +268,7 @@ void scan_char(uint8_t c) {
 // 		if (DEBUG)
 			serial_writechar(c);
 		// process
-// 		if (next_target.seen_G || next_target.seen_M) {
+		if (next_target.seen_G || next_target.seen_M) {
 			process_gcode_command(&next_target);
 
 			// reset 'seen comment'
@@ -281,7 +282,7 @@ void scan_char(uint8_t c) {
 			read_digit.exponent = 0;
 
 			serial_writestr_P(PSTR("OK\n"));
-// 		}
+		}
 	}
 }
 
@@ -434,6 +435,9 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 						void clock_250ms(void);
 						clock_250ms();
 					}
+
+					// reset watchdog
+					wd_reset();
 				}
 				SpecialMoveE(E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
 				break;
