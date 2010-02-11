@@ -5,8 +5,10 @@
 #include	"pinout.h"
 #include	"dda_queue.h"
 #include	"dda.h"
+#include	"watchdog.h"
 
 ISR(TIMER1_COMPA_vect) {
+	WRITE(SCK, 1);
 	// do our next step
 	// NOTE: dda_step makes this interrupt interruptible after steps have been sent but before new speed is calculated.
 	if (movebuffer[mb_tail].live)
@@ -26,9 +28,10 @@ ISR(TIMER1_COMPA_vect) {
 		// return from interrupt in a way that prevents this interrupt nesting with itself at high step rates
 		cli();
 		// check queue, if empty we don't need to interrupt again until re-enabled in dda_create
-		if (!queue_empty())
+		if (queue_empty() == 0)
 			enableTimerInterrupt();
 	#endif
+	WRITE(SCK, 0);
 }
 
 void setupTimerInterrupt()
@@ -129,20 +132,28 @@ void setTimer(uint32_t delay)
 	setTimerResolution(getTimerResolution(delay));
 }
 
+// delay( microseconds )
 void delay(uint32_t delay) {
+	wd_reset();
 	while (delay > 65535) {
 		delayMicrosecondsInterruptible(65534);
 		delay -= 65535;
+		wd_reset();
 	}
 	delayMicrosecondsInterruptible(delay & 0xFFFF);
+	wd_reset();
 }
 
+// delay_ms( milliseconds )
 void delay_ms(uint32_t delay) {
+	wd_reset();
 	while (delay > 65) {
 		delayMicrosecondsInterruptible(64999);
 		delay -= 65;
+		wd_reset();
 	}
 	delayMicrosecondsInterruptible(delay * 1000);
+	wd_reset();
 }
 
 void delayMicrosecondsInterruptible(uint16_t us)

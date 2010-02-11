@@ -76,12 +76,15 @@ void serial_init()
 
 ISR(USART_RX_vect)
 {
+	WRITE(SCK, 1);
 	if (buf_canwrite(rx))
 		buf_push(rx, UDR0);
+	WRITE(SCK, 0);
 }
 
 ISR(USART_UDRE_vect)
 {
+	WRITE(SCK, 1);
 	#if XONXOFF
 	if (flowflags & FLOWFLAG_SEND_XOFF) {
 		UDR0 = ASCII_XOFF;
@@ -97,6 +100,7 @@ ISR(USART_UDRE_vect)
 		buf_pop(tx, UDR0);
 	else
 		UCSR0B &= ~MASK(UDRIE0);
+	WRITE(SCK, 0);
 }
 
 /*

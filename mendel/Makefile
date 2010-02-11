@@ -36,7 +36,7 @@ CC = $(ARCH)gcc
 OBJDUMP = $(ARCH)objdump
 OBJCOPY = $(ARCH)objcopy
 
-OPTIMIZE = -Os -ffunction-sections  -finline-functions-called-once -DDEBUG=0
+OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once -DDEBUG=0
 # OPTIMIZE = -O0
 CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) -DF_CPU=$(F_CPU) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
 LDFLAGS = -Wl,--as-needed -Wl,--gc-sections

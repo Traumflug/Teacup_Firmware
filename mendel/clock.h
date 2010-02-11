@@ -24,7 +24,7 @@ extern volatile uint8_t	clock_flag;
 
 	or:
 	ifclock(CLOCK_FLAG_1S)
-		disable_steppers();
+		power_off();
 */
 
 #define	ifclock(F)	for (;clock_flag & (F);clock_flag &= ~(F))

@@ -114,9 +114,9 @@ void temp_print() {
 		serial_writestr_P(PSTR("no thermocouple!"));
 	}
 	else {
-		serwrite_uint16(temp_get() >> 2);
+		serwrite_uint16(current_temp >> 2);
 		serial_writechar('.');
-		if (current_temp) {
+		if (current_temp & 3) {
 			if ((current_temp & 3) == 3)
 				serial_writechar('7');
 			else if ((current_temp & 3) == 1)
@@ -127,6 +127,19 @@ void temp_print() {
 			serial_writechar('0');
 		}
 // 		serial_writestr_P(PSTR("°C"));
+		serial_writechar('/');
+		serwrite_uint16(target_temp >> 2);
+		serial_writechar('.');
+		if (target_temp & 3) {
+			if ((target_temp & 3) == 3)
+				serial_writechar('7');
+			else if ((target_temp & 3) == 1)
+				serial_writechar('2');
+			serial_writechar('5');
+		}
+		else {
+			serial_writechar('0');
+		}
 	}
 	serial_writechar('\n');
 }

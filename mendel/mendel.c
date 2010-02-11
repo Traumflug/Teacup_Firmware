@@ -21,9 +21,9 @@
 #define	DEBUG 0
 #endif
 
-inline void io_init(void) {
+void io_init(void) {
 	// disable modules we don't use
-	PRR = MASK(PRTWI) | MASK(PRTIM2) | MASK(PRADC);
+	PRR = MASK(PRTWI) | MASK(PRADC);
 	ACSR = MASK(ACD);
 
 	// setup I/O pins
@@ -58,7 +58,7 @@ inline void io_init(void) {
 	#endif
 
 	#ifdef	STEPPER_ENABLE_PIN
-		disable_steppers();
+		power_off();
 	#endif
 
 	// setup SPI
@@ -68,7 +68,7 @@ inline void io_init(void) {
 	WRITE(SS, 1);					SET_OUTPUT(SS);
 }
 
-inline void init(void) {
+void init(void) {
 
 	// set up watchdog
 	wd_init();
@@ -85,27 +85,28 @@ inline void init(void) {
 	// set up clock
 	clock_setup();
 
-	// set up variables
-	current_position.F = FEEDRATE_SLOW_Z;
-	memcpy(&startpoint, &current_position, sizeof(TARGET));
-	memcpy(&(next_target.target), &current_position, sizeof(TARGET));
+	// set up feedrate
+	current_position.F = startpoint.F = next_target.target.F = FEEDRATE_SLOW_Z;
 
 	// enable interrupts
 	sei();
 
-	// say hi to host
-	serial_writestr_P(PSTR("Start\n"));
-
 	// reset watchdog
 	wd_reset();
+
+	// say hi to host
+	serial_writestr_P(PSTR("Start\nOK\n"));
 }
 
 void clock_250ms(void) {
+	// reset watchdog
+	wd_reset();
+
 	temp_tick();
 
 	if (steptimeout > (30 * 4)) {
 		if (temp_get_target() == 0)
-			disable_steppers();
+			power_off();
 	}
 	else
 		steptimeout++;
@@ -170,8 +171,5 @@ int main (void)
 		ifclock(CLOCK_FLAG_250MS) {
 			clock_250ms();
 		}
-
-		// reset watchdog
-		wd_reset();
 	}
 }

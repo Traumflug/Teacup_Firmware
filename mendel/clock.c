@@ -40,6 +40,7 @@ void clock_setup() {
 }
 
 ISR(TIMER2_COMPA_vect) {
+	WRITE(SCK, 1);
 	// global clock
 #ifdef	GLOBAL_CLOCK
 	clock++;
@@ -53,6 +54,7 @@ ISR(TIMER2_COMPA_vect) {
 			clock_counter_1s = 0;
 		}
 	}
+	WRITE(SCK, 0);
 }
 
 #ifdef	GLOBAL_CLOCK

@@ -169,7 +169,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	else {
 		// get steppers ready to go
 		steptimeout = 0;
-		enable_steppers();
+		power_on();
 
 		if (DEBUG) {
 			serwrite_uint32(dda->total_steps); serial_writechar(',');
@@ -229,7 +229,7 @@ void dda_start(DDA *dda) {
 
 	// ensure steppers are ready to go
 	steptimeout = 0;
-	enable_steppers();
+	power_on();
 
 	// set direction outputs
 	x_direction(dda->x_direction);

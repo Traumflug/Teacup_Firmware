@@ -137,14 +137,14 @@
 
 #ifdef	STEPPER_ENABLE_PIN
 	// for connection to stepper driver ENABLE pins (negative asserted)
-// 	#define	enable_steppers()		WRITE(STEPPER_ENABLE_PIN, 0)
-// 	#define	disable_steppers()	WRITE(STEPPER_ENABLE_PIN, 1)
+// 	#define	power_on()		WRITE(STEPPER_ENABLE_PIN, 0)
+// 	#define	power_off()	WRITE(STEPPER_ENABLE_PIN, 1)
 	// for connection to ATX PSU PWR_ON signal
-	#define	enable_steppers()		do { WRITE(STEPPER_ENABLE_PIN, 0); SET_OUTPUT(STEPPER_ENABLE_PIN); } while (0)
-	#define	disable_steppers()	SET_INPUT(STEPPER_ENABLE_PIN)
+	#define	power_on()		do { WRITE(STEPPER_ENABLE_PIN, 0); SET_OUTPUT(STEPPER_ENABLE_PIN); } while (0)
+	#define	power_off()	SET_INPUT(STEPPER_ENABLE_PIN)
 #else
-	#define	enable_steppers()		if (0) {}
-	#define	disable_steppers()	if (0) {}
+	#define	power_on()		if (0) {}
+	#define	power_off()	if (0) {}
 #endif
 
 /*

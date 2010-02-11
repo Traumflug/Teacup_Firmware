@@ -9,10 +9,6 @@ uint8_t	mb_tail = 0;
 DDA movebuffer[MOVEBUFFER_SIZE];
 
 uint8_t queue_full() {
-// 	if (mb_tail == 0)
-// 		return mb_head == (MOVEBUFFER_SIZE - 1);
-// 	else
-// 		return mb_head == (mb_tail - 1);
 	return (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) == 0)?255:0;
 }
 

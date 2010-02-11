@@ -333,7 +333,8 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 					xoff();
 				#endif
 				// wait for all moves to complete
-				for (;queue_empty() == 0;);
+				for (;queue_empty() == 0;)
+					wd_reset();
 				// delay
 				delay_ms(gcmd->P);
 				#ifdef	XONXOFF
@@ -448,9 +449,6 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 						void clock_250ms(void);
 						clock_250ms();
 					}
-
-					// reset watchdog
-					wd_reset();
 				}
 				do {
 					// backup feedrate, move E very quickly then restore feedrate
@@ -479,7 +477,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				temp_set(gcmd->S);
 				if (gcmd->S) {
 					enable_heater();
-					enable_steppers();
+					power_on();
 				}
 				else {
 					disable_heater();
@@ -488,24 +486,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 
 			// M105- get temperature
 			case 105:
-				// do .. while block here to provide local scope for temp
-				do {
-					uint16_t t = temp_get();
-					serial_writestr_P(PSTR("T: "));
-					serwrite_uint16(t >> 2);
-					serial_writechar('.');
-					if (t & 3) {
-						if ((t & 3) == 1)
-							serial_writechar('2');
-						else if ((t & 3) == 3)
-							serial_writechar('7');
-						serial_writechar('5');
-					}
-					else {
-						serial_writechar('0');
-					}
-					serial_writechar('\n');
-				} while (0);
+				temp_print();
 				break;
 
 			// M106- fan on
@@ -539,6 +520,35 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 					i_limit = gcmd->S;
 				break;
 
+			// DEBUG: return current position
+			case 250:
+				serial_writestr_P(PSTR("\n{X:"));
+				serwrite_int32(current_position.X);
+				serial_writestr_P(PSTR(",Y:"));
+				serwrite_int32(current_position.Y);
+				serial_writestr_P(PSTR(",Z:"));
+				serwrite_int32(current_position.Z);
+				serial_writestr_P(PSTR(",E:"));
+				serwrite_int32(current_position.E);
+				serial_writestr_P(PSTR(",F:"));
+				serwrite_int32(current_position.F);
+				serial_writestr_P(PSTR("}\n"));
+				break;
+
+			// DEBUG: read arbitrary memory location
+			case 253:
+				serwrite_hex8(*(volatile uint8_t *)(gcmd->S));
+				break;
+			// DEBUG: write arbitrary memory locatiom
+			case 254:
+				serwrite_hex8(gcmd->S);
+				serial_writechar(':');
+				serwrite_hex8(*(volatile uint8_t *)(gcmd->S));
+				serial_writestr_P(PSTR("->"));
+				serwrite_hex8(gcmd->P);
+				serial_writechar('\n');
+				(*(volatile uint8_t *)(gcmd->S)) = gcmd->P;
+				break;
 			// unknown mcode: spit an error
 			default:
 				serial_writestr_P(PSTR("E: Bad M-code "));
