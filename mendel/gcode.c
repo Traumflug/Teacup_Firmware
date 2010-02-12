@@ -427,7 +427,10 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 
 			//	G92 - set home
 			case 92:
-				startpoint.X = startpoint.Y = startpoint.Z = startpoint.E = 0;
+				startpoint.X = startpoint.Y = startpoint.Z = startpoint.E =
+				current_position.X = current_position.Y = current_position.Z = current_position.E = 0;
+				startpoint.F =
+				current_position.F = FEEDRATE_SLOW_Z;
 				break;
 
 			// unknown gcode: spit an error

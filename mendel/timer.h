@@ -11,7 +11,7 @@
 // #define	DEFAULT_TICK	(100 US)
 #define	WAITING_DELAY	(10 MS)
 
-void setupTimerInterrupt(void);
+void setupTimerInterrupt(void) __attribute__ ((cold));
 
 uint8_t getTimerResolution(const uint32_t delay);
 void setTimerResolution(uint8_t r);

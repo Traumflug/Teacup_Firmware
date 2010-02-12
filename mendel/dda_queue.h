@@ -24,7 +24,7 @@ uint8_t queue_empty(void);
 void enqueue(TARGET *t);
 
 // called from step timer when current move is complete
-void next_move(void);
+void next_move(void) __attribute__ ((hot));
 
 // print queue status
 void print_queue(void);

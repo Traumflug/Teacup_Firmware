@@ -126,7 +126,7 @@ void setTimer(uint32_t delay)
 	// Actual ticks are 0.0625 us, so multiply delay by 16
 
 	// convert to ticks
-	delay = delay US;
+// 	delay = delay US;
 
 	setTimerCeiling(getTimerCeiling(delay));
 	setTimerResolution(getTimerResolution(delay));

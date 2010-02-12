@@ -28,8 +28,10 @@ typedef struct {
 	uint8_t						z_direction		:1;
 	uint8_t						e_direction		:1;
 	uint8_t						f_direction		:1;
+
 	uint8_t						nullmove			:1;
 	uint8_t						live					:1;
+	uint8_t						accel					:1;
 
 	uint32_t					x_delta;
 	uint32_t					y_delta;
@@ -44,8 +46,12 @@ typedef struct {
 	int32_t						f_counter;
 
 	uint32_t					total_steps;
+// 	uint32_t					move_duration;
 
-	uint32_t					move_duration;
+	// for linear acceleration
+	uint32_t					c;
+	uint32_t					end_c;
+	int32_t						n;
 } DDA;
 
 /*
@@ -65,11 +71,12 @@ extern TARGET current_position;
 	methods
 */
 
-uint32_t approx_distance( uint32_t dx, uint32_t dy );
-uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz );
+uint32_t approx_distance( uint32_t dx, uint32_t dy )								__attribute__ ((hot));
+uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz )	__attribute__ ((hot));
+const uint8_t	msbloc (uint32_t v)																		__attribute__ ((const));
 
 void dda_create(DDA *dda, TARGET *target);
-void dda_start(DDA *dda);
-void dda_step(DDA *dda);
+void dda_start(DDA *dda)																						__attribute__ ((hot));
+void dda_step(DDA *dda)																							__attribute__ ((hot));
 
 #endif	/* _DDA_H */

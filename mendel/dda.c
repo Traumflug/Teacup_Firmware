@@ -106,6 +106,19 @@ uint32_t delta32(uint32_t v1, uint32_t v2) {
 	return v2 - v1;
 }
 
+// this is an ultra-crude pseudo-logarithm routine, such that:
+// 2 ^ msbloc(v) >= v
+const uint8_t	msbloc (uint32_t v) {
+	uint8_t i;
+	uint32_t c;
+	for (i = 31, c = 0x80000000; i; i--) {
+		if (v & c)
+			return i;
+		v >>= 1;
+	}
+	return 0;
+}
+
 /*
 	CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
 */
@@ -114,7 +127,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	uint32_t	distance;
 
 	// initialise DDA to a known state
-	dda->move_duration = 0;
+// 	dda->move_duration = 0;
 	dda->live = 0;
 	dda->total_steps = 0;
 
@@ -128,13 +141,13 @@ void dda_create(DDA *dda, TARGET *target) {
 	dda->y_delta = abs32(target->Y - startpoint.Y);
 	dda->z_delta = abs32(target->Z - startpoint.Z);
 	dda->e_delta = abs32(target->E - startpoint.E);
-	dda->f_delta = delta32(target->F, startpoint.F);
+// 	dda->f_delta = delta32(target->F, startpoint.F);
 
 	dda->x_direction = (target->X >= startpoint.X)?1:0;
 	dda->y_direction = (target->Y >= startpoint.Y)?1:0;
 	dda->z_direction = (target->Z >= startpoint.Z)?1:0;
 	dda->e_direction = (target->E >= startpoint.E)?1:0;
-	dda->f_direction = (target->F >= startpoint.F)?1:0;
+// 	dda->f_direction = (target->F >= startpoint.F)?1:0;
 
 	if (DEBUG) {
 		if (dda->x_direction == 0)
@@ -149,9 +162,10 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (dda->e_direction == 0)
 			serial_writechar('-');
 		serwrite_uint32(dda->e_delta); serial_writechar(',');
-		if (dda->f_direction == 0)
-			serial_writechar('-');
-		serwrite_uint32(dda->f_delta); serial_writestr_P(PSTR("] ["));
+// 		if (dda->f_direction == 0)
+// 			serial_writechar('-');
+// 		serwrite_uint32(dda->f_delta);
+		serial_writestr_P(PSTR("] ["));
 	}
 
 	if (dda->x_delta > dda->total_steps)
@@ -202,10 +216,55 @@ void dda_create(DDA *dda, TARGET *target) {
 		// break this calculation up a bit and lose some precision because 300,000um * 60000 is too big for a uint32
 		// calculate this with a uint64 if you need the precision, but it'll take longer so routines with lots of short moves may suffer
 		// 2^32/6000 is about 715mm which should be plenty
-		dda->move_duration = ((distance * 6000) / dda->total_steps) * 10;
 
-		if (DEBUG)
-			serwrite_uint32(dda->move_duration);
+		// changed * 10 to * (F_CPU / 100000) so we can work in cpu_ticks rather than microseconds.
+		// timer.c setTimer() routine altered for same reason
+		uint32_t move_duration = ((distance * 6000) / dda->total_steps) * (F_CPU / 100000);
+
+		// c is initial step time in IOclk ticks
+		dda->c = move_duration / startpoint.F;
+
+		if (startpoint.F != target->F) {
+			// now some linear acceleration stuff, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
+			uint32_t ssq = startpoint.F * startpoint.F;
+			uint32_t esq = target->F * target->F;
+			uint32_t dsq = esq - ssq;
+
+			dda->end_c = move_duration / target->F;
+			// the raw equation WILL overflow at high step rates, but 64 bit math routines take waay too much space
+			// at 65536 mm/min (1092mm/s), ssq/esq overflows, and dsq is also close to overflowing if esq/ssq is small
+			// but if ssq-esq is small, ssq/dsq is only a few bits
+			// we'll have to do it a few different ways depending on the msb location in each
+			if ((msbloc(dda->total_steps) + msbloc(ssq)) < 28) {
+				// we have room to do all the multiplies first
+				dda->n = ((dda->total_steps * ssq * 4) / dsq) + 1;
+			}
+// 			else
+// 			if ((msbloc(dda->total_steps) + msbloc(ssq)) < 30) {
+// 				// we have room to do the main multiply first
+// 				dda->n = (((dda->total_steps * ssq) / dsq) << 2) | 1;
+// 			}
+			else if (msbloc(dda->total_steps) > msbloc(ssq)) {
+				// total steps has more precision
+				if (msbloc(dda->total_steps) < 28)
+					dda->n = (((dda->total_steps << 2) / dsq) * ssq) + 1;
+				else
+					dda->n = (((dda->total_steps / dsq) * ssq) << 2) | 1;
+			}
+			else {
+				// otherwise
+				if (msbloc(ssq) < 28)
+					dda->n = (((ssq << 2) / dsq) * dda->total_steps) + 1;
+				else
+					dda->n = (((ssq / dsq) * dda->total_steps) << 2) | 1;
+			}
+// 			if (DEBUG)
+// 				serwrite_uint32(dda->move_duration);
+
+			dda->accel = 1;
+		}
+		else
+			dda->accel = 0;
 	}
 
 	if (DEBUG)
@@ -241,7 +300,7 @@ void dda_start(DDA *dda) {
 	dda->live = 1;
 
 	// set timeout for first step
-	setTimer(dda->move_duration / current_position.F);
+	setTimer(dda->c);
 }
 
 /*
@@ -361,27 +420,43 @@ void dda_step(DDA *dda) {
 	sei();
 	#endif
 
-	if (step_option & F_CAN_STEP) {
-		dda->f_counter -= dda->f_delta;
-		// since we don't allow total_steps to be defined by F, we may need to step multiple times if f_delta is greater than total_steps
-		// loops in interrupt context are a bad idea, but this is the best way to do this that I've come up with so far
-		while (dda->f_counter < 0) {
+// 	if (step_option & F_CAN_STEP) {
+// 		dda->f_counter -= dda->f_delta;
+// 		// since we don't allow total_steps to be defined by F, we may need to step multiple times if f_delta is greater than total_steps
+// 		// loops in interrupt context are a bad idea, but this is the best way to do this that I've come up with so far
+// 		while (dda->f_counter < 0) {
+//
+// 			dda->f_counter += dda->total_steps;
+//
+// 			if (dda->f_direction) {
+// 				current_position.F += 1;
+// 				if (current_position.F > dda->endpoint.F)
+// 					current_position.F = dda->endpoint.F;
+// 			}
+// 			else {
+// 				current_position.F -= 1;
+// 				if (current_position.F < dda->endpoint.F)
+// 					current_position.F = dda->endpoint.F;
+// 			}
+//
+// 			step_option |= F_REAL_STEP;
+// 		}
+// 	}
 
-			dda->f_counter += dda->total_steps;
-
-			if (dda->f_direction) {
-				current_position.F += 1;
-				if (current_position.F > dda->endpoint.F)
-					current_position.F = dda->endpoint.F;
-			}
-			else {
-				current_position.F -= 1;
-				if (current_position.F < dda->endpoint.F)
-					current_position.F = dda->endpoint.F;
-			}
-
-			step_option |= F_REAL_STEP;
+	if (dda->accel) {
+		if (
+				((dda->n > 0) && (dda->c > dda->end_c)) ||
+				((dda->n < 0) && (dda->c < dda->end_c))
+			 ) {
+			dda->c = dda->c - ((dda->c * 2) / dda->n);
+			dda->n += 4;
+			setTimer(dda->c);
 		}
+		else if (dda->c != dda->end_c) {
+			dda->c = dda->end_c;
+			setTimer(dda->c);
+		}
+		// else we are already at target speed
 	}
 
 	if (step_option & REAL_MOVE)
@@ -393,13 +468,15 @@ void dda_step(DDA *dda) {
 	// we simply don't have the memory to precalculate this for each step,
 	// can't use a simplified process because the denominator changes rather than the numerator so the curve is non-linear
 	// and don't have a process framework to force it to be done outside interrupt context within a usable period of time
-	if (step_option & F_REAL_STEP)
-		setTimer(dda->move_duration / current_position.F);
+// 	if (step_option & F_REAL_STEP)
+// 		setTimer(dda->move_duration / current_position.F);
 
 	// if we could do anything at all, we're still running
 	// otherwise, must have finished
-	else if (step_option == 0)
+	else if (step_option == 0) {
 		dda->live = 0;
+		current_position.F = dda->endpoint.F;
+	}
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something

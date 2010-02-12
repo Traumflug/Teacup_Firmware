@@ -3,7 +3,7 @@
 
 #include	<stdint.h>
 
-void			clock_setup(void);
+void			clock_setup(void) __attribute__ ((cold));
 
 #ifdef	GLOBAL_CLOCK
 uint32_t	clock_read(void);
