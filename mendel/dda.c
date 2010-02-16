@@ -131,7 +131,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	dda->live = 0;
 	dda->total_steps = 0;
 
-	if (DEBUG)
+	if (1)
 		serial_writestr_P(PSTR("\n{DDA_CREATE: ["));
 
 	// we end at the passed target
@@ -149,7 +149,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	dda->e_direction = (target->E >= startpoint.E)?1:0;
 // 	dda->f_direction = (target->F >= startpoint.F)?1:0;
 
-	if (DEBUG) {
+	if (1) {
 		if (dda->x_direction == 0)
 			serial_writechar('-');
 		serwrite_uint32(dda->x_delta); serial_writechar(',');
@@ -161,7 +161,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		serwrite_uint32(dda->z_delta); serial_writechar(',');
 		if (dda->e_direction == 0)
 			serial_writechar('-');
-		serwrite_uint32(dda->e_delta); serial_writechar(',');
+		serwrite_uint32(dda->e_delta);/* serial_writechar(',');*/
 // 		if (dda->f_direction == 0)
 // 			serial_writechar('-');
 // 		serwrite_uint32(dda->f_delta);
@@ -177,6 +177,10 @@ void dda_create(DDA *dda, TARGET *target) {
 	if (dda->e_delta > dda->total_steps)
 		dda->total_steps = dda->e_delta;
 
+	if (1) {
+		serwrite_uint32(dda->total_steps); serial_writechar(',');
+	}
+
 	if (dda->total_steps == 0) {
 		dda->nullmove = 1;
 	}
@@ -184,10 +188,6 @@ void dda_create(DDA *dda, TARGET *target) {
 		// get steppers ready to go
 		steptimeout = 0;
 		power_on();
-
-		if (DEBUG) {
-			serwrite_uint32(dda->total_steps); serial_writechar(',');
-		}
 
 		dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter = dda->f_counter =
 			-(dda->total_steps >> 1);
@@ -203,7 +203,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (distance < 2)
 			distance = dda->e_delta * UM_PER_STEP_E;
 
-		if (DEBUG) {
+		if (1) {
 			serwrite_uint32(distance); serial_writechar(',');
 		}
 
@@ -222,44 +222,51 @@ void dda_create(DDA *dda, TARGET *target) {
 		uint32_t move_duration = ((distance * 6000) / dda->total_steps) * (F_CPU / 100000);
 
 		// c is initial step time in IOclk ticks
-		dda->c = move_duration / startpoint.F;
+		dda->c = (move_duration / startpoint.F) << 8;
+
+		if (1) {
+			serwrite_uint32(move_duration); serial_writechar(',');
+		}
 
 		if (startpoint.F != target->F) {
-			// now some linear acceleration stuff, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
-			uint32_t ssq = startpoint.F * startpoint.F;
-			uint32_t esq = target->F * target->F;
-			uint32_t dsq = esq - ssq;
+			uint32_t stF = startpoint.F / 4;
+			uint32_t enF = target->F / 4;
+			// now some constant acceleration stuff, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
+			uint32_t ssq = (stF * stF);
+			uint32_t esq = (enF * enF);
+			int32_t dsq = (int32_t) (esq - ssq) / 4;
 
-			dda->end_c = move_duration / target->F;
+			uint8_t msb_ssq = msbloc(ssq);
+			uint8_t msb_tot = msbloc(dda->total_steps);
+
+			dda->end_c = (move_duration / target->F) << 8;
 			// the raw equation WILL overflow at high step rates, but 64 bit math routines take waay too much space
 			// at 65536 mm/min (1092mm/s), ssq/esq overflows, and dsq is also close to overflowing if esq/ssq is small
 			// but if ssq-esq is small, ssq/dsq is only a few bits
 			// we'll have to do it a few different ways depending on the msb location in each
-			if ((msbloc(dda->total_steps) + msbloc(ssq)) < 28) {
+			if ((msb_tot + msb_ssq) <= 28) {
 				// we have room to do all the multiplies first
-				dda->n = ((dda->total_steps * ssq * 4) / dsq) + 1;
+				dda->n = ((int32_t) (dda->total_steps * ssq) / dsq) + 1;
 			}
-// 			else
-// 			if ((msbloc(dda->total_steps) + msbloc(ssq)) < 30) {
-// 				// we have room to do the main multiply first
-// 				dda->n = (((dda->total_steps * ssq) / dsq) << 2) | 1;
-// 			}
-			else if (msbloc(dda->total_steps) > msbloc(ssq)) {
+			else if (msb_tot > msb_ssq) {
 				// total steps has more precision
-				if (msbloc(dda->total_steps) < 28)
-					dda->n = (((dda->total_steps << 2) / dsq) * ssq) + 1;
-				else
-					dda->n = (((dda->total_steps / dsq) * ssq) << 2) | 1;
+				dda->n = (((int32_t) dda->total_steps / dsq) * (int32_t) ssq) + 1;
 			}
 			else {
 				// otherwise
-				if (msbloc(ssq) < 28)
-					dda->n = (((ssq << 2) / dsq) * dda->total_steps) + 1;
-				else
-					dda->n = (((ssq / dsq) * dda->total_steps) << 2) | 1;
+					dda->n = (((int32_t) ssq / dsq) * (int32_t) dda->total_steps) + 1;
 			}
-// 			if (DEBUG)
-// 				serwrite_uint32(dda->move_duration);
+
+			if (1) {
+				serial_writestr_P(PSTR("\n{DDA:CA c:")); serwrite_uint32(dda->c >> 8);
+				serial_writestr_P(PSTR(", end_c:")); serwrite_uint32(dda->end_c >> 8);
+				serial_writestr_P(PSTR(", n:")); serwrite_int32(dda->n);
+				serial_writestr_P(PSTR(", md:")); serwrite_uint32(move_duration);
+				serial_writestr_P(PSTR(", ssq:")); serwrite_int32(ssq);
+				serial_writestr_P(PSTR(", esq:")); serwrite_int32(esq);
+				serial_writestr_P(PSTR(", dsq:")); serwrite_int32(dsq);
+				serial_writestr_P(PSTR("}\n"));
+			}
 
 			dda->accel = 1;
 		}
@@ -267,7 +274,7 @@ void dda_create(DDA *dda, TARGET *target) {
 			dda->accel = 0;
 	}
 
-	if (DEBUG)
+	if (1)
 		serial_writestr_P(PSTR("] }\n"));
 
 	// next dda starts where we finish
@@ -300,7 +307,7 @@ void dda_start(DDA *dda) {
 	dda->live = 1;
 
 	// set timeout for first step
-	setTimer(dda->c);
+	setTimer(dda->c >> 8);
 }
 
 /*
@@ -337,12 +344,12 @@ void dda_step(DDA *dda) {
 #define	Y_CAN_STEP	2
 #define	Z_CAN_STEP	4
 #define	E_CAN_STEP	8
-#define	F_CAN_STEP	16
-#define	REAL_MOVE		32
-#define	F_REAL_STEP	64
+// #define	F_CAN_STEP	16
+// #define	REAL_MOVE		32
+// #define	F_REAL_STEP	64
 
-	if (DEBUG)
-		serial_writechar('!');
+// 	if (1)
+// 		serial_writechar('!');
 
 // 		step_option |= can_step(x_min(), x_max(), current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
 	step_option |= can_step(0      , 0      , current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
@@ -351,12 +358,12 @@ void dda_step(DDA *dda) {
 // 		step_option |= can_step(z_min(), z_max(), current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
 	step_option |= can_step(0      , 0      , current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
 	step_option |= can_step(0      , 0      , current_position.E, dda->endpoint.E, dda->e_direction) & E_CAN_STEP;
-	step_option |= can_step(0      , 0      , current_position.F, dda->endpoint.F, dda->f_direction) & F_CAN_STEP;
+// 	step_option |= can_step(0      , 0      , current_position.F, dda->endpoint.F, dda->f_direction) & F_CAN_STEP;
 
 	if (step_option & X_CAN_STEP) {
 		dda->x_counter -= dda->x_delta;
 		if (dda->x_counter < 0) {
-			step_option |= REAL_MOVE;
+// 			step_option |= REAL_MOVE;
 
 			x_step();
 			if (dda->x_direction)
@@ -371,7 +378,7 @@ void dda_step(DDA *dda) {
 	if (step_option & Y_CAN_STEP) {
 		dda->y_counter -= dda->y_delta;
 		if (dda->y_counter < 0) {
-			step_option |= REAL_MOVE;
+// 			step_option |= REAL_MOVE;
 
 			y_step();
 			if (dda->y_direction)
@@ -386,7 +393,7 @@ void dda_step(DDA *dda) {
 	if (step_option & Z_CAN_STEP) {
 		dda->z_counter -= dda->z_delta;
 		if (dda->z_counter < 0) {
-			step_option |= REAL_MOVE;
+// 			step_option |= REAL_MOVE;
 
 			z_step();
 			if (dda->z_direction)
@@ -401,7 +408,7 @@ void dda_step(DDA *dda) {
 	if (step_option & E_CAN_STEP) {
 		dda->e_counter -= dda->e_delta;
 		if (dda->e_counter < 0) {
-			step_option |= REAL_MOVE;
+// 			step_option |= REAL_MOVE;
 
 			e_step();
 			if (dda->e_direction)
@@ -448,18 +455,26 @@ void dda_step(DDA *dda) {
 				((dda->n > 0) && (dda->c > dda->end_c)) ||
 				((dda->n < 0) && (dda->c < dda->end_c))
 			 ) {
-			dda->c = dda->c - ((dda->c * 2) / dda->n);
+			dda->c = (int32_t) dda->c - ((int32_t) (dda->c * 2) / dda->n);
 			dda->n += 4;
-			setTimer(dda->c);
+			setTimer(dda->c >> 8);
+
+			if (1) {
+				serial_writestr_P(PSTR(" [nc:"));
+				serwrite_uint32(dda->c >> 8);
+// 				serial_writestr_P(PSTR(", nn:"));
+// 				serwrite_uint32(dda->n);
+				serial_writestr_P(PSTR("]"));
+			}
 		}
 		else if (dda->c != dda->end_c) {
 			dda->c = dda->end_c;
-			setTimer(dda->c);
+			setTimer(dda->c >> 8);
 		}
 		// else we are already at target speed
 	}
 
-	if (step_option & REAL_MOVE)
+	if (step_option)
 		// we stepped, reset timeout
 		steptimeout = 0;
 
@@ -473,10 +488,15 @@ void dda_step(DDA *dda) {
 
 	// if we could do anything at all, we're still running
 	// otherwise, must have finished
-	else if (step_option == 0) {
+	else {
 		dda->live = 0;
+		// linear acceleration code doesn't use F during a move, so we must update it here
 		current_position.F = dda->endpoint.F;
 	}
+
+// 	if (1) {
+// 		serial_writechar('x'); serwrite_hex8(step_option);
+// 	}
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something

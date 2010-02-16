@@ -17,12 +17,10 @@ volatile uint8_t	wd_flag = 0;
 // }
 
 ISR(WDT_vect) {
-	WRITE(SCK, 1);
 	// watchdog has tripped- no main loop activity for 0.5s, probably a bad thing
 	// if watchdog fires again, we will reset
 	// perhaps we should do something more intelligent in this interrupt?
 	wd_flag |= 1;
-	WRITE(SCK, 0);
 }
 
 void wd_init() {

@@ -1,5 +1,7 @@
 #include	"dda_queue.h"
 
+#include	<string.h>
+
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"
@@ -41,14 +43,14 @@ void enqueue(TARGET *t) {
 }
 
 void next_move() {
-	#if STEP_INTERRUPT_INTERRUPTIBLE
-	if (!queue_empty()) {
-	#else
 	if (queue_empty()) {
+	#if STEP_INTERRUPT_INTERRUPTIBLE
+	#else
 		disableTimerInterrupt();
+	#endif
+		memcpy(&startpoint, &current_position, sizeof(TARGET));
 	}
 	else {
-	#endif
 		// next item
 		uint8_t t = mb_tail;
 		t++;

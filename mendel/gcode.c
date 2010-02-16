@@ -536,12 +536,27 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				serial_writestr_P(PSTR(",F:"));
 				serwrite_int32(current_position.F);
 				serial_writestr_P(PSTR("}\n"));
+
+				serial_writestr_P(PSTR("{X:"));
+				serwrite_int32(startpoint.X);
+				serial_writestr_P(PSTR(",Y:"));
+				serwrite_int32(startpoint.Y);
+				serial_writestr_P(PSTR(",Z:"));
+				serwrite_int32(startpoint.Z);
+				serial_writestr_P(PSTR(",E:"));
+				serwrite_int32(startpoint.E);
+				serial_writestr_P(PSTR(",F:"));
+				serwrite_int32(startpoint.F);
+				serial_writestr_P(PSTR("}\n"));
+
+				print_queue();
 				break;
 
 			// DEBUG: read arbitrary memory location
 			case 253:
 				serwrite_hex8(*(volatile uint8_t *)(gcmd->S));
 				break;
+
 			// DEBUG: write arbitrary memory locatiom
 			case 254:
 				serwrite_hex8(gcmd->S);
