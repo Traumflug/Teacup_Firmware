@@ -114,7 +114,7 @@ const uint8_t	msbloc (uint32_t v) {
 	for (i = 31, c = 0x80000000; i; i--) {
 		if (v & c)
 			return i;
-		v >>= 1;
+		c >>= 1;
 	}
 	return 0;
 }
@@ -219,13 +219,17 @@ void dda_create(DDA *dda, TARGET *target) {
 
 		// changed * 10 to * (F_CPU / 100000) so we can work in cpu_ticks rather than microseconds.
 		// timer.c setTimer() routine altered for same reason
-		uint32_t move_duration = ((distance * 6000) / dda->total_steps) * (F_CPU / 100000);
+
+		// changed distance * 6000 .. * F_CPU / 100000 to
+		//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of 1800mm without killing our registers
+		uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
 
 		// c is initial step time in IOclk ticks
 		dda->c = (move_duration / startpoint.F) << 8;
 
 		if (1) {
 			serwrite_uint32(move_duration); serial_writechar(',');
+			serwrite_uint32(dda->c); serial_writechar(',');
 		}
 
 		if (startpoint.F != target->F) {
@@ -244,17 +248,20 @@ void dda_create(DDA *dda, TARGET *target) {
 			// at 65536 mm/min (1092mm/s), ssq/esq overflows, and dsq is also close to overflowing if esq/ssq is small
 			// but if ssq-esq is small, ssq/dsq is only a few bits
 			// we'll have to do it a few different ways depending on the msb location in each
-			if ((msb_tot + msb_ssq) <= 28) {
+			if ((msb_tot + msb_ssq) <= 30) {
 				// we have room to do all the multiplies first
+				serial_writechar('A');
 				dda->n = ((int32_t) (dda->total_steps * ssq) / dsq) + 1;
 			}
-			else if (msb_tot > msb_ssq) {
+			else if (msb_tot >= msb_ssq) {
 				// total steps has more precision
+				serial_writechar('B');
 				dda->n = (((int32_t) dda->total_steps / dsq) * (int32_t) ssq) + 1;
 			}
 			else {
 				// otherwise
-					dda->n = (((int32_t) ssq / dsq) * (int32_t) dda->total_steps) + 1;
+				serial_writechar('C');
+				dda->n = (((int32_t) ssq / dsq) * (int32_t) dda->total_steps) + 1;
 			}
 
 			if (1) {
@@ -262,9 +269,11 @@ void dda_create(DDA *dda, TARGET *target) {
 				serial_writestr_P(PSTR(", end_c:")); serwrite_uint32(dda->end_c >> 8);
 				serial_writestr_P(PSTR(", n:")); serwrite_int32(dda->n);
 				serial_writestr_P(PSTR(", md:")); serwrite_uint32(move_duration);
-				serial_writestr_P(PSTR(", ssq:")); serwrite_int32(ssq);
-				serial_writestr_P(PSTR(", esq:")); serwrite_int32(esq);
+				serial_writestr_P(PSTR(", ssq:")); serwrite_uint32(ssq);
+				serial_writestr_P(PSTR(", esq:")); serwrite_uint32(esq);
 				serial_writestr_P(PSTR(", dsq:")); serwrite_int32(dsq);
+				serial_writestr_P(PSTR(", msbssq:")); serwrite_uint8(msb_ssq);
+				serial_writestr_P(PSTR(", msbtot:")); serwrite_uint8(msb_tot);
 				serial_writestr_P(PSTR("}\n"));
 			}
 
@@ -459,12 +468,12 @@ void dda_step(DDA *dda) {
 			dda->n += 4;
 			setTimer(dda->c >> 8);
 
-			if (1) {
-				serial_writestr_P(PSTR(" [nc:"));
+			if (0) {
+// 				serial_writestr_P(PSTR("nc:"));
 				serwrite_uint32(dda->c >> 8);
 // 				serial_writestr_P(PSTR(", nn:"));
 // 				serwrite_uint32(dda->n);
-				serial_writestr_P(PSTR("]"));
+				serial_writestr_P(PSTR("/"));
 			}
 		}
 		else if (dda->c != dda->end_c) {
