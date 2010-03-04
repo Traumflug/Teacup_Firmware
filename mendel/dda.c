@@ -127,7 +127,6 @@ void dda_create(DDA *dda, TARGET *target) {
 	uint32_t	distance;
 
 	// initialise DDA to a known state
-// 	dda->move_duration = 0;
 	dda->live = 0;
 	dda->total_steps = 0;
 
@@ -141,13 +140,11 @@ void dda_create(DDA *dda, TARGET *target) {
 	dda->y_delta = abs32(target->Y - startpoint.Y);
 	dda->z_delta = abs32(target->Z - startpoint.Z);
 	dda->e_delta = abs32(target->E - startpoint.E);
-// 	dda->f_delta = delta32(target->F, startpoint.F);
 
 	dda->x_direction = (target->X >= startpoint.X)?1:0;
 	dda->y_direction = (target->Y >= startpoint.Y)?1:0;
 	dda->z_direction = (target->Z >= startpoint.Z)?1:0;
 	dda->e_direction = (target->E >= startpoint.E)?1:0;
-// 	dda->f_direction = (target->F >= startpoint.F)?1:0;
 
 	if (1) {
 		if (dda->x_direction == 0)
@@ -161,10 +158,8 @@ void dda_create(DDA *dda, TARGET *target) {
 		serwrite_uint32(dda->z_delta); serial_writechar(',');
 		if (dda->e_direction == 0)
 			serial_writechar('-');
-		serwrite_uint32(dda->e_delta);/* serial_writechar(',');*/
-// 		if (dda->f_direction == 0)
-// 			serial_writechar('-');
-// 		serwrite_uint32(dda->f_delta);
+		serwrite_uint32(dda->e_delta);
+
 		serial_writestr_P(PSTR("] ["));
 	}
 
@@ -178,7 +173,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		dda->total_steps = dda->e_delta;
 
 	if (1) {
-		serwrite_uint32(dda->total_steps); serial_writechar(',');
+		serial_writestr_P(PSTR("ts:")); serwrite_uint32(dda->total_steps);
 	}
 
 	if (dda->total_steps == 0) {
@@ -189,7 +184,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		steptimeout = 0;
 		power_on();
 
-		dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter = dda->f_counter =
+		dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter =
 			-(dda->total_steps >> 1);
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
@@ -204,7 +199,7 @@ void dda_create(DDA *dda, TARGET *target) {
 			distance = dda->e_delta * UM_PER_STEP_E;
 
 		if (1) {
-			serwrite_uint32(distance); serial_writechar(',');
+			serial_writestr_P(PSTR(",ds:")); serwrite_uint32(distance);
 		}
 
 		// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
@@ -221,15 +216,15 @@ void dda_create(DDA *dda, TARGET *target) {
 		// timer.c setTimer() routine altered for same reason
 
 		// changed distance * 6000 .. * F_CPU / 100000 to
-		//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of 1800mm without killing our registers
+		//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
 		uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
 
 		// c is initial step time in IOclk ticks
 		dda->c = (move_duration / startpoint.F) << 8;
 
 		if (1) {
-			serwrite_uint32(move_duration); serial_writechar(',');
-			serwrite_uint32(dda->c); serial_writechar(',');
+			serial_writestr_P(PSTR(",md:")); serwrite_uint32(move_duration);
+			serial_writestr_P(PSTR(",c:")); serwrite_uint32(dda->c >> 8);
 		}
 
 		if (startpoint.F != target->F) {
@@ -247,7 +242,7 @@ void dda_create(DDA *dda, TARGET *target) {
 			// the raw equation WILL overflow at high step rates, but 64 bit math routines take waay too much space
 			// at 65536 mm/min (1092mm/s), ssq/esq overflows, and dsq is also close to overflowing if esq/ssq is small
 			// but if ssq-esq is small, ssq/dsq is only a few bits
-			// we'll have to do it a few different ways depending on the msb location in each
+			// we'll have to do it a few different ways depending on the msb locations of each
 			if ((msb_tot + msb_ssq) <= 30) {
 				// we have room to do all the multiplies first
 				serial_writechar('A');
@@ -265,8 +260,7 @@ void dda_create(DDA *dda, TARGET *target) {
 			}
 
 			if (1) {
-				serial_writestr_P(PSTR("\n{DDA:CA c:")); serwrite_uint32(dda->c >> 8);
-				serial_writestr_P(PSTR(", end_c:")); serwrite_uint32(dda->end_c >> 8);
+				serial_writestr_P(PSTR("\n{DDA:CA end_c:")); serwrite_uint32(dda->end_c >> 8);
 				serial_writestr_P(PSTR(", n:")); serwrite_int32(dda->n);
 				serial_writestr_P(PSTR(", md:")); serwrite_uint32(move_duration);
 				serial_writestr_P(PSTR(", ssq:")); serwrite_uint32(ssq);
@@ -353,12 +347,6 @@ void dda_step(DDA *dda) {
 #define	Y_CAN_STEP	2
 #define	Z_CAN_STEP	4
 #define	E_CAN_STEP	8
-// #define	F_CAN_STEP	16
-// #define	REAL_MOVE		32
-// #define	F_REAL_STEP	64
-
-// 	if (1)
-// 		serial_writechar('!');
 
 // 		step_option |= can_step(x_min(), x_max(), current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
 	step_option |= can_step(0      , 0      , current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
@@ -372,8 +360,6 @@ void dda_step(DDA *dda) {
 	if (step_option & X_CAN_STEP) {
 		dda->x_counter -= dda->x_delta;
 		if (dda->x_counter < 0) {
-// 			step_option |= REAL_MOVE;
-
 			x_step();
 			if (dda->x_direction)
 				current_position.X++;
@@ -387,8 +373,6 @@ void dda_step(DDA *dda) {
 	if (step_option & Y_CAN_STEP) {
 		dda->y_counter -= dda->y_delta;
 		if (dda->y_counter < 0) {
-// 			step_option |= REAL_MOVE;
-
 			y_step();
 			if (dda->y_direction)
 				current_position.Y++;
@@ -402,8 +386,6 @@ void dda_step(DDA *dda) {
 	if (step_option & Z_CAN_STEP) {
 		dda->z_counter -= dda->z_delta;
 		if (dda->z_counter < 0) {
-// 			step_option |= REAL_MOVE;
-
 			z_step();
 			if (dda->z_direction)
 				current_position.Z++;
@@ -417,8 +399,6 @@ void dda_step(DDA *dda) {
 	if (step_option & E_CAN_STEP) {
 		dda->e_counter -= dda->e_delta;
 		if (dda->e_counter < 0) {
-// 			step_option |= REAL_MOVE;
-
 			e_step();
 			if (dda->e_direction)
 				current_position.E++;
@@ -432,33 +412,12 @@ void dda_step(DDA *dda) {
 	#if STEP_INTERRUPT_INTERRUPTIBLE
 	// since we have sent steps to all the motors that will be stepping and the rest of this function isn't so time critical,
 	// this interrupt can now be interruptible
+	// however we must ensure that we don't step again while computing the below, so disable *this* interrupt but allow others to fire
 	disableTimerInterrupt();
 	sei();
 	#endif
 
-// 	if (step_option & F_CAN_STEP) {
-// 		dda->f_counter -= dda->f_delta;
-// 		// since we don't allow total_steps to be defined by F, we may need to step multiple times if f_delta is greater than total_steps
-// 		// loops in interrupt context are a bad idea, but this is the best way to do this that I've come up with so far
-// 		while (dda->f_counter < 0) {
-//
-// 			dda->f_counter += dda->total_steps;
-//
-// 			if (dda->f_direction) {
-// 				current_position.F += 1;
-// 				if (current_position.F > dda->endpoint.F)
-// 					current_position.F = dda->endpoint.F;
-// 			}
-// 			else {
-// 				current_position.F -= 1;
-// 				if (current_position.F < dda->endpoint.F)
-// 					current_position.F = dda->endpoint.F;
-// 			}
-//
-// 			step_option |= F_REAL_STEP;
-// 		}
-// 	}
-
+	// linear acceleration magic, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
 	if (dda->accel) {
 		if (
 				((dda->n > 0) && (dda->c > dda->end_c)) ||
@@ -468,11 +427,9 @@ void dda_step(DDA *dda) {
 			dda->n += 4;
 			setTimer(dda->c >> 8);
 
+			// debug
 			if (0) {
-// 				serial_writestr_P(PSTR("nc:"));
 				serwrite_uint32(dda->c >> 8);
-// 				serial_writestr_P(PSTR(", nn:"));
-// 				serwrite_uint32(dda->n);
 				serial_writestr_P(PSTR("/"));
 			}
 		}
@@ -487,27 +444,17 @@ void dda_step(DDA *dda) {
 		// we stepped, reset timeout
 		steptimeout = 0;
 
-	// we have stepped in speed and now need to recalculate our delay
-	// WARNING: this is a divide in interrupt context! (which unfortunately seems unavoidable)
-	// we simply don't have the memory to precalculate this for each step,
-	// can't use a simplified process because the denominator changes rather than the numerator so the curve is non-linear
-	// and don't have a process framework to force it to be done outside interrupt context within a usable period of time
-// 	if (step_option & F_REAL_STEP)
-// 		setTimer(dda->move_duration / current_position.F);
-
 	// if we could do anything at all, we're still running
 	// otherwise, must have finished
 	else {
 		dda->live = 0;
-		// linear acceleration code doesn't use F during a move, so we must update it here
+		// linear acceleration code doesn't alter F during a move, so we must update it here
+		// in theory, we *could* update F, but that would require a divide in interrupt context which should be avoided if at all possible
 		current_position.F = dda->endpoint.F;
 	}
 
-// 	if (1) {
-// 		serial_writechar('x'); serwrite_hex8(step_option);
-// 	}
-
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
-	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something
+	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something.
+	// we also hope that we don't step before the drivers register the low- limit maximum speed if you think this is a problem.
 	unstep();
 }

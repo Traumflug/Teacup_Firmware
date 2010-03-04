@@ -22,7 +22,7 @@ SOURCES = $(PROGRAM).c serial.c dda.c gcode.c timer.c clock.c temp.c sermsg.c dd
 #                                                                            #
 ##############################################################################
 
-MCU_TARGET = atmega168
+MCU_TARGET = atmega328p
 F_CPU = 16000000L
 
 ##############################################################################
@@ -73,7 +73,7 @@ clean:
 
 size: $(PROGRAM).hex
 	@echo -n "  SIZE      "
-	@objdump -h mendel.elf | perl -ne '/.(data|text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "%d bytes (%d%% of %dkb)\n", $$a, $$a * 100 / 16384, 16 }'
+	@objdump -h mendel.elf | perl -ne '/.(data|text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "%d bytes (%d%% of %dkb)\n", $$a, $$a * 100 / (14 * 1024), 14 }'
 
 %.o: %.c
 	@echo "  CC        $@"

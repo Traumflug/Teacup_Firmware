@@ -85,7 +85,7 @@ void init(void) {
 	// set up clock
 	clock_setup();
 
-	// set up feedrate
+	// set up default feedrate
 	current_position.F = startpoint.F = next_target.target.F = FEEDRATE_SLOW_Z;
 
 	// enable interrupts
@@ -96,6 +96,7 @@ void init(void) {
 
 	// say hi to host
 	serial_writestr_P(PSTR("Start\nOK\n"));
+
 }
 
 void clock_250ms(void) {
@@ -105,21 +106,13 @@ void clock_250ms(void) {
 	temp_tick();
 
 	if (steptimeout > (30 * 4)) {
-		if (temp_get_target() == 0)
-			power_off();
+		power_off();
 	}
-	else
+	else if (temp_get_target() == 0)
 		steptimeout++;
 
-	ifclock (CLOCK_FLAG_1S) {
+	ifclock(CLOCK_FLAG_1S) {
 		if (DEBUG) {
-			// current move
-			serial_writestr_P(PSTR("DDA: f#"));
-			serwrite_int32(movebuffer[mb_tail].f_counter);
-			serial_writechar('/');
-			serwrite_int16(movebuffer[mb_tail].f_delta);
-			serial_writechar('\n');
-
 			// current position
 			serial_writestr_P(PSTR("Pos: "));
 			serwrite_int32(current_position.X);
