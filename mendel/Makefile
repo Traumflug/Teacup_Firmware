@@ -36,9 +36,14 @@ CC = $(ARCH)gcc
 OBJDUMP = $(ARCH)objdump
 OBJCOPY = $(ARCH)objcopy
 
+DEFS = -DF_CPU=$(F_CPU)
+# DEFS += "-DDEBUG=1"
+# DEFS += "-DREQUIRE_LINENUMBER"
+# DEFS += "-DREQUIRE_CHECKSUM"
+
 OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once -DDEBUG=0
 # OPTIMIZE = -O0
-CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) -DF_CPU=$(F_CPU) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
+CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
 LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
 
 AVRDUDE = avrdude
@@ -52,14 +57,14 @@ AVRDUDE = avrdude
 #                                                                            #
 ##############################################################################
 PROGPORT = /dev/arduino
-PROGBAUD = 19200
+PROGBAUD = 57600
 
 OBJ = $(patsubst %.c,%.o,${SOURCES})
 
 .PHONY: all program clean size
 .PRECIOUS: %.o %.elf
 
-all: $(PROGRAM).hex $(PROGRAM).lst size
+all: $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
 
 program: $(PROGRAM).hex
 	stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
@@ -72,8 +77,9 @@ clean:
 	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~
 
 size: $(PROGRAM).hex
-	@echo -n "  SIZE      "
-	@objdump -h mendel.elf | perl -ne '/.(data|text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "%d bytes (%d%% of %dkb)\n", $$a, $$a * 100 / (14 * 1024), 14 }'
+	@echo "  SIZE                   Atmega168        Atmega328p"
+	@objdump -h mendel.elf | perl -ne '/.(text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    FLASH: %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, $$a * 100 / (14 * 1024), 14, $$a * 100 / (30 * 1024), 30 }'
+	@objdump -h mendel.elf | perl -ne '/.(data|bss)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    RAM  : %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, $$a * 100 / (1 * 1024), 1, $$a * 100 / (2 * 1024), 2 }'
 
 %.o: %.c
 	@echo "  CC        $@"
@@ -94,3 +100,7 @@ size: $(PROGRAM).hex
 %.bin: %.elf
 	@echo "  OBJCOPY   $@"
 	@$(OBJCOPY) -j .text -j .data -O binary $< $@
+
+%.sym: %.elf
+	@echo "  SYM       $@"
+	@$(OBJDUMP) -t $< | perl -ne 'BEGIN { printf "  ADDR  NAME                  SIZE\n"; } /([0-9a-f]+)\s+(\w+)\s+O\s+\.(bss|data)\s+([0-9a-f]+)\s+(\w+)/ && printf "0x%04x  %-20s +%d\n", eval("0x$$1") & 0xFFFF, $$5, eval("0x$$4")' | sort -k1 > $@

@@ -7,7 +7,7 @@ void serwrite_hex4(uint8_t v) {
 	if (v < 10)
 		serial_writechar('0' + v);
 	else
-		serial_writechar('A' + v);
+		serial_writechar('A' - 10 + v);
 }
 
 void serwrite_hex8(uint8_t v) {

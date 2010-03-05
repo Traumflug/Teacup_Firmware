@@ -14,12 +14,13 @@
 
 uint8_t	option_bitfield;
 #define	OPTION_COMMENT						128
+#define	OPTION_CHECKSUM						64
 
 decfloat read_digit;
 
-const char alphabet[] = "GMXYZEFSP";
+const char alphabet[] = "GMXYZEFSPN*";
 
-GCODE_COMMAND next_target = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0 } };
+GCODE_COMMAND next_target = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0 }, 0, 0, 0, 0, 0, 0 };
 
 /*
 	utility functions
@@ -96,8 +97,19 @@ void SpecialMoveE(int32_t e, uint32_t f) {
 	enqueue(&t);
 }
 
+/****************************************************************************
+*                                                                           *
+* Character Received - add it to our command                                *
+*                                                                           *
+****************************************************************************/
+
 void scan_char(uint8_t c) {
 	static uint8_t last_field = 0;
+
+	// move this below switch(c) if the asterisk isn't included in the checksum
+	#define crc(a, b)		(a ^ b)
+	if ((option_bitfield & OPTION_CHECKSUM) == 0)
+		next_target.checksum_calculated = crc(next_target.checksum_calculated, c);
 
 	// uppercase
 	if (c >= 'a' && c <= 'z')
@@ -182,6 +194,12 @@ void scan_char(uint8_t c) {
 // 					if (DEBUG)
 						serwrite_uint16(next_target.P);
 					break;
+				case 'N':
+					next_target.N = decfloat_to_int(&read_digit, 1, 1);
+					break;
+				case '*':
+					next_target.checksum_read = decfloat_to_int(&read_digit, 1, 1);
+					break;
 			}
 			// reset for next field
 			last_field = 0;
@@ -234,6 +252,13 @@ void scan_char(uint8_t c) {
 			case 'P':
 				next_target.seen_P = 1;
 				break;
+			case 'N':
+				next_target.seen_N = 1;
+				break;
+			case '*':
+				next_target.seen_checksum = 1;
+				option_bitfield |= OPTION_CHECKSUM;
+				break;
 
 			// comments
 			case ';':
@@ -269,22 +294,46 @@ void scan_char(uint8_t c) {
 			serial_writechar(c);
 		// process
 		if (next_target.seen_G || next_target.seen_M) {
-			process_gcode_command(&next_target);
+			if (
+					#ifdef	REQUIRE_LINENUMBER
+					((next_target.N_expected == next_target.N) && (next_target.seen_N == 1)) &&
+					#else
+					((next_target.N_expected == next_target.N) || (next_target.seen_N == 0)) &&
+					#endif
+					#ifdef	REQUIRE_CHECKSUM
+					((next_target.checksum_calculated == next_target.checksum_read) && (next_target.seen_checksum == 1))
+					#else
+					((next_target.checksum_calculated == next_target.checksum_read) || (next_target.seen_checksum == 0))
+					#endif
+				) {
+				process_gcode_command(&next_target);
 
-			// reset 'seen comment'
-			option_bitfield &= ~OPTION_COMMENT;
+				serial_writestr_P(PSTR("OK\n"));
 
-			// reset variables
-			next_target.seen_X = next_target.seen_Y = next_target.seen_Z = next_target.seen_E = next_target.seen_F = next_target.seen_S = next_target.seen_P = 0;
-			last_field = 0;
-			read_digit.sign = 0;
-			read_digit.mantissa = 0;
-			read_digit.exponent = 0;
-
-			serial_writestr_P(PSTR("OK\n"));
+				// expect next line number
+				next_target.N_expected++;
+			}
+			else {
+				serial_writestr_P(PSTR("RESEND\n"));
+			}
 		}
+		// reset 'seen comment' and 'receiving checksum'
+		option_bitfield = 0;
+
+		// reset variables
+		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = next_target.seen_E = next_target.seen_F = next_target.seen_S = next_target.seen_P = next_target.N = next_target.checksum_read = next_target.checksum_calculated = 0;
+		last_field = 0;
+		read_digit.sign = 0;
+		read_digit.mantissa = 0;
+		read_digit.exponent = 0;
 	}
 }
+
+/****************************************************************************
+*                                                                           *
+* Command Received - process it                                             *
+*                                                                           *
+****************************************************************************/
 
 void process_gcode_command(GCODE_COMMAND *gcmd) {
 	// convert relative to absolute
@@ -535,18 +584,22 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				serwrite_int32(current_position.E);
 				serial_writestr_P(PSTR(",F:"));
 				serwrite_int32(current_position.F);
+				serial_writestr_P(PSTR(",c:"));
+				serwrite_uint32(movebuffer[mb_tail].c);
 				serial_writestr_P(PSTR("}\n"));
 
 				serial_writestr_P(PSTR("{X:"));
-				serwrite_int32(startpoint.X);
+				serwrite_int32(movebuffer[mb_tail].endpoint.X);
 				serial_writestr_P(PSTR(",Y:"));
-				serwrite_int32(startpoint.Y);
+				serwrite_int32(movebuffer[mb_tail].endpoint.Y);
 				serial_writestr_P(PSTR(",Z:"));
-				serwrite_int32(startpoint.Z);
+				serwrite_int32(movebuffer[mb_tail].endpoint.Z);
 				serial_writestr_P(PSTR(",E:"));
-				serwrite_int32(startpoint.E);
+				serwrite_int32(movebuffer[mb_tail].endpoint.E);
 				serial_writestr_P(PSTR(",F:"));
-				serwrite_int32(startpoint.F);
+				serwrite_int32(movebuffer[mb_tail].endpoint.F);
+				serial_writestr_P(PSTR(",c:"));
+				serwrite_uint32(movebuffer[mb_tail].end_c);
 				serial_writestr_P(PSTR("}\n"));
 
 				print_queue();
@@ -555,6 +608,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			// DEBUG: read arbitrary memory location
 			case 253:
 				serwrite_hex8(*(volatile uint8_t *)(gcmd->S));
+				serial_writechar('\n');
 				break;
 
 			// DEBUG: write arbitrary memory locatiom
