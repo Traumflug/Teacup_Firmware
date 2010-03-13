@@ -15,6 +15,7 @@
 uint8_t	option_bitfield;
 #define	OPTION_COMMENT						128
 #define	OPTION_CHECKSUM						64
+#define	OPTION_ECHO								32
 
 decfloat read_digit;
 
@@ -123,11 +124,13 @@ void scan_char(uint8_t c) {
 				case 'G':
 					next_target.G = read_digit.mantissa;
 // 					if (DEBUG)
+					if (option_bitfield & OPTION_ECHO)
 						serwrite_uint8(next_target.G);
 					break;
 				case 'M':
 					next_target.M = read_digit.mantissa;
 // 					if (DEBUG)
+					if (option_bitfield & OPTION_ECHO)
 						serwrite_uint8(next_target.M);
 					break;
 				case 'X':
@@ -136,6 +139,7 @@ void scan_char(uint8_t c) {
 					else
 						next_target.target.X = decfloat_to_int(&read_digit, STEPS_PER_MM_X, 1);
 // 					if (DEBUG)
+					if (option_bitfield & OPTION_ECHO)
 						serwrite_int32(next_target.target.X);
 					break;
 				case 'Y':
@@ -144,6 +148,7 @@ void scan_char(uint8_t c) {
 					else
 						next_target.target.Y = decfloat_to_int(&read_digit, STEPS_PER_MM_Y, 1);
 // 					if (DEBUG)
+					if (option_bitfield & OPTION_ECHO)
 						serwrite_int32(next_target.target.Y);
 					break;
 				case 'Z':
@@ -152,6 +157,7 @@ void scan_char(uint8_t c) {
 					else
 						next_target.target.Z = decfloat_to_int(&read_digit, STEPS_PER_MM_Z, 1);
 // 					if (DEBUG)
+					if (option_bitfield & OPTION_ECHO)
 						serwrite_int32(next_target.target.Z);
 					break;
 				case 'E':
@@ -160,6 +166,7 @@ void scan_char(uint8_t c) {
 					else
 						next_target.target.E = decfloat_to_int(&read_digit, STEPS_PER_MM_E, 1);
 // 					if (DEBUG)
+					if (option_bitfield & OPTION_ECHO)
 						serwrite_uint32(next_target.target.E);
 					break;
 				case 'F':
@@ -169,6 +176,7 @@ void scan_char(uint8_t c) {
 					else
 						next_target.target.F = decfloat_to_int(&read_digit, 1, 1);
 // 					if (DEBUG)
+					if (option_bitfield & OPTION_ECHO)
 						serwrite_uint32(next_target.target.F);
 					break;
 				case 'S':
@@ -183,6 +191,7 @@ void scan_char(uint8_t c) {
 					else
 						next_target.S = decfloat_to_int(&read_digit, 1, 1);
 // 					if (DEBUG)
+					if (option_bitfield & OPTION_ECHO)
 						serwrite_uint16(next_target.S);
 					break;
 				case 'P':
@@ -192,13 +201,18 @@ void scan_char(uint8_t c) {
 					else
 						next_target.P = decfloat_to_int(&read_digit, 1, 1);
 // 					if (DEBUG)
+					if (option_bitfield & OPTION_ECHO)
 						serwrite_uint16(next_target.P);
 					break;
 				case 'N':
 					next_target.N = decfloat_to_int(&read_digit, 1, 1);
+					if (option_bitfield & OPTION_ECHO)
+						serwrite_uint32(next_target.N);
 					break;
 				case '*':
 					next_target.checksum_read = decfloat_to_int(&read_digit, 1, 1);
+					if (option_bitfield & OPTION_ECHO)
+						serwrite_uint8(next_target.checksum_read);
 					break;
 			}
 			// reset for next field
@@ -215,6 +229,7 @@ void scan_char(uint8_t c) {
 		if (indexof(c, alphabet) >= 0) {
 			last_field = c;
 // 			if (DEBUG)
+			if (option_bitfield & OPTION_ECHO)
 				serial_writechar(c);
 		}
 
@@ -291,34 +306,41 @@ void scan_char(uint8_t c) {
 	// end of line
 	if ((c == 10) || (c == 13)) {
 // 		if (DEBUG)
+		if (option_bitfield & OPTION_ECHO)
 			serial_writechar(c);
 		// process
 		if (next_target.seen_G || next_target.seen_M) {
 			if (
 					#ifdef	REQUIRE_LINENUMBER
-					((next_target.N_expected == next_target.N) && (next_target.seen_N == 1)) &&
+					((next_target.N_expected == next_target.N) && (next_target.seen_N == 1))
 					#else
-					((next_target.N_expected == next_target.N) || (next_target.seen_N == 0)) &&
+					((next_target.N_expected == next_target.N) || (next_target.seen_N == 0))
 					#endif
+				) {
+				if (
 					#ifdef	REQUIRE_CHECKSUM
 					((next_target.checksum_calculated == next_target.checksum_read) && (next_target.seen_checksum == 1))
 					#else
 					((next_target.checksum_calculated == next_target.checksum_read) || (next_target.seen_checksum == 0))
 					#endif
-				) {
-				process_gcode_command(&next_target);
+					) {
+					process_gcode_command(&next_target);
 
-				serial_writestr_P(PSTR("OK\n"));
+					serial_writestr_P(PSTR("OK\n"));
 
-				// expect next line number
-				next_target.N_expected++;
+					// expect next line number
+					next_target.N_expected++;
+				}
+				else {
+					serial_writestr_P(PSTR("RESEND: BAD CHECKSUM\n"));
+				}
 			}
 			else {
-				serial_writestr_P(PSTR("RESEND\n"));
+				serial_writestr_P(PSTR("RESEND: BAD LINE NUMBER\n"));
 			}
 		}
 		// reset 'seen comment' and 'receiving checksum'
-		option_bitfield = 0;
+		option_bitfield &= (OPTION_COMMENT | OPTION_CHECKSUM);
 
 		// reset variables
 		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = next_target.seen_E = next_target.seen_F = next_target.seen_S = next_target.seen_P = next_target.N = next_target.checksum_read = next_target.checksum_calculated = 0;
@@ -567,9 +589,21 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				if (gcmd->seen_S)
 					d_factor = gcmd->S;
 				break;
+			// M133- heater I limit
 			case 133:
 				if (gcmd->seen_S)
 					i_limit = gcmd->S;
+				break;
+
+			// M140- echo off
+			case 140:
+				option_bitfield &= ~OPTION_ECHO;
+				serial_writestr_P(PSTR("Echo off\n"));
+				break;
+			// M141- echo on
+			case 141:
+				option_bitfield |= OPTION_ECHO;
+				serial_writestr_P(PSTR("Echo on\n"));
 				break;
 
 			// DEBUG: return current position
@@ -607,7 +641,12 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 
 			// DEBUG: read arbitrary memory location
 			case 253:
-				serwrite_hex8(*(volatile uint8_t *)(gcmd->S));
+				if (gcmd->seen_P == 0)
+					gcmd->P = 1;
+				for (; gcmd->P; gcmd->P--) {
+					serwrite_hex8(*(volatile uint8_t *)(gcmd->S));
+					gcmd->S++;
+				}
 				serial_writechar('\n');
 				break;
 

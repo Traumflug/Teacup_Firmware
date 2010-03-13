@@ -88,93 +88,132 @@
 # }
 
 
+mendel_setup() {
+	stty 115200 raw ignbrk -hup -echo ixon ixoff < /dev/arduino
+}
 
-
-arduinocmd() {
+mendel_cmd() {
 	(
+		IFS=$' \t\n'
 		LN=0
 		cmd="$*"
 		echo "$cmd" >&3;
 		while [ "$REPLY" != "OK" ]
 		do
 			read -u 3
-			if [ "$LN" -ne 0 ]
-			then
+# 			if [ "$LN" -ne 0 ]
+# 			then
 				if [ "$REPLY" != "OK" ]
 				then
 					echo "$REPLY"
 				fi
-			fi
+# 			fi
 			LN=$(( $LN + 1 ))
 		done
 	) 3<>/dev/arduino;
 }
 
-readsym() {
-	sym=$1
-	make mendel.sym &>/dev/null
-	if egrep -q '\b'$sym'\b' mendel.sym
-	then
-		ADDR=$(( $(egrep '\b'$sym'\b' mendel.sym | cut -d\  -f1) ))
-		SIZE=$(egrep '\b'$sym'\b' mendel.sym | cut -d+ -f2)
-		while [ $SIZE -gt 0 ]
+mendel_cmd_hr() {
+	(
+		IFS=$' \t\n'
+		LN=0
+		cmd="$*"
+		echo "$cmd" >&3;
+		echo "> $cmd"
+		while [ "$REPLY" != "OK" ]
 		do
-			echo -n $(arduinocmd "M253 S"$ADDR)
-			ADDR=$(( $ADDR + 1 ))
-			SIZE=$(( $SIZE - 1 ))
+			read -u 3
+# 			if [ "$LN" -ne 0 ]
+# 			then
+				echo "< $REPLY"
+# 			fi
+			LN=$(( $LN + 1 ))
 		done
-		echo
-	else
-		echo "unknown symbol: $sym"
-	fi
+	) 3<>/dev/arduino;
 }
 
-readsym_uint8() {
+mendel_print() {
+	( IFS=$'\n'
+		for F in "$@"
+		do
+			for L in $(< $F)
+			do
+				mendel_cmd_hr "$L"
+			done
+		done
+	)
+}
+
+mendel_readsym() {
+	(
+		IFS=$' \t\n'
+		sym=$1
+		if [ -n "$sym" ]
+		then
+			make mendel.sym &>/dev/null
+			if egrep -q '\b'$sym'\b' mendel.sym
+			then
+				ADDR=$(( $(egrep '\b'$sym'\b' mendel.sym | cut -d\  -f1) ))
+				SIZE=$(egrep '\b'$sym'\b' mendel.sym | cut -d+ -f2)
+				mendel_cmd "M253 S$ADDR P$SIZE"
+			else
+				echo "unknown symbol: $sym"
+			fi
+		else
+			echo "what symbol?" > /dev/fd/2
+		fi
+	)
+}
+
+mendel_readsym_uint8() {
 	sym=$1
-	val=$(readsym $sym)
+	val=$(mendel_readsym $sym)
 	perl -e 'printf "%u\n", eval "0x".$ARGV[0]' $val
 }
 
-readsym_int8() {
+mendel_readsym_int8() {
 	sym=$1
-	val=$(readsym $sym)
+	val=$(mendel_readsym $sym)
 	perl -e 'printf "%d\n", ((eval "0x".$ARGV[0]) & 0x7F) - (((eval "0x".$ARGV[0]) & 0x80)?0x80:0)' $val
 }
 
-readsym_uint16() {
+mendel_readsym_uint16() {
 	sym=$1
-	val=$(readsym $sym)
+	val=$(mendel_readsym $sym)
 	perl -e '$ARGV[0] =~ m#(..)(..)# && printf "%u\n", eval "0x$2$1"' $val
 }
 
-readsym_int16() {
+mendel_readsym_int16() {
 	sym=$1
-	val=$(readsym $sym)
+	val=$(mendel_readsym $sym)
 	perl -e '$ARGV[0] =~ m#(..)(..)# && printf "%d\n", ((eval "0x$2$1") & 0x7FFF) - (((eval "0x$2$1") & 0x8000)?0x8000:0)' $val
 }
 
-readsym_uint32() {
+mendel_readsym_uint32() {
 	sym=$1
-	val=$(readsym $sym)
+	val=$(mendel_readsym $sym)
 	perl -e '$ARGV[0] =~ m#(..)(..)(..)(..)# && printf "%u\n", eval "0x$4$3$2$1"' $val
 }
 
-readsym_int32() {
+mendel_readsym_int32() {
 	sym=$1
-	val=$(readsym $sym)
+	val=$(mendel_readsym $sym)
 	perl -e '$ARGV[0] =~ m#(..)(..)(..)(..)# && printf "%d\n", eval "0x$4$3$2$1"' $val
 }
 
-readsym_target() {
+mendel_readsym_target() {
 	sym=$1
-	val=$(readsym $sym)
-	perl -e '@a = qw/X Y Z E F/; $c = 0; while (length $ARGV[0]) { $ARGV[0] =~ s#^(..)(..)(..)(..)##; printf "%s: %d\n", $a[$c], eval "0x$4$3$2$1"; $c++; }' $val
+	val=$(mendel_readsym "$sym")
+	if [ -n "$val" ]
+	then
+		perl -e '@a = qw/X Y Z E F/; $c = 0; while (length $ARGV[0]) { $ARGV[0] =~ s#^(..)(..)(..)(..)##; printf "%s: %d\n", $a[$c], eval "0x$4$3$2$1"; $c++; }' "$val"
+	fi
 }
 
-readsym_mb() {
-	val=$(readsym movebuffer)
-	mbhead=$(readsym mb_head)
-	mbtail=$(readsym mb_tail)
+mendel_readsym_mb() {
+	val=$(mendel_readsym movebuffer)
+	mbhead=$(mendel_readsym mb_head)
+	mbtail=$(mendel_readsym mb_tail)
 	perl - <<'ENDPERL' -- $val $mbhead $mbtail
 		$i = -1;
 		@a = qw/eX 4 eY 4 eZ 4 eE 4 eF 4 flags 9 dX 12 dY 4 dZ 4 dE 4 cX 12 cY 4 cZ 4 cE 4 ts 12 c 12 ec 4 n 4/;
