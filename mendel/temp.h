@@ -27,6 +27,12 @@ typedef union {
 	} interpret;
 } max6675_data_format;
 
+// setup temperature system
+void temp_init(void);
+
+// save PID factors to EEPROM
+void temp_save_settings(void);
+
 // read temperature from sensor
 uint16_t temp_read(void);
 

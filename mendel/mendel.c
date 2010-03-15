@@ -85,6 +85,9 @@ void init(void) {
 	// set up clock
 	clock_setup();
 
+	// read PID settings from EEPROM
+	temp_init();
+
 	// set up default feedrate
 	current_position.F = startpoint.F = next_target.target.F = FEEDRATE_SLOW_Z;
 
@@ -108,7 +111,7 @@ void clock_250ms(void) {
 	if (steptimeout > (30 * 4)) {
 		power_off();
 	}
-	else if (temp_get_target() == 0)
+	else
 		steptimeout++;
 
 	ifclock(CLOCK_FLAG_1S) {

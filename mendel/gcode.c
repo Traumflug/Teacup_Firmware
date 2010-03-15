@@ -528,7 +528,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 					// backup feedrate, move E very quickly then restore feedrate
 					uint32_t	f = startpoint.F;
 					startpoint.F = FEEDRATE_FAST_E;
-					SpecialMoveE(E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
+					SpecialMoveE(startpoint.E + E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
 					startpoint.F = f;
 				} while (0);
 				break;
@@ -541,7 +541,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 					// backup feedrate, move E very quickly then restore feedrate
 					uint32_t	f = startpoint.F;
 					startpoint.F = FEEDRATE_FAST_E;
-					SpecialMoveE(-E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
+					SpecialMoveE(startpoint.E - E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
 					startpoint.F = f;
 				} while (0);
 				break;
@@ -593,6 +593,10 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			case 133:
 				if (gcmd->seen_S)
 					i_limit = gcmd->S;
+				break;
+			// M134- save PID settings to eeprom
+			case 134:
+				temp_save_settings();
 				break;
 
 			// M140- echo off

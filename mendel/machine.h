@@ -48,6 +48,7 @@
 
 // extruder settings
 #define	TEMP_HYSTERESIS						20
+#define	TEMP_RESIDENCY_TIME				60
 
 /*
 	calculated values - you shouldn't need to touch these

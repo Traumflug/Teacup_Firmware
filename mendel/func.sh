@@ -7,21 +7,21 @@
 #
 # and then used like this:
 #
-# $ arduincmd G1 X100
-# $ arduinocmd M250
+# $ mendel_cmd G1 X100
+# $ mendel_cmd M250
 #
 # {X:4200,Y:0,Z:0,E:0,F:300,c:19334400}
 # {X:4200,Y:0,Z:0,E:0,F:300,c:0}
 # Q1/1E
-# $ readsym_uint8 mb_head
+# $ mendel_readsym_uint8 mb_head
 # 1
-# $ readsym_target startpoint
+# $ mendel_readsym_target startpoint
 # X: 2100
 # Y: 0
 # Z: 0
 # E: 0
 # F: 300
-# $ readsym_mb
+# $ mendel_readsym_mb
 # [0] {
 #         eX: 0   eY: 0   eZ: 0   eE: 0   eF: 0
 #         flags: 0
@@ -101,13 +101,10 @@ mendel_cmd() {
 		while [ "$REPLY" != "OK" ]
 		do
 			read -u 3
-# 			if [ "$LN" -ne 0 ]
-# 			then
-				if [ "$REPLY" != "OK" ]
-				then
-					echo "$REPLY"
-				fi
-# 			fi
+			if [ "$REPLY" != "OK" ]
+			then
+				echo "$REPLY"
+			fi
 			LN=$(( $LN + 1 ))
 		done
 	) 3<>/dev/arduino;
@@ -123,19 +120,17 @@ mendel_cmd_hr() {
 		while [ "$REPLY" != "OK" ]
 		do
 			read -u 3
-# 			if [ "$LN" -ne 0 ]
-# 			then
-				echo "< $REPLY"
-# 			fi
+			echo "< $REPLY"
 			LN=$(( $LN + 1 ))
 		done
 	) 3<>/dev/arduino;
 }
 
 mendel_print() {
-	( IFS=$'\n'
+	(
 		for F in "$@"
 		do
+			IFS=$'\n'
 			for L in $(< $F)
 			do
 				mendel_cmd_hr "$L"
@@ -150,14 +145,25 @@ mendel_readsym() {
 		sym=$1
 		if [ -n "$sym" ]
 		then
-			make mendel.sym &>/dev/null
-			if egrep -q '\b'$sym'\b' mendel.sym
+			if [[ "$sym" =~ ^(0?x?[0-9A-Fa-f]+)(:([0-9]+))?$ ]]
 			then
-				ADDR=$(( $(egrep '\b'$sym'\b' mendel.sym | cut -d\  -f1) ))
-				SIZE=$(egrep '\b'$sym'\b' mendel.sym | cut -d+ -f2)
+				ADDR=$(( ${BASH_REMATCH[1]} ))
+				SIZE=$(( ${BASH_REMATCH[3]} ))
+				if [ "$SIZE" -le 1 ]
+				then
+					SIZE=1
+				fi
 				mendel_cmd "M253 S$ADDR P$SIZE"
 			else
-				echo "unknown symbol: $sym"
+				make mendel.sym &>/dev/null
+				if egrep -q '\b'$sym'\b' mendel.sym
+				then
+					ADDR=$(( $(egrep '\b'$sym'\b' mendel.sym | cut -d\  -f1) ))
+					SIZE=$(egrep '\b'$sym'\b' mendel.sym | cut -d+ -f2)
+					mendel_cmd "M253 S$ADDR P$SIZE"
+				else
+					echo "unknown symbol: $sym"
+				fi
 			fi
 		else
 			echo "what symbol?" > /dev/fd/2
@@ -242,4 +248,25 @@ mendel_readsym_mb() {
 		}
 		printf "\n}\n";
 ENDPERL
+}
+
+mendel_heater_pid() {
+	P=$(mendel_readsym_int16 heater_p)
+	I=$(mendel_readsym_int16 heater_i)
+	D=$(mendel_readsym_int16 heater_d)
+
+	PF=$(mendel_readsym_int32 p_factor)
+	IF=$(mendel_readsym_int32 i_factor)
+	DF=$(mendel_readsym_int32 d_factor)
+
+	O=$(mendel_readsym_uint8 0x27)
+	T=$(mendel_cmd M105 | cut -d\  -f2 | cut -d/ -f1)
+
+	echo "P=$P	pf=$PF	r="$(($P * $PF))
+	echo "I=$I	if=$IF	r="$(($I * $IF))
+	echo "D=$D	df=$DF	r="$(($D * $DF))
+	echo "R="$(( $(($P * $PF)) + $(($I * $IF)) + $(($D * $DF)) )) / 1024
+	echo "R="$(( $(( $(($P * $PF)) + $(($I * $IF)) + $(($D * $DF)) )) / 1024 ))
+	echo "R="$(( $(( $(( $(($P * $PF)) + $(($I * $IF)) + $(($D * $DF)) )) / 1024 )) + 128 ))
+	echo "O=$O	T=$T"
 }
