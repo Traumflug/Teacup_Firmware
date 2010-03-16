@@ -11,17 +11,15 @@
 #include	"dda.h"
 #include	"clock.h"
 #include	"watchdog.h"
+#include	"debug.h"
 
-uint8_t	option_bitfield;
-#define	OPTION_COMMENT						128
-#define	OPTION_CHECKSUM						64
-#define	OPTION_ECHO								32
-
-decfloat read_digit;
+uint8_t last_field = 0;
 
 const char alphabet[] = "GMXYZEFSPN*";
 
-GCODE_COMMAND next_target = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0, 0, 0, 0, 0 }, 0, 0, 0, 0, 0, 0 };
+decfloat read_digit					__attribute__ ((__section__ (".bss")));
+
+GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
 
 /*
 	utility functions
@@ -105,11 +103,9 @@ void SpecialMoveE(int32_t e, uint32_t f) {
 ****************************************************************************/
 
 void scan_char(uint8_t c) {
-	static uint8_t last_field = 0;
-
 	// move this below switch(c) if the asterisk isn't included in the checksum
 	#define crc(a, b)		(a ^ b)
-	if ((option_bitfield & OPTION_CHECKSUM) == 0)
+	if (next_target.seen_checksum == 0)
 		next_target.checksum_calculated = crc(next_target.checksum_calculated, c);
 
 	// uppercase
@@ -123,14 +119,12 @@ void scan_char(uint8_t c) {
 			switch (last_field) {
 				case 'G':
 					next_target.G = read_digit.mantissa;
-// 					if (DEBUG)
-					if (option_bitfield & OPTION_ECHO)
+					if (debug_flags & DEBUG_ECHO)
 						serwrite_uint8(next_target.G);
 					break;
 				case 'M':
 					next_target.M = read_digit.mantissa;
-// 					if (DEBUG)
-					if (option_bitfield & OPTION_ECHO)
+					if (debug_flags & DEBUG_ECHO)
 						serwrite_uint8(next_target.M);
 					break;
 				case 'X':
@@ -138,8 +132,7 @@ void scan_char(uint8_t c) {
 						next_target.target.X = decfloat_to_int(&read_digit, STEPS_PER_IN_X, 1);
 					else
 						next_target.target.X = decfloat_to_int(&read_digit, STEPS_PER_MM_X, 1);
-// 					if (DEBUG)
-					if (option_bitfield & OPTION_ECHO)
+					if (debug_flags & DEBUG_ECHO)
 						serwrite_int32(next_target.target.X);
 					break;
 				case 'Y':
@@ -147,8 +140,7 @@ void scan_char(uint8_t c) {
 						next_target.target.Y = decfloat_to_int(&read_digit, STEPS_PER_IN_Y, 1);
 					else
 						next_target.target.Y = decfloat_to_int(&read_digit, STEPS_PER_MM_Y, 1);
-// 					if (DEBUG)
-					if (option_bitfield & OPTION_ECHO)
+					if (debug_flags & DEBUG_ECHO)
 						serwrite_int32(next_target.target.Y);
 					break;
 				case 'Z':
@@ -156,8 +148,7 @@ void scan_char(uint8_t c) {
 						next_target.target.Z = decfloat_to_int(&read_digit, STEPS_PER_IN_Z, 1);
 					else
 						next_target.target.Z = decfloat_to_int(&read_digit, STEPS_PER_MM_Z, 1);
-// 					if (DEBUG)
-					if (option_bitfield & OPTION_ECHO)
+					if (debug_flags & DEBUG_ECHO)
 						serwrite_int32(next_target.target.Z);
 					break;
 				case 'E':
@@ -165,8 +156,7 @@ void scan_char(uint8_t c) {
 						next_target.target.E = decfloat_to_int(&read_digit, STEPS_PER_IN_E, 1);
 					else
 						next_target.target.E = decfloat_to_int(&read_digit, STEPS_PER_MM_E, 1);
-// 					if (DEBUG)
-					if (option_bitfield & OPTION_ECHO)
+					if (debug_flags & DEBUG_ECHO)
 						serwrite_uint32(next_target.target.E);
 					break;
 				case 'F':
@@ -175,23 +165,21 @@ void scan_char(uint8_t c) {
 						next_target.target.F = decfloat_to_int(&read_digit, 254, 10);
 					else
 						next_target.target.F = decfloat_to_int(&read_digit, 1, 1);
-// 					if (DEBUG)
-					if (option_bitfield & OPTION_ECHO)
+					if (debug_flags & DEBUG_ECHO)
 						serwrite_uint32(next_target.target.F);
 					break;
 				case 'S':
 					// if this is temperature, multiply by 4 to convert to quarter-degree units
 					// cosmetically this should be done in the temperature section,
 					// but it takes less code, less memory and loses no precision if we do it here instead
-					if (next_target.M == 104)
+					if ((next_target.M == 104) || (next_target.M == 109))
 						next_target.S = decfloat_to_int(&read_digit, 4, 1);
 					// if this is heater PID stuff, multiply by PID_SCALE because we divide by PID_SCALE later on
 					else if ((next_target.M >= 130) && (next_target.M <= 132))
 						next_target.S = decfloat_to_int(&read_digit, PID_SCALE, 1);
 					else
 						next_target.S = decfloat_to_int(&read_digit, 1, 1);
-// 					if (DEBUG)
-					if (option_bitfield & OPTION_ECHO)
+					if (debug_flags & DEBUG_ECHO)
 						serwrite_uint16(next_target.S);
 					break;
 				case 'P':
@@ -200,18 +188,17 @@ void scan_char(uint8_t c) {
 						next_target.P = decfloat_to_int(&read_digit, 1000, 1);
 					else
 						next_target.P = decfloat_to_int(&read_digit, 1, 1);
-// 					if (DEBUG)
-					if (option_bitfield & OPTION_ECHO)
+					if (debug_flags & DEBUG_ECHO)
 						serwrite_uint16(next_target.P);
 					break;
 				case 'N':
 					next_target.N = decfloat_to_int(&read_digit, 1, 1);
-					if (option_bitfield & OPTION_ECHO)
+					if (debug_flags & DEBUG_ECHO)
 						serwrite_uint32(next_target.N);
 					break;
 				case '*':
 					next_target.checksum_read = decfloat_to_int(&read_digit, 1, 1);
-					if (option_bitfield & OPTION_ECHO)
+					if (debug_flags & DEBUG_ECHO)
 						serwrite_uint8(next_target.checksum_read);
 					break;
 			}
@@ -224,12 +211,11 @@ void scan_char(uint8_t c) {
 	}
 
 	// skip comments
-	if ((option_bitfield & OPTION_COMMENT) == 0) {
+	if (next_target.seen_comment == 0) {
 		// new field?
 		if (indexof(c, alphabet) >= 0) {
 			last_field = c;
-// 			if (DEBUG)
-			if (option_bitfield & OPTION_ECHO)
+			if (debug_flags & DEBUG_ECHO)
 				serial_writechar(c);
 		}
 
@@ -272,12 +258,13 @@ void scan_char(uint8_t c) {
 				break;
 			case '*':
 				next_target.seen_checksum = 1;
-				option_bitfield |= OPTION_CHECKSUM;
+// 				option_bitfield |= OPTION_CHECKSUM;
 				break;
 
 			// comments
 			case ';':
-				option_bitfield |= OPTION_COMMENT;
+				next_target.seen_comment = 1;
+// 				option_bitfield |= OPTION_COMMENT;
 				break;
 
 			// now for some numeracy
@@ -305,8 +292,7 @@ void scan_char(uint8_t c) {
 
 	// end of line
 	if ((c == 10) || (c == 13)) {
-// 		if (DEBUG)
-		if (option_bitfield & OPTION_ECHO)
+		if (debug_flags & DEBUG_ECHO)
 			serial_writechar(c);
 		// process
 		if (next_target.seen_G || next_target.seen_M) {
@@ -332,18 +318,20 @@ void scan_char(uint8_t c) {
 					next_target.N_expected++;
 				}
 				else {
-					serial_writestr_P(PSTR("RESEND: BAD CHECKSUM\n"));
+					serial_writestr_P(PSTR("RESEND: BAD CHECKSUM: EXPECTED "));
+					serwrite_uint8(next_target.checksum_calculated);
+					serial_writestr_P(PSTR("\n"));
 				}
 			}
 			else {
-				serial_writestr_P(PSTR("RESEND: BAD LINE NUMBER\n"));
+				serial_writestr_P(PSTR("RESEND: BAD LINE NUMBER: EXPECTED "));
+				serwrite_uint32(next_target.N_expected);
+				serial_writestr_P(PSTR("\n"));
 			}
 		}
-		// reset 'seen comment' and 'receiving checksum'
-		option_bitfield &= (OPTION_COMMENT | OPTION_CHECKSUM);
 
 		// reset variables
-		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = next_target.seen_E = next_target.seen_F = next_target.seen_S = next_target.seen_P = next_target.N = next_target.checksum_read = next_target.checksum_calculated = 0;
+		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = next_target.seen_E = next_target.seen_F = next_target.seen_S = next_target.seen_P = next_target.seen_N = next_target.seen_checksum = next_target.seen_comment = next_target.checksum_read = next_target.checksum_calculated = 0;
 		last_field = 0;
 		read_digit.sign = 0;
 		read_digit.mantissa = 0;
@@ -363,10 +351,14 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 		gcmd->target.X += startpoint.X;
 		gcmd->target.Y += startpoint.Y;
 		gcmd->target.Z += startpoint.Z;
-		gcmd->target.E += startpoint.E;
 	}
+	// E ALWAYS relative, otherwise we overflow our registers after only a few layers
+// 	gcmd->target.E += startpoint.E;
+	// easier way to do this
+// 	startpoint.E = 0;
+	// moved to dda.c, end of dda_create() and dda_queue.c, next_move()
 
-	// explicitly make unseen values equal to startpoint, otherwise relative position mode is a clusterfuck
+	// explicitly make unseen values equal to startpoint, otherwise relative position mode gets messy
 	if (gcmd->seen_X == 0)
 		gcmd->target.X = startpoint.X;
 	if (gcmd->seen_Y == 0)
@@ -511,18 +503,21 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				serial_writechar('\n');
 		}
 	}
-	if (gcmd->seen_M) {
+	else if (gcmd->seen_M) {
 		switch (gcmd->M) {
 			// M101- extruder on
 			case 101:
-				serial_writestr_P(PSTR("Waiting for extruder to reach target temperature\n"));
-				// here we wait until target temperature is reached, and emulate main loop so the temperature can actually be updated
-				while (!temp_achieved()) {
-					ifclock(CLOCK_FLAG_250MS) {
-						// this is cosmetically nasty, but exactly what needs to happen
-						void clock_250ms(void);
-						clock_250ms();
-					}
+				if (temp_achieved() == 0) {
+// 					serial_writestr_P(PSTR("Waiting for extruder to reach target temperature\n"));
+// 					// here we wait until target temperature is reached, and emulate main loop so the temperature can actually be updated
+// 					while (temp_achieved() == 0) {
+// 						ifclock(CLOCK_FLAG_250MS) {
+// 							// this is cosmetically nasty, but exactly what needs to happen
+// 							void clock_250ms(void);
+// 							clock_250ms();
+// 						}
+// 					}
+					enqueue_temp_wait();
 				}
 				do {
 					// backup feedrate, move E very quickly then restore feedrate
@@ -566,13 +561,51 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			// M106- fan on
 			#ifdef	FAN_PIN
 			case 106:
-				WRITE(FAN_PIN, 1);
+				enable_fan();
 				break;
 			// M107- fan off
 			case 107:
-				WRITE(FAN_PIN, 0);
+				disable_fan();
 				break;
 			#endif
+
+			// M109- set temp and wait
+			case 109:
+				temp_set(gcmd->S);
+				if (gcmd->S) {
+					enable_heater();
+					power_on();
+				}
+				else {
+					disable_heater();
+				}
+				enqueue_temp_wait();
+// 				while (!temp_achieved()) {
+// 					ifclock(CLOCK_FLAG_250MS) {
+// 						// this is cosmetically nasty, but exactly what needs to happen
+// 						void clock_250ms(void);
+// 						clock_250ms();
+// 					}
+// 				}
+				break;
+
+			// M110- set line number
+			case 110:
+				gcmd->N_expected = gcmd->S - 1;
+				break;
+			// M111- set debug level
+			#ifdef	DEBUG
+			case 111:
+				debug_flags = gcmd->S;
+				break;
+			#endif
+			// M112- immediate stop
+			case 112:
+				disableTimerInterrupt();
+				power_off();
+				break;
+			// M113- extruder PWM
+			// M114- report XYZEF to host
 
 			// M130- heater P factor
 			case 130:
@@ -599,20 +632,22 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				temp_save_settings();
 				break;
 
+			#ifdef	DEBUG
 			// M140- echo off
 			case 140:
-				option_bitfield &= ~OPTION_ECHO;
+				debug_flags &= ~DEBUG_ECHO;
 				serial_writestr_P(PSTR("Echo off\n"));
 				break;
 			// M141- echo on
 			case 141:
-				option_bitfield |= OPTION_ECHO;
+				debug_flags |= DEBUG_ECHO;
 				serial_writestr_P(PSTR("Echo on\n"));
 				break;
+			#endif
 
 			// DEBUG: return current position
 			case 250:
-				serial_writestr_P(PSTR("\n{X:"));
+				serial_writestr_P(PSTR("{X:"));
 				serwrite_int32(current_position.X);
 				serial_writestr_P(PSTR(",Y:"));
 				serwrite_int32(current_position.Y);

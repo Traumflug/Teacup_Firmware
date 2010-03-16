@@ -62,13 +62,15 @@
 // http://blog.arcol.hu/?p=157 may help with this next one
 // I haven't tuned this at all- it's just a placeholder until I read the above carefully enough
 // does this refer to filament or extrudate? extrudate depends on XY distance vs E distance.. hm lets go with filament
-#define	STEPS_PER_MM_E						((uint32_t) ((E_STEPS_PER_REV / (EXTRUDER_SHAFT_RADIUS * PI * EXTRUDER_INLET_DIAMETER)) + 0.5))
+// #define	STEPS_PER_MM_E						((uint32_t) ((E_STEPS_PER_REV / (EXTRUDER_SHAFT_RADIUS * PI * EXTRUDER_INLET_DIAMETER / EXTRUDER_NOZZLE_DIAMETER)) + 0.5))
+
+#define	STEPS_PER_MM_E						((uint32_t) ((E_STEPS_PER_REV * EXTRUDER_NOZZLE_DIAMETER / (EXTRUDER_SHAFT_RADIUS * PI * EXTRUDER_INLET_DIAMETER)) + 0.5))
 
 // same as above with 25.4 scale factor
 #define	STEPS_PER_IN_X						((uint32_t) ((25.4 * X_STEPS_PER_REV / X_COG_CIRCUMFERENCE) + 0.5))
 #define	STEPS_PER_IN_Y						((uint32_t) ((25.4 * Y_STEPS_PER_REV / Y_COG_CIRCUMFERENCE) + 0.5))
 #define	STEPS_PER_IN_Z						((uint32_t) ((25.4 * Z_STEPS_PER_REV * Z_GEAR_RATIO) + 0.5))
-#define	STEPS_PER_IN_E						((uint32_t) ((25.4 * E_STEPS_PER_REV / (EXTRUDER_SHAFT_RADIUS * PI * EXTRUDER_INLET_DIAMETER)) + 0.5))
+#define	STEPS_PER_IN_E						((uint32_t) ((25.4 * E_STEPS_PER_REV * EXTRUDER_NOZZLE_DIAMETER / (EXTRUDER_SHAFT_RADIUS * PI * EXTRUDER_INLET_DIAMETER)) + 0.5))
 
 // inverse, used in distance calculation during DDA setup
 #define	UM_PER_STEP_X			((uint32_t) ((1000.0 / STEPS_PER_MM_X) + 0.5))

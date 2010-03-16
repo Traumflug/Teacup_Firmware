@@ -92,10 +92,16 @@ mendel_setup() {
 	stty 115200 raw ignbrk -hup -echo ixon ixoff < /dev/arduino
 }
 
+mendel_reset() {
+	stty hup < /dev/arduino
+	stty hup < /dev/arduino
+	mendel_setup
+}
+
 mendel_cmd() {
 	(
 		IFS=$' \t\n'
-		LN=0
+		RSC=0
 		cmd="$*"
 		echo "$cmd" >&3;
 		while [ "$REPLY" != "OK" ]
@@ -105,6 +111,17 @@ mendel_cmd() {
 			then
 				echo "$REPLY"
 			fi
+			if [[ "$REPLY" =~ ^RESEND ]]
+			then
+				if [ "$RSC" -le 3 ]
+				then
+					echo "$cmd" >&3
+					RSC=$(( $RSC + 1 ))
+				else
+					REPLY="OK"
+					echo "Too many retries: aborting" >&2
+				fi
+			fi
 			LN=$(( $LN + 1 ))
 		done
 	) 3<>/dev/arduino;
@@ -113,15 +130,26 @@ mendel_cmd() {
 mendel_cmd_hr() {
 	(
 		IFS=$' \t\n'
-		LN=0
 		cmd="$*"
-		echo "$cmd" >&3;
+		RSC=0
+		echo "$cmd" >&3
 		echo "> $cmd"
 		while [ "$REPLY" != "OK" ]
 		do
 			read -u 3
 			echo "< $REPLY"
-			LN=$(( $LN + 1 ))
+			if [[ "$REPLY" =~ ^RESEND ]]
+			then
+				if [ "$RSC" -le 3 ]
+				then
+					echo "$cmd" >&3
+					echo "> $cmd"
+					RSC=$(( $RSC + 1))
+				else
+					REPLY="OK"
+					echo "Too many retries: aborting" >&2
+				fi
+			fi
 		done
 	) 3<>/dev/arduino;
 }

@@ -150,6 +150,14 @@ void serial_writeblock(void *data, int datalen)
 		serial_writechar(((uint8_t *) data)[i]);
 }
 
+void serial_writestr(uint8_t *data)
+{
+	uint8_t i = 0;
+	// yes, this is *supposed* to be assignment rather than comparison, so we break when r is assigned zero
+	for (uint8_t r; (r = data[i]); i++)
+		serial_writechar(r);
+}
+
 /*
 	Write from FLASH
 */

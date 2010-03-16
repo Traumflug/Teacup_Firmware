@@ -55,7 +55,7 @@
 #define	HEATER_PWM						OCR0A
 
 #define	FAN_PIN								DIO5
-// #define	FAN_PIN_PWM					OC0B
+#define	FAN_PWM								OCR0B
 
 /*
 	X Stepper
@@ -124,8 +124,13 @@
 */
 
 #ifdef	FAN_PIN
-	#define	enable_fan()				WRITE(FAN_PIN, 1)
-	#define	disable_fan()				do { WRITE(FAN_PIN, 0); SET_OUTPUT(FAN_PIN); } while (0)
+	#ifdef	FAN_PWM
+		#define	enable_fan()				do { TCCR0A |=  MASK(COM0B1); } while (0)
+		#define	disable_fan()				do { TCCR0A &= ~MASK(COM0B1); } while (0)
+	#else
+		#define	enable_fan()				WRITE(FAN_PIN, 1)
+		#define	disable_fan()				WRITE(FAN_PIN, 0);
+	#endif
 #else
 	#define	enable_fan()				if (0) {}
 	#define	disable_fan()				if (0) {}

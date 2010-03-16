@@ -26,6 +26,7 @@ typedef struct {
 	uint8_t					seen_P	:1;
 	uint8_t					seen_N	:1;
 	uint8_t					seen_checksum	:1;
+	uint8_t					seen_comment	:1;
 
 	uint8_t					option_relative			:1;
 	uint8_t					option_inches				:1;

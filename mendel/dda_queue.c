@@ -8,7 +8,7 @@
 
 uint8_t	mb_head = 0;
 uint8_t	mb_tail = 0;
-DDA movebuffer[MOVEBUFFER_SIZE];
+DDA movebuffer[MOVEBUFFER_SIZE] __attribute__ ((__section__ (".bss")));
 
 uint8_t queue_full() {
 	return (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) == 0)?255:0;
@@ -42,13 +42,43 @@ void enqueue(TARGET *t) {
 	enableTimerInterrupt();
 }
 
+void enqueue_temp_wait() {
+	// don't call this function when the queue is full, but just in case, wait for a move to complete and free up the space for the passed target
+	while (queue_full())
+		delay(WAITING_DELAY);
+
+	uint8_t h = mb_head;
+	h++;
+	if (h == MOVEBUFFER_SIZE)
+		h = 0;
+
+	// wait for temp flag
+	movebuffer[h].waitfor_temp = 1;
+	movebuffer[h].nullmove = 0;
+	#if (F_CPU & 0xFF000000) == 0
+		// set "step" timeout to 1 second
+		movebuffer[h].c = F_CPU << 8;
+	#else
+		// set "step" timeout to maximum
+		movebuffer[h].c = 0xFFFFFF00;
+	#endif
+
+	mb_head = h;
+
+	#ifdef	XONXOFF
+		// if queue is full, stop transmition
+		if (queue_full())
+			xoff();
+	#endif
+
+	// fire up in case we're not running yet
+	enableTimerInterrupt();
+}
+
 void next_move() {
 	if (queue_empty()) {
-	#if STEP_INTERRUPT_INTERRUPTIBLE
-	#else
-		disableTimerInterrupt();
-	#endif
-		memcpy(&startpoint, &current_position, sizeof(TARGET));
+// 		memcpy(&startpoint, &current_position, sizeof(TARGET));
+		startpoint.E = current_position.E = 0;
 	}
 	else {
 		// next item

@@ -16,10 +16,8 @@
 #include	"temp.h"
 #include	"sermsg.h"
 #include	"watchdog.h"
-
-#ifndef	DEBUG
-#define	DEBUG 0
-#endif
+#include	"debug.h"
+#include	"sersendf.h"
 
 void io_init(void) {
 	// disable modules we don't use
@@ -44,17 +42,19 @@ void io_init(void) {
 
 	#ifdef	HEATER_PIN
 		WRITE(HEATER_PIN, 0); SET_OUTPUT(HEATER_PIN);
-		#ifdef	HEATER_PWM
-			// setup PWM timer: fast PWM, no prescaler
-			TCCR0A = MASK(WGM01) | MASK(WGM00);
-			TCCR0B = MASK(CS00);
-			TIMSK0 = 0;
-			OCR0A = 0;
-		#endif
 	#endif
 
 	#ifdef	FAN_PIN
-		disable_fan();
+		WRITE(FAN_PIN, 0); SET_OUTPUT(FAN_PIN);
+	#endif
+
+	#if defined(HEATER_PWM) || defined(FAN_PWM)
+		// setup PWM timer: fast PWM, no prescaler
+		TCCR0A = MASK(WGM01) | MASK(WGM00);
+		TCCR0B = MASK(CS00);
+		TIMSK0 = 0;
+		OCR0A = 0;
+		OCR0B = 255;
 	#endif
 
 	#ifdef	STEPPER_ENABLE_PIN
@@ -115,32 +115,34 @@ void clock_250ms(void) {
 		steptimeout++;
 
 	ifclock(CLOCK_FLAG_1S) {
-		if (DEBUG) {
+		if (debug_flags & DEBUG_POSITION) {
 			// current position
-			serial_writestr_P(PSTR("Pos: "));
-			serwrite_int32(current_position.X);
-			serial_writechar(',');
-			serwrite_int32(current_position.Y);
-			serial_writechar(',');
-			serwrite_int32(current_position.Z);
-			serial_writechar(',');
-			serwrite_int32(current_position.E);
-			serial_writechar(',');
-			serwrite_uint32(current_position.F);
-			serial_writechar('\n');
+// 			serial_writestr_P(PSTR("Pos: "));
+// 			serwrite_int32(current_position.X);
+// 			serial_writechar(',');
+// 			serwrite_int32(current_position.Y);
+// 			serial_writechar(',');
+// 			serwrite_int32(current_position.Z);
+// 			serial_writechar(',');
+// 			serwrite_int32(current_position.E);
+// 			serial_writechar(',');
+// 			serwrite_uint32(current_position.F);
+// 			serial_writechar('\n');
+			sersendf_P(PSTR("Pos: %ld,%ld,%ld,%ld,%lu\n"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
 
 			// target position
-			serial_writestr_P(PSTR("Dst: "));
-			serwrite_int32(movebuffer[mb_tail].endpoint.X);
-			serial_writechar(',');
-			serwrite_int32(movebuffer[mb_tail].endpoint.Y);
-			serial_writechar(',');
-			serwrite_int32(movebuffer[mb_tail].endpoint.Z);
-			serial_writechar(',');
-			serwrite_int32(movebuffer[mb_tail].endpoint.E);
-			serial_writechar(',');
-			serwrite_uint32(movebuffer[mb_tail].endpoint.F);
-			serial_writechar('\n');
+// 			serial_writestr_P(PSTR("Dst: "));
+// 			serwrite_int32(movebuffer[mb_tail].endpoint.X);
+// 			serial_writechar(',');
+// 			serwrite_int32(movebuffer[mb_tail].endpoint.Y);
+// 			serial_writechar(',');
+// 			serwrite_int32(movebuffer[mb_tail].endpoint.Z);
+// 			serial_writechar(',');
+// 			serwrite_int32(movebuffer[mb_tail].endpoint.E);
+// 			serial_writechar(',');
+// 			serwrite_uint32(movebuffer[mb_tail].endpoint.F);
+// 			serial_writechar('\n');
+			sersendf_P(PSTR("Dst: %ld,%ld,%ld,%ld,%lu\n"), movebuffer[mb_tail].endpoint.X, movebuffer[mb_tail].endpoint.Y, movebuffer[mb_tail].endpoint.Z, movebuffer[mb_tail].endpoint.E, movebuffer[mb_tail].endpoint.F);
 
 			// Queue
 			print_queue();

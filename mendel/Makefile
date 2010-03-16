@@ -14,7 +14,7 @@
 
 PROGRAM = mendel
 
-SOURCES = $(PROGRAM).c serial.c dda.c gcode.c timer.c clock.c temp.c sermsg.c dda_queue.c watchdog.c
+SOURCES = $(PROGRAM).c serial.c dda.c gcode.c timer.c clock.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c
 
 ##############################################################################
 #                                                                            #
@@ -41,7 +41,7 @@ DEFS = -DF_CPU=$(F_CPU)
 # DEFS += "-DREQUIRE_LINENUMBER"
 # DEFS += "-DREQUIRE_CHECKSUM"
 
-OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once -DDEBUG=0
+OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once -DDEBUG
 # OPTIMIZE = -O0
 CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
 LDFLAGS = -Wl,--as-needed -Wl,--gc-sections

@@ -29,6 +29,9 @@ typedef struct {
 	uint8_t						live					:1;
 	uint8_t						accel					:1;
 
+	// wait for temperature to stabilise flag
+	uint8_t						waitfor_temp	:1;
+
 	// directions
 	uint8_t						x_direction		:1;
 	uint8_t						y_direction		:1;
