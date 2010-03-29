@@ -1,10 +1,12 @@
 #include	"dda_queue.h"
 
 #include	<string.h>
+#include	<avr/interrupt.h>
 
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"
+#include	"temp.h"
 
 uint8_t	mb_head = 0;
 uint8_t	mb_tail = 0;
@@ -16,6 +18,41 @@ uint8_t queue_full() {
 
 uint8_t queue_empty() {
 	return ((mb_tail == mb_head) && (movebuffer[mb_tail].live == 0))?255:0;
+}
+
+void queue_step() {
+	disableTimerInterrupt();
+
+	// do our next step
+	// NOTE: dda_step makes this interrupt interruptible after steps have been sent but before new speed is calculated.
+	if (movebuffer[mb_tail].live) {
+		if (movebuffer[mb_tail].waitfor_temp) {
+			if (temp_achieved()) {
+				movebuffer[mb_tail].live = movebuffer[mb_tail].waitfor_temp = 0;
+				serial_writestr_P(PSTR("Temp achieved\n"));
+			}
+
+			#if STEP_INTERRUPT_INTERRUPTIBLE
+				sei();
+			#endif
+		}
+		else {
+			dda_step(&(movebuffer[mb_tail]));
+		}
+	}
+
+// 	serial_writechar('!');
+
+	// fall directly into dda_start instead of waiting for another step
+	if (movebuffer[mb_tail].live == 0)
+		next_move();
+
+	#if STEP_INTERRUPT_INTERRUPTIBLE
+		cli();
+	#endif
+	// check queue, if empty we don't need to interrupt again until re-enabled in dda_create
+	if (queue_empty() == 0)
+		enableTimerInterrupt();
 }
 
 void enqueue(TARGET *t) {
@@ -47,10 +84,11 @@ void enqueue_temp_wait() {
 	while (queue_full())
 		delay(WAITING_DELAY);
 
-	uint8_t h = mb_head;
-	h++;
-	if (h == MOVEBUFFER_SIZE)
-		h = 0;
+	uint8_t h = mb_head + 1;
+// 	h++;
+// 	if (h == MOVEBUFFER_SIZE)
+// 		h = 0;
+	h &= (MOVEBUFFER_SIZE - 1);
 
 	// wait for temp flag
 	movebuffer[h].waitfor_temp = 1;
@@ -76,16 +114,13 @@ void enqueue_temp_wait() {
 }
 
 void next_move() {
-	if (queue_empty()) {
-// 		memcpy(&startpoint, &current_position, sizeof(TARGET));
-		startpoint.E = current_position.E = 0;
-	}
-	else {
+	if (queue_empty() == 0) {
 		// next item
-		uint8_t t = mb_tail;
-		t++;
-		if (t == MOVEBUFFER_SIZE)
-			t = 0;
+		uint8_t t = mb_tail + 1;
+// 		t++;
+// 		if (t == MOVEBUFFER_SIZE)
+// 			t = 0;
+		t &= (MOVEBUFFER_SIZE - 1);
 		dda_start(&movebuffer[t]);
 		mb_tail = t;
 	}

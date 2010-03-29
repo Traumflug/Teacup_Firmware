@@ -12,41 +12,8 @@
 ISR(TIMER1_COMPA_vect) {
 	WRITE(SCK, 1);
 
-	disableTimerInterrupt();
+	queue_step();
 
-	// do our next step
-	// NOTE: dda_step makes this interrupt interruptible after steps have been sent but before new speed is calculated.
-	if (movebuffer[mb_tail].live) {
-		if (movebuffer[mb_tail].waitfor_temp) {
-			#if STEP_INTERRUPT_INTERRUPTIBLE
-				// this interrupt can now be interruptible
-// 				disableTimerInterrupt();
-				sei();
-			#endif
-
-			if (temp_achieved()) {
-				movebuffer[mb_tail].live = 0;
-				serial_writestr_P(PSTR("Temp achieved, next move\n"));
-			}
-		}
-		else {
-			dda_step(&(movebuffer[mb_tail]));
-		}
-	}
-
-// 	serial_writechar('!');
-
-	// fall directly into dda_start instead of waiting for another step
-	if (movebuffer[mb_tail].live == 0)
-		next_move();
-
-	#if STEP_INTERRUPT_INTERRUPTIBLE
-		// return from interrupt in a way that prevents this interrupt nesting with itself at high step rates
-		cli();
-	#endif
-	// check queue, if empty we don't need to interrupt again until re-enabled in dda_create
-	if (queue_empty() == 0)
-		enableTimerInterrupt();
 	WRITE(SCK, 0);
 }
 

@@ -64,7 +64,7 @@
 // does this refer to filament or extrudate? extrudate depends on XY distance vs E distance.. hm lets go with filament
 // #define	STEPS_PER_MM_E						((uint32_t) ((E_STEPS_PER_REV / (EXTRUDER_SHAFT_RADIUS * PI * EXTRUDER_INLET_DIAMETER / EXTRUDER_NOZZLE_DIAMETER)) + 0.5))
 
-#define	STEPS_PER_MM_E						((uint32_t) ((E_STEPS_PER_REV * EXTRUDER_NOZZLE_DIAMETER / (EXTRUDER_SHAFT_RADIUS * PI * EXTRUDER_INLET_DIAMETER)) + 0.5))
+#define	STEPS_PER_MM_E						((uint32_t) ((E_STEPS_PER_REV * EXTRUDER_NOZZLE_DIAMETER / EXTRUDER_SHAFT_RADIUS / PI / EXTRUDER_INLET_DIAMETER) + 0.5))
 
 // same as above with 25.4 scale factor
 #define	STEPS_PER_IN_X						((uint32_t) ((25.4 * X_STEPS_PER_REV / X_COG_CIRCUMFERENCE) + 0.5))

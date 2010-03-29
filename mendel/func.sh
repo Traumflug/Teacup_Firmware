@@ -98,11 +98,15 @@ mendel_reset() {
 	mendel_setup
 }
 
+mendel_talk() {
+	( cat <&3 & cat >&3; kill $! ; ) 3<>/dev/arduino
+}
+
 mendel_cmd() {
 	(
-		IFS=$' \t\n'
-		RSC=0
-		cmd="$*"
+		local IFS=$' \t\n'
+		local RSC=0
+		local cmd="$*"
 		echo "$cmd" >&3;
 		while [ "$REPLY" != "OK" ]
 		do
@@ -122,28 +126,27 @@ mendel_cmd() {
 					echo "Too many retries: aborting" >&2
 				fi
 			fi
-			LN=$(( $LN + 1 ))
 		done
 	) 3<>/dev/arduino;
 }
 
 mendel_cmd_hr() {
 	(
-		IFS=$' \t\n'
-		cmd="$*"
-		RSC=0
+		local IFS=$' \t\n'
+		local cmd="$*"
+		local RSC=0
 		echo "$cmd" >&3
-		echo "> $cmd"
+		echo "S> $cmd"
 		while [ "$REPLY" != "OK" ]
 		do
 			read -u 3
-			echo "< $REPLY"
+			echo "<R $REPLY"
 			if [[ "$REPLY" =~ ^RESEND ]]
 			then
 				if [ "$RSC" -le 3 ]
 				then
 					echo "$cmd" >&3
-					echo "> $cmd"
+					echo "S> $cmd"
 					RSC=$(( $RSC + 1))
 				else
 					REPLY="OK"
@@ -158,7 +161,7 @@ mendel_print() {
 	(
 		for F in "$@"
 		do
-			IFS=$'\n'
+			local IFS=$'\n'
 			for L in $(< $F)
 			do
 				mendel_cmd_hr "$L"
@@ -169,14 +172,14 @@ mendel_print() {
 
 mendel_readsym() {
 	(
-		IFS=$' \t\n'
-		sym=$1
+		local IFS=$' \t\n'
+		local sym=$1
 		if [ -n "$sym" ]
 		then
 			if [[ "$sym" =~ ^(0?x?[0-9A-Fa-f]+)(:([0-9]+))?$ ]]
 			then
-				ADDR=$(( ${BASH_REMATCH[1]} ))
-				SIZE=$(( ${BASH_REMATCH[3]} ))
+				local ADDR=$(( ${BASH_REMATCH[1]} ))
+				local SIZE=$(( ${BASH_REMATCH[3]} ))
 				if [ "$SIZE" -le 1 ]
 				then
 					SIZE=1
@@ -186,8 +189,8 @@ mendel_readsym() {
 				make mendel.sym &>/dev/null
 				if egrep -q '\b'$sym'\b' mendel.sym
 				then
-					ADDR=$(( $(egrep '\b'$sym'\b' mendel.sym | cut -d\  -f1) ))
-					SIZE=$(egrep '\b'$sym'\b' mendel.sym | cut -d+ -f2)
+					local ADDR=$(( $(egrep '\b'$sym'\b' mendel.sym | cut -d\  -f1) ))
+					local SIZE=$(egrep '\b'$sym'\b' mendel.sym | cut -d+ -f2)
 					mendel_cmd "M253 S$ADDR P$SIZE"
 				else
 					echo "unknown symbol: $sym"
@@ -200,44 +203,44 @@ mendel_readsym() {
 }
 
 mendel_readsym_uint8() {
-	sym=$1
-	val=$(mendel_readsym $sym)
+	local sym=$1
+	local val=$(mendel_readsym $sym)
 	perl -e 'printf "%u\n", eval "0x".$ARGV[0]' $val
 }
 
 mendel_readsym_int8() {
-	sym=$1
-	val=$(mendel_readsym $sym)
+	local sym=$1
+	local val=$(mendel_readsym $sym)
 	perl -e 'printf "%d\n", ((eval "0x".$ARGV[0]) & 0x7F) - (((eval "0x".$ARGV[0]) & 0x80)?0x80:0)' $val
 }
 
 mendel_readsym_uint16() {
-	sym=$1
-	val=$(mendel_readsym $sym)
+	local sym=$1
+	local val=$(mendel_readsym $sym)
 	perl -e '$ARGV[0] =~ m#(..)(..)# && printf "%u\n", eval "0x$2$1"' $val
 }
 
 mendel_readsym_int16() {
-	sym=$1
-	val=$(mendel_readsym $sym)
+	local sym=$1
+	local val=$(mendel_readsym $sym)
 	perl -e '$ARGV[0] =~ m#(..)(..)# && printf "%d\n", ((eval "0x$2$1") & 0x7FFF) - (((eval "0x$2$1") & 0x8000)?0x8000:0)' $val
 }
 
 mendel_readsym_uint32() {
-	sym=$1
-	val=$(mendel_readsym $sym)
+	local sym=$1
+	local val=$(mendel_readsym $sym)
 	perl -e '$ARGV[0] =~ m#(..)(..)(..)(..)# && printf "%u\n", eval "0x$4$3$2$1"' $val
 }
 
 mendel_readsym_int32() {
-	sym=$1
-	val=$(mendel_readsym $sym)
+	local sym=$1
+	local val=$(mendel_readsym $sym)
 	perl -e '$ARGV[0] =~ m#(..)(..)(..)(..)# && printf "%d\n", eval "0x$4$3$2$1"' $val
 }
 
 mendel_readsym_target() {
-	sym=$1
-	val=$(mendel_readsym "$sym")
+	local sym=$1
+	local val=$(mendel_readsym "$sym")
 	if [ -n "$val" ]
 	then
 		perl -e '@a = qw/X Y Z E F/; $c = 0; while (length $ARGV[0]) { $ARGV[0] =~ s#^(..)(..)(..)(..)##; printf "%s: %d\n", $a[$c], eval "0x$4$3$2$1"; $c++; }' "$val"
@@ -245,9 +248,9 @@ mendel_readsym_target() {
 }
 
 mendel_readsym_mb() {
-	val=$(mendel_readsym movebuffer)
-	mbhead=$(mendel_readsym mb_head)
-	mbtail=$(mendel_readsym mb_tail)
+	local val=$(mendel_readsym movebuffer)
+	local mbhead=$(mendel_readsym mb_head)
+	local mbtail=$(mendel_readsym mb_tail)
 	perl - <<'ENDPERL' -- $val $mbhead $mbtail
 		$i = -1;
 		@a = qw/eX 4 eY 4 eZ 4 eE 4 eF 4 flags 9 dX 12 dY 4 dZ 4 dE 4 cX 12 cY 4 cZ 4 cE 4 ts 12 c 12 ec 4 n 4/;
@@ -279,16 +282,16 @@ ENDPERL
 }
 
 mendel_heater_pid() {
-	P=$(mendel_readsym_int16 heater_p)
-	I=$(mendel_readsym_int16 heater_i)
-	D=$(mendel_readsym_int16 heater_d)
+	local P=$(mendel_readsym_int16 heater_p)
+	local I=$(mendel_readsym_int16 heater_i)
+	local D=$(mendel_readsym_int16 heater_d)
 
-	PF=$(mendel_readsym_int32 p_factor)
-	IF=$(mendel_readsym_int32 i_factor)
-	DF=$(mendel_readsym_int32 d_factor)
+	local PF=$(mendel_readsym_int32 p_factor)
+	local IF=$(mendel_readsym_int32 i_factor)
+	local DF=$(mendel_readsym_int32 d_factor)
 
-	O=$(mendel_readsym_uint8 0x27)
-	T=$(mendel_cmd M105 | cut -d\  -f2 | cut -d/ -f1)
+	local O=$(mendel_readsym_uint8 0x27)
+	local T=$(mendel_cmd M105 | cut -d\  -f2 | cut -d/ -f1)
 
 	echo "P=$P	pf=$PF	r="$(($P * $PF))
 	echo "I=$I	if=$IF	r="$(($I * $IF))
@@ -298,3 +301,13 @@ mendel_heater_pid() {
 	echo "R="$(( $(( $(( $(($P * $PF)) + $(($I * $IF)) + $(($D * $DF)) )) / 1024 )) + 128 ))
 	echo "O=$O	T=$T"
 }
+
+if [[ "$0" =~ ^mendel_(setup|reset|cmd|readsym|heater_pid) ]]
+then
+	eval "$0" "$@"
+fi
+
+if [[ "$1" =~ ^mendel_(setup|reset|cmd|readsym|heater_pid) ]]
+then
+	eval "$@"
+fi

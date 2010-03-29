@@ -13,7 +13,7 @@
 			case 105:
 				uint16_t t = temp_get();
 
-	note that the MAX6675 can't do more than approx 4 conversions per second
+	note that the MAX6675 can't do more than approx 5 conversions per second- we go for 4 so the timing isn't too tight
 */
 
 #include "temp.h"
@@ -37,10 +37,10 @@ int16_t		heater_p     = 0;
 int16_t		heater_i     = 0;
 int16_t		heater_d     = 0;
 
-#define		DEFAULT_P				4096
-#define		DEFAULT_I				256
-#define		DEFAULT_D				-14336
-#define		DEFAULT_I_LIMIT	768
+#define		DEFAULT_P				8192
+#define		DEFAULT_I				512
+#define		DEFAULT_D				-24576
+#define		DEFAULT_I_LIMIT	384
 int32_t		p_factor			= 0;
 int32_t		i_factor			= 0;
 int32_t		d_factor			= 0;
@@ -151,66 +151,22 @@ uint8_t	temp_achieved() {
 }
 
 void temp_print() {
-// 	serial_writestr_P(PSTR("T: "));
 	if (temp_flags & TEMP_FLAG_TCOPEN) {
 		serial_writestr_P(PSTR("T: no thermocouple!\n"));
 	}
 	else {
-// 		serwrite_uint16(current_temp >> 2);
-// 		serial_writechar('.');
-// 		if (current_temp & 3) {
-// 			if ((current_temp & 3) == 3)
-// 				serial_writechar('7');
-// 			else if ((current_temp & 3) == 1)
-// 				serial_writechar('2');
-// 			serial_writechar('5');
-// 		}
-// 		else {
-// 			serial_writechar('0');
-// 		}
-// // 		serial_writestr_P(PSTR("°C"));
-// 		serial_writechar('/');
-// 		serwrite_uint16(target_temp >> 2);
-// 		serial_writechar('.');
-// 		if (target_temp & 3) {
-// 			if ((target_temp & 3) == 3)
-// 				serial_writechar('7');
-// 			else if ((target_temp & 3) == 1)
-// 				serial_writechar('2');
-// 			serial_writechar('5');
-// 		}
-// 		else {
-// 			serial_writechar('0');
-// 		}
-//
-// 		serial_writestr_P(PSTR(" :"));
-// 		serwrite_uint8(temp_residency);
 		uint8_t c = 0, t = 0;
 
-		if (current_temp & 3)
-			c = 5;
-		if ((current_temp & 3) == 1)
-			c += 20;
-		else if ((current_temp & 3) == 3)
-			c += 70;
-
-		if (target_temp & 3)
-			t = 5;
-		if ((target_temp & 3) == 1)
-			t += 20;
-		else if ((target_temp & 3) == 3)
-			t += 70;
-
-		sersendf_P(PSTR("%u.%u/%u.%u :%u\n"), current_temp >> 2, c, target_temp >> 2, t, temp_residency);
+		c = (current_temp & 3) * 25;
+		t = (target_temp & 3) * 25;
+		sersendf_P(PSTR("T: %u.%u/%u.%u :%u\n"), current_temp >> 2, c, target_temp >> 2, t, temp_residency);
 	}
-// 	serial_writechar('\n');
 }
 
 void temp_tick() {
 	if (target_temp) {
 		steptimeout = 0;
 
-// 		uint16_t last_temp = current_temp;
 		temp_read();
 
 		temp_history[th_p++] = current_temp;
@@ -221,15 +177,7 @@ void temp_tick() {
 		else if (temp_residency < TEMP_RESIDENCY_TIME)
 			temp_residency++;
 
-// 		if (debug_flags & DEBUG_PID)
-// 			serial_writestr_P(PSTR("T{"));
-
 		int16_t	t_error = target_temp - current_temp;
-
-// 		if (debug_flags & DEBUG_PID) {
-// 			serial_writestr_P(PSTR("E:"));
-// 			serwrite_int16(t_error);
-// 		}
 
 		// PID stuff
 		// proportional
@@ -245,29 +193,7 @@ void temp_tick() {
 
 		// derivative
 		// note: D follows temp rather than error so there's no large derivative when the target changes
-// 		heater_d = (current_temp - last_temp);
 		heater_d = current_temp - temp_history[th_p];
-
-// 		if (debug_flags & DEBUG_PID) {
-// 			serial_writestr_P(PSTR(", P:"));
-// 			serwrite_int16(heater_p);
-// 			serial_writestr_P(PSTR(" * "));
-// 			serwrite_int32(p_factor);
-// 			serial_writestr_P(PSTR(" = "));
-// 			serwrite_int32((int32_t) heater_p * p_factor / PID_SCALE);
-// 			serial_writestr_P(PSTR(" / I:"));
-// 			serwrite_int16(heater_i);
-// 			serial_writestr_P(PSTR(" * "));
-// 			serwrite_int32(i_factor);
-// 			serial_writestr_P(PSTR(" = "));
-// 			serwrite_int32((int32_t) heater_i * i_factor / PID_SCALE);
-// 			serial_writestr_P(PSTR(" / D:"));
-// 			serwrite_int16(heater_d);
-// 			serial_writestr_P(PSTR(" * "));
-// 			serwrite_int32(d_factor);
-// 			serial_writestr_P(PSTR(" = "));
-// 			serwrite_int32((int32_t) heater_d * d_factor / PID_SCALE);
-// 		}
 
 		// combine factors
 		int32_t pid_output_intermed = (
@@ -278,11 +204,6 @@ void temp_tick() {
 				) / PID_SCALE
 			);
 
-// 		if (debug_flags & DEBUG_PID) {
-// 			serial_writestr_P(PSTR(" # O: "));
-// 			serwrite_int32(pid_output_intermed);
-// 		}
-
 		// rebase and limit factors
 		uint8_t pid_output;
 		if (pid_output_intermed > 255)
@@ -291,11 +212,6 @@ void temp_tick() {
 			pid_output = 0;
 		else
 			pid_output = pid_output_intermed & 0xFF;
-
-// 		if (debug_flags & DEBUG_PID) {
-// 			serial_writestr_P(PSTR(" = "));
-// 			serwrite_uint8(pid_output);
-// 		}
 
 		if (debug_flags & DEBUG_PID)
 			sersendf_P(PSTR("T{E:%d, P:%d * %ld = %ld / I:%d * %ld = %ld / D:%d * %ld = %ld # O: %ld = %u}\n"), t_error, heater_p, p_factor, (int32_t) heater_p * p_factor / PID_SCALE, heater_i, i_factor, (int32_t) heater_i * i_factor / PID_SCALE, heater_d, d_factor, (int32_t) heater_d * d_factor / PID_SCALE, pid_output_intermed, pid_output);
@@ -308,8 +224,5 @@ void temp_tick() {
 			else
 				disable_heater();
 		#endif
-
-//  	 if (debug_flags & DEBUG_PID)
-// 			serial_writestr_P(PSTR("}\n"));
 	}
 }

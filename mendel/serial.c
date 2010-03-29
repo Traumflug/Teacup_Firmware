@@ -152,9 +152,10 @@ void serial_writeblock(void *data, int datalen)
 
 void serial_writestr(uint8_t *data)
 {
-	uint8_t i = 0;
+	uint8_t i = 0, r;
 	// yes, this is *supposed* to be assignment rather than comparison, so we break when r is assigned zero
-	for (uint8_t r; (r = data[i]); i++)
+// 	for (uint8_t r; (r = data[i]); i++)
+	while ((r = data[i++]))
 		serial_writechar(r);
 }
 
