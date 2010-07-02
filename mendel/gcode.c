@@ -315,7 +315,8 @@ void scan_char(uint8_t c) {
 					serial_writestr_P(PSTR("ok\n"));
 
 					// expect next line number
-					next_target.N_expected = next_target.N + 1;
+					if (next_target.seen_N == 1)
+						next_target.N_expected = next_target.N + 1;
 				}
 				else {
 					serial_writestr_P(PSTR("RESEND: BAD CHECKSUM: EXPECTED "));
