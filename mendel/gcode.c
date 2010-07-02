@@ -312,7 +312,7 @@ void scan_char(uint8_t c) {
 					) {
 					process_gcode_command(&next_target);
 
-					serial_writestr_P(PSTR("OK\n"));
+					serial_writestr_P(PSTR("ok\n"));
 
 					// expect next line number
 					next_target.N_expected++;
