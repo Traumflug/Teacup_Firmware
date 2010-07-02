@@ -146,7 +146,9 @@ void serial_writechar(uint8_t data)
 
 void serial_writeblock(void *data, int datalen)
 {
-	for (int i = 0; i < datalen; i++)
+	int i;
+
+	for (i = 0; i < datalen; i++)
 		serial_writechar(((uint8_t *) data)[i]);
 }
 
@@ -170,15 +172,17 @@ void serial_writechar_P(PGM_P data)
 
 void serial_writeblock_P(PGM_P data, int datalen)
 {
-	for (int i = 0; i < datalen; i++)
+	int i;
+
+	for (i = 0; i < datalen; i++)
 		serial_writechar_P(&data[i]);
 }
 
 void serial_writestr_P(PGM_P data)
 {
-	uint8_t i = 0;
+	uint8_t r, i = 0;
 	// yes, this is *supposed* to be assignment rather than comparison, so we break when r is assigned zero
-	for (uint8_t r; (r = pgm_read_byte(&data[i])); i++)
+	for (r; (r = pgm_read_byte(&data[i])); i++)
 		serial_writechar(r);
 }
 
