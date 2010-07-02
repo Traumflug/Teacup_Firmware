@@ -221,7 +221,7 @@ void scan_char(uint8_t c) {
 
 		// process character
 		switch (c) {
-			// each command is either G or M, so preserve previous G/M unless a new one has appeared
+			// each currently known command is either G or M, so preserve previous G/M unless a new one has appeared
 			case 'G':
 				next_target.seen_G = 1;
 				next_target.seen_M = 0;
@@ -294,41 +294,50 @@ void scan_char(uint8_t c) {
 	if ((c == 10) || (c == 13)) {
 		if (debug_flags & DEBUG_ECHO)
 			serial_writechar(c);
-		// process
-		if (next_target.seen_G || next_target.seen_M) {
+
+		if (
+			#ifdef	REQUIRE_LINENUMBER
+			((next_target.N >= next_target.N_expected) && (next_target.seen_N == 1))
+			#else
+			1
+			#endif
+			) {
 			if (
-				#ifdef	REQUIRE_LINENUMBER
-				((next_target.N >= next_target.N_expected) && (next_target.seen_N == 1))
+				#ifdef	REQUIRE_CHECKSUM
+				((next_target.checksum_calculated == next_target.checksum_read) && (next_target.seen_checksum == 1))
 				#else
-				1
+				((next_target.checksum_calculated == next_target.checksum_read) || (next_target.seen_checksum == 0))
 				#endif
 				) {
-				if (
-					#ifdef	REQUIRE_CHECKSUM
-					((next_target.checksum_calculated == next_target.checksum_read) && (next_target.seen_checksum == 1))
-					#else
-					((next_target.checksum_calculated == next_target.checksum_read) || (next_target.seen_checksum == 0))
-					#endif
-					) {
+				// process
+				if (next_target.seen_G || next_target.seen_M) {
 					process_gcode_command(&next_target);
 
 					serial_writestr_P(PSTR("ok\n"));
-
-					// expect next line number
-					if (next_target.seen_N == 1)
-						next_target.N_expected = next_target.N + 1;
 				}
 				else {
-					serial_writestr_P(PSTR("RESEND: BAD CHECKSUM: EXPECTED "));
-					serwrite_uint8(next_target.checksum_calculated);
-					serial_writestr_P(PSTR("\n"));
+					// write "OK" for invalid/unknown commands as well
+					#ifdef	LOWERCASE_OK
+					serial_writestr_P(PSTR("ok huh?\n"));
+					#else
+					serial_writestr_P(PSTR("OK Huh?\n"));
+					#endif
 				}
+
+				// expect next line number
+				if (next_target.seen_N == 1)
+					next_target.N_expected = next_target.N + 1;
 			}
 			else {
-				serial_writestr_P(PSTR("RESEND: BAD LINE NUMBER: EXPECTED "));
-				serwrite_uint32(next_target.N_expected);
+				serial_writestr_P(PSTR("RESEND: BAD CHECKSUM: EXPECTED "));
+				serwrite_uint8(next_target.checksum_calculated);
 				serial_writestr_P(PSTR("\n"));
 			}
+		}
+		else {
+			serial_writestr_P(PSTR("RESEND: BAD LINE NUMBER: EXPECTED "));
+			serwrite_uint32(next_target.N_expected);
+			serial_writestr_P(PSTR("\n"));
 		}
 
 		// reset variables
