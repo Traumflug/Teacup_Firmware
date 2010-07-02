@@ -298,7 +298,7 @@ void scan_char(uint8_t c) {
 		if (next_target.seen_G || next_target.seen_M) {
 			if (
 				#ifdef	REQUIRE_LINENUMBER
-				((next_target.N_expected == next_target.N) && (next_target.seen_N == 1))
+				((next_target.N >= next_target.N_expected) && (next_target.seen_N == 1))
 				#else
 				1
 				#endif
@@ -315,7 +315,7 @@ void scan_char(uint8_t c) {
 					serial_writestr_P(PSTR("ok\n"));
 
 					// expect next line number
-					next_target.N_expected++;
+					next_target.N_expected = next_target.N + 1;
 				}
 				else {
 					serial_writestr_P(PSTR("RESEND: BAD CHECKSUM: EXPECTED "));
