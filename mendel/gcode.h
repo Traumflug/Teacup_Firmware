@@ -5,6 +5,12 @@
 
 #include	"dda.h"
 
+// wether to insist on N line numbers
+//#define       REQUIRE_LINENUMBER
+
+// wether to insist on a checksum
+//#define       REQUIRE_CHECKSUM
+
 // this is a very crude decimal-based floating point structure. a real floating point would at least have signed exponent
 typedef struct {
 	uint32_t	sign			:1;

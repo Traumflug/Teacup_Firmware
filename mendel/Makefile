@@ -38,8 +38,6 @@ OBJCOPY = $(ARCH)objcopy
 
 DEFS = -DF_CPU=$(F_CPU)
 # DEFS += "-DDEBUG=1"
-# DEFS += "-DREQUIRE_LINENUMBER"
-# DEFS += "-DREQUIRE_CHECKSUM"
 
 OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once -DDEBUG
 # OPTIMIZE = -O0
