@@ -297,11 +297,11 @@ void scan_char(uint8_t c) {
 		// process
 		if (next_target.seen_G || next_target.seen_M) {
 			if (
-					#ifdef	REQUIRE_LINENUMBER
-					((next_target.N_expected == next_target.N) && (next_target.seen_N == 1))
-					#else
-					((next_target.N_expected == next_target.N) || (next_target.seen_N == 0))
-					#endif
+				#ifdef	REQUIRE_LINENUMBER
+				((next_target.N_expected == next_target.N) && (next_target.seen_N == 1))
+				#else
+				1
+				#endif
 				) {
 				if (
 					#ifdef	REQUIRE_CHECKSUM
