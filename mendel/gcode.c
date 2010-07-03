@@ -15,8 +15,6 @@
 
 uint8_t last_field = 0;
 
-const char alphabet[] = "GMXYZEFSPN*";
-
 #define crc(a, b)		(a ^ b)
 
 decfloat read_digit					__attribute__ ((__section__ (".bss")));
@@ -117,7 +115,8 @@ void scan_char(uint8_t c) {
 	// process previous field
 	if (last_field) {
 		// check if we're seeing a new field or end of line
-		if ((indexof(c, alphabet) >= 0) || (c == 10) || (c ==13)) {
+		// any character will start a new field, even invalid/unknown ones
+		if ((c >= 'A' && c <= 'Z') || c == '*' || (c == 10) || (c == 13)) {
 			switch (last_field) {
 				case 'G':
 					next_target.G = read_digit.mantissa;
@@ -206,16 +205,14 @@ void scan_char(uint8_t c) {
 			}
 			// reset for next field
 			last_field = 0;
-			read_digit.sign = 0;
-			read_digit.mantissa = 0;
-			read_digit.exponent = 0;
+			read_digit.sign = read_digit.mantissa = read_digit.exponent = 0;
 		}
 	}
 
 	// skip comments
 	if (next_target.seen_comment == 0) {
 		// new field?
-		if (indexof(c, alphabet) >= 0) {
+		if ((c >= 'A' && c <= 'Z') || c == '*') {
 			last_field = c;
 			if (debug_flags & DEBUG_ECHO)
 				serial_writechar(c);
@@ -289,6 +286,7 @@ void scan_char(uint8_t c) {
 					if (read_digit.exponent)
 						read_digit.exponent++;
 				}
+				// everything else is ignored
 		}
 	}
 
@@ -353,9 +351,7 @@ void scan_char(uint8_t c) {
 			next_target.seen_comment = next_target.checksum_read = \
 			next_target.checksum_calculated = 0;
 		last_field = 0;
-		read_digit.sign = 0;
-		read_digit.mantissa = 0;
-		read_digit.exponent = 0;
+		read_digit.sign = read_digit.mantissa = read_digit.exponent = 0;
 	}
 }
 
