@@ -7,10 +7,10 @@
 
 // wether to insist on N line numbers
 // if not defined, N's are completely ignored
-//#define       REQUIRE_LINENUMBER
+//#define	REQUIRE_LINENUMBER
 
 // wether to insist on a checksum
-//#define       REQUIRE_CHECKSUM
+//#define	REQUIRE_CHECKSUM
 
 // this is a very crude decimal-based floating point structure. a real floating point would at least have signed exponent
 typedef struct {
@@ -69,5 +69,8 @@ void scan_char(uint8_t c);
 
 // when we have a whole line, feed it to this
 void process_gcode_command(GCODE_COMMAND *gcmd);
+
+// uses the global variable next_target.N
+void request_resend();
 
 #endif	/* _GCODE_H */

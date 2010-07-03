@@ -329,15 +329,17 @@ void scan_char(uint8_t c) {
 					next_target.N_expected = next_target.N + 1;
 			}
 			else {
-				serial_writestr_P(PSTR("RESEND: BAD CHECKSUM: EXPECTED "));
+				serial_writestr_P(PSTR("Expected checksum "));
 				serwrite_uint8(next_target.checksum_calculated);
 				serial_writestr_P(PSTR("\n"));
+				request_resend();
 			}
 		}
 		else {
-			serial_writestr_P(PSTR("RESEND: BAD LINE NUMBER: EXPECTED "));
+			serial_writestr_P(PSTR("Expected line number "));
 			serwrite_uint32(next_target.N_expected);
 			serial_writestr_P(PSTR("\n"));
+			request_resend();
 		}
 
 		// reset variables
@@ -722,3 +724,18 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 		}
 	}
 }
+
+/****************************************************************************
+*                                                                           *
+* Request a resend of the current line - used from various places.          *
+*                                                                           *
+* Relies on the global variable next_target.N being valid.                  *
+*                                                                           *
+****************************************************************************/
+
+void request_resend() {
+	serial_writestr_P(PSTR("Resend:"));
+	serwrite_uint8(next_target.N);
+	serial_writestr_P(PSTR("\n"));
+}
+
