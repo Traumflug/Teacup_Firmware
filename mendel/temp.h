@@ -3,6 +3,9 @@
 
 #include	<stdint.h>
 
+// RepRap host software isn't exactly tolerant on what it ready back.
+#define REPRAP_HOST_COMPATIBILITY
+
 // extruder heater PID factors
 // google "PID without a PHD" if you don't understand this PID stuff
 extern int32_t p_factor;
