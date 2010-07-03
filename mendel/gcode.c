@@ -17,6 +17,8 @@ uint8_t last_field = 0;
 
 const char alphabet[] = "GMXYZEFSPN*";
 
+#define crc(a, b)		(a ^ b)
+
 decfloat read_digit					__attribute__ ((__section__ (".bss")));
 
 GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
@@ -103,10 +105,10 @@ void SpecialMoveE(int32_t e, uint32_t f) {
 ****************************************************************************/
 
 void scan_char(uint8_t c) {
-	// move this below switch(c) if the asterisk isn't included in the checksum
-	#define crc(a, b)		(a ^ b)
+	#ifdef ASTERISK_IN_CHECKSUM_INCLUDED
 	if (next_target.seen_checksum == 0)
 		next_target.checksum_calculated = crc(next_target.checksum_calculated, c);
+	#endif
 
 	// uppercase
 	if (c >= 'a' && c <= 'z')
@@ -289,6 +291,11 @@ void scan_char(uint8_t c) {
 				}
 		}
 	}
+
+	#ifndef ASTERISK_IN_CHECKSUM_INCLUDED
+	if (next_target.seen_checksum == 0)
+		next_target.checksum_calculated = crc(next_target.checksum_calculated, c);
+	#endif
 
 	// end of line
 	if ((c == 10) || (c == 13)) {
