@@ -391,7 +391,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			// 	G0 - rapid, unsynchronised motion
 			// since it would be a major hassle to force the dda to not synchronise, just provide a fast feedrate and hope it's close enough to what host expects
 			case 0:
-				gcmd->target.F = FEEDRATE_FAST_XY;
+				gcmd->target.F = MAXIMUM_FEEDRATE_X;
 				enqueue(&gcmd->target);
 				break;
 
@@ -442,15 +442,15 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 					Home XY first
 				*/
 				// hit endstops, no acceleration- we don't care about skipped steps
-				startpoint.F = FEEDRATE_FAST_XY;
-				SpecialMoveXY(-250L * STEPS_PER_MM_X, -250L * STEPS_PER_MM_Y, FEEDRATE_FAST_XY);
+				startpoint.F = MAXIMUM_FEEDRATE_X;
+				SpecialMoveXY(-250L * STEPS_PER_MM_X, -250L * STEPS_PER_MM_Y, MAXIMUM_FEEDRATE_X);
 				startpoint.X = startpoint.Y = 0;
 
 				// move forward a bit
-				SpecialMoveXY(5 * STEPS_PER_MM_X, 5 * STEPS_PER_MM_Y, FEEDRATE_SLOW_XY);
+				SpecialMoveXY(5 * STEPS_PER_MM_X, 5 * STEPS_PER_MM_Y, SEARCH_FEEDRATE_X);
 
 				// move back in to endstops slowly
-				SpecialMoveXY(-20 * STEPS_PER_MM_X, -20 * STEPS_PER_MM_Y, FEEDRATE_SLOW_XY);
+				SpecialMoveXY(-20 * STEPS_PER_MM_X, -20 * STEPS_PER_MM_Y, SEARCH_FEEDRATE_X);
 
 				// wait for queue to complete
 				for (;!queue_empty(););
@@ -462,15 +462,15 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 					Home Z
 				*/
 				// hit endstop, no acceleration- we don't care about skipped steps
-				startpoint.F = FEEDRATE_FAST_Z;
-				SpecialMoveZ(-250L * STEPS_PER_MM_Z, FEEDRATE_FAST_Z);
+				startpoint.F = MAXIMUM_FEEDRATE_Z;
+				SpecialMoveZ(-250L * STEPS_PER_MM_Z, MAXIMUM_FEEDRATE_Z);
 				startpoint.Z = 0;
 
 				// move forward a bit
-				SpecialMoveZ(5 * STEPS_PER_MM_Z, FEEDRATE_SLOW_Z);
+				SpecialMoveZ(5 * STEPS_PER_MM_Z, SEARCH_FEEDRATE_Z);
 
 				// move back into endstop slowly
-				SpecialMoveZ(-20L * STEPS_PER_MM_Z, FEEDRATE_SLOW_Z);
+				SpecialMoveZ(-20L * STEPS_PER_MM_Z, SEARCH_FEEDRATE_Z);
 
 				// wait for queue to complete
 				for (;queue_empty(););
@@ -488,9 +488,9 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 					Home F
 				*/
 
-				// F has been left at FEEDRATE_SLOW_Z by the last move, this is a usable "home"
+				// F has been left at SEARCH_FEEDRATE_Z by the last move, this is a usable "home"
 				// uncomment the following or substitute if you prefer a different default feedrate
-				// startpoint.F = FEEDRATE_SLOW_XY
+				// startpoint.F = SEARCH_FEEDRATE_Z
 
 				break;
 
@@ -509,7 +509,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				startpoint.X = startpoint.Y = startpoint.Z = startpoint.E =
 				current_position.X = current_position.Y = current_position.Z = current_position.E = 0;
 				startpoint.F =
-				current_position.F = FEEDRATE_SLOW_Z;
+				current_position.F = SEARCH_FEEDRATE_Z;
 				break;
 
 			// unknown gcode: spit an error
@@ -538,8 +538,8 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				do {
 					// backup feedrate, move E very quickly then restore feedrate
 					uint32_t	f = startpoint.F;
-					startpoint.F = FEEDRATE_FAST_E;
-					SpecialMoveE(E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
+					startpoint.F = MAXIMUM_FEEDRATE_E;
+					SpecialMoveE(E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
 					startpoint.F = f;
 				} while (0);
 				break;
@@ -551,8 +551,8 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				do {
 					// backup feedrate, move E very quickly then restore feedrate
 					uint32_t	f = startpoint.F;
-					startpoint.F = FEEDRATE_FAST_E;
-					SpecialMoveE(-E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
+					startpoint.F = MAXIMUM_FEEDRATE_E;
+					SpecialMoveE(-E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
 					startpoint.F = f;
 				} while (0);
 				break;

@@ -95,7 +95,7 @@ void init(void) {
 	temp_init();
 
 	// set up default feedrate
-	current_position.F = startpoint.F = next_target.target.F = FEEDRATE_SLOW_Z;
+	current_position.F = startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
 
 	// enable interrupts
 	sei();
