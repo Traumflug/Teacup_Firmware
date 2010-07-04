@@ -163,19 +163,21 @@ void serial_writestr(uint8_t *data)
 
 /*
 	Write from FLASH
-*/
 
-void serial_writechar_P(PGM_P data)
-{
-	serial_writechar(pgm_read_byte(data));
-}
+	Extensions to output flash memory pointers. This prevents the data to
+	become part of the .data segment instead of the .code segment. That means
+	less memory is consumed for multi-character writes.
+
+	For single character writes (i.e. '\n' instead of "\n"), using
+	serial_writechar() directly is the better choice.
+*/
 
 void serial_writeblock_P(PGM_P data, int datalen)
 {
 	int i;
 
 	for (i = 0; i < datalen; i++)
-		serial_writechar_P(&data[i]);
+		serial_writechar(pgm_read_byte(&data[i]));
 }
 
 void serial_writestr_P(PGM_P data)

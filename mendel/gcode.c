@@ -332,14 +332,14 @@ void scan_char(uint8_t c) {
 			else {
 				serial_writestr_P(PSTR("Expected checksum "));
 				serwrite_uint8(next_target.checksum_calculated);
-				serial_writestr_P(PSTR("\n"));
+				serial_writechar('\n');
 				request_resend();
 			}
 		}
 		else {
 			serial_writestr_P(PSTR("Expected line number "));
 			serwrite_uint32(next_target.N_expected);
-			serial_writestr_P(PSTR("\n"));
+			serial_writechar('\n');
 			request_resend();
 		}
 
@@ -735,6 +735,6 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 void request_resend() {
 	serial_writestr_P(PSTR("Resend:"));
 	serwrite_uint8(next_target.N);
-	serial_writestr_P(PSTR("\n"));
+	serial_writechar('\n');
 }
 

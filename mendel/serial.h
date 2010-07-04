@@ -24,7 +24,6 @@ void serial_writeblock(void *data, int datalen);
 void serial_writestr(uint8_t *data);
 
 // write from flash
-void serial_writechar_P(PGM_P data);
 void serial_writeblock_P(PGM_P data, int datalen);
 void serial_writestr_P(PGM_P data);
 
