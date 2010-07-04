@@ -92,12 +92,6 @@ uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz )
 	return (( approx + 512 ) >> 10 );
 }
 
-uint32_t abs32(int32_t v) {
-	if (v < 0)
-		return (uint32_t) (-v);
-	return (uint32_t) (v);
-}
-
 uint32_t delta32(uint32_t v1, uint32_t v2) {
 	if (v1 >= v2)
 		return v1 - v2;
@@ -126,7 +120,6 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	// initialise DDA to a known state
 	dda->live = 0;
-// 	dda->total_steps = 0;
 	dda->waitfor_temp = 0;
 
 	if (debug_flags & DEBUG_DDA)
@@ -135,10 +128,10 @@ void dda_create(DDA *dda, TARGET *target) {
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
-	dda->x_delta = abs32(target->X - startpoint.X);
-	dda->y_delta = abs32(target->Y - startpoint.Y);
-	dda->z_delta = abs32(target->Z - startpoint.Z);
-	dda->e_delta = abs32(target->E - startpoint.E);
+	dda->x_delta = ABS(target->X - startpoint.X);
+	dda->y_delta = ABS(target->Y - startpoint.Y);
+	dda->z_delta = ABS(target->Z - startpoint.Z);
+	dda->e_delta = ABS(target->E - startpoint.E);
 
 	dda->x_direction = (target->X >= startpoint.X)?1:0;
 	dda->y_direction = (target->Y >= startpoint.Y)?1:0;
@@ -162,8 +155,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		serial_writestr_P(PSTR("] ["));
 	}
 
-// 	if (dda->x_delta > dda->total_steps)
-		dda->total_steps = dda->x_delta;
+	dda->total_steps = dda->x_delta;
 	if (dda->y_delta > dda->total_steps)
 		dda->total_steps = dda->y_delta;
 	if (dda->z_delta > dda->total_steps)
