@@ -21,7 +21,13 @@
 
 void io_init(void) {
 	// disable modules we don't use
+	#ifdef PRR
 	PRR = MASK(PRTWI) | MASK(PRADC);
+	#endif
+	#ifdef PRR0
+	PRR0 = MASK(PRTWI) | MASK(PRADC);
+	PRR1 = 0xFF;
+	#endif
 	ACSR = MASK(ACD);
 
 	// setup I/O pins
