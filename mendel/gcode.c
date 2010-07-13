@@ -317,11 +317,7 @@ void scan_char(uint8_t c) {
 				}
 				else {
 					// write "OK" for invalid/unknown commands as well
-					#ifdef	LOWERCASE_OK
 					serial_writestr_P(PSTR("ok huh?\n"));
-					#else
-					serial_writestr_P(PSTR("OK Huh?\n"));
-					#endif
 				}
 
 				// expect next line number
