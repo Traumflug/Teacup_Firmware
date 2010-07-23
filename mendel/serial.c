@@ -184,7 +184,7 @@ void serial_writestr_P(PGM_P data)
 {
 	uint8_t r, i = 0;
 	// yes, this is *supposed* to be assignment rather than comparison, so we break when r is assigned zero
-	for (r; (r = pgm_read_byte(&data[i])); i++)
+	for ( ; (r = pgm_read_byte(&data[i])); i++)
 		serial_writechar(r);
 }
 

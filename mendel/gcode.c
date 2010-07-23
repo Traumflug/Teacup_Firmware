@@ -732,7 +732,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 *                                                                           *
 ****************************************************************************/
 
-void request_resend() {
+void request_resend(void) {
 	serial_writestr_P(PSTR("Resend:"));
 	serwrite_uint8(next_target.N);
 	serial_writechar('\n');

@@ -75,6 +75,6 @@ void scan_char(uint8_t c);
 void process_gcode_command(GCODE_COMMAND *gcmd);
 
 // uses the global variable next_target.N
-void request_resend();
+void request_resend(void);
 
 #endif	/* _GCODE_H */
