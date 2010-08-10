@@ -36,12 +36,8 @@
 #define	TEMP_HYSTERESIS		20
 #define	TEMP_RESIDENCY_TIME	60
 
-<<<<<<< HEAD:mendel/machine.h
 // --------------------------------------------------------------------------
 // you shouldn't need to edit something below this line
-=======
-#define	STEPS_PER_MM_E						((uint32_t) ((E_STEPS_PER_REV * EXTRUDER_NOZZLE_DIAMETER / EXTRUDER_SHAFT_RADIUS / PI / EXTRUDER_INLET_DIAMETER) + 0.5))
->>>>>>> mendel-triffid:machine.h
 
 // same as above with 25.4 scale factor
 #define	STEPS_PER_IN_X		((uint32_t) ((25.4 * STEPS_PER_MM_X) + 0.5))

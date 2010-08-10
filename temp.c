@@ -159,15 +159,11 @@ void temp_print() {
 
 		c = (current_temp & 3) * 25;
 		t = (target_temp & 3) * 25;
-<<<<<<< HEAD:mendel/temp.c
 		#ifdef REPRAP_HOST_COMPATIBILITY
 		sersendf_P(PSTR("T: %u.%u\n"), current_temp >> 2, c);
 		#else
 		sersendf_P(PSTR("T: %u.%u/%u.%u :%u\n"), current_temp >> 2, c, target_temp >> 2, t, temp_residency);
 		#endif
-=======
-		sersendf_P(PSTR("T: %u.%u/%u.%u :%u\n"), current_temp >> 2, c, target_temp >> 2, t, temp_residency);
->>>>>>> mendel-triffid:temp.c
 	}
 }
 
