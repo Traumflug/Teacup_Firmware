@@ -21,6 +21,6 @@ stty $BAUD raw ignbrk -hup -echo ixon < $DEV
 			echo "< $REPLY"
 		done
 		read -t 1
-		$RV = $?
+		RV=$?
 	done
 ) 3<>$DEV
