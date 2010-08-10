@@ -1,0 +1,7 @@
+Rewrite of Reprap Mendel firmware:
+
+* 100% integer computations
+* serial transmit buffer
+* can fit onto atmega168
+* fits onto atmega328p etc
+* will work on larger atmegas with minor porting
