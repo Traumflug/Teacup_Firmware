@@ -538,8 +538,13 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				do {
 					// backup feedrate, move E very quickly then restore feedrate
 					uint32_t	f = startpoint.F;
+<<<<<<< HEAD:mendel/gcode.c
 					startpoint.F = MAXIMUM_FEEDRATE_E;
 					SpecialMoveE(E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
+=======
+					startpoint.F = FEEDRATE_FAST_E;
+					SpecialMoveE(E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
+>>>>>>> mendel-triffid:gcode.c
 					startpoint.F = f;
 				} while (0);
 				break;
@@ -551,8 +556,13 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				do {
 					// backup feedrate, move E very quickly then restore feedrate
 					uint32_t	f = startpoint.F;
+<<<<<<< HEAD:mendel/gcode.c
 					startpoint.F = MAXIMUM_FEEDRATE_E;
 					SpecialMoveE(-E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
+=======
+					startpoint.F = FEEDRATE_FAST_E;
+					SpecialMoveE(-E_STARTSTOP_STEPS, FEEDRATE_FAST_E);
+>>>>>>> mendel-triffid:gcode.c
 					startpoint.F = f;
 				} while (0);
 				break;

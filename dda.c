@@ -120,6 +120,10 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	// initialise DDA to a known state
 	dda->live = 0;
+<<<<<<< HEAD:mendel/dda.c
+=======
+// 	dda->total_steps = 0;
+>>>>>>> mendel-triffid:dda.c
 	dda->waitfor_temp = 0;
 
 	if (debug_flags & DEBUG_DDA)
@@ -155,7 +159,12 @@ void dda_create(DDA *dda, TARGET *target) {
 		serial_writestr_P(PSTR("] ["));
 	}
 
+<<<<<<< HEAD:mendel/dda.c
 	dda->total_steps = dda->x_delta;
+=======
+// 	if (dda->x_delta > dda->total_steps)
+		dda->total_steps = dda->x_delta;
+>>>>>>> mendel-triffid:dda.c
 	if (dda->y_delta > dda->total_steps)
 		dda->total_steps = dda->y_delta;
 	if (dda->z_delta > dda->total_steps)
