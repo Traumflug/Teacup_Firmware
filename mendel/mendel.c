@@ -117,31 +117,9 @@ void clock_250ms(void) {
 	ifclock(CLOCK_FLAG_1S) {
 		if (debug_flags & DEBUG_POSITION) {
 			// current position
-// 			serial_writestr_P(PSTR("Pos: "));
-// 			serwrite_int32(current_position.X);
-// 			serial_writechar(',');
-// 			serwrite_int32(current_position.Y);
-// 			serial_writechar(',');
-// 			serwrite_int32(current_position.Z);
-// 			serial_writechar(',');
-// 			serwrite_int32(current_position.E);
-// 			serial_writechar(',');
-// 			serwrite_uint32(current_position.F);
-// 			serial_writechar('\n');
 			sersendf_P(PSTR("Pos: %ld,%ld,%ld,%ld,%lu\n"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
 
 			// target position
-// 			serial_writestr_P(PSTR("Dst: "));
-// 			serwrite_int32(movebuffer[mb_tail].endpoint.X);
-// 			serial_writechar(',');
-// 			serwrite_int32(movebuffer[mb_tail].endpoint.Y);
-// 			serial_writechar(',');
-// 			serwrite_int32(movebuffer[mb_tail].endpoint.Z);
-// 			serial_writechar(',');
-// 			serwrite_int32(movebuffer[mb_tail].endpoint.E);
-// 			serial_writechar(',');
-// 			serwrite_uint32(movebuffer[mb_tail].endpoint.F);
-// 			serial_writechar('\n');
 			sersendf_P(PSTR("Dst: %ld,%ld,%ld,%ld,%lu\n"), movebuffer[mb_tail].endpoint.X, movebuffer[mb_tail].endpoint.Y, movebuffer[mb_tail].endpoint.Z, movebuffer[mb_tail].endpoint.E, movebuffer[mb_tail].endpoint.F);
 
 			// Queue

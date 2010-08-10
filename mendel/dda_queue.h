@@ -20,6 +20,9 @@ extern DDA movebuffer[MOVEBUFFER_SIZE];
 uint8_t queue_full(void);
 uint8_t queue_empty(void);
 
+// take one step
+void queue_step(void);
+
 // add a new target to the queue
 void enqueue(TARGET *t);
 

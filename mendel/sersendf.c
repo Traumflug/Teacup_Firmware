@@ -13,9 +13,8 @@ void sersendf(char *format, ...) {
 	va_start(args, format);
 
 	uint16_t i = 0;
-	uint8_t c = 1, j = 0;
-	for (; c != 0; i++) {
-		c = format[i];
+	uint8_t c, j = 0;
+	while ((c = format[i++])) {
 		if (j) {
 			switch(c) {
 				case 'l':
@@ -74,8 +73,7 @@ void sersendf_P(PGM_P format, ...) {
 
 	uint16_t i = 0;
 	uint8_t c = 1, j = 0;
-	for (; c != 0; i++) {
-		c = pgm_read_byte(&format[i]);
+	while ((c = pgm_read_byte(&format[i++]))) {
 		if (j) {
 			switch(c) {
 				case 's':

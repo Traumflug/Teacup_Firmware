@@ -126,7 +126,7 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	// initialise DDA to a known state
 	dda->live = 0;
-	dda->total_steps = 0;
+// 	dda->total_steps = 0;
 	dda->waitfor_temp = 0;
 
 	if (debug_flags & DEBUG_DDA)
@@ -162,7 +162,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		serial_writestr_P(PSTR("] ["));
 	}
 
-	if (dda->x_delta > dda->total_steps)
+// 	if (dda->x_delta > dda->total_steps)
 		dda->total_steps = dda->x_delta;
 	if (dda->y_delta > dda->total_steps)
 		dda->total_steps = dda->y_delta;
@@ -449,7 +449,7 @@ void dda_step(DDA *dda) {
 		// else we are already at target speed
 	}
 
-	if (step_option & DID_STEP) {
+	if (step_option) {
 		// we stepped, reset timeout
 		steptimeout = 0;
 
