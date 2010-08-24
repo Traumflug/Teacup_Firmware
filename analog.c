@@ -1,5 +1,7 @@
 #include "analog.h"
 
+#include	"arduino.h"
+
 void analog_init() {
 	PRR &= ~MASK(PRADC);
 	ADMUX = REFERENCE;

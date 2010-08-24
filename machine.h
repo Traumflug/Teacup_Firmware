@@ -70,4 +70,8 @@
 */
 #define	MOVEBUFFER_SIZE	8
 
+/*
+*/
+#define	REFERENCE	REFERENCE_AREF
+
 #endif	/* _MACHINE_H */
