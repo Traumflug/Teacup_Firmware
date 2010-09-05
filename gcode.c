@@ -210,7 +210,7 @@ void scan_char(uint8_t c) {
 	}
 
 	// skip comments
-	if (next_target.seen_comment == 0) {
+	if (next_target.seen_semi_comment == 0 && next_target.seen_parens_comment == 0) {
 		// new field?
 		if ((c >= 'A' && c <= 'Z') || c == '*') {
 			last_field = c;
@@ -262,8 +262,11 @@ void scan_char(uint8_t c) {
 
 			// comments
 			case ';':
-				next_target.seen_comment = 1;
+				next_target.seen_semi_comment = 1;
 // 				option_bitfield |= OPTION_COMMENT;
+				break;
+			case '(':
+				next_target.seen_parens_comment = 1;
 				break;
 
 			// now for some numeracy
@@ -288,7 +291,9 @@ void scan_char(uint8_t c) {
 				}
 				// everything else is ignored
 		}
-	}
+	} else if ( next_target.seen_parens_comment == 1 && c == ')')
+		next_target.seen_parens_comment = 0; // recognize stuff after a (comment)
+
 
 	#ifndef ASTERISK_IN_CHECKSUM_INCLUDED
 	if (next_target.seen_checksum == 0)
@@ -348,8 +353,8 @@ void scan_char(uint8_t c) {
 			next_target.seen_E = next_target.seen_F = next_target.seen_G = \
 			next_target.seen_S = next_target.seen_P = next_target.seen_N = \
 			next_target.seen_M = next_target.seen_checksum = \
-			next_target.seen_comment = next_target.checksum_read = \
-			next_target.checksum_calculated = 0;
+			next_target.seen_semi_comment = next_target.seen_parens_comment = \
+			next_target.checksum_read = next_target.checksum_calculated = 0;
 		last_field = 0;
 		read_digit.sign = read_digit.mantissa = read_digit.exponent = 0;
 	}
