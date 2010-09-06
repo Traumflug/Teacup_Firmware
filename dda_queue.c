@@ -3,6 +3,7 @@
 #include	<string.h>
 #include	<avr/interrupt.h>
 
+#include	"machine.h" // for XONXOFF
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"
@@ -70,9 +71,9 @@ void enqueue(TARGET *t) {
 	mb_head = h;
 
 	#ifdef	XONXOFF
-		// if queue is full, stop transmition
-		if (queue_full())
-			xoff();
+	// if queue is full, stop transmission
+	if (queue_full())
+		xoff();
 	#endif
 
 	// fire up in case we're not running yet
@@ -104,9 +105,9 @@ void enqueue_temp_wait() {
 	mb_head = h;
 
 	#ifdef	XONXOFF
-		// if queue is full, stop transmition
-		if (queue_full())
-			xoff();
+	// if queue is full, stop transmission
+	if (queue_full())
+		xoff();
 	#endif
 
 	// fire up in case we're not running yet
@@ -126,8 +127,8 @@ void next_move() {
 	}
 
 	#ifdef	XONXOFF
-		// restart transmission
-		xon();
+	// restart transmission
+	xon();
 	#endif
 }
 

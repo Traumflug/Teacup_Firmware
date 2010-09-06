@@ -414,7 +414,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			//	G4 - Dwell
 			case 4:
 				#ifdef	XONXOFF
-					xoff();
+				xoff();
 				#endif
 				// wait for all moves to complete
 				for (;queue_empty() == 0;)
@@ -422,7 +422,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				// delay
 				delay_ms(gcmd->P);
 				#ifdef	XONXOFF
-					xon();
+				xon();
 				#endif
 				break;
 

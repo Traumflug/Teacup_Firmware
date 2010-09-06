@@ -60,7 +60,9 @@
 // this should help immensely with dropped serial characters, but may also make debugging infuriating due to the complexities arising from nested interrupts
 #define		STEP_INTERRUPT_INTERRUPTIBLE	1
 
-// Xon/Xoff flow control. Should be redundant
+// Xon/Xoff flow control. Redundant when using RepRap Host for sending GCode,
+// but mandatory when sending GCode files with a plain terminal emulator,
+// like GtkTerm (Linux), CoolTerm (Mac) or HyperTerminal (Windows).
 // #define	XONXOFF
 
 /*
