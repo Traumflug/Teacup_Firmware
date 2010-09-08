@@ -21,6 +21,10 @@ uint8_t queue_empty() {
 	return ((mb_tail == mb_head) && (movebuffer[mb_tail].live == 0))?255:0;
 }
 
+// -------------------------------------------------------
+// This is the one function called by the timer interrupt.
+// It calls a few other functions, though.
+// -------------------------------------------------------
 void queue_step() {
 	disableTimerInterrupt();
 
@@ -71,8 +75,9 @@ void enqueue(TARGET *t) {
 	mb_head = h;
 
 	#ifdef	XONXOFF
-	// if queue is full, stop transmission
-	if (queue_full())
+	// If the queue has only two slots remaining, stop transmission. More
+	// characters might come in until the stop takes effect.
+	if (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) < (MOVEBUFFER_SIZE - 2))
 		xoff();
 	#endif
 
@@ -105,8 +110,7 @@ void enqueue_temp_wait() {
 	mb_head = h;
 
 	#ifdef	XONXOFF
-	// if queue is full, stop transmission
-	if (queue_full())
+	if (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) < (MOVEBUFFER_SIZE - 2))
 		xoff();
 	#endif
 
