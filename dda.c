@@ -119,8 +119,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	uint32_t	distance;
 
 	// initialise DDA to a known state
-	dda->live = 0;
-	dda->waitfor_temp = 0;
+	dda->allflags = 0;
 
 	if (debug_flags & DEBUG_DDA)
 		serial_writestr_P(PSTR("\n{DDA_CREATE: ["));

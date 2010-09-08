@@ -24,19 +24,24 @@ typedef struct {
 	// this is where we should finish
 	TARGET						endpoint;
 
-	// status fields
-	uint8_t						nullmove			:1;
-	uint8_t						live					:1;
-	uint8_t						accel					:1;
+	union {
+		struct {
+			// status fields
+			uint8_t						nullmove			:1;
+			uint8_t						live					:1;
+			uint8_t						accel					:1;
 
-	// wait for temperature to stabilise flag
-	uint8_t						waitfor_temp	:1;
+			// wait for temperature to stabilise flag
+			uint8_t						waitfor_temp	:1;
 
-	// directions
-	uint8_t						x_direction		:1;
-	uint8_t						y_direction		:1;
-	uint8_t						z_direction		:1;
-	uint8_t						e_direction		:1;
+			// directions
+			uint8_t						x_direction		:1;
+			uint8_t						y_direction		:1;
+			uint8_t						z_direction		:1;
+			uint8_t						e_direction		:1;
+		};
+		uint8_t							allflags;	// used for clearing all flags
+	};
 
 	// distances
 	uint32_t					x_delta;
