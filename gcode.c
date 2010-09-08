@@ -693,7 +693,11 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				serial_writestr_P(PSTR(",F:"));
 				serwrite_int32(movebuffer[mb_tail].endpoint.F);
 				serial_writestr_P(PSTR(",c:"));
+				#ifdef ACCELERATION_REPRAP
 				serwrite_uint32(movebuffer[mb_tail].end_c);
+				#else
+				serwrite_uint32(movebuffer[mb_tail].c);
+				#endif
 				serial_writestr_P(PSTR("}\n"));
 
 				print_queue();

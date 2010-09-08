@@ -36,6 +36,11 @@
 #define	TEMP_HYSTERESIS		20
 #define	TEMP_RESIDENCY_TIME	60
 
+// acceleration, reprap style. Each movement starts at the speed of
+// the previous command and accelerates or decelerates linearly
+// to reach target speed at the end of the movement.
+#define ACCELERATION_REPRAP
+
 // --------------------------------------------------------------------------
 // you shouldn't need to edit something below this line
 

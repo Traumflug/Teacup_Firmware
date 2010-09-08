@@ -209,6 +209,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
 		uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
 
+		#ifdef ACCELERATION_REPRAP
 		// c is initial step time in IOclk ticks
 		dda->c = (move_duration / startpoint.F) << 8;
 
@@ -269,6 +270,9 @@ void dda_create(DDA *dda, TARGET *target) {
 		}
 		else
 			dda->accel = 0;
+		#else
+		dda->c = (move_duration / target->F) << 8;
+		#endif
 	}
 
 	if (debug_flags & DEBUG_DDA)
@@ -389,6 +393,7 @@ void dda_step(DDA *dda) {
 		sei();
 	#endif
 
+	#ifdef ACCELERATION_REPRAP
 	// linear acceleration magic, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
 	if (dda->accel) {
 		if (
@@ -405,6 +410,7 @@ void dda_step(DDA *dda) {
 		}
 		// else we are already at target speed
 	}
+	#endif
 
 	if (did_step) {
 		// we stepped, reset timeout

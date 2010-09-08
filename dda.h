@@ -29,7 +29,9 @@ typedef struct {
 			// status fields
 			uint8_t						nullmove			:1;
 			uint8_t						live					:1;
+			#ifdef ACCELERATION_REPRAP
 			uint8_t						accel					:1;
+			#endif
 
 			// wait for temperature to stabilise flag
 			uint8_t						waitfor_temp	:1;
@@ -60,8 +62,10 @@ typedef struct {
 
 	// linear acceleration variables: c and end_c are 24.8 fixed point timer values, n is the tracking variable
 	uint32_t					c;
+	#ifdef ACCELERATION_REPRAP
 	uint32_t					end_c;
 	int32_t						n;
+	#endif
 } DDA;
 
 /*
