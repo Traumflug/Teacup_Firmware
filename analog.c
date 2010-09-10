@@ -11,7 +11,7 @@ void analog_init() {
 uint16_t	analog_read(uint8_t channel) {
 	ADMUX = (ADMUX & 0xF0) | channel;
 	ADCSRA |= MASK(ADSC);
-	// waits. I hate waiting
+	// FIXME: waits. I hate waiting.
 	for (;ADCSRA | MASK(ADSC););
 	return ADC;
 }
