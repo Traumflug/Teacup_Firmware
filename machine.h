@@ -41,6 +41,22 @@
 // to reach target speed at the end of the movement.
 #define ACCELERATION_REPRAP
 
+// acceleration and deceleration ramping. Each movement starts at
+// (almost) no speed, linearly accelerates to target speed and decelerates
+// just in time to smoothly stop at the target.
+// alternative to ACCELERATION_REPRAP
+//#define ACCELERATION_RAMPING
+// how fast to accelerate when using ACCELERATION_RAMPING
+// smaller values give quicker acceleration
+// valid range = 1 to 8,000,000; 500,000 is a good starting point
+#define ACCELERATION_STEEPNESS	500000
+
+#ifdef ACCELERATION_REPRAP
+#ifdef ACCELERATION_RAMPING
+#error Cant use ACCELERATION_REPRAP and ACCELERATION_RAMPING together.
+#endif
+#endif
+
 // --------------------------------------------------------------------------
 // you shouldn't need to edit something below this line
 
