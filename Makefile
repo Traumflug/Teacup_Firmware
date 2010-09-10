@@ -36,6 +36,21 @@ CC = $(ARCH)gcc
 OBJDUMP = $(ARCH)objdump
 OBJCOPY = $(ARCH)objcopy
 
+##############################################################################
+#                                                                            #
+# Available Defines:                                                         #
+#                                                                            #
+# DEBUG                                                                      #
+#   enables tons of debugging output. may cause host-side talkers to choke   #
+# XONXOFF                                                                    #
+#   enables XON/XOFF flow control for stupid or crude talkers                #
+# ACCELERATION_REPRAP                                                        #
+#   enables reprap-style acceleration                                        #
+# ACCELERATION_RAMPING                                                       #
+#   enables start/stop ramping                                               #
+#                                                                            #
+##############################################################################
+
 DEFS = -DF_CPU=$(F_CPU)
 # DEFS += "-DDEBUG=1"
 
