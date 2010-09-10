@@ -3,6 +3,7 @@
 #include	<string.h>
 #include	<avr/interrupt.h>
 
+#include	"machine.h" // for XONXOFF
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"
@@ -20,6 +21,10 @@ uint8_t queue_empty() {
 	return ((mb_tail == mb_head) && (movebuffer[mb_tail].live == 0))?255:0;
 }
 
+// -------------------------------------------------------
+// This is the one function called by the timer interrupt.
+// It calls a few other functions, though.
+// -------------------------------------------------------
 void queue_step() {
 	disableTimerInterrupt();
 
@@ -70,9 +75,10 @@ void enqueue(TARGET *t) {
 	mb_head = h;
 
 	#ifdef	XONXOFF
-		// if queue is full, stop transmition
-		if (queue_full())
-			xoff();
+	// If the queue has only two slots remaining, stop transmission. More
+	// characters might come in until the stop takes effect.
+	if (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) < (MOVEBUFFER_SIZE - 2))
+		xoff();
 	#endif
 
 	// fire up in case we're not running yet
@@ -104,9 +110,8 @@ void enqueue_temp_wait() {
 	mb_head = h;
 
 	#ifdef	XONXOFF
-		// if queue is full, stop transmition
-		if (queue_full())
-			xoff();
+	if (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) < (MOVEBUFFER_SIZE - 2))
+		xoff();
 	#endif
 
 	// fire up in case we're not running yet
@@ -126,8 +131,8 @@ void next_move() {
 	}
 
 	#ifdef	XONXOFF
-		// restart transmission
-		xon();
+	// restart transmission
+	xon();
 	#endif
 }
 

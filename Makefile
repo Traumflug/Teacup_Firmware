@@ -39,12 +39,13 @@ OBJCOPY = $(ARCH)objcopy
 DEFS = -DF_CPU=$(F_CPU)
 # DEFS += "-DDEBUG=1"
 
-OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once -DDEBUG
+OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once
 # OPTIMIZE = -O0
 CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
 LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
 
 AVRDUDE = avrdude
+AVRDUDECONF = /etc/avrdude.conf
 
 ##############################################################################
 #                                                                            #
@@ -68,7 +69,7 @@ program: $(PROGRAM).hex
 	stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
 	@sleep 0.1
 	@stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
-	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C/etc/avrdude.conf -U flash:w:$^
+	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U flash:w:$^
 	stty 115200 raw ignbrk -hup -echo ixon < $(PROGPORT)
 
 clean:

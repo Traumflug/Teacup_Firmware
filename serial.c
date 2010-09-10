@@ -45,11 +45,13 @@ volatile uint8_t txbuf[BUFSIZE];
 	data = buf[tail++]; tail &= (BUFSIZE - 1);
 */
 
-volatile uint8_t flowflags = 0;
-#define		FLOWFLAG_SEND_XOFF	1
-#define		FLOWFLAG_SEND_XON		2
-#define		FLOWFLAG_SENT_XOFF	4
-#define		FLOWFLAG_SENT_XON		8
+#ifdef	XONXOFF
+#define		FLOWFLAG_SEND_XON		1
+#define		FLOWFLAG_SEND_XOFF	2
+#define		FLOWFLAG_STATE_XON	4
+// initially, send an XON
+volatile uint8_t flowflags = FLOWFLAG_SEND_XON;
+#endif
 
 void serial_init()
 {
@@ -82,14 +84,14 @@ ISR(USART_RX_vect)
 
 ISR(USART_UDRE_vect)
 {
-	#if XONXOFF
-	if (flowflags & FLOWFLAG_SEND_XOFF) {
-		UDR0 = ASCII_XOFF;
-		flowflags = (flowflags & ~FLOWFLAG_SEND_XOFF) | FLOWFLAG_SENT_XOFF;
-	}
-	else if (flowflags & FLOWFLAG_SEND_XON) {
+	#ifdef	XONXOFF
+	if (flowflags & FLOWFLAG_SEND_XON) {
 		UDR0 = ASCII_XON;
-		flowflags = (flowflags & ~FLOWFLAG_SEND_XON) | FLOWFLAG_SENT_XON;
+		flowflags = FLOWFLAG_STATE_XON;
+	}
+	else if (flowflags & FLOWFLAG_SEND_XOFF) {
+		UDR0 = ASCII_XOFF;
+		flowflags = 0;
 	}
 	else
 	#endif
@@ -189,16 +191,27 @@ void serial_writestr_P(PGM_P data)
 }
 
 #ifdef	XONXOFF
-	void xon() {
-		if (flowflags & FLOWFLAG_SENT_XOFF)
-			flowflags = FLOWFLAG_SEND_XON;
-		// enable TX interrupt so we can send this character
-		UCSR0B |= MASK(UDRIE0);
-	}
+void xon() {
+	// disable TX interrupt
+	UCSR0B &= ~MASK(UDRIE0);
 
-	void xoff() {
-		flowflags = FLOWFLAG_SEND_XOFF;
-		// enable TX interrupt so we can send this character
-		UCSR0B |= MASK(UDRIE0);
-	}
+	if ((flowflags & FLOWFLAG_STATE_XON) == 0)
+		flowflags = FLOWFLAG_SEND_XON;
+	else
+		flowflags = FLOWFLAG_STATE_XON;	// purge a possible FLOWFLAG_SEND_XOFF
+
+	// enable TX interrupt so we can send this character
+	UCSR0B |= MASK(UDRIE0);
+}
+
+void xoff() {
+	UCSR0B &= ~MASK(UDRIE0);
+
+	if (flowflags & FLOWFLAG_STATE_XON)
+		flowflags = FLOWFLAG_SEND_XOFF | FLOWFLAG_STATE_XON;
+	else
+		flowflags = 0;
+
+	UCSR0B |= MASK(UDRIE0);
+}
 #endif

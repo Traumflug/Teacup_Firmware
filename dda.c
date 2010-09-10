@@ -119,8 +119,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	uint32_t	distance;
 
 	// initialise DDA to a known state
-	dda->live = 0;
-	dda->waitfor_temp = 0;
+	dda->allflags = 0;
 
 	if (debug_flags & DEBUG_DDA)
 		serial_writestr_P(PSTR("\n{DDA_CREATE: ["));
@@ -210,6 +209,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
 		uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
 
+		#ifdef ACCELERATION_REPRAP
 		// c is initial step time in IOclk ticks
 		dda->c = (move_duration / startpoint.F) << 8;
 
@@ -270,6 +270,19 @@ void dda_create(DDA *dda, TARGET *target) {
 		}
 		else
 			dda->accel = 0;
+		#else  // #elifdef isn't valid for gcc
+		#ifdef ACCELERATION_RAMPING
+		dda->ramp_steps = dda->total_steps / 2;
+		dda->step_no = 0;
+		// c is initial step time in IOclk ticks
+		dda->c = ACCELERATION_STEEPNESS << 8;
+		dda->c_min = (move_duration / target->F) << 8;
+		dda->n = 1;
+		dda->ramp_state = RAMP_UP;
+		#else
+		dda->c = (move_duration / target->F) << 8;
+		#endif
+		#endif
 	}
 
 	if (debug_flags & DEBUG_DDA)
@@ -316,55 +329,19 @@ void dda_start(DDA *dda) {
 }
 
 /*
-	CAN STEP
-*/
-
-uint8_t	can_step(uint8_t min, uint8_t max, int32_t current, int32_t target, uint8_t dir) {
-	if (dir) {
-		// forwards/positive
-		if (max)
-			return 0;
-		if (current >= target)
-			return 0;
-	}
-	else {
-		// backwards/negative
-		if (min)
-			return 0;
-		if (target >= current)
-			return 0;
-	}
-
-	return 255;
-}
-
-/*
 	STEP
 */
 
 void dda_step(DDA *dda) {
 	// called from interrupt context! keep it as simple as possible
-	uint8_t	step_option = 0;
-#define	X_CAN_STEP	1
-#define	Y_CAN_STEP	2
-#define	Z_CAN_STEP	4
-#define	E_CAN_STEP	8
-#define	DID_STEP		128
+	uint8_t	did_step = 0;
 
-// 		step_option |= can_step(x_min(), x_max(), current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
-	step_option |= can_step(0      , 0      , current_position.X, dda->endpoint.X, dda->x_direction) & X_CAN_STEP;
-// 		step_option |= can_step(y_min(), y_max(), current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
-	step_option |= can_step(0      , 0      , current_position.Y, dda->endpoint.Y, dda->y_direction) & Y_CAN_STEP;
-// 		step_option |= can_step(z_min(), z_max(), current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
-	step_option |= can_step(0      , 0      , current_position.Z, dda->endpoint.Z, dda->z_direction) & Z_CAN_STEP;
-	step_option |= can_step(0      , 0      , current_position.E, dda->endpoint.E, dda->e_direction) & E_CAN_STEP;
-// 	step_option |= can_step(0      , 0      , current_position.F, dda->endpoint.F, dda->f_direction) & F_CAN_STEP;
-
-	if (step_option & X_CAN_STEP) {
+	if (current_position.X != dda->endpoint.X /* &&
+	    x_max() != dda->x_direction && x_min() == dda->x_direction */) {
 		dda->x_counter -= dda->x_delta;
 		if (dda->x_counter < 0) {
 			x_step();
-			step_option |= DID_STEP;
+			did_step = 1;
 			if (dda->x_direction)
 				current_position.X++;
 			else
@@ -374,11 +351,12 @@ void dda_step(DDA *dda) {
 		}
 	}
 
-	if (step_option & Y_CAN_STEP) {
+	if (current_position.Y != dda->endpoint.Y /* &&
+	    y_max() != dda->y_direction && y_min() == dda->y_direction */) {
 		dda->y_counter -= dda->y_delta;
 		if (dda->y_counter < 0) {
 			y_step();
-			step_option |= DID_STEP;
+			did_step = 1;
 			if (dda->y_direction)
 				current_position.Y++;
 			else
@@ -388,11 +366,12 @@ void dda_step(DDA *dda) {
 		}
 	}
 
-	if (step_option & Z_CAN_STEP) {
+	if (current_position.Z != dda->endpoint.Z /* &&
+	    z_max() != dda->z_direction && z_min() == dda->z_direction */) {
 		dda->z_counter -= dda->z_delta;
 		if (dda->z_counter < 0) {
 			z_step();
-			step_option |= DID_STEP;
+			did_step = 1;
 			if (dda->z_direction)
 				current_position.Z++;
 			else
@@ -402,11 +381,11 @@ void dda_step(DDA *dda) {
 		}
 	}
 
-	if (step_option & E_CAN_STEP) {
+	if (current_position.E != dda->endpoint.E) {
 		dda->e_counter -= dda->e_delta;
 		if (dda->e_counter < 0) {
 			e_step();
-			step_option |= DID_STEP;
+			did_step = 1;
 			if (dda->e_direction)
 				current_position.E++;
 			else
@@ -424,6 +403,7 @@ void dda_step(DDA *dda) {
 		sei();
 	#endif
 
+	#ifdef ACCELERATION_REPRAP
 	// linear acceleration magic, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
 	if (dda->accel) {
 		if (
@@ -440,8 +420,39 @@ void dda_step(DDA *dda) {
 		}
 		// else we are already at target speed
 	}
+	#endif
+	#ifdef ACCELERATION_RAMPING
+	// - algorithm courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
+	// - for simplicity, taking even/uneven number of steps into account dropped
+	// - number of steps moved is always accurate, speed might be one step off
+	switch (dda->ramp_state) {
+	case RAMP_UP:
+	case RAMP_MAX:
+		if (dda->step_no >= dda->ramp_steps) {
+			// RAMP_UP: time to decelerate before reaching maximum speed
+			// RAMP_MAX: time to decelerate
+			dda->ramp_state = RAMP_DOWN;
+			dda->n = -((int32_t)2) - dda->n;
+		}
+		if (dda->ramp_state == RAMP_MAX)
+			break;
+	case RAMP_DOWN:
+		dda->n += 4;
+		// be careful of signedness!
+		dda->c = (int32_t)dda->c - ((int32_t)(dda->c * 2) / dda->n);
+		if (dda->c <= dda->c_min) {
+			// maximum speed reached
+			dda->c = dda->c_min;
+			dda->ramp_state = RAMP_MAX;
+			dda->ramp_steps = dda->total_steps - dda->step_no;
+		}
+		setTimer(dda->c >> 8);
+		break;
+	}
+	dda->step_no++;
+	#endif
 
-	if (step_option) {
+	if (did_step) {
 		// we stepped, reset timeout
 		steptimeout = 0;
 
