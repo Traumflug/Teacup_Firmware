@@ -15,12 +15,11 @@ stty $BAUD raw ignbrk -hup -echo ixon < $DEV
 			echo "> $REPLY"
 			echo "$REPLY" >&3
 		fi
-		while [ "$REPLY" != "OK" ]
+		while [ "$REPLY" != "OK" ] && [ "$REPLY" != "ok" ]
 		do
 			read -s -u 3
 			echo "< $REPLY"
 		done
-		read -t 1
-		RV=$?
+		read -t 1; RV=$?
 	done
 ) 3<>$DEV

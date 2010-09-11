@@ -108,10 +108,10 @@ mendel_cmd() {
 		local RSC=0
 		local cmd="$*"
 		echo "$cmd" >&3;
-		while [ "$REPLY" != "OK" ]
+		while [ "$REPLY" != "OK" ] && [ "$REPLY" != "ok" ]
 		do
 			read -u 3
-			if [ "$REPLY" != "OK" ]
+			if [ "$REPLY" != "OK" ] && [ "$REPLY" != "ok" ]
 			then
 				echo "$REPLY"
 			fi
@@ -137,7 +137,7 @@ mendel_cmd_hr() {
 		local RSC=0
 		echo "$cmd" >&3
 		echo "S> $cmd"
-		while [ "$REPLY" != "OK" ]
+		while [ "$REPLY" != "OK" ] && [ "$REPLY" != "ok" ]
 		do
 			read -u 3
 			echo "<R $REPLY"
