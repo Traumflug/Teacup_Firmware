@@ -89,7 +89,7 @@
 
 
 mendel_setup() {
-	stty 115200 raw ignbrk -hup -echo ixon ixoff < /dev/arduino
+	stty 115200 raw ignbrk -hup -echo ixoff < /dev/arduino
 }
 
 mendel_reset() {

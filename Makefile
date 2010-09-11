@@ -85,7 +85,7 @@ program: $(PROGRAM).hex
 	@sleep 0.1
 	@stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
 	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U flash:w:$^
-	stty 115200 raw ignbrk -hup -echo ixon < $(PROGPORT)
+	stty 115200 raw ignbrk -hup -echo ixoff < $(PROGPORT)
 
 clean:
 	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~
