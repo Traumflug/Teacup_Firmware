@@ -402,6 +402,14 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 
 			//	G1 - synchronised motion
 			case 1:
+				// check speeds here
+				if (gcmd->seen_Z) {
+					if (gcmd->target.F > MAXIMUM_FEEDRATE_Z)
+						gcmd->target.F = MAXIMUM_FEEDRATE_Z;
+				}
+				else if (gcmd->target.F > MAXIMUM_FEEDRATE_X)
+					gcmd->target.F = MAXIMUM_FEEDRATE_X;
+				
 				enqueue(&gcmd->target);
 				break;
 
