@@ -12,6 +12,7 @@
 #include	"clock.h"
 #include	"watchdog.h"
 #include	"debug.h"
+#include	"heater.h"
 
 uint8_t last_field = 0;
 
@@ -661,7 +662,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				break;
 			// M134- save PID settings to eeprom
 			case 134:
-				temp_save_settings();
+				heater_save_settings();
 				break;
 
 			#ifdef	DEBUG

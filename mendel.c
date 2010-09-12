@@ -18,6 +18,7 @@
 #include	"watchdog.h"
 #include	"debug.h"
 #include	"sersendf.h"
+#include	"heater.h"
 
 void io_init(void) {
 	// disable modules we don't use
@@ -92,7 +93,7 @@ void init(void) {
 	clock_setup();
 
 	// read PID settings from EEPROM
-	temp_init();
+	heater_init();
 
 	// set up default feedrate
 	current_position.F = startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
