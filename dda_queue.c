@@ -49,6 +49,7 @@ void queue_step() {
 // 	serial_writechar('!');
 
 	// fall directly into dda_start instead of waiting for another step
+	// the dda dies not directly after its last step, but when the timer fires and there's no steps to do
 	if (movebuffer[mb_tail].live == 0)
 		next_move();
 
@@ -65,10 +66,8 @@ void enqueue(TARGET *t) {
 	while (queue_full())
 		delay(WAITING_DELAY);
 
-	uint8_t h = mb_head;
-	h++;
-	if (h == MOVEBUFFER_SIZE)
-		h = 0;
+	uint8_t h = mb_head + 1;
+	h &= (MOVEBUFFER_SIZE - 1);
 
 	dda_create(&movebuffer[h], t);
 

@@ -520,9 +520,9 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			//	G92 - set home
 			case 92:
 				startpoint.X = startpoint.Y = startpoint.Z = startpoint.E =
-				current_position.X = current_position.Y = current_position.Z = current_position.E = 0;
+					current_position.X = current_position.Y = current_position.Z = current_position.E = 0;
 				startpoint.F =
-				current_position.F = SEARCH_FEEDRATE_Z;
+					current_position.F = SEARCH_FEEDRATE_Z;
 				break;
 
 			// unknown gcode: spit an error
@@ -537,15 +537,6 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			// M101- extruder on
 			case 101:
 				if (temp_achieved() == 0) {
-// 					serial_writestr_P(PSTR("Waiting for extruder to reach target temperature\n"));
-// 					// here we wait until target temperature is reached, and emulate main loop so the temperature can actually be updated
-// 					while (temp_achieved() == 0) {
-// 						ifclock(CLOCK_FLAG_250MS) {
-// 							// this is cosmetically nasty, but exactly what needs to happen
-// 							void clock_250ms(void);
-// 							clock_250ms();
-// 						}
-// 					}
 					enqueue_temp_wait();
 				}
 				do {
