@@ -1,6 +1,7 @@
 #include	"serial.h"
 
-#include	"ringbuffer.h"
+#include	<avr/interrupt.h>
+
 #include	"arduino.h"
 
 #define		BUFSIZE			64
