@@ -640,6 +640,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				serwrite_int32(current_position.F);
 				serial_writechar('\n');
 			 	break;
+
 			// M130- heater P factor
 			case 130:
 				if (gcmd->seen_S)

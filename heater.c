@@ -30,8 +30,6 @@ int16_t		EEMEM EE_i_limit;
 uint16_t	temp_history[TH_COUNT] __attribute__ ((__section__ (".bss")));
 uint8_t		th_p = 0;
 
-uint8_t		temp_residency	= 0;
-
 #ifndef	ABSDELTA
 #define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
 #endif
@@ -58,15 +56,10 @@ void heater_save_settings() {
 }
 
 void heater_tick(int16_t current_temp, int16_t target_temp) {
+	int16_t	t_error = target_temp - current_temp;
+	
 	temp_history[th_p++] = current_temp;
 	th_p &= (TH_COUNT - 1);
-	
-	if (ABSDELTA(current_temp, target_temp) > TEMP_HYSTERESIS)
-		temp_residency = 0;
-	else if (temp_residency < TEMP_RESIDENCY_TIME)
-		temp_residency++;
-	
-	int16_t	t_error = target_temp - current_temp;
 	
 	// PID stuff
 	// proportional
@@ -86,11 +79,11 @@ void heater_tick(int16_t current_temp, int16_t target_temp) {
 	
 	// combine factors
 	int32_t pid_output_intermed = (
-	(
-	(((int32_t) heater_p) * p_factor) +
-	(((int32_t) heater_i) * i_factor) +
-	(((int32_t) heater_d) * d_factor)
-	) / PID_SCALE
+		(
+			(((int32_t) heater_p) * p_factor) +
+			(((int32_t) heater_i) * i_factor) +
+			(((int32_t) heater_d) * d_factor)
+		) / PID_SCALE
 	);
 	
 	// rebase and limit factors
@@ -113,10 +106,4 @@ void heater_tick(int16_t current_temp, int16_t target_temp) {
 	else
 		disable_heater();
 	#endif
-}
-
-uint8_t	temp_achieved() {
-	if (temp_residency >= TEMP_RESIDENCY_TIME)
-		return 255;
-	return 0;
 }
