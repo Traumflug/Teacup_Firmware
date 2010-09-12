@@ -91,9 +91,6 @@ void enqueue_temp_wait() {
 		delay(WAITING_DELAY);
 
 	uint8_t h = mb_head + 1;
-// 	h++;
-// 	if (h == MOVEBUFFER_SIZE)
-// 		h = 0;
 	h &= (MOVEBUFFER_SIZE - 1);
 
 	// wait for temp flag
@@ -122,9 +119,6 @@ void next_move() {
 	if (queue_empty() == 0) {
 		// next item
 		uint8_t t = mb_tail + 1;
-// 		t++;
-// 		if (t == MOVEBUFFER_SIZE)
-// 			t = 0;
 		t &= (MOVEBUFFER_SIZE - 1);
 		dda_start(&movebuffer[t]);
 		mb_tail = t;

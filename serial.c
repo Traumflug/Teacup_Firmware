@@ -58,12 +58,9 @@ void serial_init()
 {
 #if BAUD > 38401
 	UCSR0A = MASK(U2X0);
-#else
-	UCSR0A = 0;
-#endif
-#if BAUD > 38401
 	UBRR0 = (((F_CPU / 8) / BAUD) - 0.5);
 #else
+	UCSR0A = 0;
 	UBRR0 = (((F_CPU / 16) / BAUD) - 0.5);
 #endif
 
@@ -124,11 +121,6 @@ uint8_t serial_popchar()
 	Write
 */
 
-// uint8_t serial_txchars()
-// {
-// 	return buf_canwrite(tx);
-// }
-
 void serial_writechar(uint8_t data)
 {
 	// check if interrupts are enabled
@@ -159,7 +151,6 @@ void serial_writestr(uint8_t *data)
 {
 	uint8_t i = 0, r;
 	// yes, this is *supposed* to be assignment rather than comparison, so we break when r is assigned zero
-// 	for (uint8_t r; (r = data[i]); i++)
 	while ((r = data[i++]))
 		serial_writechar(r);
 }
@@ -187,7 +178,7 @@ void serial_writestr_P(PGM_P data)
 {
 	uint8_t r, i = 0;
 	// yes, this is *supposed* to be assignment rather than comparison, so we break when r is assigned zero
-	for ( ; (r = pgm_read_byte(&data[i])); i++)
+	while ((r = pgm_read_byte(&data[i++])))
 		serial_writechar(r);
 }
 

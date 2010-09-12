@@ -627,7 +627,19 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				break;
 			// M113- extruder PWM
 			// M114- report XYZEF to host
-
+			case 114:
+				serial_writestr_P(PSTR("X:"));
+				serwrite_int32(current_position.X);
+				serial_writestr_P(PSTR(",Y:"));
+				serwrite_int32(current_position.Y);
+				serial_writestr_P(PSTR(",Z:"));
+				serwrite_int32(current_position.Z);
+				serial_writestr_P(PSTR(",E:"));
+				serwrite_int32(current_position.E);
+				serial_writestr_P(PSTR(",F:"));
+				serwrite_int32(current_position.F);
+				serial_writechar('\n');
+			 	break;
 			// M130- heater P factor
 			case 130:
 				if (gcmd->seen_S)
@@ -664,7 +676,6 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				debug_flags |= DEBUG_ECHO;
 				serial_writestr_P(PSTR("Echo on\n"));
 				break;
-			#endif
 
 			// DEBUG: return current position
 			case 250:
@@ -724,6 +735,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				serial_writechar('\n');
 				(*(volatile uint8_t *)(gcmd->S)) = gcmd->P;
 				break;
+			#endif /* DEBUG */
 			// unknown mcode: spit an error
 			default:
 				serial_writestr_P(PSTR("E: Bad M-code "));
