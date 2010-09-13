@@ -254,15 +254,6 @@ void dda_create(DDA *dda, TARGET *target) {
 			}
 
 			if (debug_flags & DEBUG_DDA) {
-// 				serial_writestr_P(PSTR("\n{DDA:CA end_c:")); serwrite_uint32(dda->end_c >> 8);
-// 				serial_writestr_P(PSTR(", n:")); serwrite_int32(dda->n);
-// 				serial_writestr_P(PSTR(", md:")); serwrite_uint32(move_duration);
-// 				serial_writestr_P(PSTR(", ssq:")); serwrite_uint32(ssq);
-// 				serial_writestr_P(PSTR(", esq:")); serwrite_uint32(esq);
-// 				serial_writestr_P(PSTR(", dsq:")); serwrite_int32(dsq);
-// 				serial_writestr_P(PSTR(", msbssq:")); serwrite_uint8(msb_ssq);
-// 				serial_writestr_P(PSTR(", msbtot:")); serwrite_uint8(msb_tot);
-// 				serial_writestr_P(PSTR("}\n"));
 				sersendf_P(PSTR("\n{DDA:CA end_c:%lu, n:%ld, md:%lu, ssq:%lu, esq:%lu, dsq:%lu, msbssq:%u, msbtot:%u}\n"), dda->end_c >> 8, dda->n, move_duration, ssq, esq, dsq, msb_ssq, msb_tot);
 			}
 
@@ -270,8 +261,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		}
 		else
 			dda->accel = 0;
-		#else  // #elifdef isn't valid for gcc
-		#ifdef ACCELERATION_RAMPING
+		#elif defined ACCELERATION_RAMPING
 		dda->ramp_steps = dda->total_steps / 2;
 		dda->step_no = 0;
 		// c is initial step time in IOclk ticks
@@ -281,7 +271,6 @@ void dda_create(DDA *dda, TARGET *target) {
 		dda->ramp_state = RAMP_UP;
 		#else
 		dda->c = (move_duration / target->F) << 8;
-		#endif
 		#endif
 	}
 
@@ -336,8 +325,8 @@ void dda_step(DDA *dda) {
 	// called from interrupt context! keep it as simple as possible
 	uint8_t	did_step = 0;
 
-	if (current_position.X != dda->endpoint.X /* &&
-	    x_max() != dda->x_direction && x_min() == dda->x_direction */) {
+	if ((current_position.X != dda->endpoint.X) /* &&
+	    (x_max() != dda->x_direction) && (x_min() == dda->x_direction) */) {
 		dda->x_counter -= dda->x_delta;
 		if (dda->x_counter < 0) {
 			x_step();
@@ -351,8 +340,8 @@ void dda_step(DDA *dda) {
 		}
 	}
 
-	if (current_position.Y != dda->endpoint.Y /* &&
-	    y_max() != dda->y_direction && y_min() == dda->y_direction */) {
+	if ((current_position.Y != dda->endpoint.Y) /* &&
+	    (y_max() != dda->y_direction) && (y_min() == dda->y_direction) */) {
 		dda->y_counter -= dda->y_delta;
 		if (dda->y_counter < 0) {
 			y_step();
@@ -366,8 +355,8 @@ void dda_step(DDA *dda) {
 		}
 	}
 
-	if (current_position.Z != dda->endpoint.Z /* &&
-	    z_max() != dda->z_direction && z_min() == dda->z_direction */) {
+	if ((current_position.Z != dda->endpoint.Z) /* &&
+	    (z_max() != dda->z_direction) && (z_min() == dda->z_direction) */) {
 		dda->z_counter -= dda->z_delta;
 		if (dda->z_counter < 0) {
 			z_step();
