@@ -23,11 +23,13 @@
 void io_init(void) {
 	// disable modules we don't use
 	#ifdef PRR
-	PRR = MASK(PRTWI) | MASK(PRADC);
+		PRR = MASK(PRTWI) | MASK(PRADC);
 	#endif
 	#ifdef PRR0
-	PRR0 = MASK(PRTWI) | MASK(PRADC);
-	PRR1 = 0xFF;
+		PRR0 = MASK(PRTWI) | MASK(PRADC);
+		#ifdef PRR1
+			PRR1 = 0xFF;
+		#endif
 	#endif
 	ACSR = MASK(ACD);
 

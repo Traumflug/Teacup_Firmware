@@ -74,13 +74,21 @@ void serial_init()
 	Interrupts
 */
 
+#ifdef	USART_RX_vect
 ISR(USART_RX_vect)
+#else
+ISR(USART0_RX_vect)
+#endif
 {
 	if (buf_canwrite(rx))
 		buf_push(rx, UDR0);
 }
 
+#ifdef	USART_UDRE_vect
 ISR(USART_UDRE_vect)
+#else
+ISR(USART0_UDRE_vect)
+#endif
 {
 	#ifdef	XONXOFF
 	if (flowflags & FLOWFLAG_SEND_XON) {
