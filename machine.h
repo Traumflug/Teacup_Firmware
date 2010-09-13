@@ -58,10 +58,19 @@
 #define ACCELERATION_STEEPNESS	500000
 
 #ifdef ACCELERATION_REPRAP
-#ifdef ACCELERATION_RAMPING
-#error Cant use ACCELERATION_REPRAP and ACCELERATION_RAMPING together.
+	#ifdef ACCELERATION_RAMPING
+		#error Cant use ACCELERATION_REPRAP and ACCELERATION_RAMPING together.
+	#endif
 #endif
-#endif
+
+// which temperature sensor are you using?
+// #define	TEMP_MAX6675
+#define	TEMP_THERMISTOR
+// #define	TEMP_AD595
+
+// if you selected thermistor or AD595, what pin is it on?
+#define	TEMP_PIN_CHANNEL	AIO0_PIN
+#define	ANALOG_MASK				MASK(TEMP_PIN_CHANNEL)
 
 /*
 firmware build options
@@ -91,8 +100,9 @@ firmware build options
 	ANALOG_MASK - which analog inputs we will be using, bitmask. eg; #define ANALOG_MASK	MASK(AIO0_PIN) | MASK(3) for AIN0 and AIN3
 */
 #define	REFERENCE			REFERENCE_AREF
+#ifndef	ANALOG_MASK
 #define	ANALOG_MASK		0
-
+#endif
 
 // --------------------------------------------------------------------------
 // you shouldn't need to edit anything below this line

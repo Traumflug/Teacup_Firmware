@@ -12,7 +12,7 @@
 
 uint8_t adc_running_mask, adc_counter;
 
-volatile uint16_t adc_result[8] __attribute__ ((section ".bss"));
+volatile uint16_t adc_result[8] __attribute__ ((__section__ (".bss")));
 
 void analog_init() {
 	#if ANALOG_MASK > 0

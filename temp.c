@@ -31,13 +31,53 @@
 #include	"debug.h"
 #include	"heater.h"
 
+#ifdef	TEMP_MAX6675
+#endif
+
+#ifdef	TEMP_THERMISTOR
+#include	"analog.h"
+
+#define NUMTEMPS 20
+uint16_t temptable[NUMTEMPS][2] PROGMEM = {
+	{1, 841},
+	{54, 255},
+	{107, 209},
+	{160, 184},
+	{213, 166},
+	{266, 153},
+	{319, 142},
+	{372, 132},
+	{425, 124},
+	{478, 116},
+	{531, 108},
+	{584, 101},
+	{637, 93},
+	{690, 86},
+	{743, 78},
+	{796, 70},
+	{849, 61},
+	{902, 50},
+	{955, 34},
+	{1008, 3}
+};
+#endif
+
+#ifdef	TEMP_AD595
+#include	"analog.h"
+#endif
+
+#ifndef	TEMP_MAX6675
+	#ifndef	TEMP_THERMISTOR
+		#ifndef	TEMP_AD595
+			#error none of TEMP_MAX6675, TEMP_THERMISTOR or TEMP_AD595 are defined! What type of temp sensor are you using?
+		#endif
+	#endif
+#endif
+
 uint16_t	current_temp = 0;
 uint16_t	target_temp  = 0;
 
 uint8_t		temp_flags		= 0;
-#define		TEMP_FLAG_PRESENT		1
-#define		TEMP_FLAG_TCOPEN		2
-
 uint8_t		temp_residency	= 0;
 
 #ifndef	ABSDELTA
@@ -47,6 +87,7 @@ uint8_t		temp_residency	= 0;
 uint16_t temp_read() {
 	uint16_t temp;
 
+#ifdef	TEMP_MAX6675
 	SPCR = MASK(MSTR) | MASK(SPE) | MASK(SPR0);
 
 	// enable MAX6675
@@ -82,6 +123,40 @@ uint16_t temp_read() {
 			return current_temp;
 		}
 	}
+#endif	/* TEMP_MAX6675	*/
+
+#ifdef	TEMP_THERMISTOR
+	uint8_t i;
+
+	//Read current temperature
+	temp = analog_read(TEMP_PIN_CHANNEL);
+
+	//Calculate real temperature based on lookup table
+	for (i = 1; i < NUMTEMPS; i++) {
+		if (pgm_read_word(&(temptable[i][0])) > temp) {
+			// multiply by 4 because internal temp is stored as 14.2 fixed point
+			temp = pgm_read_word(&(temptable[i][1])) + (pgm_read_word(&(temptable[i][0])) - temp) * 4 * (pgm_read_word(&(temptable[i-1][1])) - pgm_read_word(&(temptable[i][1]))) / (pgm_read_word(&(temptable[i][0])) - pgm_read_word(&(temptable[i-1][0])));
+			break;
+		}
+	}
+
+	//Clamp for overflows
+	if (i == NUMTEMPS)
+		temp = temptable[NUMTEMPS-1][1];
+
+	return temp;
+
+#endif	/* TEMP_THERMISTOR */
+
+#ifdef	TEMP_AD595
+	temp = analog_read(TEMP_PIN_CHANNEL);
+
+	// convert
+	// >>8 instead of >>10 because internal temp is stored as 14.2 fixed point
+	temp = (temp * 500L) >> 8;
+	
+	return temp;
+#endif	/* TEMP_AD595 */
 
 	return 0;
 }

@@ -3,9 +3,15 @@
 
 #include	<stdint.h>
 
+#include	"machine.h"
+
 // RepRap host software isn't exactly tolerant on what it ready back.
 #define REPRAP_HOST_COMPATIBILITY
 
+#define		TEMP_FLAG_PRESENT		1
+#define		TEMP_FLAG_TCOPEN		2
+
+#ifdef	TEMP_MAX6675
 typedef union {
 	struct {
 		uint8_t				high;
@@ -19,6 +25,14 @@ typedef union {
 		uint16_t			tristate		:1;
 	} interpret;
 } max6675_data_format;
+#endif
+
+#ifdef	TEMP_THERMISTOR
+#include	<avr/pgmspace.h>
+#endif
+
+#ifdef	TEMP_AD595
+#endif
 
 // setup temperature system
 void temp_init(void);
