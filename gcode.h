@@ -61,7 +61,6 @@ typedef struct {
 extern GCODE_COMMAND next_target;
 
 // utility functions
-int8_t indexof(uint8_t c, const char *string);
 int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator);
 
 // this is where we construct a move without a gcode command, useful for gcodes which require multiple moves eg; homing

@@ -26,15 +26,6 @@ GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
 	utility functions
 */
 
-int8_t indexof(uint8_t c, const char *string) {
-	int8_t i;
-	for (i = 0; string[i]; i++) {
-		if (c == string[i])
-			return i;
-	}
-	return -1;
-}
-
 int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator) {
 	int32_t	r = df->mantissa;
 	uint8_t	e = df->exponent;
@@ -467,7 +458,8 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				SpecialMoveXY(-20 * STEPS_PER_MM_X, -20 * STEPS_PER_MM_Y, SEARCH_FEEDRATE_X);
 
 				// wait for queue to complete
-				for (;!queue_empty(););
+				for (;queue_empty() == 0;)
+					wd_reset();
 
 				// this is our home point
 				startpoint.X = startpoint.Y = current_position.X = current_position.Y = 0;
@@ -487,7 +479,8 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				SpecialMoveZ(-20L * STEPS_PER_MM_Z, SEARCH_FEEDRATE_Z);
 
 				// wait for queue to complete
-				for (;queue_empty(););
+				for (;queue_empty() == 0;)
+					wd_reset();
 
 				// this is our home point
 				startpoint.Z = current_position.Z = 0;
@@ -601,13 +594,6 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 					disable_heater();
 				}
 				enqueue_temp_wait();
-// 				while (!temp_achieved()) {
-// 					ifclock(CLOCK_FLAG_250MS) {
-// 						// this is cosmetically nasty, but exactly what needs to happen
-// 						void clock_250ms(void);
-// 						clock_250ms();
-// 					}
-// 				}
 				break;
 
 			// M110- set line number
