@@ -88,6 +88,12 @@ uint16_t temp_read() {
 	uint16_t temp;
 
 #ifdef	TEMP_MAX6675
+	#ifdef	PRR
+		PRR &= ~MASK(PRSPI);
+	#elif defined PRR0
+		PRR0 &= ~MASK(PRSPI);
+	#endif
+
 	SPCR = MASK(MSTR) | MASK(SPE) | MASK(SPR0);
 
 	// enable MAX6675

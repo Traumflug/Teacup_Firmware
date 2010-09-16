@@ -16,14 +16,15 @@
 #include	"debug.h"
 #include	"sersendf.h"
 #include	"heater.h"
+#include	"analog.h"
 
 void io_init(void) {
 	// disable modules we don't use
 	#ifdef PRR
-		PRR = MASK(PRTWI) | MASK(PRADC);
+		PRR = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
 	#endif
 	#ifdef PRR0
-		PRR0 = MASK(PRTWI) | MASK(PRADC);
+		PRR0 = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
 		#ifdef PRR1
 			PRR1 = 0xFF;
 		#endif
@@ -97,6 +98,9 @@ void init(void) {
 	// set up default feedrate
 	current_position.F = startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
 
+	// start up analog read interrupt loop, if anything uses analog as determined by ANALOG_MASK in your machine.h
+	analog_init();
+	
 	// enable interrupts
 	sei();
 
