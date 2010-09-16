@@ -50,5 +50,15 @@ ISR(ADC_vect) {
 }
 
 uint16_t	analog_read(uint8_t channel) {
-	return adc_result[channel];
+	uint8_t sreg;
+	uint16_t r;
+	// save interrupt flag
+	sreg = SREG;
+	// disable interrupts
+	cli();
+	// atomic 16-bit copy
+	r = adc_result[channel];
+	// restore interrupt flag
+	SREG = sreg;
+	return r;
 }
