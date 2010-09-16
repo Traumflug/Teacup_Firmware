@@ -14,10 +14,6 @@
 #define	ABS(v)		(((v) >= 0)?(v):(-(v)))
 #endif
 
-#ifndef	ABSDELTA
-#define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
-#endif
-
 /*
 	step timeout
 */
@@ -35,7 +31,7 @@ TARGET current_position __attribute__ ((__section__ (".bss")));
 	utility functions
 */
 
-// courtesy of http://www.oroboro.com/rafael/docserv.php/index/programming/article/distance
+// courtesy of http://www.flipcode.com/archives/Fast_Approximate_Distance_Functions.shtml
 uint32_t approx_distance( uint32_t dx, uint32_t dy )
 {
 	uint32_t min, max, approx;
@@ -90,12 +86,6 @@ uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz )
 
 	// add 512 for proper rounding
 	return (( approx + 512 ) >> 10 );
-}
-
-uint32_t delta32(uint32_t v1, uint32_t v2) {
-	if (v1 >= v2)
-		return v1 - v2;
-	return v2 - v1;
 }
 
 // this is an ultra-crude pseudo-logarithm routine, such that:
