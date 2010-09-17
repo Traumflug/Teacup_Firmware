@@ -16,6 +16,7 @@ int16_t		heater_d     = 0;
 #define		DEFAULT_I				512
 #define		DEFAULT_D				-24576
 #define		DEFAULT_I_LIMIT	384
+
 int32_t		p_factor			= 0;
 int32_t		i_factor			= 0;
 int32_t		d_factor			= 0;
@@ -29,10 +30,6 @@ int16_t		EEMEM EE_i_limit;
 #define		TH_COUNT	8
 uint16_t	temp_history[TH_COUNT] __attribute__ ((__section__ (".bss")));
 uint8_t		th_p = 0;
-
-#ifndef	ABSDELTA
-#define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
-#endif
 
 void heater_init() {
 	p_factor = eeprom_read_dword((uint32_t *) &EE_p_factor);
