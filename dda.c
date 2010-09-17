@@ -252,15 +252,15 @@ void dda_create(DDA *dda, TARGET *target) {
 		else
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
-		dda->ramp_steps = dda->total_steps / 2;
-		dda->step_no = 0;
-		// c is initial step time in IOclk ticks
-		dda->c = ACCELERATION_STEEPNESS << 8;
-		dda->c_min = (move_duration / target->F) << 8;
-		dda->n = 1;
-		dda->ramp_state = RAMP_UP;
+			dda->ramp_steps = dda->total_steps / 2;
+			dda->step_no = 0;
+			// c is initial step time in IOclk ticks
+			dda->c = ACCELERATION_STEEPNESS << 8;
+			dda->c_min = (move_duration / target->F) << 8;
+			dda->n = 1;
+			dda->ramp_state = RAMP_UP;
 		#else
-		dda->c = (move_duration / target->F) << 8;
+			dda->c = (move_duration / target->F) << 8;
 		#endif
 	}
 
@@ -383,52 +383,52 @@ void dda_step(DDA *dda) {
 	#endif
 
 	#ifdef ACCELERATION_REPRAP
-	// linear acceleration magic, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
-	if (dda->accel) {
-		if (
-				((dda->n > 0) && (dda->c > dda->end_c)) ||
-				((dda->n < 0) && (dda->c < dda->end_c))
-			 ) {
-			dda->c = (int32_t) dda->c - ((int32_t) (dda->c * 2) / dda->n);
-			dda->n += 4;
-			setTimer(dda->c >> 8);
+		// linear acceleration magic, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
+		if (dda->accel) {
+			if (
+					((dda->n > 0) && (dda->c > dda->end_c)) ||
+					((dda->n < 0) && (dda->c < dda->end_c))
+				) {
+				dda->c = (int32_t) dda->c - ((int32_t) (dda->c * 2) / dda->n);
+				dda->n += 4;
+				setTimer(dda->c >> 8);
+			}
+			else if (dda->c != dda->end_c) {
+				dda->c = dda->end_c;
+				setTimer(dda->c >> 8);
+			}
+			// else we are already at target speed
 		}
-		else if (dda->c != dda->end_c) {
-			dda->c = dda->end_c;
-			setTimer(dda->c >> 8);
-		}
-		// else we are already at target speed
-	}
 	#endif
 	#ifdef ACCELERATION_RAMPING
-	// - algorithm courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
-	// - for simplicity, taking even/uneven number of steps into account dropped
-	// - number of steps moved is always accurate, speed might be one step off
-	switch (dda->ramp_state) {
-	case RAMP_UP:
-	case RAMP_MAX:
-		if (dda->step_no >= dda->ramp_steps) {
-			// RAMP_UP: time to decelerate before reaching maximum speed
-			// RAMP_MAX: time to decelerate
-			dda->ramp_state = RAMP_DOWN;
-			dda->n = -((int32_t)2) - dda->n;
+		// - algorithm courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
+		// - for simplicity, taking even/uneven number of steps into account dropped
+		// - number of steps moved is always accurate, speed might be one step off
+		switch (dda->ramp_state) {
+			case RAMP_UP:
+			case RAMP_MAX:
+				if (dda->step_no >= dda->ramp_steps) {
+					// RAMP_UP: time to decelerate before reaching maximum speed
+					// RAMP_MAX: time to decelerate
+					dda->ramp_state = RAMP_DOWN;
+					dda->n = -((int32_t)2) - dda->n;
+				}
+				if (dda->ramp_state == RAMP_MAX)
+					break;
+			case RAMP_DOWN:
+				dda->n += 4;
+				// be careful of signedness!
+				dda->c = (int32_t)dda->c - ((int32_t)(dda->c * 2) / dda->n);
+				if (dda->c <= dda->c_min) {
+					// maximum speed reached
+					dda->c = dda->c_min;
+					dda->ramp_state = RAMP_MAX;
+					dda->ramp_steps = dda->total_steps - dda->step_no;
+				}
+				setTimer(dda->c >> 8);
+				break;
 		}
-		if (dda->ramp_state == RAMP_MAX)
-			break;
-	case RAMP_DOWN:
-		dda->n += 4;
-		// be careful of signedness!
-		dda->c = (int32_t)dda->c - ((int32_t)(dda->c * 2) / dda->n);
-		if (dda->c <= dda->c_min) {
-			// maximum speed reached
-			dda->c = dda->c_min;
-			dda->ramp_state = RAMP_MAX;
-			dda->ramp_steps = dda->total_steps - dda->step_no;
-		}
-		setTimer(dda->c >> 8);
-		break;
-	}
-	dda->step_no++;
+		dda->step_no++;
 	#endif
 
 	if (did_step) {
