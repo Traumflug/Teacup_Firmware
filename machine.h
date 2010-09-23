@@ -41,9 +41,7 @@
 		Each movement starts at the speed of the previous command and accelerates or decelerates linearly to reach target speed at the end of the movement.
 		Can also be set in Makefile
 */
-#ifndef	ACCELERATION_RAMPING
 #define ACCELERATION_REPRAP
-#endif
 
 /*
 	acceleration and deceleration ramping.
