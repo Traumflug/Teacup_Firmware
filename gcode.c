@@ -341,13 +341,16 @@ void scan_char(uint8_t c) {
 
 		// reset variables
 		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
-			next_target.seen_E = next_target.seen_F = next_target.seen_G = \
-			next_target.seen_S = next_target.seen_P = next_target.seen_N = \
-			next_target.seen_M = next_target.seen_checksum = \
-			next_target.seen_semi_comment = next_target.seen_parens_comment = \
-			next_target.checksum_read = next_target.checksum_calculated = 0;
+			next_target.seen_E = next_target.seen_F = next_target.seen_S = \
+			next_target.seen_P = next_target.seen_N = next_target.seen_M = \
+			next_target.seen_checksum = next_target.seen_semi_comment = \
+			next_target.seen_parens_comment = next_target.checksum_read = \
+			next_target.checksum_calculated = 0;
 		last_field = 0;
 		read_digit.sign = read_digit.mantissa = read_digit.exponent = 0;
+		// assume a G1 by default
+		next_target.seen_G = 1;
+		next_target.G = 1;
 	}
 }
 
