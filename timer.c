@@ -104,7 +104,6 @@ void setTimer(uint32_t delay)
 	// the result is the timer counts up to the appropriate time and then fires an interrupt.
 
 	setTimerResolution(0);													// stop timer
-	TCNT1 = 0;																			// reset timer
 	GTCCR = MASK(PSRSYNC);													// reset prescaler - affects timer 0 too but since it's doing PWM, it's not using the prescaler
 
 	setTimerCeiling(getTimerCeiling(delay));				// set timeout
