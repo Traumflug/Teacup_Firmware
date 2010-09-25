@@ -272,7 +272,8 @@ void dda_create(DDA *dda, TARGET *target) {
 		else
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
-			dda->ramp_steps = dda->total_steps / 2;
+			// add the last bit of dda->total_steps to always round up
+			dda->ramp_steps = dda->total_steps / 2 + (dda->total_steps & 1);
 			dda->step_no = 0;
 			// c is initial step time in IOclk ticks
 			dda->c = ACCELERATION_STEEPNESS << 8;
