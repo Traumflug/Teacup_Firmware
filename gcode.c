@@ -271,6 +271,14 @@ void scan_char(uint8_t c) {
 				if (read_digit.exponent == 0)
 					read_digit.exponent = 1;
 				break;
+			#ifdef	DEBUG
+			case ' ':
+			case '\t':
+			case 10:
+			case 13;
+				// ignore
+				break;
+			#endif
 
 			default:
 				// can't do ranges in switch..case, so process actual digits here
@@ -280,7 +288,14 @@ void scan_char(uint8_t c) {
 					if (read_digit.exponent)
 						read_digit.exponent++;
 				}
-				// everything else is ignored
+				#ifdef	DEBUG
+				else {
+					// invalid
+					serial_writechar('?');
+					serial_writechar(c);
+					serial_writechar('?');
+				}
+				#endif
 		}
 	} else if ( next_target.seen_parens_comment == 1 && c == ')')
 		next_target.seen_parens_comment = 0; // recognize stuff after a (comment)
@@ -311,15 +326,8 @@ void scan_char(uint8_t c) {
 				#endif
 				) {
 				// process
-				if (next_target.seen_G || next_target.seen_M) {
-					process_gcode_command(&next_target);
-
-					serial_writestr_P(PSTR("ok\n"));
-				}
-				else {
-					// write "OK" for invalid/unknown commands as well
-					serial_writestr_P(PSTR("ok huh?\n"));
-				}
+				process_gcode_command(&next_target);
+				serial_writestr_P(PSTR("ok\n"));
 
 				// expect next line number
 				if (next_target.seen_N == 1)
