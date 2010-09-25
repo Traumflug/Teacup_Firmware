@@ -275,7 +275,7 @@ void scan_char(uint8_t c) {
 			case ' ':
 			case '\t':
 			case 10:
-			case 13;
+			case 13:
 				// ignore
 				break;
 			#endif
