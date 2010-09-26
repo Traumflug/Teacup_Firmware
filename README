@@ -6,6 +6,7 @@ Rewrite of Reprap Mendel firmware:
 * fits onto atmega328p etc
 * will work on larger atmegas with minor porting
 
+
 ##############################################################################
 #                                                                            #
 # Rationale and History                                                      #
@@ -33,6 +34,36 @@ Many others have given encouragement and suggestions without which this firmware
 
 ##############################################################################
 #                                                                            #
+# Architectural Overview                                                     #
+#                                                                            #
+##############################################################################
+
+FiveD on Arduino is quite similar to the official firmware in some ways, and markedly different in others. FiveD on Arduino has as much modularity as I could get away with without sacrificing efficiency.
+
+// FIXME: make next paragraph easier to read
+At startup, the code in mendel.c is run first. This initialises all the modules that need it, then starts polling the clock flags and feeding incoming serial characters to the gcode parser. The gcode parser processes each character individually, keeping track via internal state rather than buffering a line and skipping back and forth. The gcode parser converts floating values to integer or fixed-point representations as soon as it encounters a non-numeric character. It calls many module functions directly, but the most interesting part is move creation, where it passes a target position and speed to enqueue()[dda_queue.c] which adds it to the queue, and fires up dda_start()[dda.c] if the queue was empty. dda_start initialises the dda, figures out the stepper directions and first step timeout and a few other bits of housekeeping, then sets the timer for the appropriate timeout. When the timer fires, it calls dda_step()[dda.c] which sends all the step signals then figures out the next step timeout based on acceleration and speed settings. When the last step has been made, the dda "dies" (sets 'live' property to 0) after which queue_step[dda_queue.c] advances the queue read pointer and starts the next dda.
+
+It is necessary to keep interrupts very short on small microcontrollers, and I have endeavoured to keep them all as short as possible. Unfortunately, dda_step[dda.c] is fairly large. I simply hope that it doesn't take so much time that it interferes with the other interrupts too much.
+
+
+##############################################################################
+#                                                                            #
+# Interesting code sections                                                  #
+#                                                                            #
+##############################################################################
+
+The serial ringbuffers are critical for good communication, but for some reason the official arduino libraries don't implement a tx queue, all but preventing sending stuff from interrupt context. As long as the queues have a length of 2^n, we can use bitwise operations rather than numerical comparison to trim the read and write pointers. The serial send function (serial_writechar[serial.c]) is necessarily careful about checking if it's in an interrupt and only waiting for space in the queue if it's not.
+The dda queue is also a ringbuffer, although its implementation is harder to see as it's embedded in lots of other stuff.
+
+The gcode parser shows how to parse each character as it comes in, so 99% of a command can be processed before the EOL is even received. It started off as a simple state machine, which then grew and shrank and morphed until it was both smaller and more functional.
+
+The fixed-point stuff is fun, although we have to manually ensure that the decimal point stays in the right spot. decfloat_to_int[gcode.h] is used to convert incoming floats to integer implementations by starting off with a (very!) crude floating point implementation, then choosing appropriate scaling factors within the gcode parser itself. This allows us to do a little stuff that looks like floating-point math without the burdensome overhead of a full fp implementation.
+
+The PID code in heater.c is probably quite generalisable, and seems to work well when tuned. Google knows of plenty of PID tuning guides.
+
+
+##############################################################################
+#                                                                            #
 # File descriptions                                                          #
 #                                                                            #
 ##############################################################################
@@ -40,8 +71,11 @@ Many others have given encouragement and suggestions without which this firmware
 *** analog.[ch]
 This is the analog subsystem. Only used if you have a thermistor or ad595
 
+*** arduino.h
+Pin mappings and helper functions for various arduinos ('168/'328-based and '644-based only so far, feel free to add '1280 and post a patch)
+
 *** clock.[ch]
-A system clock for periodic tasks. Supports a long-running clock, but this is disabled by default as nothing uses it
+A system clock for periodic tasks. Supports a long-running clock, but this is disabled by default as nothing uses it (yet!)
 
 *** copier.[ch]
 A totally untested and currently unused chunk of code for copying firmware to another identical chip
@@ -92,7 +126,7 @@ Serial management and buffers
 Functions for sending messages and values to host
 
 *** sersendf.[ch]
-A crude printf implementation
+A small, crude printf implementation
 
 *** temp.[ch]
 Temperature sensor management, includes some configuration parameters
@@ -102,3 +136,4 @@ Timer management, used primarily by dda.c for timing steps
 
 *** watchdog.[ch]
 Watchdog management. resets chip if firmware locks up or does something strange
+
