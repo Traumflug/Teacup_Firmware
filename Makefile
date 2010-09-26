@@ -1,8 +1,8 @@
 ##############################################################################
 #                                                                            #
-# AVR-GCC skeleton                                                           #
+# FiveD on Arduino - alternative firmware for repraps                        #
 #                                                                            #
-# by Triffid Hunter                                                          #
+# by Triffid Hunter, Traumflug, jakepoz                                      #
 #                                                                            #
 ##############################################################################
 

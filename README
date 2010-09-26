@@ -5,3 +5,100 @@ Rewrite of Reprap Mendel firmware:
 * can fit onto atmega168
 * fits onto atmega328p etc
 * will work on larger atmegas with minor porting
+
+##############################################################################
+#                                                                            #
+# Rationale and History                                                      #
+#                                                                            #
+##############################################################################
+
+I started building my electronics with only a regular arduino to test with.
+This was perfectly sufficient for playing with the pololu stepper controllers and the max6675 I bought after reading about all the issues with thermistors that people were having. After a while I decided to check out the official firmware but it required an atmega644. I wondered why.
+So, I decided to skim through the code to see what took up so much space. From what I could see, it was written by someone who was familiar with programming desktop systems and larger embedded devices, but didn't have much experience with small devices such as the atmega168 and atmega644.
+This showed in the use of C++ which served only to make the code harder to read, and the prolific use of floating-point math, with some appearing even in interrupt context!
+I came to the conclusion that there was no reason that the main body of code couldn't fit onto an atmega168 except for the burdensome and unnecessary overheads from object-oriented code and floating point math. A quick count assured me that the atmega168 had enough pins, but only barely, and I started reading the official firmware properly, with an eye to rewriting as much as possible in a fashion suitable for small microcontrollers.
+
+Starting with an arduino skeleton library I had assembled over time, some of my test code and the official firmware, I hacked up a passable integer-only, straight C implementation of the dda, and wrote my own gcode parser from scratch which processed each character as it arrived (with some buffering of course) instead of waiting for a whole line and then trying to process it all at once.
+
+As soon as my new firmware was able to run a few consecutive moves, I released it for peer review.
+
+The forum thread http://forums.reprap.org/read.php?147,33082 has much of the history from this point on.
+
+Traumflug was the first to send patches, and has done a significant amount of work on a number of different parts of this firmware.
+jakepoz ported it to official reprap electronics (gen3 branch)
+Cefiar posted me some thermistors to sponsor addition of thermistor-reading code
+
+Many others have given encouragement and suggestions without which this firmware may never be what it is today.
+
+
+##############################################################################
+#                                                                            #
+# File descriptions                                                          #
+#                                                                            #
+##############################################################################
+
+*** analog.[ch]
+This is the analog subsystem. Only used if you have a thermistor or ad595
+
+*** clock.[ch]
+A system clock for periodic tasks. Supports a long-running clock, but this is disabled by default as nothing uses it
+
+*** copier.[ch]
+A totally untested and currently unused chunk of code for copying firmware to another identical chip
+
+*** dda.[ch]
+A rather complex block of math that figures out when to step each axis according to speed and acceleration profiles and received moves
+
+*** dda_queue.[ch]
+The queue of moves received from the host.
+
+*** debug.[ch]
+Debugging aids
+
+*** FiveD_on_Arduino.pde
+Allows firmware to be built in arduino ide
+
+*** func.sh
+Lots of host-side shell scripts for talking to firmware
+
+*** gcode.[ch]
+Gcode interpreter. Scaling of factors to internally used integer or fixed point happens here too.
+
+*** heater.[ch]
+Heater management, including PID and PWM algorithms, and some configuration parameters
+
+*** machine.h
+Configuration variables to match firmware to your hardware
+
+*** Makefile
+instructions for make on how to build firmware. has a list of modules to build which may need to be updated every so often
+
+*** mendel.c
+Firmware startup and main loop code
+
+*** pinout.h
+This file associates various functions with particular pins on your avr
+
+*** README
+this file
+
+*** sender.sh
+A simple talker
+
+*** serial.[ch]
+Serial management and buffers
+
+*** sermsg.[ch]
+Functions for sending messages and values to host
+
+*** sersendf.[ch]
+A crude printf implementation
+
+*** temp.[ch]
+Temperature sensor management, includes some configuration parameters
+
+*** timer.[ch]
+Timer management, used primarily by dda.c for timing steps
+
+*** watchdog.[ch]
+Watchdog management. resets chip if firmware locks up or does something strange
