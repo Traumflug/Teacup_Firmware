@@ -3,8 +3,7 @@
 
 #include	<stdint.h>
 
-#include	"pinout.h"
-#include	"machine.h"
+#include	"config.h"
 
 /*
 	enums

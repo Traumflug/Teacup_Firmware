@@ -3,7 +3,7 @@
 
 #include	<stdint.h>
 
-#include	"machine.h"
+#include	"config.h"
 
 // RepRap host software isn't exactly tolerant on what it ready back.
 #define REPRAP_HOST_COMPATIBILITY

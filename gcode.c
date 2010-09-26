@@ -2,7 +2,7 @@
 
 #include	<string.h>
 
-#include	"machine.h"
+#include	"config.h"
 #include	"serial.h"
 #include	"sermsg.h"
 #include	"temp.h"

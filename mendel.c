@@ -2,7 +2,7 @@
 #include	<avr/io.h>
 #include	<avr/interrupt.h>
 
-#include	"machine.h"
+#include	"config.h"
 
 #include	"serial.h"
 #include	"dda_queue.h"
@@ -98,7 +98,7 @@ void init(void) {
 	// set up default feedrate
 	current_position.F = startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
 
-	// start up analog read interrupt loop, if anything uses analog as determined by ANALOG_MASK in your machine.h
+	// start up analog read interrupt loop, if anything uses analog as determined by ANALOG_MASK in your config.h
 	analog_init();
 	
 	// enable interrupts

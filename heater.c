@@ -3,8 +3,7 @@
 #include	<avr/eeprom.h>
 
 #include	"sersendf.h"
-#include	"machine.h"
-#include	"pinout.h"
+#include	"config.h"
 #include	"debug.h"
 #include	"arduino.h"
 

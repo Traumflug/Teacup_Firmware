@@ -20,8 +20,6 @@
 
 #include	<avr/eeprom.h>
 
-#include	"machine.h"
-#include	"pinout.h"
 #include	"clock.h"
 #include	"serial.h"
 #include	"sermsg.h"

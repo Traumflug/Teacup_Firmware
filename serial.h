@@ -5,7 +5,7 @@
 #include	<avr/io.h>
 #include	<avr/pgmspace.h>
 
-#include	"machine.h" // for XONXOFF
+#include	"config.h" // for XONXOFF
 
 // initialise serial subsystem
 void serial_init(void);

@@ -9,8 +9,7 @@
 #include	<avr/io.h>
 #include	<avr/interrupt.h>
 
-#include	"arduino.h"
-#include	"pinout.h"
+#include	"config.h"
 
 // global clock
 #ifdef	GLOBAL_CLOCK

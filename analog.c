@@ -2,9 +2,6 @@
 
 #include	<avr/interrupt.h>
 
-#include	"arduino.h"
-#include	"machine.h"
-
 #ifndef	ANALOG_MASK
 	#warning	define ANALOG_MASK as a bitmask of all the analog channels you wish to use
 	#error		ANALOG_MASK not defined

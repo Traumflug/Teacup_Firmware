@@ -7,12 +7,12 @@
 #define	REFERENCE_AVCC	64
 #define	REFERENCE_1V1		192
 
-#include	"machine.h"
+#include	"config.h"
 
 #ifndef	REFERENCE
 #warning	define REFERENCE as one of
 #warning	REFERENCE_AREF, REFERENCE_AVCC or REFERENCE_1V1
-#warning	in your machine.h
+#warning	in your config.h
 #error REFERENCE undefined
 #endif
 

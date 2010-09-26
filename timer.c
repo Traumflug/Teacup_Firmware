@@ -2,7 +2,7 @@
 
 #include	<avr/interrupt.h>
 
-#include	"pinout.h"
+#include	"config.h"
 #include	"dda_queue.h"
 #include	"dda.h"
 #include	"watchdog.h"

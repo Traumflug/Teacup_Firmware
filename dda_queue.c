@@ -3,7 +3,7 @@
 #include	<string.h>
 #include	<avr/interrupt.h>
 
-#include	"machine.h" // for XONXOFF
+#include	"config.h" // for XONXOFF
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"
