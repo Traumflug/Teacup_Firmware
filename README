@@ -6,6 +6,19 @@ Rewrite of Reprap Mendel firmware:
 * fits onto atmega328p etc
 * will work on larger atmegas with minor porting
 
+##############################################################################
+#                                                                            #
+# How to use                                                                 #
+#                                                                            #
+##############################################################################
+
+1) COPY config.h.dist to config.h and edit to suit your electronics
+2) check programming settings in Makefile
+3) make
+4) make program
+5) ./sender.sh
+6) have a play, go to 1) if not right
+7) try printing something!
 
 ##############################################################################
 #                                                                            #
