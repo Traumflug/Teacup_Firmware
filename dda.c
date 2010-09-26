@@ -106,7 +106,7 @@ const uint8_t	msbloc (uint32_t v) {
 */
 
 void dda_create(DDA *dda, TARGET *target) {
-	uint32_t	distance;
+	uint32_t	distance, c_limit, c_limit_calc;
 
 	// initialise DDA to a known state
 	dda->allflags = 0;
@@ -199,16 +199,37 @@ void dda_create(DDA *dda, TARGET *target) {
 		//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
 		uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
 
+		// similarly, find out how fast we can run our axes.
+		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
+		c_limit = 0;
+		c_limit_calc = ((dda->x_delta * UM_PER_STEP_X * 2400) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_X) << 8;
+		if (c_limit_calc > c_limit)
+			c_limit = c_limit_calc;
+		c_limit_calc = ((dda->y_delta * UM_PER_STEP_Y * 2400) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Y) << 8;
+		if (c_limit_calc > c_limit)
+			c_limit = c_limit_calc;
+		c_limit_calc = ((dda->z_delta * UM_PER_STEP_Z * 2400) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Z) << 8;
+		if (c_limit_calc > c_limit)
+			c_limit = c_limit_calc;
+		c_limit_calc = ((dda->e_delta * UM_PER_STEP_E * 2400) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_E) << 8;
+		if (c_limit_calc > c_limit)
+			c_limit = c_limit_calc;
+
 		#ifdef ACCELERATION_REPRAP
 		// c is initial step time in IOclk ticks
 		dda->c = (move_duration / startpoint.F) << 8;
+		if (dda->c < c_limit)
+			dda->c = c_limit;
+		dda->end_c = (move_duration / target->F) << 8;
+		if (dda->end_c < c_limit)
+			dda->end_c = c_limit;
 
 		if (debug_flags & DEBUG_DDA) {
 			serial_writestr_P(PSTR(",md:")); serwrite_uint32(move_duration);
 			serial_writestr_P(PSTR(",c:")); serwrite_uint32(dda->c >> 8);
 		}
 
-		if (startpoint.F != target->F) {
+		if (dda->c != dda->end_c) {
 			uint32_t stF = startpoint.F / 4;
 			uint32_t enF = target->F / 4;
 			// now some constant acceleration stuff, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
@@ -219,7 +240,6 @@ void dda_create(DDA *dda, TARGET *target) {
 			uint8_t msb_ssq = msbloc(ssq);
 			uint8_t msb_tot = msbloc(dda->total_steps);
 
-			dda->end_c = (move_duration / target->F) << 8;
 			// the raw equation WILL overflow at high step rates, but 64 bit math routines take waay too much space
 			// at 65536 mm/min (1092mm/s), ssq/esq overflows, and dsq is also close to overflowing if esq/ssq is small
 			// but if ssq-esq is small, ssq/dsq is only a few bits
@@ -252,15 +272,20 @@ void dda_create(DDA *dda, TARGET *target) {
 		else
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
-			dda->ramp_steps = dda->total_steps / 2;
+			// add the last bit of dda->total_steps to always round up
+			dda->ramp_steps = dda->total_steps / 2 + (dda->total_steps & 1);
 			dda->step_no = 0;
 			// c is initial step time in IOclk ticks
 			dda->c = ACCELERATION_STEEPNESS << 8;
 			dda->c_min = (move_duration / target->F) << 8;
+			if (dda->c_min < c_limit)
+				dda->c_min = c_limit;
 			dda->n = 1;
 			dda->ramp_state = RAMP_UP;
 		#else
 			dda->c = (move_duration / target->F) << 8;
+			if (dda->c < c_limit)
+				dda->c = c_limit;
 		#endif
 	}
 

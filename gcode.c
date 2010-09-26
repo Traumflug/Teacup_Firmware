@@ -271,6 +271,14 @@ void scan_char(uint8_t c) {
 				if (read_digit.exponent == 0)
 					read_digit.exponent = 1;
 				break;
+			#ifdef	DEBUG
+			case ' ':
+			case '\t':
+			case 10:
+			case 13:
+				// ignore
+				break;
+			#endif
 
 			default:
 				// can't do ranges in switch..case, so process actual digits here
@@ -280,7 +288,14 @@ void scan_char(uint8_t c) {
 					if (read_digit.exponent)
 						read_digit.exponent++;
 				}
-				// everything else is ignored
+				#ifdef	DEBUG
+				else {
+					// invalid
+					serial_writechar('?');
+					serial_writechar(c);
+					serial_writechar('?');
+				}
+				#endif
 		}
 	} else if ( next_target.seen_parens_comment == 1 && c == ')')
 		next_target.seen_parens_comment = 0; // recognize stuff after a (comment)
@@ -311,15 +326,8 @@ void scan_char(uint8_t c) {
 				#endif
 				) {
 				// process
-				if (next_target.seen_G || next_target.seen_M) {
-					process_gcode_command(&next_target);
-
-					serial_writestr_P(PSTR("ok\n"));
-				}
-				else {
-					// write "OK" for invalid/unknown commands as well
-					serial_writestr_P(PSTR("ok huh?\n"));
-				}
+				process_gcode_command(&next_target);
+				serial_writestr_P(PSTR("ok\n"));
 
 				// expect next line number
 				if (next_target.seen_N == 1)
@@ -341,13 +349,16 @@ void scan_char(uint8_t c) {
 
 		// reset variables
 		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
-			next_target.seen_E = next_target.seen_F = next_target.seen_G = \
-			next_target.seen_S = next_target.seen_P = next_target.seen_N = \
-			next_target.seen_M = next_target.seen_checksum = \
-			next_target.seen_semi_comment = next_target.seen_parens_comment = \
-			next_target.checksum_read = next_target.checksum_calculated = 0;
+			next_target.seen_E = next_target.seen_F = next_target.seen_S = \
+			next_target.seen_P = next_target.seen_N = next_target.seen_M = \
+			next_target.seen_checksum = next_target.seen_semi_comment = \
+			next_target.seen_parens_comment = next_target.checksum_read = \
+			next_target.checksum_calculated = 0;
 		last_field = 0;
 		read_digit.sign = read_digit.mantissa = read_digit.exponent = 0;
+		// assume a G1 by default
+		next_target.seen_G = 1;
+		next_target.G = 1;
 	}
 }
 
@@ -393,14 +404,6 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 
 			//	G1 - synchronised motion
 			case 1:
-				// check speeds here
-				if (gcmd->seen_Z) {
-					if (gcmd->target.F > MAXIMUM_FEEDRATE_Z)
-						gcmd->target.F = MAXIMUM_FEEDRATE_Z;
-				}
-				else if (gcmd->target.F > MAXIMUM_FEEDRATE_X)
-					gcmd->target.F = MAXIMUM_FEEDRATE_X;
-				
 				enqueue(&gcmd->target);
 				break;
 

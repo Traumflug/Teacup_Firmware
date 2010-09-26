@@ -108,7 +108,7 @@ void init(void) {
 	wd_reset();
 
 	// say hi to host
-	serial_writestr_P(PSTR("Start\nOK\n"));
+	serial_writestr_P(PSTR("Start\nok\n"));
 
 }
 
