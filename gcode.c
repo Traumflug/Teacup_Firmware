@@ -533,7 +533,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			// M101- extruder on
 			case 101:
 				if (temp_achieved() == 0) {
-					enqueue_temp_wait();
+					enqueue(NULL);
 				}
 				do {
 					// backup feedrate, move E very quickly then restore feedrate
@@ -595,7 +595,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				else {
 					disable_heater();
 				}
-				enqueue_temp_wait();
+				enqueue(NULL);
 				break;
 
 			// M110- set line number
