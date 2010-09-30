@@ -373,6 +373,8 @@ void scan_char(uint8_t c) {
 ****************************************************************************/
 
 void process_gcode_command(GCODE_COMMAND *gcmd) {
+	uint32_t	backup_f;
+
 	// convert relative to absolute
 	if (gcmd->option_relative) {
 		gcmd->target.X += startpoint.X;
@@ -390,8 +392,10 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			// 	G0 - rapid, unsynchronised motion
 			// since it would be a major hassle to force the dda to not synchronise, just provide a fast feedrate and hope it's close enough to what host expects
 			case 0:
+				backup_f = gcmd->target.F;
 				gcmd->target.F = MAXIMUM_FEEDRATE_X;
 				enqueue(&gcmd->target);
+				gcmd->target.F = backup_f;
 				break;
 
 			//	G1 - synchronised motion
@@ -529,10 +533,10 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				}
 				do {
 					// backup feedrate, move E very quickly then restore feedrate
-					uint32_t	f = startpoint.F;
+					backup_f = startpoint.F;
 					startpoint.F = MAXIMUM_FEEDRATE_E;
 					SpecialMoveE(E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
-					startpoint.F = f;
+					startpoint.F = backup_f;
 				} while (0);
 				break;
 
@@ -542,10 +546,10 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			case 103:
 				do {
 					// backup feedrate, move E very quickly then restore feedrate
-					uint32_t	f = startpoint.F;
+					backup_f = startpoint.F;
 					startpoint.F = MAXIMUM_FEEDRATE_E;
 					SpecialMoveE(-E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
-					startpoint.F = f;
+					startpoint.F = backup_f;
 				} while (0);
 				break;
 
