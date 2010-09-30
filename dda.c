@@ -307,6 +307,7 @@ void dda_start(DDA *dda) {
 	if (dda->nullmove) {
 		// just change speed?
 		current_position.F = dda->endpoint.F;
+		// keep dda->live = 0
 	}
 	else {
 		if (dda->waitfor_temp) {
@@ -326,10 +327,10 @@ void dda_start(DDA *dda) {
 
 		// ensure this dda starts
 		dda->live = 1;
-	}
 
-	// set timeout for first step
-	setTimer(dda->c >> 8);
+		// set timeout for first step
+		setTimer(dda->c >> 8);
+	}
 }
 
 /*
