@@ -359,6 +359,10 @@ void scan_char(uint8_t c) {
 		// assume a G1 by default
 		next_target.seen_G = 1;
 		next_target.G = 1;
+		if (next_target.option_relative) {
+			next_target.target.X = next_target.target.Y = next_target.target.Z = 0;
+			next_target.target.E = 0;
+		}
 	}
 }
 
@@ -380,18 +384,6 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 	// easier way to do this
 // 	startpoint.E = 0;
 	// moved to dda.c, end of dda_create() and dda_queue.c, next_move()
-
-	// explicitly make unseen values equal to startpoint, otherwise relative position mode gets messy
-	if (gcmd->seen_X == 0)
-		gcmd->target.X = startpoint.X;
-	if (gcmd->seen_Y == 0)
-		gcmd->target.Y = startpoint.Y;
-	if (gcmd->seen_Z == 0)
-		gcmd->target.Z = startpoint.Z;
-	if (gcmd->seen_E == 0)
-		gcmd->target.E = startpoint.E;
-	if (gcmd->seen_F == 0)
-		gcmd->target.F = startpoint.F;
 
 	if (gcmd->seen_G) {
 		switch (gcmd->G) {
