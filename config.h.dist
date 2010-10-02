@@ -93,6 +93,11 @@ firmware build options
 #define	MOVEBUFFER_SIZE	8
 
 /*
+	FiveD on Arduino implements a watchdog, which has to be reset every 250ms or it will reboot the controller. As rebooting (and letting the GCode sending application trying to continue the build with a then different Home point) is probably even worse than just hanging, and there is no better restore code in place, this is disabled for now.
+*/
+// #define USE_WATCHDOG
+
+/*
 	analog subsystem stuff
 	REFERENCE - which analog reference to use. see analog.h for choices
 	ANALOG_MASK - which analog inputs we will be using, bitmask. eg; #define ANALOG_MASK	MASK(AIO0_PIN) | MASK(3) for AIN0 and AIN3

@@ -1,4 +1,7 @@
+
 #include	"watchdog.h"
+
+#ifdef USE_WATCHDOG
 
 #include	<avr/wdt.h>
 #include	<avr/interrupt.h>
@@ -40,3 +43,5 @@ void wd_reset() {
 		wd_flag &= ~1;
 	}
 }
+
+#endif /* USE_WATCHDOG */
