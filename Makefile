@@ -78,9 +78,9 @@ OBJ = $(patsubst %.c,%.o,${SOURCES})
 .PHONY: all program clean size
 .PRECIOUS: %.o %.elf
 
-all: $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
+all: config.h $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
 
-program: $(PROGRAM).hex
+program: config.h $(PROGRAM).hex
 	stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
 	@sleep 0.1
 	@stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
@@ -95,6 +95,10 @@ size: $(PROGRAM).elf
 	@$(OBJDUMP) -h $^ | perl -ne '/.(text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    FLASH : %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, $$a * 100 / (14 * 1024), 14, $$a * 100 / (30 * 1024), 30 }'
 	@$(OBJDUMP) -h $^ | perl -ne '/.(data|bss)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    RAM   : %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, $$a * 100 / (1 * 1024), 1, $$a * 100 / (2 * 1024), 2 }'
 	@$(OBJDUMP) -h $^ | perl -ne '/.(eeprom)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    EEPROM: %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, $$a * 100 / (1 * 1024), 1, $$a * 100 / (2 * 1024), 2 }'
+
+config.h: config.h.dist
+	@echo "Please review config.h, as config.h.dist is more recent."
+	@false
 
 %.o: %.c
 	@echo "  CC        $@"
