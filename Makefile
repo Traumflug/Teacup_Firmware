@@ -84,7 +84,7 @@ program: config.h $(PROGRAM).hex
 	stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
 	@sleep 0.1
 	@stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
-	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U flash:w:$^
+	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U flash:w:$(PROGRAM).hex
 	stty 115200 raw ignbrk -hup -echo ixoff < $(PROGPORT)
 
 clean:
