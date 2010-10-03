@@ -108,8 +108,9 @@ void next_move() {
 	}
 
 	#ifdef	XONXOFF
-	// restart transmission
-	xon();
+	// restart transmission if the move buffer is only half full
+	if (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) > (MOVEBUFFER_SIZE / 2))
+		xon();
 	#endif
 }
 
