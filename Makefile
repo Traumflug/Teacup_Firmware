@@ -100,9 +100,9 @@ config.h: config.h.dist
 	@echo "Please review config.h, as config.h.dist is more recent."
 	@false
 
-%.o: %.c
+%.o: %.c config.h
 	@echo "  CC        $@"
-	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(<:.c=.al) -o $@ $^
+	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(<:.c=.al) -o $@ $(subst .o,.c,$@)
 
 %.elf: $(OBJ)
 	@echo "  LINK      $@"
