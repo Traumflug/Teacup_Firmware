@@ -2,12 +2,8 @@
 
 #include	<avr/interrupt.h>
 
-#include	"config.h"
 #include	"dda_queue.h"
-#include	"dda.h"
 #include	"watchdog.h"
-#include	"temp.h"
-#include	"serial.h"
 
 ISR(TIMER1_COMPA_vect) {
 	WRITE(SCK, 1);
