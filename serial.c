@@ -82,6 +82,12 @@ ISR(USART0_RX_vect)
 {
 	if (buf_canwrite(rx))
 		buf_push(rx, UDR0);
+	else {
+		uint8_t trash;
+
+		// not reading the character makes the interrupt logic to swamp us with retries, so better read it and throw it away
+		trash = UDR0;
+	}
 }
 
 #ifdef	USART_UDRE_vect
