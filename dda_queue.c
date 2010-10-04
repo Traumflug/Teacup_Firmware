@@ -46,8 +46,6 @@ void queue_step() {
 		}
 	}
 
-// 	serial_writechar('!');
-
 	// fall directly into dda_start instead of waiting for another step
 	// the dda dies not directly after its last step, but when the timer fires and there's no steps to do
 	if (movebuffer[mb_tail].live == 0)
