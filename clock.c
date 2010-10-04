@@ -27,6 +27,13 @@ void clock_setup() {
 
 	// no compare match, CTC mode
 	TCCR2A = MASK(WGM21);
+	// TODO: Timer 2 has higher priority than Timer 1 used for the stepper
+	//       interrupts, which is bad. See AVR Reference Manual p. 9:
+	//          "The interrupts have priority in accordance
+	//           with their Interrupt Vector position. The
+	//           lower the Interrupt Vector address, the higher
+	//           the priority."
+	//       in conjunction with p. 63 (interrupt vector table).
 
 	// 128 prescaler (16MHz / 128 = 125KHz)
 	TCCR2B = MASK(CS22) | MASK(CS20);
