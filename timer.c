@@ -21,9 +21,6 @@ void setupTimerInterrupt()
 	TCCR1B = MASK(WGM12);
 	// no interrupts yet
 	TIMSK1 = 0;
-
-	//start off with a slow frequency.
-	setTimer(F_CPU / 100);
 }
 
 // the following are all from reprap project 5D firmware with some modification to reduce redundancy

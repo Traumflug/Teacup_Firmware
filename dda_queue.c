@@ -26,10 +26,7 @@ uint8_t queue_empty() {
 // It calls a few other functions, though.
 // -------------------------------------------------------
 void queue_step() {
-	disableTimerInterrupt();
-
 	// do our next step
-	// NOTE: dda_step makes this interrupt interruptible after steps have been sent but before new speed is calculated.
 	if (movebuffer[mb_tail].live) {
 		if (movebuffer[mb_tail].waitfor_temp) {
 			if (temp_achieved()) {
@@ -42,6 +39,7 @@ void queue_step() {
 			#endif
 		}
 		else {
+			// NOTE: dda_step makes this interrupt interruptible after steps have been sent but before new speed is calculated.
 			dda_step(&(movebuffer[mb_tail]));
 		}
 	}
@@ -50,13 +48,6 @@ void queue_step() {
 	// the dda dies not directly after its last step, but when the timer fires and there's no steps to do
 	if (movebuffer[mb_tail].live == 0)
 		next_move();
-
-	#if STEP_INTERRUPT_INTERRUPTIBLE
-		cli();
-	#endif
-	// check queue, if empty we don't need to interrupt again until re-enabled in dda_create
-	if (queue_empty() == 0)
-		enableTimerInterrupt();
 }
 
 void enqueue(TARGET *t) {
@@ -93,9 +84,11 @@ void enqueue(TARGET *t) {
 	#endif
 
 	// fire up in case we're not running yet
-	enableTimerInterrupt();
+	if (TIMSK1 == 0)
+		next_move();
 }
 
+// sometimes called from normal program execution, sometimes from interrupt context
 void next_move() {
 	if (queue_empty() == 0) {
 		// next item
@@ -104,6 +97,8 @@ void next_move() {
 		dda_start(&movebuffer[t]);
 		mb_tail = t;
 	}
+	else
+		disableTimerInterrupt();
 
 	#ifdef	XONXOFF
 	// restart transmission if the move buffer is only half full
