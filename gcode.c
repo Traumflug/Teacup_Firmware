@@ -411,17 +411,11 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 
 			//	G4 - Dwell
 			case 4:
-				#ifdef	XONXOFF
-				xoff();
-				#endif
 				// wait for all moves to complete
 				for (;queue_empty() == 0;)
 					wd_reset();
 				// delay
 				delay_ms(gcmd->P);
-				#ifdef	XONXOFF
-				xon();
-				#endif
 				break;
 
 			//	G20 - inches as units

@@ -3,7 +3,7 @@
 #include	<string.h>
 #include	<avr/interrupt.h>
 
-#include	"config.h" // for XONXOFF
+#include	"config.h"
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"
@@ -76,13 +76,6 @@ void enqueue(TARGET *t) {
 
 	mb_head = h;
 
-	#ifdef	XONXOFF
-	// If the queue has only two slots remaining, stop transmission. More
-	// characters might come in until the stop takes effect.
-	if (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) < (MOVEBUFFER_SIZE - 2))
-		xoff();
-	#endif
-
 	// fire up in case we're not running yet
 	if (timerInterruptIsEnabled() == 0)
 		next_move();
@@ -99,12 +92,6 @@ void next_move() {
 	}
 	else
 		disableTimerInterrupt();
-
-	#ifdef	XONXOFF
-	// restart transmission if the move buffer is only half full
-	if (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) > (MOVEBUFFER_SIZE / 2))
-		xon();
-	#endif
 }
 
 void print_queue() {

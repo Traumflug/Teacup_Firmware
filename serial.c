@@ -2,6 +2,7 @@
 
 #include	<avr/interrupt.h>
 
+#include	"config.h" // for XONXOFF
 #include	"arduino.h"
 
 #define		BUFSIZE			64
@@ -94,6 +95,7 @@ ISR(USART0_RX_vect)
 		// the buffer has only 16 free characters left, so send an XOFF
 		// more characters might come in until the XOFF takes effect
 		flowflags = FLOWFLAG_SEND_XOFF | FLOWFLAG_STATE_XON;
+		// enable TX interrupt so we can send this character
 		UCSR0B |= MASK(UDRIE0);
 	}
 	#endif
@@ -214,29 +216,3 @@ void serial_writestr_P(PGM_P data)
 	while ((r = pgm_read_byte(&data[i++])))
 		serial_writechar(r);
 }
-
-#ifdef	XONXOFF
-void xon() {
-	// disable TX interrupt
-	UCSR0B &= ~MASK(UDRIE0);
-
-	if ((flowflags & FLOWFLAG_STATE_XON) == 0)
-		flowflags = FLOWFLAG_SEND_XON;
-	else
-		flowflags = FLOWFLAG_STATE_XON;	// purge a possible FLOWFLAG_SEND_XOFF
-
-	// enable TX interrupt so we can send this character
-	UCSR0B |= MASK(UDRIE0);
-}
-
-void xoff() {
-	UCSR0B &= ~MASK(UDRIE0);
-
-	if (flowflags & FLOWFLAG_STATE_XON)
-		flowflags = FLOWFLAG_SEND_XOFF | FLOWFLAG_STATE_XON;
-	else
-		flowflags = 0;
-
-	UCSR0B |= MASK(UDRIE0);
-}
-#endif

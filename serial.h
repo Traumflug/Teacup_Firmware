@@ -5,8 +5,6 @@
 #include	<avr/io.h>
 #include	<avr/pgmspace.h>
 
-#include	"config.h" // for XONXOFF
-
 // initialise serial subsystem
 void serial_init(void);
 
@@ -28,11 +26,5 @@ void serial_writestr(uint8_t *data);
 // write from flash
 void serial_writeblock_P(PGM_P data, int datalen);
 void serial_writestr_P(PGM_P data);
-
-#ifdef	XONXOFF
-// XON/XOFF flow control
-void xon(void);
-void xoff(void);
-#endif
 
 #endif	/* _SERIAL_H */
