@@ -88,6 +88,15 @@ ISR(USART0_RX_vect)
 		// not reading the character makes the interrupt logic to swamp us with retries, so better read it and throw it away
 		trash = UDR0;
 	}
+
+	#ifdef	XONXOFF
+	if (flowflags & FLOWFLAG_STATE_XON && buf_canread(rx) >= BUFSIZE - 16) {
+		// the buffer has only 16 free characters left, so send an XOFF
+		// more characters might come in until the XOFF takes effect
+		flowflags = FLOWFLAG_SEND_XOFF | FLOWFLAG_STATE_XON;
+		UCSR0B |= MASK(UDRIE0);
+	}
+	#endif
 }
 
 #ifdef	USART_UDRE_vect
@@ -125,9 +134,19 @@ uint8_t serial_rxchars()
 uint8_t serial_popchar()
 {
 	uint8_t c = 0;
+
 	// it's imperative that we check, because if the buffer is empty and we pop, we'll go through the whole buffer again
 	if (buf_canread(rx))
 		buf_pop(rx, c);
+
+	#ifdef	XONXOFF
+	if ((flowflags & FLOWFLAG_STATE_XON) == 0 && buf_canread(rx) <= 16) {
+		// the buffer has (BUFSIZE - 16) free characters again, so send an XON
+		flowflags = FLOWFLAG_SEND_XON;
+		UCSR0B |= MASK(UDRIE0);
+	}
+	#endif
+
 	return c;
 }
 
