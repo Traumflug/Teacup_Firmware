@@ -84,7 +84,7 @@ void enqueue(TARGET *t) {
 	#endif
 
 	// fire up in case we're not running yet
-	if (TIMSK1 == 0)
+	if (timerInterruptIsEnabled() == 0)
 		next_move();
 }
 

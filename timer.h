@@ -30,5 +30,6 @@ void delayMicrosecondsInterruptible(unsigned int us);
 
 #define enableTimerInterrupt()	do { TIMSK1 |= (1<<OCIE1A); } while (0)
 #define disableTimerInterrupt() do { TIMSK1 &= ~(1<<OCIE1A); } while (0)
+#define timerInterruptIsEnabled() (TIMSK1 & (1 << OCIE1A))
 
 #endif	/* _TIMER_H */
