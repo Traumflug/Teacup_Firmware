@@ -80,11 +80,11 @@ OBJ = $(patsubst %.c,%.o,${SOURCES})
 
 all: config.h $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
 
-program: config.h $(PROGRAM).hex
+program: $(PROGRAM).hex config.h
 	stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
 	@sleep 0.1
 	@stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
-	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U flash:w:$(PROGRAM).hex
+	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U flash:w:$^
 	stty 115200 raw ignbrk -hup -echo ixoff < $(PROGPORT)
 
 clean:
