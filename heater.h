@@ -2,7 +2,6 @@
 #define	_HEATER_H
 
 #include	"config.h"
-#include	<stdint.h>
 
 #ifdef	HEATER_PWM
 	#define	enable_heater()			do { TCCR0A |=  MASK(COM0A1); } while (0)

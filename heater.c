@@ -3,9 +3,7 @@
 #include	<avr/eeprom.h>
 
 #include	"sersendf.h"
-#include	"config.h"
 #include	"debug.h"
-#include	"arduino.h"
 
 int16_t		heater_p     = 0;
 int16_t		heater_i     = 0;
