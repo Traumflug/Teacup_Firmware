@@ -26,7 +26,6 @@ extern int16_t i_limit;
 void heater_init(void);
 void heater_save_settings(void);
 void heater_tick(int16_t current_temp, int16_t target_temp);
-uint8_t	temp_achieved(void);
 
 #else	/* HEATER_PIN */
 
