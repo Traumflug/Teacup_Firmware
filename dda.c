@@ -68,6 +68,14 @@
 #define unstep() 							do { _x_step(0); _y_step(0); _z_step(0); _e_step(0); } while (0)
 
 /*
+	Used in distance calculation during DDA setup
+*/
+#define	UM_PER_STEP_X		((uint32_t) ((1000.0 / STEPS_PER_MM_X) + 0.5))
+#define	UM_PER_STEP_Y		((uint32_t) ((1000.0 / STEPS_PER_MM_Y) + 0.5))
+#define	UM_PER_STEP_Z		((uint32_t) ((1000.0 / STEPS_PER_MM_Z) + 0.5))
+#define	UM_PER_STEP_E		((uint32_t) ((1000.0 / STEPS_PER_MM_E) + 0.5))
+
+/*
 	Maths
 */
 
