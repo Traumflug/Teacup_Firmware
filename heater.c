@@ -1,5 +1,7 @@
 #include	"heater.h"
 
+#ifdef HEATER_PIN
+
 #include	<avr/eeprom.h>
 
 #include	"sersendf.h"
@@ -101,3 +103,5 @@ void heater_tick(int16_t current_temp, int16_t target_temp) {
 		disable_heater();
 	#endif
 }
+
+#endif	/* HEATER_PIN */

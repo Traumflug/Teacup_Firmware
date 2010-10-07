@@ -171,6 +171,7 @@
 // OC2A												DIO11
 // OC2B												DIO3
 
+// comment out the ones you don't have
 #define	HEATER_PIN						DIO6
 #define	HEATER_PWM						OCR0A
 

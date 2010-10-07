@@ -176,9 +176,11 @@ void scan_char(uint8_t c) {
 					// but it takes less code, less memory and loses no precision if we do it here instead
 					if ((next_target.M == 104) || (next_target.M == 109))
 						next_target.S = decfloat_to_int(&read_digit, 4, 1);
+					#ifdef	HEATER_PIN
 					// if this is heater PID stuff, multiply by PID_SCALE because we divide by PID_SCALE later on
 					else if ((next_target.M >= 130) && (next_target.M <= 132))
 						next_target.S = decfloat_to_int(&read_digit, PID_SCALE, 1);
+					#endif
 					else
 						next_target.S = decfloat_to_int(&read_digit, 1, 1);
 					if (debug_flags & DEBUG_ECHO)
@@ -617,6 +619,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				sersendf_P("X:%ld,Y:%ld,Z:%ld,E:%ld,F:%ld\n", current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
 			 	break;
 
+			#ifdef	HEATER_PIN
 			// M130- heater P factor
 			case 130:
 				if (gcmd->seen_S)
@@ -641,6 +644,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			case 134:
 				heater_save_settings();
 				break;
+			#endif	/* HEATER_PIN */
 
 			#ifdef	DEBUG
 			// M140- echo off
