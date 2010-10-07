@@ -180,12 +180,6 @@
 // --------------------------------------------------------------------------
 // you shouldn't need to edit anything below this line
 
-// same as above with 25.4 scale factor
-#define	STEPS_PER_IN_X		((uint32_t) ((25.4 * STEPS_PER_MM_X) + 0.5))
-#define	STEPS_PER_IN_Y		((uint32_t) ((25.4 * STEPS_PER_MM_Y) + 0.5))
-#define	STEPS_PER_IN_Z		((uint32_t) ((25.4 * STEPS_PER_MM_Z) + 0.5))
-#define	STEPS_PER_IN_E		((uint32_t) ((25.4 * STEPS_PER_MM_E) + 0.5))
-
 // inverse, used in distance calculation during DDA setup
 #define	UM_PER_STEP_X		((uint32_t) ((1000.0 / STEPS_PER_MM_X) + 0.5))
 #define	UM_PER_STEP_Y		((uint32_t) ((1000.0 / STEPS_PER_MM_Y) + 0.5))

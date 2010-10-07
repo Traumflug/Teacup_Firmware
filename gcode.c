@@ -15,6 +15,14 @@
 #include	"heater.h"
 #include	"sersendf.h"
 
+/*
+	mm -> inch conversion
+*/
+#define	STEPS_PER_IN_X		((uint32_t) ((25.4 * STEPS_PER_MM_X) + 0.5))
+#define	STEPS_PER_IN_Y		((uint32_t) ((25.4 * STEPS_PER_MM_Y) + 0.5))
+#define	STEPS_PER_IN_Z		((uint32_t) ((25.4 * STEPS_PER_MM_Z) + 0.5))
+#define	STEPS_PER_IN_E		((uint32_t) ((25.4 * STEPS_PER_MM_E) + 0.5))
+
 uint8_t last_field = 0;
 
 #define crc(a, b)		(a ^ b)
