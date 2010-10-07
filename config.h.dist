@@ -1,40 +1,45 @@
 #ifndef	_CONFIG_H
 #define	_CONFIG_H
 
-// --------------------------------------------------------------------------
-// values reflecting the gearing of your machine
-// all numbers are integers, so no decimals, please :-)
+/*
+	Values reflecting the gearing of your machine.
+		All numbers are integers, so no decimals, please :-)
+*/
 
 // calculate these values appropriate for your machine
-#define	STEPS_PER_MM_X		320
-#define	STEPS_PER_MM_Y		320
-#define	STEPS_PER_MM_Z		320
+// for threaded rods, this is (steps motor per turn) / (pitch of the thread)
+// for belts, this is (steps per motor turn) / (number of gear teeth) / (belt module)
+// half-stepping doubles the number, quarter stepping requires * 4, etc.
+#define	STEPS_PER_MM_X				320
+#define	STEPS_PER_MM_Y				320
+#define	STEPS_PER_MM_Z				320
 
 // http://blog.arcol.hu/?p=157 may help with this next one
-#define	STEPS_PER_MM_E		320
+#define	STEPS_PER_MM_E				320
 
-// this is how many steps to suck back the filament by when we stop
-#define	E_STARTSTOP_STEPS	20
-
-// --------------------------------------------------------------------------
-// values depending on the capabilities of your stepper motors and other mechanics
-// again, all numbers are integers
+/*
+	Values depending on the capabilities of your stepper motors and other mechanics.
+		All numbers are integers, no decimals allowed.
+*/
 
 // used for G0 rapid moves and as a cap for all other feedrates
-#define	MAXIMUM_FEEDRATE_X	200
-#define	MAXIMUM_FEEDRATE_Y	200
-#define	MAXIMUM_FEEDRATE_Z	200
-#define	MAXIMUM_FEEDRATE_E	200
+#define	MAXIMUM_FEEDRATE_X		200
+#define	MAXIMUM_FEEDRATE_Y		200
+#define	MAXIMUM_FEEDRATE_Z		100
+#define	MAXIMUM_FEEDRATE_E		200
 
-// used when searching endstops and similar
-#define	SEARCH_FEEDRATE_X	50
-#define	SEARCH_FEEDRATE_Y	50
-#define	SEARCH_FEEDRATE_Z	50
-#define	SEARCH_FEEDRATE_E	50
+// used when searching endstops and as default feedrate
+#define	SEARCH_FEEDRATE_X			50
+#define	SEARCH_FEEDRATE_Y			50
+#define	SEARCH_FEEDRATE_Z			50
+#define	SEARCH_FEEDRATE_E			50
 
 // extruder settings
-#define	TEMP_HYSTERESIS		20
-#define	TEMP_RESIDENCY_TIME	60
+#define	TEMP_HYSTERESIS				20
+#define	TEMP_RESIDENCY_TIME		60
+
+// this is how many steps to suck back the filament by when we stop
+#define	E_STARTSTOP_STEPS			20
 
 /*
 	acceleration, reprap style.
@@ -71,7 +76,7 @@
 #define	ANALOG_MASK				MASK(TEMP_PIN_CHANNEL)
 
 /*
-firmware build options
+	Firmware build options
 */
 
 // this option makes the step interrupt interruptible.
@@ -110,6 +115,10 @@ firmware build options
 
 /*
 	Machine Pin Definitions
+
+	- make sure to avoid duplicate usage of a pin
+
+	- comment out pins not in use, as this drops the corresponding code and makes operations faster
 */
 
 #include	"arduino.h"
