@@ -19,10 +19,10 @@
 
 #define		_READ(IO)					(IO ## _RPORT & MASK(IO ## _PIN))
 #define		_WRITE(IO, v)			do { if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } else { IO ## _WPORT &= ~MASK(IO ## _PIN); }; } while (0)
-#define		_TOGGLE(IO)				(IO ## _RPORT = MASK(IO ## _PIN))
+#define		_TOGGLE(IO)				do { IO ## _RPORT = MASK(IO ## _PIN) } while (0)
 
-#define		_SET_INPUT(IO)		(IO ## _DDR &= ~MASK(IO ## _PIN))
-#define		_SET_OUTPUT(IO)		(IO ## _DDR |=  MASK(IO ## _PIN))
+#define		_SET_INPUT(IO)		do { IO ## _DDR &= ~MASK(IO ## _PIN) } while (0)
+#define		_SET_OUTPUT(IO)		do { IO ## _DDR |=  MASK(IO ## _PIN) } while (0)
 
 #define		_GET_INPUT(IO)		((IO ## _DDR & MASK(IO ## _PIN)) == 0)
 #define		_GET_OUTPUT(IO)		((IO ## _DDR & MASK(IO ## _PIN)) != 0)
@@ -394,15 +394,15 @@
 	#define AIO5_WPORT	PORTA
 	#define AIO5_DDR		DDRA
 
-	#define AIO6_PIN		PINA5
-	#define AIO5_RPORT	PINA
-	#define AIO5_WPORT	PORTA
-	#define AIO5_DDR		DDRA
+	#define AIO6_PIN		PINA6
+	#define AIO6_RPORT	PINA
+	#define AIO6_WPORT	PORTA
+	#define AIO6_DDR		DDRA
 
-	#define AIO7_PIN		PINA5
-	#define AIO5_RPORT	PINA
-	#define AIO5_WPORT	PORTA
-	#define AIO5_DDR		DDRA
+	#define AIO7_PIN		PINA7
+	#define AIO7_RPORT	PINA
+	#define AIO7_WPORT	PORTA
+	#define AIO7_DDR		DDRA
 #endif
 
 #if defined (__AVR_ATmega1280__)
