@@ -19,10 +19,10 @@
 
 #define		_READ(IO)					(IO ## _RPORT & MASK(IO ## _PIN))
 #define		_WRITE(IO, v)			do { if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } else { IO ## _WPORT &= ~MASK(IO ## _PIN); }; } while (0)
-#define		_TOGGLE(IO)				(IO ## _RPORT = MASK(IO ## _PIN))
+#define		_TOGGLE(IO)				do { IO ## _RPORT = MASK(IO ## _PIN) } while (0)
 
-#define		_SET_INPUT(IO)		(IO ## _DDR &= ~MASK(IO ## _PIN))
-#define		_SET_OUTPUT(IO)		(IO ## _DDR |=  MASK(IO ## _PIN))
+#define		_SET_INPUT(IO)		do { IO ## _DDR &= ~MASK(IO ## _PIN) } while (0)
+#define		_SET_OUTPUT(IO)		do { IO ## _DDR |=  MASK(IO ## _PIN) } while (0)
 
 #define		_GET_INPUT(IO)		((IO ## _DDR & MASK(IO ## _PIN)) == 0)
 #define		_GET_OUTPUT(IO)		((IO ## _DDR & MASK(IO ## _PIN)) != 0)
