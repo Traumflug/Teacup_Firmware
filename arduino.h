@@ -394,15 +394,15 @@
 	#define AIO5_WPORT	PORTA
 	#define AIO5_DDR		DDRA
 
-	#define AIO6_PIN		PINA5
-	#define AIO5_RPORT	PINA
-	#define AIO5_WPORT	PORTA
-	#define AIO5_DDR		DDRA
+	#define AIO6_PIN		PINA6
+	#define AIO6_RPORT	PINA
+	#define AIO6_WPORT	PORTA
+	#define AIO6_DDR		DDRA
 
-	#define AIO7_PIN		PINA5
-	#define AIO5_RPORT	PINA
-	#define AIO5_WPORT	PORTA
-	#define AIO5_DDR		DDRA
+	#define AIO7_PIN		PINA7
+	#define AIO7_RPORT	PINA
+	#define AIO7_WPORT	PORTA
+	#define AIO7_DDR		DDRA
 #endif
 
 #if defined (__AVR_ATmega1280__)
