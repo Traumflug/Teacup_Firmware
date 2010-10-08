@@ -6,8 +6,8 @@
 #ifdef HEATER_PIN
 
 #ifdef	HEATER_PWM
-	#define	enable_heater()			{ TCCR0A |=  MASK(COM0A1); }
-	#define	disable_heater()		{ TCCR0A &= ~MASK(COM0A1); }
+	#define	enable_heater()			do { TCCR0A |=  MASK(COM0A1); } while (0)
+	#define	disable_heater()		do { TCCR0A &= ~MASK(COM0A1); } while (0)
 #else
 	#define	enable_heater()			WRITE(HEATER_PIN, 1)
 	#define	disable_heater()		WRITE(HEATER_PIN, 0)
