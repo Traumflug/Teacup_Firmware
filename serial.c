@@ -48,6 +48,7 @@ volatile uint8_t txbuf[BUFSIZE];
 */
 
 #ifdef	XONXOFF
+#define		FLOWFLAG_STATE_XOFF	0
 #define		FLOWFLAG_SEND_XON		1
 #define		FLOWFLAG_SEND_XOFF	2
 #define		FLOWFLAG_STATE_XON	4
@@ -91,7 +92,7 @@ ISR(USART0_RX_vect)
 	}
 
 	#ifdef	XONXOFF
-	if (flowflags & FLOWFLAG_STATE_XON && buf_canread(rx) >= BUFSIZE - 16) {
+	if (flowflags & FLOWFLAG_STATE_XON && buf_canwrite(rx) <= 16) {
 		// the buffer has only 16 free characters left, so send an XOFF
 		// more characters might come in until the XOFF takes effect
 		flowflags = FLOWFLAG_SEND_XOFF | FLOWFLAG_STATE_XON;
@@ -114,7 +115,7 @@ ISR(USART0_UDRE_vect)
 	}
 	else if (flowflags & FLOWFLAG_SEND_XOFF) {
 		UDR0 = ASCII_XOFF;
-		flowflags = 0;
+		flowflags = FLOWFLAG_STATE_XOFF;
 	}
 	else
 	#endif
