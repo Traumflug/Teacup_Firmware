@@ -8,6 +8,7 @@
 #include	"serial.h"
 #include	"sermsg.h"
 #include	"temp.h"
+#include	"delay.h"
 
 uint8_t	mb_head = 0;
 uint8_t	mb_tail = 0;

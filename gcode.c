@@ -14,6 +14,7 @@
 #include	"debug.h"
 #include	"heater.h"
 #include	"sersendf.h"
+#include	"delay.h"
 
 /*
 	Switch user friendly values to coding friendly values
