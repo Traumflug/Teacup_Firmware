@@ -174,7 +174,7 @@
  *	list of PWM-able pins and corresponding timers
  *	timer1 is used for step timing so don't use OC1A/OC1B
  *	
- *	For Arudino Diecimila/Duemilanove/UNO
+ *	For Arduino Diecimila/Duemilanove/UNO
  *	Don't use OC1A/OC1B (DIO9/DIO10)
  *	
  *	OC0A												DIO6
