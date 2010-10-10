@@ -3,19 +3,19 @@
 
 /*
 	Values reflecting the gearing of your machine.
-		All numbers are integers, so no decimals, please :-)
+		All numbers are fixed point integers, so no more than 3 digits to the right of the decimal point, please :-)
 */
 
 // calculate these values appropriate for your machine
 // for threaded rods, this is (steps motor per turn) / (pitch of the thread)
 // for belts, this is (steps per motor turn) / (number of gear teeth) / (belt module)
 // half-stepping doubles the number, quarter stepping requires * 4, etc.
-#define	STEPS_PER_MM_X				320
-#define	STEPS_PER_MM_Y				320
-#define	STEPS_PER_MM_Z				320
+#define	STEPS_PER_MM_X				320.000
+#define	STEPS_PER_MM_Y				320.000
+#define	STEPS_PER_MM_Z				320.000
 
 // http://blog.arcol.hu/?p=157 may help with this next one
-#define	STEPS_PER_MM_E				320
+#define	STEPS_PER_MM_E				320.000
 
 /*
 	Values depending on the capabilities of your stepper motors and other mechanics.
