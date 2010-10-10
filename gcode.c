@@ -646,6 +646,26 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 				break;
 			#endif	/* HEATER_PIN */
 
+			// M190- power on
+			case 190:
+				power_on();
+				#ifdef	GEN3
+					WRITE(X_ENABLE_PIN, 0);
+					WRITE(Y_ENABLE_PIN, 0);
+					WRITE(Z_ENABLE_PIN, 0);
+					steptimeout = 0;
+				#endif
+				break;
+			// M191- power off
+			case 191:
+				#ifdef	GEN3
+					WRITE(X_ENABLE_PIN, 1);
+					WRITE(Y_ENABLE_PIN, 1);
+					WRITE(Z_ENABLE_PIN, 1);
+				#endif
+				power_off();
+				break;
+
 			#ifdef	DEBUG
 			// M140- echo off
 			case 140:
