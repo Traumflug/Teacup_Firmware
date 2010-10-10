@@ -669,18 +669,26 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 			// M190- power on
 			case 190:
 				power_on();
-				#ifdef	GEN3
+				#ifdef	X_ENABLE_PIN
 					WRITE(X_ENABLE_PIN, 0);
-					WRITE(Y_ENABLE_PIN, 0);
-					WRITE(Z_ENABLE_PIN, 0);
-					steptimeout = 0;
 				#endif
+				#ifdef	Y_ENABLE_PIN
+					WRITE(Y_ENABLE_PIN, 0);
+				#endif
+				#ifdef	Z_ENABLE_PIN
+					WRITE(Z_ENABLE_PIN, 0);
+				#endif
+				steptimeout = 0;
 				break;
 			// M191- power off
 			case 191:
-				#ifdef	GEN3
+				#ifdef	X_ENABLE_PIN
 					WRITE(X_ENABLE_PIN, 1);
+				#endif
+				#ifdef	Y_ENABLE_PIN
 					WRITE(Y_ENABLE_PIN, 1);
+				#endif
+				#ifdef	Z_ENABLE_PIN
 					WRITE(Z_ENABLE_PIN, 1);
 				#endif
 				power_off();
