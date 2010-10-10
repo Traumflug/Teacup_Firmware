@@ -133,7 +133,7 @@
 
 /*
 	these pins are used for the MAX6675
-	Arduino Mega has SPI on Diffrent pins
+	Arduino Mega has SPI on different pins
 */
 #if defined (__AVR_ATmega1280__)
 	#define	RESERVED_SCK					DIO52
