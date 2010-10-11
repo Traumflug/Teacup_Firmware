@@ -21,13 +21,6 @@ uint16_t getTimerCeiling(const uint32_t delay);
 
 void setTimer(uint32_t delay);
 
-void delay(uint32_t delay);
-
-void delay_ms(uint32_t delay);
-
-#define	delay_us(d) delayMicrosecondsInterruptible(d)
-void delayMicrosecondsInterruptible(unsigned int us);
-
 #define enableTimerInterrupt()	do { TIMSK1 |= (1<<OCIE1A); } while (0)
 #define disableTimerInterrupt() do { TIMSK1 &= ~(1<<OCIE1A); } while (0)
 #define timerInterruptIsEnabled() (TIMSK1 & (1 << OCIE1A))
