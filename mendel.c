@@ -135,9 +135,12 @@ void clock_250ms(void) {
 			// Queue
 			print_queue();
 		}
-		// temperature
-		if (temp_get_target())
-			temp_print();
+		
+		#ifndef	REPRAP_HOST_COMPATIBILITY
+			// temperature
+			if (temp_get_target())
+				temp_print();
+		#endif
 	}
 }
 
