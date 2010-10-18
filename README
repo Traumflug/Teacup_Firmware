@@ -101,6 +101,30 @@ The PID code in heater.c is probably quite generalisable, and seems to work well
 
 ##############################################################################
 #                                                                            #
+# Simulation                                                                 #
+#                                                                            #
+##############################################################################
+
+To compile the simulation code, use
+
+	$ make sim
+
+The simulation program will open a serial port for communication. If you don't want to connect a null modem cable, you can use 'socat' to connect a virtual serial port to your terminal:
+
+	$ socat -d -d PTY READLINE
+	2010/10/18 20:24:33 socat[3700] N PTY is /dev/pts/2
+	2010/10/18 20:24:33 socat[3700] N using readline on stdin for reading and stdio for writing
+	2010/10/18 20:24:33 socat[3700] N starting data transfer loop with FDs [3,3] and [0,0]
+
+On the first line of output, socat will tell you the name of the virtual serial port. Pass this as an argument to the simulation program (in another terminal):
+
+	$ ./sim /dev/pts/2
+
+Now you can send G-codes from the socat terminal. The simulation code will print any data sent via the firmware's serial interface. Stepper positions will be shown in green, counting a rising slope on the pin as one step.
+
+
+##############################################################################
+#                                                                            #
 # File descriptions                                                          #
 #                                                                            #
 ##############################################################################
@@ -152,6 +176,9 @@ This file associates various functions with particular pins on your avr
 
 *** README
 this file
+
+*** simulation.[sh]
+helper code to run the code on any Unix PC
 
 *** sender.sh
 A simple talker
