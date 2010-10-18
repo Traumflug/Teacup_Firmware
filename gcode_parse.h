@@ -1,5 +1,5 @@
-#ifndef	_GCODE_H
-#define	_GCODE_H
+#ifndef	_GCODE_PARSE_H
+#define	_GCODE_PARSE_H
 
 #include	<stdint.h>
 
@@ -69,12 +69,9 @@ void SpecialMoveZ(int32_t z, uint32_t f);
 void SpecialMoveE(int32_t e, uint32_t f);
 
 // accept the next character and process it
-void scan_char(uint8_t c);
-
-// when we have a whole line, feed it to this
-void process_gcode_command(GCODE_COMMAND *gcmd);
+void gcode_parse_char(uint8_t c);
 
 // uses the global variable next_target.N
 void request_resend(void);
 
-#endif	/* _GCODE_H */
+#endif	/* _GCODE_PARSE_H */

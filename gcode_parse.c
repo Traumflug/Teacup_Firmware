@@ -1,20 +1,14 @@
-#include	"gcode.h"
+#include	"gcode_parse.h"
 
 #include	<string.h>
 
-#include	"config.h"
 #include	"serial.h"
 #include	"sermsg.h"
-#include	"temp.h"
-#include	"timer.h"
 #include	"dda_queue.h"
-#include	"dda.h"
-#include	"clock.h"
-#include	"watchdog.h"
 #include	"debug.h"
 #include	"heater.h"
-#include	"sersendf.h"
-#include	"delay.h"
+
+#include	"gcode_process.h"
 
 /*
 	Switch user friendly values to coding friendly values
@@ -124,7 +118,7 @@ void SpecialMoveE(int32_t e, uint32_t f) {
 *                                                                           *
 ****************************************************************************/
 
-void scan_char(uint8_t c) {
+void gcode_parse_char(uint8_t c) {
 	#ifdef ASTERISK_IN_CHECKSUM_INCLUDED
 	if (next_target.seen_checksum == 0)
 		next_target.checksum_calculated = crc(next_target.checksum_calculated, c);
@@ -245,6 +239,7 @@ void scan_char(uint8_t c) {
 		// process character
 		switch (c) {
 			// each currently known command is either G or M, so preserve previous G/M unless a new one has appeared
+			// FIXME: same for T command
 			case 'G':
 				next_target.seen_G = 1;
 				next_target.seen_M = 0;
@@ -294,7 +289,7 @@ void scan_char(uint8_t c) {
 			// now for some numeracy
 			case '-':
 				read_digit.sign = 1;
-				// force sign to be at start of number
+				// force sign to be at start of number, so 1-2 = -2 instead of -12
 				read_digit.exponent = 0;
 				read_digit.mantissa = 0;
 				break;
@@ -343,11 +338,11 @@ void scan_char(uint8_t c) {
 			serial_writechar(c);
 
 		if (
-			#ifdef	REQUIRE_LINENUMBER
-			((next_target.N >= next_target.N_expected) && (next_target.seen_N == 1))
-			#else
+		#ifdef	REQUIRE_LINENUMBER
+			(next_target.N >= next_target.N_expected) && (next_target.seen_N == 1)
+		#else
 			1
-			#endif
+		#endif
 			) {
 			if (
 				#ifdef	REQUIRE_CHECKSUM
@@ -357,7 +352,7 @@ void scan_char(uint8_t c) {
 				#endif
 				) {
 				// process
-				process_gcode_command(&next_target);
+				process_gcode_command();
 				serial_writestr_P(PSTR("ok\n"));
 
 				// expect next line number
@@ -387,390 +382,14 @@ void scan_char(uint8_t c) {
 			next_target.checksum_calculated = 0;
 		last_field = 0;
 		read_digit.sign = read_digit.mantissa = read_digit.exponent = 0;
+
 		// assume a G1 by default
 		next_target.seen_G = 1;
 		next_target.G = 1;
+
 		if (next_target.option_relative) {
 			next_target.target.X = next_target.target.Y = next_target.target.Z = 0;
 			next_target.target.E = 0;
-		}
-	}
-}
-
-/****************************************************************************
-*                                                                           *
-* Command Received - process it                                             *
-*                                                                           *
-****************************************************************************/
-
-void process_gcode_command(GCODE_COMMAND *gcmd) {
-	uint32_t	backup_f;
-
-	// convert relative to absolute
-	if (gcmd->option_relative) {
-		gcmd->target.X += startpoint.X;
-		gcmd->target.Y += startpoint.Y;
-		gcmd->target.Z += startpoint.Z;
-	}
-	// E ALWAYS relative, otherwise we overflow our registers after only a few layers
-// 	gcmd->target.E += startpoint.E;
-	// easier way to do this
-// 	startpoint.E = 0;
-	// moved to dda.c, end of dda_create() and dda_queue.c, next_move()
-
-	if (gcmd->seen_G) {
-		switch (gcmd->G) {
-			// 	G0 - rapid, unsynchronised motion
-			// since it would be a major hassle to force the dda to not synchronise, just provide a fast feedrate and hope it's close enough to what host expects
-			case 0:
-				backup_f = gcmd->target.F;
-				gcmd->target.F = MAXIMUM_FEEDRATE_X * 2;
-				enqueue(&gcmd->target);
-				gcmd->target.F = backup_f;
-				break;
-
-			//	G1 - synchronised motion
-			case 1:
-				enqueue(&gcmd->target);
-				break;
-
-			//	G2 - Arc Clockwise
-			// unimplemented
-
-			//	G3 - Arc Counter-clockwise
-			// unimplemented
-
-			//	G4 - Dwell
-			case 4:
-				// wait for all moves to complete
-				for (;queue_empty() == 0;)
-					wd_reset();
-				// delay
-				delay_ms(gcmd->P);
-				break;
-
-			//	G20 - inches as units
-			case 20:
-				gcmd->option_inches = 1;
-				break;
-
-			//	G21 - mm as units
-			case 21:
-				gcmd->option_inches = 0;
-				break;
-
-			//	G30 - go home via point
-			case 30:
-				enqueue(&gcmd->target);
-				// no break here, G30 is move and then go home
-
-			//	G28 - go home
-			case 28:
-				/*
-					Home XY first
-				*/
-				// hit endstops, no acceleration- we don't care about skipped steps
-				startpoint.F = MAXIMUM_FEEDRATE_X;
-				SpecialMoveXY(-250L * STEPS_PER_MM_X, -250L * STEPS_PER_MM_Y, MAXIMUM_FEEDRATE_X);
-				startpoint.X = startpoint.Y = 0;
-
-				// move forward a bit
-				SpecialMoveXY(5 * STEPS_PER_MM_X, 5 * STEPS_PER_MM_Y, SEARCH_FEEDRATE_X);
-
-				// move back in to endstops slowly
-				SpecialMoveXY(-20 * STEPS_PER_MM_X, -20 * STEPS_PER_MM_Y, SEARCH_FEEDRATE_X);
-
-				// wait for queue to complete
-				for (;queue_empty() == 0;)
-					wd_reset();
-
-				// this is our home point
-				startpoint.X = startpoint.Y = current_position.X = current_position.Y = 0;
-
-				/*
-					Home Z
-				*/
-				// hit endstop, no acceleration- we don't care about skipped steps
-				startpoint.F = MAXIMUM_FEEDRATE_Z;
-				SpecialMoveZ(-250L * STEPS_PER_MM_Z, MAXIMUM_FEEDRATE_Z);
-				startpoint.Z = 0;
-
-				// move forward a bit
-				SpecialMoveZ(5 * STEPS_PER_MM_Z, SEARCH_FEEDRATE_Z);
-
-				// move back into endstop slowly
-				SpecialMoveZ(-20L * STEPS_PER_MM_Z, SEARCH_FEEDRATE_Z);
-
-				// wait for queue to complete
-				for (;queue_empty() == 0;)
-					wd_reset();
-
-				// this is our home point
-				startpoint.Z = current_position.Z = 0;
-
-				/*
-					Home E
-				*/
-				// extruder only runs one way and we have no "endstop", just set this point as home
-				startpoint.E = current_position.E = 0;
-
-				/*
-					Home F
-				*/
-
-				// F has been left at SEARCH_FEEDRATE_Z by the last move, this is a usable "home"
-				// uncomment the following or substitute if you prefer a different default feedrate
-				// startpoint.F = SEARCH_FEEDRATE_Z
-
-				break;
-
-			//	G90 - absolute positioning
-			case 90:
-				gcmd->option_relative = 0;
-				break;
-
-			//	G91 - relative positioning
-			case 91:
-				gcmd->option_relative = 1;
-				break;
-
-			//	G92 - set home
-			case 92:
-				startpoint.X = startpoint.Y = startpoint.Z = startpoint.E =
-					current_position.X = current_position.Y = current_position.Z = current_position.E = 0;
-				startpoint.F =
-					current_position.F = SEARCH_FEEDRATE_Z;
-				break;
-
-			// unknown gcode: spit an error
-			default:
-				serial_writestr_P(PSTR("E: Bad G-code "));
-				serwrite_uint8(gcmd->G);
-				serial_writechar('\n');
-		}
-	}
-	else if (gcmd->seen_M) {
-		switch (gcmd->M) {
-			// M101- extruder on
-			case 101:
-				if (temp_achieved() == 0) {
-					enqueue(NULL);
-				}
-				do {
-					// backup feedrate, move E very quickly then restore feedrate
-					backup_f = startpoint.F;
-					startpoint.F = MAXIMUM_FEEDRATE_E;
-					SpecialMoveE(E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
-					startpoint.F = backup_f;
-				} while (0);
-				break;
-
-			// M102- extruder reverse
-
-			// M103- extruder off
-			case 103:
-				do {
-					// backup feedrate, move E very quickly then restore feedrate
-					backup_f = startpoint.F;
-					startpoint.F = MAXIMUM_FEEDRATE_E;
-					SpecialMoveE(-E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
-					startpoint.F = backup_f;
-				} while (0);
-				break;
-
-			// M104- set temperature
-			case 104:
-				temp_set(gcmd->S);
-				if (gcmd->S) {
-					enable_heater();
-					power_on();
-				}
-				else {
-					disable_heater();
-				}
-				break;
-
-			// M105- get temperature
-			case 105:
-				temp_print();
-				break;
-
-			// M106- fan on
-			#ifdef	FAN_PIN
-			case 106:
-				enable_fan();
-				break;
-			// M107- fan off
-			case 107:
-				disable_fan();
-				break;
-			#endif
-
-			// M109- set temp and wait
-			case 109:
-				temp_set(gcmd->S);
-				if (gcmd->S) {
-					enable_heater();
-					power_on();
-				}
-				else {
-					disable_heater();
-				}
-				enqueue(NULL);
-				break;
-
-			// M110- set line number
-			case 110:
-				gcmd->N_expected = gcmd->S - 1;
-				break;
-			// M111- set debug level
-			#ifdef	DEBUG
-			case 111:
-				debug_flags = gcmd->S;
-				break;
-			#endif
-			// M112- immediate stop
-			case 112:
-				disableTimerInterrupt();
-				power_off();
-				break;
-			// M113- extruder PWM
-			// M114- report XYZEF to host
-			case 114:
-				sersendf_P("X:%ld,Y:%ld,Z:%ld,E:%ld,F:%ld\n", current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
-			 	break;
-
-			#ifdef	HEATER_PIN
-			// M130- heater P factor
-			case 130:
-				if (gcmd->seen_S)
-					p_factor = gcmd->S;
-				break;
-			// M131- heater I factor
-			case 131:
-				if (gcmd->seen_S)
-					i_factor = gcmd->S;
-				break;
-			// M132- heater D factor
-			case 132:
-				if (gcmd->seen_S)
-					d_factor = gcmd->S;
-				break;
-			// M133- heater I limit
-			case 133:
-				if (gcmd->seen_S)
-					i_limit = gcmd->S;
-				break;
-			// M134- save PID settings to eeprom
-			case 134:
-				heater_save_settings();
-				break;
-			#endif	/* HEATER_PIN */
-
-			// M190- power on
-			case 190:
-				power_on();
-				#ifdef	X_ENABLE_PIN
-					WRITE(X_ENABLE_PIN, 0);
-				#endif
-				#ifdef	Y_ENABLE_PIN
-					WRITE(Y_ENABLE_PIN, 0);
-				#endif
-				#ifdef	Z_ENABLE_PIN
-					WRITE(Z_ENABLE_PIN, 0);
-				#endif
-				steptimeout = 0;
-				break;
-			// M191- power off
-			case 191:
-				#ifdef	X_ENABLE_PIN
-					WRITE(X_ENABLE_PIN, 1);
-				#endif
-				#ifdef	Y_ENABLE_PIN
-					WRITE(Y_ENABLE_PIN, 1);
-				#endif
-				#ifdef	Z_ENABLE_PIN
-					WRITE(Z_ENABLE_PIN, 1);
-				#endif
-				power_off();
-				break;
-
-			#ifdef	DEBUG
-			// M140- echo off
-			case 140:
-				debug_flags &= ~DEBUG_ECHO;
-				serial_writestr_P(PSTR("Echo off\n"));
-				break;
-			// M141- echo on
-			case 141:
-				debug_flags |= DEBUG_ECHO;
-				serial_writestr_P(PSTR("Echo on\n"));
-				break;
-
-			// DEBUG: return current position
-			case 250:
-				serial_writestr_P(PSTR("{X:"));
-				serwrite_int32(current_position.X);
-				serial_writestr_P(PSTR(",Y:"));
-				serwrite_int32(current_position.Y);
-				serial_writestr_P(PSTR(",Z:"));
-				serwrite_int32(current_position.Z);
-				serial_writestr_P(PSTR(",E:"));
-				serwrite_int32(current_position.E);
-				serial_writestr_P(PSTR(",F:"));
-				serwrite_int32(current_position.F);
-				serial_writestr_P(PSTR(",c:"));
-				serwrite_uint32(movebuffer[mb_tail].c);
-				serial_writestr_P(PSTR("}\n"));
-
-				serial_writestr_P(PSTR("{X:"));
-				serwrite_int32(movebuffer[mb_tail].endpoint.X);
-				serial_writestr_P(PSTR(",Y:"));
-				serwrite_int32(movebuffer[mb_tail].endpoint.Y);
-				serial_writestr_P(PSTR(",Z:"));
-				serwrite_int32(movebuffer[mb_tail].endpoint.Z);
-				serial_writestr_P(PSTR(",E:"));
-				serwrite_int32(movebuffer[mb_tail].endpoint.E);
-				serial_writestr_P(PSTR(",F:"));
-				serwrite_int32(movebuffer[mb_tail].endpoint.F);
-				serial_writestr_P(PSTR(",c:"));
-				#ifdef ACCELERATION_REPRAP
-				serwrite_uint32(movebuffer[mb_tail].end_c);
-				#else
-				serwrite_uint32(movebuffer[mb_tail].c);
-				#endif
-				serial_writestr_P(PSTR("}\n"));
-
-				print_queue();
-				break;
-
-			// DEBUG: read arbitrary memory location
-			case 253:
-				if (gcmd->seen_P == 0)
-					gcmd->P = 1;
-				for (; gcmd->P; gcmd->P--) {
-					serwrite_hex8(*(volatile uint8_t *)(gcmd->S));
-					gcmd->S++;
-				}
-				serial_writechar('\n');
-				break;
-
-			// DEBUG: write arbitrary memory locatiom
-			case 254:
-				serwrite_hex8(gcmd->S);
-				serial_writechar(':');
-				serwrite_hex8(*(volatile uint8_t *)(gcmd->S));
-				serial_writestr_P(PSTR("->"));
-				serwrite_hex8(gcmd->P);
-				serial_writechar('\n');
-				(*(volatile uint8_t *)(gcmd->S)) = gcmd->P;
-				break;
-			#endif /* DEBUG */
-			// unknown mcode: spit an error
-			default:
-				serial_writestr_P(PSTR("E: Bad M-code "));
-				serwrite_uint8(gcmd->M);
-				serial_writechar('\n');
 		}
 	}
 }
@@ -784,12 +403,7 @@ void process_gcode_command(GCODE_COMMAND *gcmd) {
 ****************************************************************************/
 
 void request_resend(void) {
-	#if defined REPRAP_HOST_COMPATIBILITY && REPRAP_HOST_COMPATIBILITY >= 20100806
 	serial_writestr_P(PSTR("rs "));
-	#else
-	serial_writestr_P(PSTR("Resend:"));
-	#endif
 	serwrite_uint8(next_target.N);
 	serial_writechar('\n');
 }
-
