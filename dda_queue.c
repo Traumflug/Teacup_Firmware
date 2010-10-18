@@ -106,3 +106,18 @@ void print_queue() {
 		serial_writechar('E');
 	serial_writechar('\n');
 }
+
+void queue_flush() {
+	// save interrupt flag
+	uint8_t sreg = SREG;
+
+	// disable interrupts
+	cli();
+
+	// flush queue
+	mb_tail = mb_head;
+	movebuffer[mb_head].live = 0;
+
+	// restore interrupt flag
+	SREG = sreg;
+}

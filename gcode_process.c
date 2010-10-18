@@ -249,6 +249,7 @@ void process_gcode_command() {
 				// M112- immediate stop
 			case 112:
 				disableTimerInterrupt();
+				queue_flush();
 				power_off();
 				break;
 				// M113- extruder PWM
