@@ -1,0 +1,385 @@
+// UART
+#define	RXD					DIO0
+#define	TXD					DIO1
+
+// SPI
+#define	SCK					DIO52
+#define	MISO				DIO50
+#define	MOSI				DIO51
+#define	SS					DIO53
+
+// TWI (I2C)
+#define	SCL					DIO21
+#define	SDA					DIO20
+
+// timers and PWM
+#define	OC0A				DIO13
+#define	OC0B				DIO4
+#define	OC1A				DIO11
+#define	OC1B				DIO12
+#define	OC2A				DIO10
+#define	OC2B				DIO9
+#define	OC3A				DIO5
+#define	OC3B				DIO2
+#define	OC3C				DIO3
+#define	OC4A				DIO6
+#define	OC4B				DIO7
+#define	OC4C				DIO8
+#define	OC5A				DIO46
+#define	OC5B				DIO45
+#define	OC5C				DIO44
+
+//	#define	ICP1				NULL  /* not brought out on the Arduino Mega, remove line as not used ?? */
+
+/*
+pins
+*/
+#define	DIO0_PIN	PINE0
+#define	DIO0_RPORT	PINE
+#define	DIO0_WPORT	PORTE
+#define	DIO0_DDR	DDRE
+
+#define	DIO1_PIN	PINE1
+#define	DIO1_RPORT	PINE
+#define	DIO1_WPORT	PORTE
+#define	DIO1_DDR	DDRE
+
+#define	DIO2_PIN	PINE4
+#define	DIO2_RPORT	PINE
+#define	DIO2_WPORT	PORTE
+#define	DIO2_DDR	DDRE
+
+#define	DIO3_PIN	PINE5
+#define	DIO3_RPORT	PINE
+#define	DIO3_WPORT	PORTE
+#define	DIO3_DDR	DDRE
+
+#define	DIO4_PIN	PING5
+#define	DIO4_RPORT	PING
+#define	DIO4_WPORT	PORTG
+#define	DIO4_DDR	DDRG
+
+#define	DIO5_PIN	PINE3
+#define	DIO5_RPORT	PINE
+#define	DIO5_WPORT	PORTE
+#define	DIO5_DDR	DDRE
+
+#define	DIO6_PIN	PINH3
+#define	DIO6_RPORT	PINH
+#define	DIO6_WPORT	PORTH
+#define	DIO6_DDR	DDRH
+
+#define	DIO7_PIN	PINH4
+#define	DIO7_RPORT	PINH
+#define	DIO7_WPORT	PORTH
+#define	DIO7_DDR	DDRH
+
+#define	DIO8_PIN	PINH5
+#define	DIO8_RPORT	PINH
+#define	DIO8_WPORT	PORTH
+#define	DIO8_DDR	DDRH
+
+#define	DIO9_PIN	PINH6
+#define	DIO9_RPORT	PINH
+#define	DIO9_WPORT	PORTH
+#define	DIO9_DDR	DDRH
+
+#define	DIO10_PIN	PINB4
+#define	DIO10_RPORT	PINB
+#define	DIO10_WPORT	PORTB
+#define	DIO10_DDR	DDRB
+
+#define	DIO11_PIN	PINB5
+#define	DIO11_RPORT	PINB
+#define	DIO11_WPORT	PORTB
+#define	DIO11_DDR	DDRB
+
+#define	DIO12_PIN	PINB6
+#define	DIO12_RPORT	PINB
+#define	DIO12_WPORT	PORTB
+#define	DIO12_DDR	DDRB
+
+#define	DIO13_PIN	PINB7
+#define	DIO13_RPORT	PINB
+#define	DIO13_WPORT	PORTB
+#define	DIO13_DDR	DDRB
+
+#define	DIO14_PIN	PINJ1
+#define	DIO14_RPORT	PINJ
+#define	DIO14_WPORT	PORTJ
+#define	DIO14_DDR	DDRJ
+
+#define	DIO15_PIN	PINJ0
+#define	DIO15_RPORT	PINJ
+#define	DIO15_WPORT	PORTJ
+#define	DIO15_DDR	DDRJ
+
+#define	DIO16_PIN	PINH1
+#define	DIO16_RPORT	PINH
+#define	DIO16_WPORT	PORTH
+#define	DIO16_DDR	DDRH
+
+#define	DIO17_PIN	PINH0
+#define	DIO17_RPORT	PINH
+#define	DIO17_WPORT	PORTH
+#define	DIO17_DDR	DDRH
+
+#define	DIO18_PIN	PIND3
+#define	DIO18_RPORT	PIND
+#define	DIO18_WPORT	PORTD
+#define	DIO18_DDR	DDRD
+
+#define	DIO19_PIN	PIND2
+#define	DIO19_RPORT	PIND
+#define	DIO19_WPORT	PORTD
+#define	DIO19_DDR	DDRD
+
+#define	DIO20_PIN	PIND1
+#define	DIO20_RPORT	PIND
+#define	DIO20_WPORT	PORTD
+#define	DIO20_DDR	DDRD
+
+#define	DIO21_PIN	PIND0
+#define	DIO21_RPORT	PIND
+#define	DIO21_WPORT	PORTD
+#define	DIO21_DDR	DDRD
+
+#define	DIO22_PIN	PINA0
+#define	DIO22_RPORT	PINA
+#define	DIO22_WPORT	PORTA
+#define	DIO22_DDR	DDRA
+
+#define	DIO23_PIN	PINA1
+#define	DIO23_RPORT	PINA
+#define	DIO23_WPORT	PORTA
+#define	DIO23_DDR	DDRA
+
+#define	DIO24_PIN	PINA2
+#define	DIO24_RPORT	PINA
+#define	DIO24_WPORT	PORTA
+#define	DIO24_DDR	DDRA
+
+#define	DIO25_PIN	PINA3
+#define	DIO25_RPORT	PINA
+#define	DIO25_WPORT	PORTA
+#define	DIO25_DDR	DDRA
+
+#define	DIO26_PIN	PINA4
+#define	DIO26_RPORT	PINA
+#define	DIO26_WPORT	PORTA
+#define	DIO26_DDR	DDRA
+
+#define	DIO27_PIN	PINA5
+#define	DIO27_RPORT	PINA
+#define	DIO27_WPORT	PORTA
+#define	DIO27_DDR	DDRA
+
+#define	DIO28_PIN	PINA6
+#define	DIO28_RPORT	PINA
+#define	DIO28_WPORT	PORTA
+#define	DIO28_DDR	DDRA
+
+#define	DIO29_PIN	PINA7
+#define	DIO29_RPORT	PINA
+#define	DIO29_WPORT	PORTA
+#define	DIO29_DDR	DDRA
+
+#define	DIO30_PIN	PINC7
+#define	DIO30_RPORT	PINC
+#define	DIO30_WPORT	PORTC
+#define	DIO30_DDR	DDRC
+
+#define	DIO31_PIN	PINC6
+#define	DIO31_RPORT	PINC
+#define	DIO31_WPORT	PORTC
+#define	DIO31_DDR	DDRC
+
+#define	DIO32_PIN	PINC5
+#define	DIO32_RPORT	PINC
+#define	DIO32_WPORT	PORTC
+#define	DIO32_DDR	DDRC
+
+#define	DIO33_PIN	PINC4
+#define	DIO33_RPORT	PINC
+#define	DIO33_WPORT	PORTC
+#define	DIO33_DDR	DDRC
+
+#define	DIO34_PIN	PINC3
+#define	DIO34_RPORT	PINC
+#define	DIO34_WPORT	PORTC
+#define	DIO34_DDR	DDRC
+
+#define	DIO35_PIN	PINC2
+#define	DIO35_RPORT	PINC
+#define	DIO35_WPORT	PORTC
+#define	DIO35_DDR	DDRC
+
+#define	DIO36_PIN	PINC1
+#define	DIO36_RPORT	PINC
+#define	DIO36_WPORT	PORTC
+#define	DIO36_DDR	DDRC
+
+#define	DIO37_PIN	PINC0
+#define	DIO37_RPORT	PINC
+#define	DIO37_WPORT	PORTC
+#define	DIO37_DDR	DDRC
+
+#define	DIO38_PIN	PIND7
+#define	DIO38_RPORT	PIND
+#define	DIO38_WPORT	PORTD
+#define	DIO38_DDR	DDRD
+
+#define	DIO39_PIN	PING2
+#define	DIO39_RPORT	PING
+#define	DIO39_WPORT	PORTG
+#define	DIO39_DDR	DDRG
+
+#define	DIO40_PIN	PING1
+#define	DIO40_RPORT	PING
+#define	DIO40_WPORT	PORTG
+#define	DIO40_DDR	DDRG
+
+#define	DIO41_PIN	PING0
+#define	DIO41_RPORT	PING
+#define	DIO41_WPORT	PORTG
+#define	DIO41_DDR	DDRG
+
+#define	DIO42_PIN	PINL7
+#define	DIO42_RPORT	PINL
+#define	DIO42_WPORT	PORTL
+#define	DIO42_DDR	DDRL
+
+#define	DIO43_PIN	PINL6
+#define	DIO43_RPORT	PINL
+#define	DIO43_WPORT	PORTL
+#define	DIO43_DDR	DDRL
+
+#define	DIO44_PIN	PINL5
+#define	DIO44_RPORT	PINL
+#define	DIO44_WPORT	PORTL
+#define	DIO44_DDR	DDRL
+
+#define	DIO45_PIN	PINL4
+#define	DIO45_RPORT	PINL
+#define	DIO45_WPORT	PORTL
+#define	DIO45_DDR	DDRL
+
+#define	DIO46_PIN	PINL3
+#define	DIO46_RPORT	PINL
+#define	DIO46_WPORT	PORTL
+#define	DIO46_DDR	DDRL
+
+#define	DIO47_PIN	PINL2
+#define	DIO47_RPORT	PINL
+#define	DIO47_WPORT	PORTL
+#define	DIO47_DDR	DDRL
+
+#define	DIO48_PIN	PINL1
+#define	DIO48_RPORT	PINL
+#define	DIO48_WPORT	PORTL
+#define	DIO48_DDR	DDRL
+
+#define	DIO49_PIN	PINL0
+#define	DIO49_RPORT	PINL
+#define	DIO49_WPORT	PORTL
+#define	DIO49_DDR	DDRL
+
+#define	DIO50_PIN	PINB3
+#define	DIO50_RPORT	PINB
+#define	DIO50_WPORT	PORTB
+#define	DIO50_DDR	DDRB
+
+#define	DIO51_PIN	PINB2
+#define	DIO51_RPORT	PINB
+#define	DIO51_WPORT	PORTB
+#define	DIO51_DDR	DDRB
+
+#define	DIO52_PIN	PINB1
+#define	DIO52_RPORT	PINB
+#define	DIO52_WPORT	PORTB
+#define	DIO52_DDR	DDRB
+
+#define	DIO53_PIN	PINB0
+#define	DIO53_RPORT	PINB
+#define	DIO53_WPORT	PORTB
+#define	DIO53_DDR	DDRB
+
+#define AIO0_PIN PINF0
+#define AIO0_RPORT PINF
+#define AIO0_WPORT PORTF
+#define AIO0_DDR DDRF
+
+#define AIO1_PIN PINF1
+#define AIO1_RPORT PINF
+#define AIO1_WPORT PORTF
+#define AIO1_DDR DDRF
+
+#define AIO2_PIN PINF2
+#define AIO2_RPORT PINF
+#define AIO2_WPORT PORTF
+#define AIO2_DDR DDRF
+
+#define AIO3_PIN PINF3
+#define AIO3_RPORT PINF
+#define AIO3_WPORT PORTF
+#define AIO3_DDR DDRF
+
+#define AIO4_PIN PINF4
+#define AIO4_RPORT PINF
+#define AIO4_WPORT PORTF
+#define AIO4_DDR DDRF
+
+#define AIO5_PIN PINF5
+#define AIO5_RPORT PINF
+#define AIO5_WPORT PORTF
+#define AIO5_DDR DDRF
+
+#define AIO6_PIN PINF6
+#define AIO6_RPORT PINF
+#define AIO6_WPORT PORTF
+#define AIO6_DDR DDRF
+
+#define AIO7_PIN PINF7
+#define AIO7_RPORT PINF
+#define AIO7_WPORT PORTF
+#define AIO7_DDR DDRF
+
+#define AIO8_PIN PINK0
+#define AIO8_RPORT PINK
+#define AIO8_WPORT PORTK
+#define AIO8_DDR DDRK
+
+#define AIO9_PIN PINK1
+#define AIO9_RPORT PINK
+#define AIO9_WPORT PORTK
+#define AIO9_DDR DDRK
+
+#define AIO10_PIN PINK2
+#define AIO10_RPORT PINK
+#define AIO10_WPORT PORTK
+#define AIO10_DDR DDRK
+
+#define AIO11_PIN PINK3
+#define AIO11_RPORT PINK
+#define AIO11_WPORT PORTK
+#define AIO11_DDR DDRK
+
+#define AIO12_PIN PINK4
+#define AIO12_RPORT PINK
+#define AIO12_WPORT PORTK
+#define AIO12_DDR DDRK
+
+#define AIO13_PIN PINK5
+#define AIO13_RPORT PINK
+#define AIO13_WPORT PORTK
+#define AIO13_DDR DDRK
+
+#define AIO14_PIN PINK6
+#define AIO14_RPORT PINK
+#define AIO14_WPORT PORTK
+#define AIO14_DDR DDRK
+
+#define AIO15_PIN PINK7
+#define AIO15_RPORT PINK
+#define AIO15_WPORT PORTK
+#define AIO15_DDR DDRK
