@@ -42,6 +42,9 @@ ISR(ADC_vect) {
 		if (adc_counter == 8) {
 			adc_counter = 0;
 			adc_running_mask = 1;
+
+			// relax interrupt use for analog subsystem- stop after last analog read
+			ADCSRA &= ~MASK(ADIE);
 		}
 	} while ((adc_running_mask & ANALOG_MASK) == 0);
 
@@ -61,5 +64,9 @@ uint16_t	analog_read(uint8_t channel) {
 	r = adc_result[channel];
 	// restore interrupt flag
 	SREG = sreg;
+
+	// re-enable analog read loop so we can get new values
+	ADCSRA |= MASK(ADIE);
+
 	return r;
 }
