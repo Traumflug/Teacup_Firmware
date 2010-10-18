@@ -2,8 +2,12 @@
 #define	_SERIAL_H
 
 #include	<stdint.h>
-#include	<avr/io.h>
-#include	<avr/pgmspace.h>
+
+#ifndef SIMULATION
+	#include	<avr/io.h>
+	#include	<avr/pgmspace.h>
+#endif
+#include	"simulation.h"
 
 // initialise serial subsystem
 void serial_init(void);

@@ -132,7 +132,9 @@
 	- comment out pins not in use, as this drops the corresponding code and makes operations faster
 */
 
-#include	"arduino.h"
+#ifndef SIMULATION
+	#include	"arduino.h"
+#endif
 
 /*
 	RESERVED pins

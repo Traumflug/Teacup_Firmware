@@ -24,7 +24,7 @@ typedef union {
 } max6675_data_format;
 #endif
 
-#ifdef	TEMP_THERMISTOR
+#if defined TEMP_THERMISTOR && !defined SIMULATION
 #include	<avr/pgmspace.h>
 #endif
 

@@ -1,7 +1,10 @@
 #include	"dda.h"
 
 #include	<string.h>
-#include	<avr/interrupt.h>
+
+#ifndef SIMULATION
+	#include	<avr/interrupt.h>
+#endif
 
 #include	"timer.h"
 #include	"serial.h"
@@ -333,7 +336,15 @@ void dda_create(DDA *dda, TARGET *target) {
 			}
 
 			if (debug_flags & DEBUG_DDA) {
-				sersendf_P(PSTR("\n{DDA:CA end_c:%lu, n:%ld, md:%lu, ssq:%lu, esq:%lu, dsq:%lu, msbssq:%u, msbtot:%u}\n"), dda->end_c >> 8, dda->n, move_duration, ssq, esq, dsq, msb_ssq, msb_tot);
+				sersendf_P(PSTR("\n{DDA:CA end_c:%lu, n:%ld, md:%lu, ssq:%lu, esq:%lu, dsq:%lu, msbssq:%u, msbtot:%u}\n"),
+					(long unsigned int)dda->end_c >> 8,
+					(long int)dda->n,
+					(long unsigned int)move_duration,
+					(long unsigned int)ssq,
+					(long unsigned int)esq,
+					(long unsigned int)dsq,
+					msb_ssq,
+					msb_tot);
 			}
 
 			dda->accel = 1;

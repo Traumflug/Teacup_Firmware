@@ -1,6 +1,7 @@
-
-#include	<avr/io.h>
-#include	<avr/interrupt.h>
+#ifndef SIMULATION
+	#include	<avr/io.h>
+	#include	<avr/interrupt.h>
+#endif
 
 #include	"config.h"
 
@@ -17,6 +18,7 @@
 #include	"sersendf.h"
 #include	"heater.h"
 #include	"analog.h"
+#include	"simulation.h"
 
 void io_init(void) {
 	// disable modules we don't use
@@ -127,10 +129,20 @@ void clock_250ms(void) {
 	ifclock(CLOCK_FLAG_1S) {
 		if (debug_flags & DEBUG_POSITION) {
 			// current position
-			sersendf_P(PSTR("Pos: %ld,%ld,%ld,%ld,%lu\n"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
+			sersendf_P(PSTR("Pos: %ld,%ld,%ld,%ld,%lu\n"),
+				(long int)current_position.X,
+				(long int)current_position.Y,
+				(long int)current_position.Z,
+				(long int)current_position.E,
+				(long unsigned int)current_position.F);
 
 			// target position
-			sersendf_P(PSTR("Dst: %ld,%ld,%ld,%ld,%lu\n"), movebuffer[mb_tail].endpoint.X, movebuffer[mb_tail].endpoint.Y, movebuffer[mb_tail].endpoint.Z, movebuffer[mb_tail].endpoint.E, movebuffer[mb_tail].endpoint.F);
+			sersendf_P(PSTR("Dst: %ld,%ld,%ld,%ld,%lu\n"),
+				(long int)movebuffer[mb_tail].endpoint.X,
+				(long int)movebuffer[mb_tail].endpoint.Y,
+				(long int)movebuffer[mb_tail].endpoint.Z,
+				(long int)movebuffer[mb_tail].endpoint.E,
+				(long unsigned int)movebuffer[mb_tail].endpoint.F);
 
 			// Queue
 			print_queue();

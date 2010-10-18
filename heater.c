@@ -2,7 +2,9 @@
 
 #ifdef HEATER_PIN
 
-#include	<avr/eeprom.h>
+#ifndef SIMULATION
+	#include	<avr/eeprom.h>
+#endif
 
 #include	"sersendf.h"
 #include	"debug.h"
