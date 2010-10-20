@@ -2,8 +2,10 @@ Rewrite of Reprap Mendel firmware:
 
 * 100% integer computations
 * serial transmit buffer
-* can fit onto atmega168
-* fits onto atmega328p etc
+* can fit onto atmega168 depending on selected options
+* works on atmega328p
+* works on atmega644p
+* porting to atmega1280 in progress
 * will work on larger atmegas with minor porting
 
 ##############################################################################
@@ -19,6 +21,28 @@ Rewrite of Reprap Mendel firmware:
 5) ./sender.sh
 6) have a play, go to 1) if not right
 7) try printing something!
+
+##############################################################################
+#                                                                            #
+# License                                                                    #
+#                                                                            #
+##############################################################################
+
+This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 ##############################################################################
 #                                                                            #
