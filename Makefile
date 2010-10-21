@@ -103,7 +103,7 @@ config.h: config.h.dist
 
 %.o: %.c config.h
 	@echo "  CC        $@"
-	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(<:.c=.al) -o $@ $(subst .o,.c,$@)
+	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(<:.c=.al) -o $@ $<
 
 %.elf: $(OBJ)
 	@echo "  LINK      $@"
@@ -132,15 +132,15 @@ config.h: config.h.dist
 #                                                                            #
 ##############################################################################
 
-SIM_SOURCES = $(PROGRAM).c serial_sim.c dda.c gcode.c timer_sim.c clock_sim.c temp.c sermsg.c dda_queue.c debug.c sersendf.c heater.c analog_sim.c delay_sim.c simulation.c
-SIM_HEADERS = config.h serial.h dda.h gcode.h timer.h clock.h temp.h sermsg.h dda_queue.h debug.h sersendf.h heater.h analog.h delay.h simulation.h
+SIM_SOURCES = $(PROGRAM).c serial_sim.c dda.c gcode_parse.c gcode_process.c timer_sim.c clock_sim.c temp.c sermsg.c dda_queue.c debug.c sersendf.c heater.c analog_sim.c delay_sim.c simulation.c
+SIM_HEADERS = config.h serial.h dda.h gcode_parse.h gcode_process.h timer.h clock.h temp.h sermsg.h dda_queue.h debug.h sersendf.h heater.h analog.h delay.h simulation.h
 
 SIM_OBJ = $(patsubst %.c,%.sim.o,${SIM_SOURCES})
 SIM_CFLAGS = -g -Wall -Wstrict-prototypes -Os $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fshort-enums
 
 %.sim.o: %.c $(SIM_HEADERS)
 	@echo "  CC        $@"
-	@cc -DDEBUG -DSIMULATION -c $(SIM_CFLAGS) -o $@ $<
+	@cc -DDEBUG -DSIMULATION -Wa,-adhlns=$(<:.c=.al) -c $(SIM_CFLAGS) -o $@ $<
 
 sim:	$(SIM_OBJ)
 	@echo "  LINK      $@"
