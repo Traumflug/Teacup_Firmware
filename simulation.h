@@ -77,5 +77,8 @@ void sim_info(const char fmt[], ...);
 void sim_error(const char msg[]);
 void sim_assert(bool cond, const char msg[]);
 
+#define	ATOMIC_BLOCK(n)			if (n)
+#define	ATOMIC_RESTORESTATE	1
+
 #endif /* _SIMULATION_H */
 

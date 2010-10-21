@@ -1,6 +1,7 @@
 #include "analog.h"
 
 #include	<avr/interrupt.h>
+#include	<util/atomic.h>
 
 #ifndef	ANALOG_MASK
 	#warning	define ANALOG_MASK as a bitmask of all the analog channels you wish to use
@@ -54,19 +55,15 @@ ISR(ADC_vect) {
 }
 
 uint16_t	analog_read(uint8_t channel) {
-	uint8_t sreg;
 	uint16_t r;
-	// save interrupt flag
-	sreg = SREG;
-	// disable interrupts
-	cli();
-	// atomic 16-bit copy
-	r = adc_result[channel];
-	// restore interrupt flag
-	SREG = sreg;
+
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		// atomic 16-bit copy
+		r = adc_result[channel];
+	}
 
 	// re-enable analog read loop so we can get new values
 	ADCSRA |= MASK(ADIE);
-
+	
 	return r;
 }

@@ -1,8 +1,12 @@
 #include	"dda_queue.h"
 
 #include	<string.h>
-#ifndef SIMULATION
+
+#ifdef SIMULATION
+	#include	"simulation.h"
+#else
 	#include	<avr/interrupt.h>
+	#include	<util/atomic.h>
 #endif
 
 #include	"config.h"
@@ -110,16 +114,9 @@ void print_queue() {
 }
 
 void queue_flush() {
-	// save interrupt flag
-	uint8_t sreg = SREG;
-
-	// disable interrupts
-	cli();
-
-	// flush queue
-	mb_tail = mb_head;
-	movebuffer[mb_head].live = 0;
-
-	// restore interrupt flag
-	SREG = sreg;
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		// flush queue
+		mb_tail = mb_head;
+		movebuffer[mb_head].live = 0;
+	}
 }

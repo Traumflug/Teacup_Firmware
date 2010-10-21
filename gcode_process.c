@@ -13,6 +13,7 @@
 #include	"heater.h"
 #include	"timer.h"
 #include	"sersendf.h"
+#include	"debug.h"
 
 /****************************************************************************
 *                                                                           *
