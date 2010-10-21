@@ -256,11 +256,11 @@ void process_gcode_command() {
 				// M113- extruder PWM
 				// M114- report XYZEF to host
 			case 114:
-				sersendf_P("X:%ld,Y:%ld,Z:%ld,E:%ld,F:%ld\n", current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
+				sersendf_P(PSTR("X:%ld,Y:%ld,Z:%ld,E:%ld,F:%ld\n"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
 				break;
 				// M115- capabilities string
 			case 115:
-				serial_writestr_P("FIRMWARE_NAME:FiveD_on_Arduino FIRMWARE_URL:http%3A//github.com/triffid/FiveD_on_Arduino/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:1 HEATER_COUNT:1\n");
+				serial_writestr_P(PSTR("FIRMWARE_NAME:FiveD_on_Arduino FIRMWARE_URL:http%3A//github.com/triffid/FiveD_on_Arduino/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:1 HEATER_COUNT:1\n"));
 				break;
 
 				#ifdef	HEATER_PIN
