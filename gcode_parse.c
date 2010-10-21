@@ -7,6 +7,7 @@
 #include	"dda_queue.h"
 #include	"debug.h"
 #include	"heater.h"
+#include	"sersendf.h"
 
 #include	"gcode_process.h"
 
@@ -352,24 +353,21 @@ void gcode_parse_char(uint8_t c) {
 				#endif
 				) {
 				// process
+				serial_writestr_P(PSTR("ok "));
 				process_gcode_command();
-				serial_writestr_P(PSTR("ok\n"));
+				serial_writestr_P(PSTR("\n"));
 
 				// expect next line number
 				if (next_target.seen_N == 1)
 					next_target.N_expected = next_target.N + 1;
 			}
 			else {
-				serial_writestr_P(PSTR("Expected checksum "));
-				serwrite_uint8(next_target.checksum_calculated);
-				serial_writechar('\n');
+				sersendf_P(PSTR("rs %ld Expected checksum %d\n"), next_target.N_expected, next_target.checksum_calculated);
 				request_resend();
 			}
 		}
 		else {
-			serial_writestr_P(PSTR("Expected line number "));
-			serwrite_uint32(next_target.N_expected);
-			serial_writechar('\n');
+			sersendf_P(PSTR("rs %ld Expected line number %ld\n"), next_target.N_expected, next_target.N_expected);
 			request_resend();
 		}
 
