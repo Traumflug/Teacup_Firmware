@@ -183,7 +183,7 @@
 
 #define	STEPPER_ENABLE_PIN		DIO9
 
-/**
+/*
  *	list of PWM-able pins and corresponding timers
  *	timer1 is used for step timing so don't use OC1A/OC1B
  *	
