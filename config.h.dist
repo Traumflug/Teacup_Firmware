@@ -38,7 +38,7 @@
 #define	TEMP_HYSTERESIS				20
 #define	TEMP_RESIDENCY_TIME		60
 
-// this is how many steps to suck back the filament by when we stop
+// this is how many steps to suck back the filament by when we stop. set to zero to disable
 #define	E_STARTSTOP_STEPS			20
 
 /*

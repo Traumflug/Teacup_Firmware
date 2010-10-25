@@ -173,26 +173,30 @@ void process_gcode_command() {
 				if (temp_achieved() == 0) {
 					enqueue(NULL);
 				}
-				do {
-					// backup feedrate, move E very quickly then restore feedrate
-					backup_f = startpoint.F;
-					startpoint.F = MAXIMUM_FEEDRATE_E;
-					SpecialMoveE(E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
-					startpoint.F = backup_f;
-				} while (0);
+				#if E_STARTSTOP_STEPS > 0
+					do {
+						// backup feedrate, move E very quickly then restore feedrate
+						backup_f = startpoint.F;
+						startpoint.F = MAXIMUM_FEEDRATE_E;
+						SpecialMoveE(E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
+						startpoint.F = backup_f;
+					} while (0);
+				#endif
 				break;
 				
 				// M102- extruder reverse
 				
 				// M103- extruder off
 			case 103:
-				do {
-					// backup feedrate, move E very quickly then restore feedrate
-					backup_f = startpoint.F;
-					startpoint.F = MAXIMUM_FEEDRATE_E;
-					SpecialMoveE(-E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
-					startpoint.F = backup_f;
-				} while (0);
+				#if E_STARTSTOP_STEPS > 0
+					do {
+						// backup feedrate, move E very quickly then restore feedrate
+						backup_f = startpoint.F;
+						startpoint.F = MAXIMUM_FEEDRATE_E;
+						SpecialMoveE(-E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
+						startpoint.F = backup_f;
+					} while (0);
+				#endif
 				break;
 				
 				// M104- set temperature
