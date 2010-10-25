@@ -18,14 +18,17 @@ void analog_init() {
 	#elif defined PRR0
 		PRR0 &= ~MASK(PRADC);
 	#endif
+	
 	ADMUX = REFERENCE;
+	
 	// ADC frequency must be less than 200khz or we lose precision. At 16MHz system clock, we must use the full prescale value of 128 to get an ADC clock of 125khz.
 	ADCSRA = MASK(ADEN) | MASK(ADPS2) | MASK(ADPS1) | MASK(ADPS0);
 
 	adc_counter = 0;
 	adc_running_mask = 1;
 
-	DIDR0 = ANALOG_MASK & 0x1F;
+	DDRC &= ANALOG_MASK;
+	DIDR0 = ANALOG_MASK & 0x3F;
 
 	// now we start the first conversion and leave the rest to the interrupt
 	ADCSRA |= MASK(ADIE) | MASK(ADSC);
