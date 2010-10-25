@@ -39,7 +39,10 @@ SOURCES = $(PROGRAM).c serial.c dda.c gcode.c timer.c clock.c temp.c sermsg.c dd
 #                                                                            #
 ##############################################################################
 
+#MCU_TARGET = atmega168
 MCU_TARGET = atmega328p
+#MCU_TARGET = atmega644p
+#MCU_TARGET = atmega1280
 F_CPU = 16000000L
 
 ##############################################################################
@@ -88,6 +91,9 @@ AVRDUDECONF = /etc/avrdude.conf
 #                                                                            #
 ##############################################################################
 PROGPORT = /dev/arduino
+# atmega168
+#PROGBAUD = 19200
+# atmega328p, 644p, 1280
 PROGBAUD = 57600
 
 OBJ = $(patsubst %.c,%.o,${SOURCES})
