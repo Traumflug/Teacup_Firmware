@@ -248,7 +248,7 @@ void process_gcode_command() {
 				#endif
 				// M112- immediate stop
 			case 112:
-				disableTimerInterrupt();
+				timer_stop();
 				queue_flush();
 				power_off();
 				break;

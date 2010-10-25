@@ -9,7 +9,6 @@
 #include	"dda.h"
 #include	"gcode_parse.h"
 #include	"timer.h"
-#include	"clock.h"
 #include	"temp.h"
 #include	"sermsg.h"
 #include	"watchdog.h"
@@ -93,10 +92,7 @@ void init(void) {
 	io_init();
 
 	// set up timers
-	setupTimerInterrupt();
-
-	// set up clock
-	clock_setup();
+	timer_init();
 
 	// read PID settings from EEPROM
 	heater_init();
@@ -142,8 +138,8 @@ void clock_250ms(void) {
 			print_queue();
 		}
 		// temperature
-		if (temp_get_target())
-			temp_print();
+/*		if (temp_get_target())
+			temp_print();*/
 	}
 }
 

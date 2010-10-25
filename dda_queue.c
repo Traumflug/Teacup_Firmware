@@ -9,6 +9,7 @@
 #include	"sermsg.h"
 #include	"temp.h"
 #include	"delay.h"
+#include	"sersendf.h"
 
 uint8_t	mb_head = 0;
 uint8_t	mb_tail = 0;
@@ -78,7 +79,7 @@ void enqueue(TARGET *t) {
 	mb_head = h;
 
 	// fire up in case we're not running yet
-	if (timerInterruptIsEnabled() == 0)
+	if (movebuffer[mb_tail].live == 0)
 		next_move();
 }
 
@@ -92,19 +93,11 @@ void next_move() {
 		mb_tail = t;
 	}
 	else
-		disableTimerInterrupt();
+		setTimer(0);
 }
 
 void print_queue() {
-	serial_writechar('Q');
-	serwrite_uint8(mb_tail);
-	serial_writechar('/');
-	serwrite_uint8(mb_head);
-	if (queue_full())
-		serial_writechar('F');
-	if (queue_empty())
-		serial_writechar('E');
-	serial_writechar('\n');
+	sersendf_P(PSTR("Q%d/%d%c\n"), mb_tail, mb_head, (queue_full()?'F':(queue_empty()?'E':' ')));
 }
 
 void queue_flush() {

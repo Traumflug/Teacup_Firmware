@@ -8,21 +8,22 @@
 #define	US	* (F_CPU / 1000000)
 #define	MS	* (F_CPU / 1000)
 
-// #define	DEFAULT_TICK	(100 US)
-#define	WAITING_DELAY	(10 MS)
+/*
+clock stuff
+*/
+extern volatile uint8_t	clock_flag;
 
-void setupTimerInterrupt(void) __attribute__ ((cold));
+#define	CLOCK_FLAG_250MS							1
+#define	CLOCK_FLAG_1S									2
+#define	ifclock(F)	for (;clock_flag & (F);clock_flag &= ~(F))
 
-uint8_t getTimerResolution(const uint32_t delay);
-void setTimerResolution(uint8_t r);
-
-uint16_t getTimerCeiling(const uint32_t delay);
-#define setTimerCeiling(c)		OCR1A = c
+/*
+timer stuff
+*/
+void timer_init(void) __attribute__ ((cold));
 
 void setTimer(uint32_t delay);
 
-#define enableTimerInterrupt()	do { TIMSK1 |= (1<<OCIE1A); } while (0)
-#define disableTimerInterrupt() do { TIMSK1 &= ~(1<<OCIE1A); } while (0)
-#define timerInterruptIsEnabled() (TIMSK1 & (1 << OCIE1A))
+void timer_stop(void);
 
 #endif	/* _TIMER_H */
