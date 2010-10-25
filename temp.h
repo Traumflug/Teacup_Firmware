@@ -13,6 +13,8 @@ we still need to specify which analog pins we use in machine.h for the analog se
 
 #define	temp_tick temp_sensor_tick
 
+void temp_init(void);
+
 void temp_sensor_tick(void);
 
 uint8_t	temp_achieved(void);

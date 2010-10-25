@@ -47,8 +47,18 @@ typedef struct {
 EE_factor EEMEM EE_factors[NUM_HEATERS];
 
 void heater_init() {
-	// read factors from eeprom
+	#if NUM_HEATERS > 0
 	uint8_t i;
+	// setup pins
+	for (i = 0; i < NUM_HEATERS; i++) {
+		*(heaters[i].heater_port) &= ~heaters[i].heater_pin;
+		// DDR is always 1 address below PORT. ugly code but saves ram and an extra field in heaters[] which will never be used anywhere but here
+		*((volatile uint8_t *) (heaters[i].heater_port - 1)) |= heaters[i].heater_pin;
+		if (heaters[i].heater_pwm)
+			*heaters[i].heater_pwm = 0;
+	}
+	
+	// read factors from eeprom
 	for (i = 0; i < NUM_HEATERS; i++) {
 		heaters_pid[i].p_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_p_factor);
 		heaters_pid[i].i_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_i_factor);
@@ -62,6 +72,7 @@ void heater_init() {
 			heaters_pid[i].i_limit = DEFAULT_I_LIMIT;
 		}
 	}
+	#endif
 }
 
 void heater_save_settings() {
@@ -121,6 +132,7 @@ void heater_tick(uint8_t h, uint16_t current_temp, uint16_t target_temp) {
 }
 
 void heater_set(uint8_t index, uint8_t value) {
+	#if NUM_HEATERS > 0
 	if (heaters[index].heater_pwm) {
 		*heaters[index].heater_pwm = value;
 	}
@@ -130,6 +142,7 @@ void heater_set(uint8_t index, uint8_t value) {
 		else
 			*heaters[index].heater_port &= ~MASK(heaters[index].heater_pin);
 	}
+	#endif
 }
 
 void pid_set_p(uint8_t index, int32_t p) {

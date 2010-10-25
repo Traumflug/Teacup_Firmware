@@ -29,9 +29,9 @@
 #                                                                            #
 ##############################################################################
 
-PROGRAM = mendel
+PROGRAM = extruder
 
-SOURCES = $(PROGRAM).c serial.c dda.c gcode_parse.c gcode_process.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c delay.c intercom.c
+SOURCES = $(PROGRAM).c intercom.c delay.c analog.c watchdog.c
 
 ##############################################################################
 #                                                                            #
@@ -39,10 +39,7 @@ SOURCES = $(PROGRAM).c serial.c dda.c gcode_parse.c gcode_process.c timer.c temp
 #                                                                            #
 ##############################################################################
 
-#MCU_TARGET = atmega168
-MCU_TARGET = atmega328p
-#MCU_TARGET = atmega644p
-#MCU_TARGET = atmega1280
+MCU_TARGET = atmega168
 F_CPU = 16000000L
 
 ##############################################################################
@@ -68,12 +65,10 @@ OBJCOPY = $(ARCH)objcopy
 #   enables reprap-style acceleration                                        #
 # ACCELERATION_RAMPING                                                       #
 #   enables start/stop ramping                                               #
-# GEN3                                                                       #
-#   build for standard reprap electronics instead of your custom rig         #
 #                                                                            #
 ##############################################################################
 
-DEFS = -DF_CPU=$(F_CPU) -DHOST -DGEN3
+DEFS = -DF_CPU=$(F_CPU) -DEXTRUDER -DGEN3
 # DEFS += "-DDEBUG=1"
 
 OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once
@@ -93,9 +88,6 @@ AVRDUDECONF = /etc/avrdude.conf
 #                                                                            #
 ##############################################################################
 PROGPORT = /dev/arduino
-# atmega168
-#PROGBAUD = 19200
-# atmega328p, 644p, 1280
 PROGBAUD = 57600
 
 OBJ = $(patsubst %.c,%.o,${SOURCES})
@@ -117,9 +109,9 @@ clean:
 
 size: $(PROGRAM).elf
 	@echo "  SIZE                   Atmega168        Atmega328p       Atmega644"
-	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    FLASH : %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, ceil($$a * 100 / (14 * 1024)), 14, ceil($$a * 100 / (30 * 1024)), 30, ceil($$a * 100 / (63 * 1024)), 63 }'
-	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(data|bss)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    RAM   : %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, ceil($$a * 100 / (1 * 1024)), 1, ceil($$a * 100 / (2 * 1024)), 2, ceil($$a * 100 / (4 * 1024)), 4 }'
-	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(eeprom)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    EEPROM: %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, ceil($$a * 100 / (1 * 1024)), 1, ceil($$a * 100 / (2 * 1024)), 2, ceil($$a * 100 / (2 * 1024)), 2 }'
+	@$(OBJDUMP) -h $^ | perl -ne '/.(text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    FLASH : %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, $$a * 100 / (14 * 1024), 14, $$a * 100 / (30 * 1024), 30, $$a * 100 / (63 * 1024), 63 }'
+	@$(OBJDUMP) -h $^ | perl -ne '/.(data|bss)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    RAM   : %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, $$a * 100 / (1 * 1024), 1, $$a * 100 / (2 * 1024), 2, $$a * 100 / (4 * 1024), 4 }'
+	@$(OBJDUMP) -h $^ | perl -ne '/.(eeprom)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    EEPROM: %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, $$a * 100 / (1 * 1024), 1, $$a * 100 / (2 * 1024), 2, $$a * 100 / (2 * 1024), 2 }'
 
 config.h: config.h.dist
 	@echo "Please review config.h, as config.h.dist is more recent."

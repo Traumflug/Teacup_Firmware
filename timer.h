@@ -13,8 +13,9 @@ clock stuff
 */
 extern volatile uint8_t	clock_flag;
 
-#define	CLOCK_FLAG_250MS							1
-#define	CLOCK_FLAG_1S									2
+#define	CLOCK_FLAG_10MS								1
+#define	CLOCK_FLAG_250MS							2
+#define	CLOCK_FLAG_1S									4
 #define	ifclock(F)	for (;clock_flag & (F);clock_flag &= ~(F))
 
 /*

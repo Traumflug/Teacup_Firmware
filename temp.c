@@ -9,11 +9,17 @@
 #include	"debug.h"
 #include	"sersendf.h"
 #include	"heater.h"
+#ifdef	GEN3
+	#include	"intercom.h"
+#endif
 
 typedef enum {
 	TT_THERMISTOR,
 	TT_MAX6675,
 	TT_AD595
+#ifdef	GEN3
+	, TT_INTERCOM
+#endif
 } temp_types;
 
 typedef enum {
@@ -71,6 +77,38 @@ uint16_t temptable[NUMTEMPS][2] PROGMEM = {
 #include	"analog.h"
 #endif
 
+void temp_init() {
+	uint8_t i;
+	for (i = 0; i < NUM_TEMP_SENSORS; i++) {
+		switch(temp_sensors[i].temp_type) {
+		#ifdef	TEMP_MAX6675
+			// initialised when read
+/*			case TT_MAX6675:
+				break;*/
+		#endif
+
+		#ifdef	TEMP_THERMISTOR
+			// handled by analog_init()
+/*			case TT_THERMISTOR:
+				break;*/
+		#endif
+
+		#ifdef	TEMP_AD595
+			// handled by analog_init()
+/*			case TT_AD595:
+				break;*/
+		#endif
+
+		#ifdef	GEN3
+			case TT_INTERCOM:
+				intercom_init();
+				update_send_cmd(0);
+				break;
+		#endif
+		}
+	}
+}
+
 void temp_sensor_tick() {
 	uint8_t	i = 0, all_within_range = 1;
 	for (; i < NUM_TEMP_SENSORS; i++) {
@@ -87,9 +125,9 @@ void temp_sensor_tick() {
 				#ifdef	TEMP_MAX6675
 				case TT_MAX6675:
 					#ifdef	PRR
-					PRR &= ~MASK(PRSPI);
+						PRR &= ~MASK(PRSPI);
 					#elif defined PRR0
-					PRR0 &= ~MASK(PRSPI);
+						PRR0 &= ~MASK(PRSPI);
 					#endif
 					
 					SPCR = MASK(MSTR) | MASK(SPE) | MASK(SPR0);
@@ -127,7 +165,7 @@ void temp_sensor_tick() {
 						}
 					}
 					
-					// FIXME: placeholder number
+					// this number depends on how frequently temp_sensor_tick is called. the MAX6675 can give a reading every 0.22s, so set this to about 250ms
 					temp_sensors_runtime[i].next_read_time = 25;
 					
 					break;
@@ -152,7 +190,6 @@ void temp_sensor_tick() {
 					if (j == NUMTEMPS)
 						temp = temptable[NUMTEMPS-1][1];
 					
-					// FIXME: placeholder number
 					temp_sensors_runtime[i].next_read_time = 0;
 					
 					break;
@@ -166,11 +203,21 @@ void temp_sensor_tick() {
 					// >>8 instead of >>10 because internal temp is stored as 14.2 fixed point
 					temp = (temp * 500L) >> 8;
 					
-					// FIXME: placeholder number
-					temp_sensors[i].next_read_time = 0;
+					temp_sensors_runtime[i].next_read_time = 0;
 					
 					break;
 				#endif	/* TEMP_AD595 */
+
+				#ifdef	GEN3
+				case TT_INTERCOM:
+					temp = get_read_cmd() << 2;
+
+					start_send();
+
+					temp_sensors_runtime[i].next_read_time = 0;
+
+					break;
+				#endif	/* GEN3 */
 			}
 			temp_sensors_runtime[i].last_read_temp = temp;
 			
@@ -202,6 +249,10 @@ uint8_t	temp_achieved() {
 void temp_set(uint8_t index, uint16_t temperature) {
 	temp_sensors_runtime[index].target_temp = temperature;
 	temp_sensors_runtime[index].temp_residency = 0;
+#ifdef	GEN3
+	if (temp_sensors[index].temp_type == TT_INTERCOM)
+		update_send_cmd(temperature >> 2);
+#endif
 }
 
 void temp_print(uint8_t index) {

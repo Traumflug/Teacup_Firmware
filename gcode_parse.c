@@ -192,11 +192,9 @@ void gcode_parse_char(uint8_t c) {
 					// but it takes less code, less memory and loses no precision if we do it here instead
 					if ((next_target.M == 104) || (next_target.M == 109))
 						next_target.S = decfloat_to_int(&read_digit, 4, 1);
-					#ifdef	HEATER_PIN
 					// if this is heater PID stuff, multiply by PID_SCALE because we divide by PID_SCALE later on
 					else if ((next_target.M >= 130) && (next_target.M <= 132))
 						next_target.S = decfloat_to_int(&read_digit, PID_SCALE, 1);
-					#endif
 					else
 						next_target.S = decfloat_to_int(&read_digit, 1, 1);
 					if (debug_flags & DEBUG_ECHO)

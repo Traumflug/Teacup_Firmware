@@ -6,6 +6,7 @@
 
 volatile uint32_t	next_step_time;
 
+uint8_t						clock_counter_10ms = 0;
 uint8_t						clock_counter_250ms = 0;
 uint8_t						clock_counter_1s = 0;
 volatile uint8_t	clock_flag = 0;
@@ -30,14 +31,21 @@ ISR(TIMER1_CAPT_vect) {
 	/*
 	clock stuff
 	*/
-	clock_counter_250ms += (TICK_TIME / (F_CPU / 1000));
-	if (clock_counter_250ms >= 250) {
-		clock_counter_250ms -= 250;
-		clock_flag |= CLOCK_FLAG_250MS;
-		clock_counter_1s += 1;
-		if (clock_counter_1s >= 4) {
-			clock_counter_1s -= 4;
-			clock_flag |= CLOCK_FLAG_1S;
+	clock_counter_10ms += (TICK_TIME / (F_CPU / 1000));
+	if (clock_counter_10ms >= 10) {
+		clock_counter_10ms -= 10;
+		clock_flag |= CLOCK_FLAG_10MS;
+		
+		clock_counter_250ms += 10;
+		if (clock_counter_250ms >= 250) {
+			clock_counter_250ms -= 250;
+			clock_flag |= CLOCK_FLAG_250MS;
+			
+			clock_counter_1s += 1;
+			if (clock_counter_1s >= 4) {
+				clock_counter_1s -= 4;
+				clock_flag |= CLOCK_FLAG_1S;
+			}
 		}
 	}
 }

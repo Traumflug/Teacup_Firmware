@@ -199,7 +199,6 @@ void process_gcode_command() {
 			case 104:
 				temp_set(next_target.P, next_target.S);
 				if (next_target.S) {
-					enable_heater();
 					power_on();
 				}
 				else {
@@ -213,15 +212,15 @@ void process_gcode_command() {
 				break;
 				
 				// M106- fan on
-				#ifdef	FAN_PIN
+			#if NUM_HEATERS > 1
 			case 106:
-				enable_fan();
+				heater_set(1, 255);
 				break;
 				// M107- fan off
 			case 107:
-				disable_fan();
+				heater_set(1, 0);
 				break;
-				#endif
+			#endif
 				
 				// M109- set temp and wait
 			case 109:
@@ -262,7 +261,7 @@ void process_gcode_command() {
 				serial_writestr_P(PSTR("FIRMWARE_NAME:FiveD_on_Arduino FIRMWARE_URL:http%3A//github.com/triffid/FiveD_on_Arduino/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:1 HEATER_COUNT:1\n"));
 				break;
 
-				#ifdef	HEATER_PIN
+			#if	NUM_HEATERS > 0
 				// M130- heater P factor
 			case 130:
 				if (next_target.seen_S)
@@ -291,7 +290,7 @@ void process_gcode_command() {
 			case 134:
 				heater_save_settings();
 				break;
-				#endif	/* HEATER_PIN */
+			#endif	/* NUM_HEATERS > 0 */
 				
 				// M190- power on
 			case 190:
