@@ -71,6 +71,63 @@
 #define	TEMP_THERMISTOR
 // #define	TEMP_AD595
 
+#define	NUM_TEMP_SENSORS	1
+#ifdef	TEMP_C
+/***************************************************************************\
+*                                                                           *
+* Fill in the following struct according to your hardware                   *
+*                                                                           *
+* If your temperature sensor has no associated heater, enter '255' as the   *
+*   heater index.                                                           *
+*                                                                           *
+\***************************************************************************/
+
+struct {
+	uint8_t						temp_type;
+	uint8_t						temp_pin;
+
+	uint8_t						heater_index;
+} temp_sensors[NUM_TEMP_SENSORS] =
+{
+	{
+		TT_MAX6675,
+		0,
+		0
+	}
+};
+#endif
+
+#define	NUM_HEATERS				1
+#ifdef	HEATER_C
+/***************************************************************************\
+*                                                                           *
+* Fill in the following struct according to your hardware                   *
+*                                                                           *
+* For the atmega168/328, timer/pin mappings are as follows                  *
+*                                                                           *
+* OCR0A - PD6                                                               *
+* OCR0B - PD5                                                               *
+* OCR2A - PB3                                                               *
+* OCR2B - PD3                                                               *
+*                                                                           *
+\***************************************************************************/
+struct {
+	volatile uint8_t	*heater_port;
+	uint8_t						heater_pin;
+	volatile uint8_t	*heater_pwm;
+} heaters[NUM_HEATERS] =
+{
+	{
+		&PORTD,
+		PIND0,
+		&OCR0A
+	}
+};
+#endif
+
+// temperature history count. higher values make PID derivative term more stable at the expense of reaction time
+#define	TH_COUNT					8
+
 // if you selected thermistor or AD595, what pin is it on?
 #define	TEMP_PIN_CHANNEL	AIO0_PIN
 #define	ANALOG_MASK				MASK(TEMP_PIN_CHANNEL)
@@ -223,6 +280,8 @@
 
 #define	FAN_PIN								DIO5
 #define	FAN_PWM								OCR0B
+
+#define	PID_SCALE						1024L
 
 // --------------------------------------------------------------------------
 // you shouldn't need to edit anything below this line

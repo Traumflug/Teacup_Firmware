@@ -62,6 +62,12 @@ void io_init(void) {
 		TIMSK0 = 0;
 		OCR0A = 0;
 		OCR0B = 255;
+
+		TCCR2A = MASK(WGM21) | MASK(WGM20);
+		TCCR2B = MASK(CS20);
+		TIMSK2 = 0;
+		OCR2A = 0;
+		OCR2B = 0;
 	#endif
 
 	#ifdef	STEPPER_ENABLE_PIN

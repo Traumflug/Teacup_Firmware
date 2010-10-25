@@ -197,7 +197,7 @@ void process_gcode_command() {
 				
 				// M104- set temperature
 			case 104:
-				temp_set(next_target.S);
+				temp_set(next_target.P, next_target.S);
 				if (next_target.S) {
 					enable_heater();
 					power_on();
@@ -209,7 +209,7 @@ void process_gcode_command() {
 				
 				// M105- get temperature
 			case 105:
-				temp_print();
+				temp_print(next_target.P);
 				break;
 				
 				// M106- fan on
@@ -225,7 +225,7 @@ void process_gcode_command() {
 				
 				// M109- set temp and wait
 			case 109:
-				temp_set(next_target.S);
+				temp_set(next_target.P, next_target.S);
 				if (next_target.S) {
 					enable_heater();
 					power_on();
@@ -266,22 +266,26 @@ void process_gcode_command() {
 				// M130- heater P factor
 			case 130:
 				if (next_target.seen_S)
-					p_factor = next_target.S;
+// 					p_factor = next_target.S;
+					pid_set_p(next_target.P, next_target.S);
 				break;
 				// M131- heater I factor
 			case 131:
 				if (next_target.seen_S)
-					i_factor = next_target.S;
+// 					i_factor = next_target.S;
+					pid_set_i(next_target.P, next_target.S);
 				break;
 				// M132- heater D factor
 			case 132:
 				if (next_target.seen_S)
-					d_factor = next_target.S;
+// 					d_factor = next_target.S;
+					pid_set_d(next_target.P, next_target.S);
 				break;
 				// M133- heater I limit
 			case 133:
 				if (next_target.seen_S)
-					i_limit = next_target.S;
+// 					i_limit = next_target.S;
+					pid_set_i_limit(next_target.P, next_target.S);
 				break;
 				// M134- save PID settings to eeprom
 			case 134:
