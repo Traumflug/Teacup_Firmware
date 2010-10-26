@@ -29,7 +29,8 @@
 #define	OC5B				DIO45
 #define	OC5C				DIO44
 
-//	#define	ICP1				NULL  /* not brought out on the Arduino Mega, remove line as not used ?? */
+// change for your board
+#define	DEBUG_LED		DIO21
 
 /*
 pins

@@ -16,6 +16,7 @@
 #include	"sersendf.h"
 #include	"heater.h"
 #include	"analog.h"
+#include	"pinio.h"
 
 void io_init(void) {
 	// disable modules we don't use
@@ -71,7 +72,6 @@ void io_init(void) {
 }
 
 void init(void) {
-
 	// set up watchdog
 	wd_init();
 
@@ -107,13 +107,6 @@ void init(void) {
 
 }
 
-void clock_10ms(void) {
-	// reset watchdog
-	wd_reset();
-	
-	temp_tick();
-}
-
 void clock_250ms(void) {
 	if (steptimeout > (30 * 4)) {
 		power_off();
@@ -138,6 +131,17 @@ void clock_250ms(void) {
 	}
 }
 
+void clock_10ms(void) {
+	// reset watchdog
+	wd_reset();
+	
+	temp_tick();
+	
+	ifclock(CLOCK_FLAG_250MS) {
+		clock_250ms();
+	}
+}
+
 int main (void)
 {
 	init();
@@ -153,10 +157,6 @@ int main (void)
 
 		ifclock(CLOCK_FLAG_10MS) {
 			clock_10ms();
-		}
-
-		ifclock(CLOCK_FLAG_250MS) {
-			clock_250ms();
 		}
 	}
 }

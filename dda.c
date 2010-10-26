@@ -9,6 +9,7 @@
 #include	"dda_queue.h"
 #include	"debug.h"
 #include	"sersendf.h"
+#include	"pinio.h"
 
 /*
 	X Stepper
@@ -232,6 +233,10 @@ void dda_create(DDA *dda, TARGET *target) {
 		// get steppers ready to go
 		steptimeout = 0;
 		power_on();
+		x_enable();
+		y_enable();
+		if (dda->z_delta)
+			z_enable();
 
 		dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter =
 			-(dda->total_steps >> 1);

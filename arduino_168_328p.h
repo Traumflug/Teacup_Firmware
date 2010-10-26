@@ -20,7 +20,7 @@
 #define	OC2A				DIO11
 #define	OC2B				DIO3
 
-#define	ICP1				DIO8
+#define	DEBUG_LED		AIO5
 
 /*
 pins

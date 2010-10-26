@@ -13,6 +13,7 @@
 #include	"heater.h"
 #include	"timer.h"
 #include	"sersendf.h"
+#include	"pinio.h"
 
 /****************************************************************************
 *                                                                           *
@@ -230,8 +231,8 @@ void process_gcode_command() {
 			case 109:
 				temp_set(next_target.P, next_target.S);
 				if (next_target.S) {
-					enable_heater();
 					power_on();
+					enable_heater();
 				}
 				else {
 					disable_heater();

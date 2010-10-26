@@ -118,14 +118,14 @@ struct {
 	volatile uint8_t	*heater_port;
 	uint8_t						heater_pin;
 	volatile uint8_t	*heater_pwm;
-} heaters[NUM_HEATERS] =
+} heaters[NUM_HEATERS]/* =
 {
 	{
 		&PORTD,
 		PIND6,
 		&OCR0A
 	}
-};
+}*/;
 #endif
 
 // temperature history count. higher values make PID derivative term more stable at the expense of reaction time
@@ -194,57 +194,57 @@ struct {
 
 #include	"arduino.h"
 
-/*
-	RESERVED pins
-	we NEED these for communication
-*/
-
-#define	RESERVED_RXD					DIO0
-#define	RESERVED_TXD					DIO1
-
-/*
-	these pins are used for the MAX6675
-	Arduino Mega has SPI on different pins
-*/
-#if defined (__AVR_ATmega1280__)
-	#define	RESERVED_SCK					DIO52
-	#define	RESERVED_MISO					DIO50
-	#define	RESERVED_MOSI					DIO51
-	#define	RESERVED_SS						DIO53
-#else
-	#define	RESERVED_SCK					DIO13
-	#define	RESERVED_MISO					DIO12
-	#define	RESERVED_MOSI					DIO11
-	#define	RESERVED_SS						DIO10
-#endif
-
-/*
-	user defined pins
-	adjust to suit your electronics,
-	or adjust your electronics to suit this
-*/
-
-#define	X_STEP_PIN						AIO0
-#define	X_DIR_PIN							AIO1
-#define	X_MIN_PIN							AIO2
-
-#define	Y_STEP_PIN						AIO3
-#define	Y_DIR_PIN							AIO4
-#define	Y_MIN_PIN							AIO5
-
-#define	Z_STEP_PIN						DIO2
-#define	Z_DIR_PIN							DIO3
-#define	Z_MIN_PIN							DIO4
-
-#define	E_STEP_PIN						DIO7
-#define	E_DIR_PIN							DIO8
-
-#define	STEPPER_ENABLE_PIN		DIO9
-
 #ifdef	GEN3
-	#define TX_ENABLE_PIN				AIO2
-	#define	RX_ENABLE_PIN				DIO4
-	#define	DEBUG_LED						DIO13
+	// this is official reprap motherboard pinout
+	#define TX_ENABLE_PIN					DIO12
+	#define	RX_ENABLE_PIN					DIO13
+
+	#define	X_STEP_PIN						DIO15
+	#define	X_DIR_PIN							DIO18
+	#define	X_MIN_PIN							DIO20
+	#define	X_MAX_PIN							DIO21
+	#define	X_ENABLE_PIN					DIO19
+
+	#define	Y_STEP_PIN						DIO23
+	#define	Y_DIR_PIN							DIO22
+	#define	Y_MIN_PIN							AIO6
+	#define	Y_MAX_PIN							AIO5
+	#define	Y_ENABLE_PIN					DIO7
+
+	#define	Z_STEP_PIN						AIO4
+	#define	Z_DIR_PIN							AIO3
+	#define	Z_MIN_PIN							AIO1
+	#define	Z_MAX_PIN							AIO0
+	#define	Z_ENABLE_PIN					AIO2
+
+	#define	E_STEP_PIN						DIO16
+	#define	E_DIR_PIN							DIO17
+
+	#define	SD_CARD_DETECT				DIO2
+	#define	SD_WRITE_PROTECT			DIO3
+#else
+	/*
+		user defined pins
+		adjust to suit your electronics,
+		or adjust your electronics to suit this
+	*/
+
+	#define	X_STEP_PIN						AIO0
+	#define	X_DIR_PIN							AIO1
+	#define	X_MIN_PIN							AIO2
+
+	#define	Y_STEP_PIN						AIO3
+	#define	Y_DIR_PIN							AIO4
+	#define	Y_MIN_PIN							AIO5
+
+	#define	Z_STEP_PIN						DIO2
+	#define	Z_DIR_PIN							DIO3
+	#define	Z_MIN_PIN							DIO4
+
+	#define	E_STEP_PIN						DIO7
+	#define	E_DIR_PIN							DIO8
+
+	#define	PS_ON_PIN							DIO9
 #endif
 
 /**
@@ -284,41 +284,5 @@ struct {
 
 // this is the scaling of internally stored PID values. 1024L is a good value
 #define	PID_SCALE						1024L
-
-// --------------------------------------------------------------------------
-// you shouldn't need to edit anything below this line
-
-/*
-	fan
-*/
-
-#ifdef	FAN_PIN
-	#ifdef	FAN_PWM
-		#define	enable_fan()				do { TCCR0A |=  MASK(COM0B1); } while (0)
-		#define	disable_fan()				do { TCCR0A &= ~MASK(COM0B1); } while (0)
-	#else
-		#define	enable_fan()				WRITE(FAN_PIN, 1)
-		#define	disable_fan()				WRITE(FAN_PIN, 0);
-	#endif
-#else
-	#define	enable_fan()				if (0) {}
-	#define	disable_fan()				if (0) {}
-#endif
-
-/*
-	Stepper Enable (ATX PSU pwr_good signal?)
-*/
-
-#ifdef	STEPPER_ENABLE_PIN
-	// for connection to stepper driver ENABLE pins (negative asserted)
-// 	#define	power_on()		WRITE(STEPPER_ENABLE_PIN, 0)
-// 	#define	power_off()	WRITE(STEPPER_ENABLE_PIN, 1)
-	// for connection to ATX PSU PWR_ON signal
-	#define	power_on()					do { WRITE(STEPPER_ENABLE_PIN, 0); SET_OUTPUT(STEPPER_ENABLE_PIN); } while (0)
-	#define	power_off()					SET_INPUT(STEPPER_ENABLE_PIN)
-#else
-	#define	power_on()					if (0) {}
-	#define	power_off()					if (0) {}
-#endif
 
 #endif	/* _CONFIG_H */
