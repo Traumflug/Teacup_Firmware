@@ -117,9 +117,6 @@ void temp_sensor_tick() {
 		}
 		else {
 			uint16_t	temp = 0;
-			#ifdef	TEMP_THERMISTOR
-			uint8_t		j;
-			#endif
 			//time to deal with this temp sensor
 			switch(temp_sensors[i].temp_type) {
 				#ifdef	TEMP_MAX6675
@@ -173,25 +170,26 @@ void temp_sensor_tick() {
 					
 				#ifdef	TEMP_THERMISTOR
 				case TT_THERMISTOR:
-					
-					//Read current temperature
-					temp = analog_read(temp_sensors[i].temp_pin);
-					
-					//Calculate real temperature based on lookup table
-					for (j = 1; j < NUMTEMPS; j++) {
-						if (pgm_read_word(&(temptable[j][0])) > temp) {
-							// multiply by 4 because internal temp is stored as 14.2 fixed point
-							temp = pgm_read_word(&(temptable[j][1])) + (pgm_read_word(&(temptable[j][0])) - temp) * 4 * (pgm_read_word(&(temptable[j-1][1])) - pgm_read_word(&(temptable[j][1]))) / (pgm_read_word(&(temptable[j][0])) - pgm_read_word(&(temptable[j-1][0])));
-							break;
+					do {
+						uint8_t j;
+						//Read current temperature
+						temp = analog_read(temp_sensors[i].temp_pin);
+
+						//Calculate real temperature based on lookup table
+						for (j = 1; j < NUMTEMPS; j++) {
+							if (pgm_read_word(&(temptable[j][0])) > temp) {
+								// multiply by 4 because internal temp is stored as 14.2 fixed point
+								temp = pgm_read_word(&(temptable[j][1])) * 4 + (pgm_read_word(&(temptable[j][0])) - temp) * 4 * (pgm_read_word(&(temptable[j-1][1])) - pgm_read_word(&(temptable[j][1]))) / (pgm_read_word(&(temptable[j][0])) - pgm_read_word(&(temptable[j-1][0])));
+								break;
+							}
 						}
+
+						//Clamp for overflows
+						if (j == NUMTEMPS)
+							temp = temptable[NUMTEMPS-1][1] * 4;
+
+						temp_sensors_runtime[i].next_read_time = 0;
 					}
-					
-					//Clamp for overflows
-					if (j == NUMTEMPS)
-						temp = temptable[NUMTEMPS-1][1];
-					
-					temp_sensors_runtime[i].next_read_time = 0;
-					
 					break;
 				#endif	/* TEMP_THERMISTOR */
 					

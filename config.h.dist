@@ -178,7 +178,7 @@ struct {
 	REFERENCE - which analog reference to use. see analog.h for choices
 	ANALOG_MASK - which analog inputs we will be using, bitmask. eg; #define ANALOG_MASK	MASK(AIO0_PIN) | MASK(3) for AIN0 and AIN3
 */
-#define	REFERENCE			REFERENCE_AREF
+#define	REFERENCE			REFERENCE_AVCC
 
 #ifndef	ANALOG_MASK
 #define	ANALOG_MASK		0

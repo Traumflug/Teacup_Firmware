@@ -9,6 +9,32 @@
 
 uint8_t adc_running_mask, adc_counter;
 
+#if		ANALOG_MASK & 1
+	#define	ANALOG_START			0
+	#define	ANALOG_START_MASK	1
+#elif	ANALOG_MASK & 2
+	#define	ANALOG_START			1
+	#define	ANALOG_START_MASK	2
+#elif	ANALOG_MASK & 4
+	#define	ANALOG_START			2
+	#define	ANALOG_START_MASK	4
+#elif	ANALOG_MASK & 8
+	#define	ANALOG_START			3
+	#define	ANALOG_START_MASK	8
+#elif	ANALOG_MASK & 16
+	#define	ANALOG_START			4
+	#define	ANALOG_START_MASK	16
+#elif	ANALOG_MASK & 32
+	#define	ANALOG_START			5
+	#define	ANALOG_START_MASK	32
+#elif	ANALOG_MASK & 64
+	#define	ANALOG_START			6
+	#define	ANALOG_START_MASK	64
+#elif	ANALOG_MASK & 128
+	#define	ANALOG_START			7
+	#define	ANALOG_START_MASK	128
+#endif
+
 volatile uint16_t adc_result[8] __attribute__ ((__section__ (".bss")));
 
 void analog_init() {
@@ -35,7 +61,7 @@ void analog_init() {
 	#endif
 }
 
-ISR(ADC_vect) {
+ISR(ADC_vect, ISR_NOBLOCK) {
 	// emulate free-running mode but be more deterministic about exactly which result we have, since this project has long-running interrupts
 	adc_result[ADMUX & 0x0F] = ADC;
 	// find next channel
@@ -43,11 +69,8 @@ ISR(ADC_vect) {
 		adc_counter++;
 		adc_running_mask <<= 1;
 		if (adc_counter == 8) {
-			adc_counter = 0;
-			adc_running_mask = 1;
-
-			// relax interrupt use for analog subsystem- stop after last analog read
-			ADCSRA &= ~MASK(ADIE);
+			adc_counter = ANALOG_START;
+			adc_running_mask = ANALOG_START_MASK;
 		}
 	} while ((adc_running_mask & ANALOG_MASK) == 0);
 
@@ -57,19 +80,19 @@ ISR(ADC_vect) {
 }
 
 uint16_t	analog_read(uint8_t channel) {
-	uint8_t sreg;
 	uint16_t r;
+
+	uint8_t sreg;
 	// save interrupt flag
 	sreg = SREG;
 	// disable interrupts
 	cli();
+	
 	// atomic 16-bit copy
 	r = adc_result[channel];
+	
 	// restore interrupt flag
 	SREG = sreg;
-
-	// re-enable analog read loop so we can get new values
-	ADCSRA |= MASK(ADIE);
-
+	
 	return r;
 }
