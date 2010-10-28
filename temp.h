@@ -20,6 +20,8 @@ void temp_sensor_tick(void);
 uint8_t	temp_achieved(void);
 
 void temp_set(uint8_t index, uint16_t temperature);
+uint16_t temp_get(uint8_t index);
+
 void temp_print(uint8_t index);
 
 uint16_t	temp_read(uint8_t index);

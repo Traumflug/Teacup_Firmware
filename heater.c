@@ -4,9 +4,11 @@
 #include	<avr/pgmspace.h>
 
 #include	"arduino.h"
-#include	"timer.h"
+// #include	"timer.h"
 #include	"debug.h"
-#include	"sersendf.h"
+#ifdef	DEBUG
+	#include	"sersendf.h"
+#endif
 
 #define		HEATER_C
 #include	"config.h"
@@ -124,10 +126,12 @@ void heater_tick(uint8_t h, uint16_t current_temp, uint16_t target_temp) {
 		heaters_runtime[h].pid_output = 0;
 	else
 		heaters_runtime[h].pid_output = pid_output_intermed & 0xFF;
-	
+
+	#ifdef	DEBUG
 	if (debug_flags & DEBUG_PID)
 		sersendf_P(PSTR("T{E:%d, P:%d * %ld = %ld / I:%d * %ld = %ld / D:%d * %ld = %ld # O: %ld = %u}\n"), t_error, heaters_runtime[h].heater_p, heaters_pid[h].p_factor, (int32_t) heaters_runtime[h].heater_p * heaters_pid[h].p_factor / PID_SCALE, heaters_runtime[h].heater_i, heaters_pid[h].i_factor, (int32_t) heaters_runtime[h].heater_i * heaters_pid[h].i_factor / PID_SCALE, heaters_runtime[h].heater_d, heaters_pid[h].d_factor, (int32_t) heaters_runtime[h].heater_d * heaters_pid[h].d_factor / PID_SCALE, pid_output_intermed, heaters_runtime[h].pid_output);
-	
+	#endif
+
 	heater_set(h, heaters_runtime[h].pid_output);
 }
 

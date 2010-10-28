@@ -7,32 +7,10 @@
 #include	"analog.h"
 #include	"config.h"
 #include	"watchdog.h"
+#include	"heater.h"
+#include	"temp.h"
 
 static uint8_t motor_pwm;
-
-#define NUMTEMPS 20
-short temptable[NUMTEMPS][2] = {
-   {1, 841},
-   {54, 255},
-   {107, 209},
-   {160, 184},
-   {213, 166},
-   {266, 153},
-   {319, 142},
-   {372, 132},
-   {425, 124},
-   {478, 116},
-   {531, 108},
-   {584, 101},
-   {637, 93},
-   {690, 86},
-   {743, 78},
-   {796, 70},
-   {849, 61},
-   {902, 50},
-   {955, 34},
-   {1008, 3}
-};
 
 void io_init(void) {
 	// setup I/O pins
@@ -60,14 +38,14 @@ void io_init(void) {
 		WRITE(BED_PIN, 0); SET_OUTPUT(BED_PIN);
 	#endif
 
-	#if defined(HEATER_PWM) || defined(FAN_PWM) || defined(BED_PWM)
+// 	#if defined(HEATER_PWM) || defined(FAN_PWM) || defined(BED_PWM)
 		// setup PWM timer: fast PWM, no prescaler
 		TCCR2A = MASK(WGM21) | MASK(WGM20);
 		TCCR2B = MASK(CS22);
 		TIMSK2 = 0;
 		OCR2A = 0;
 		OCR2B = 0;
-	#endif
+// 	#endif
 
 	#if defined(H1E_PWM) && defined(H2E_PWM)
 		TCCR0A = MASK(WGM01) | MASK(WGM00);
@@ -174,6 +152,12 @@ void init(void) {
 	// set up inputs and outputs
 	io_init();
 
+	// temp sensor
+	temp_init();
+
+	// heater
+	heater_init();
+
 	// set up extruder motor driver
 	motor_init();
 
@@ -187,9 +171,6 @@ void init(void) {
 
 int main (void)
 {
-	static uint8_t i;
-	static uint16_t raw_temp;
-
 	init();
 
 	enable_heater();
@@ -204,26 +185,9 @@ int main (void)
 		//Read motor PWM
 		motor_pwm = analog_read(TRIM_POT_CHANNEL) >> 2;
 
-		//Read current temperature
-		raw_temp = analog_read(TEMP_PIN_CHANNEL);
+		temp_sensor_tick();
 
-		//Calculate real temperature based on lookup table
-		for (i = 1; i < NUMTEMPS; i++) {
-			if (temptable[i][0] > raw_temp) {
-				raw_temp = temptable[i][1] + 
-					(temptable[i][0] - raw_temp) * (temptable[i-1][1] - temptable[i][1]) / (temptable[i][0] - temptable[i-1][0]);
-		
-				break;
-			}
-		}
-
-		//Clamp for overflows
-		if (i == NUMTEMPS) raw_temp = temptable[NUMTEMPS-1][1];
-		if (raw_temp > 255) raw_temp = 255;
-
-		//Update the intercom values
-		update_send_cmd(raw_temp);
-
-		HEATER_PWM = get_read_cmd();
+		update_send_cmd(temp_get(0) >> 2);
+		temp_set(0, get_read_cmd());
 	}
 }

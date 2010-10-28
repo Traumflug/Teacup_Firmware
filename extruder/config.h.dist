@@ -26,14 +26,48 @@
 #define TRIM_POT AIO0
 #define TRIM_POT_CHANNEL 0
 
-//Debug LED will blink on RS485 transmission
-#define DEBUG_LED DIO13
-
 //Read analog voltage from thermistor
 #define TEMP_PIN AIO3
 #define TEMP_PIN_CHANNEL 3
 
 #define	REFERENCE	REFERENCE_AVCC
+
+#define ANALOG_MASK	(MASK(TRIM_POT_CHANNEL) | MASK(TEMP_PIN_CHANNEL))
+
+#define	TEMP_THERMISTOR
+
+// extruder settings
+#define	TEMP_HYSTERESIS				20
+#define	TEMP_RESIDENCY_TIME		60
+
+#define	NUM_TEMP_SENSORS	1
+#ifdef	TEMP_C
+/***************************************************************************\
+*                                                                           *
+* Fill in the following struct according to your hardware                   *
+*                                                                           *
+* If your temperature sensor has no associated heater, enter '255' as the   *
+*   heater index.                                                           *
+*                                                                           *
+* for GEN3 set temp_type to TT_INTERCOM, temp_pin to 0 and heater index to  *
+*   255                                                                     *
+*                                                                           *
+\***************************************************************************/
+
+struct {
+	uint8_t						temp_type;
+	uint8_t						temp_pin;
+
+	uint8_t						heater_index;
+} temp_sensors[NUM_TEMP_SENSORS] =
+{
+	{
+		TT_THERMISTOR,
+		PINC3,
+		0
+	}
+};
+#endif
 
 // list of PWM-able pins and corresponding timers
 // timer1 is used for step timing so don't use OC1A/OC1B (DIO9/DIO10)
@@ -44,12 +78,46 @@
 // OC2A												DIO11
 // OC2B												DIO3
 
-#define	HEATER_PIN						DIO11
-#define	HEATER_PWM						OCR2A
+#define	TH_COUNT					8
+#define	PID_SCALE					1024L
 
-#define BED_PIN								DIO12
+#define	NUM_HEATERS				2
+#ifdef	HEATER_C
+/***************************************************************************\
+*                                                                           *
+* Fill in the following struct according to your hardware                   *
+*                                                                           *
+* For the atmega168/328, timer/pin mappings are as follows                  *
+*                                                                           *
+* OCR0A - PD6                                                               *
+* OCR0B - PD5                                                               *
+* OCR2A - PB3                                                               *
+* OCR2B - PD3                                                               *
+*                                                                           *
+\***************************************************************************/
+struct {
+	volatile uint8_t	*heater_port;
+	uint8_t						heater_pin;
+	volatile uint8_t	*heater_pwm;
+} heaters[NUM_HEATERS] =
+{
+	{
+		&PORTD,
+		PIND6,
+		&OCR0A
+	},
+	{
+		&PORTB,
+		PINB4,
+		0
+	}
+};
+#endif
 
-#define ANALOG_MASK	(MASK(TRIM_POT_CHANNEL) | MASK(TEMP_PIN_CHANNEL))
+// #define	HEATER_PIN						DIO11
+// #define	HEATER_PWM						OCR2A
+// 
+// #define BED_PIN								DIO12
 
 /*
 	Intercom
@@ -68,12 +136,12 @@
 	Heater
 */
 
-#ifdef	HEATER_PWM
-	#define	enable_heater()			do { TCCR2A |=  MASK(COM2A1); } while (0)
-	#define	disable_heater()		do { TCCR2A &= ~MASK(COM2A1); } while (0)
-#else
-	#define	enable_heater()			WRITE(HEATER_PIN, 1)
-	#define	disable_heater()		WRITE(HEATER_PIN, 0)
-#endif
+// #ifdef	HEATER_PWM
+// 	#define	enable_heater()			do { TCCR2A |=  MASK(COM2A1); } while (0)
+// 	#define	disable_heater()		do { TCCR2A &= ~MASK(COM2A1); } while (0)
+// #else
+// 	#define	enable_heater()			WRITE(HEATER_PIN, 1)
+// 	#define	disable_heater()		WRITE(HEATER_PIN, 0)
+// #endif
 
 #endif	/* _CONFIG_H */

@@ -5,9 +5,11 @@
 #include	<avr/pgmspace.h>
 
 #include	"arduino.h"
-#include	"timer.h"
+// #include	"timer.h"
 #include	"debug.h"
-#include	"sersendf.h"
+#ifndef	EXTRUDER
+	#include	"sersendf.h"
+#endif
 #include	"heater.h"
 #ifdef	GEN3
 	#include	"intercom.h"
@@ -189,7 +191,7 @@ void temp_sensor_tick() {
 							temp = temptable[NUMTEMPS-1][1] * 4;
 
 						temp_sensors_runtime[i].next_read_time = 0;
-					}
+					} while (0);
 					break;
 				#endif	/* TEMP_THERMISTOR */
 					
@@ -253,6 +255,11 @@ void temp_set(uint8_t index, uint16_t temperature) {
 #endif
 }
 
+uint16_t temp_get(uint8_t index) {
+	return temp_sensors_runtime[index].last_read_temp;
+}
+
+#ifndef	EXTRUDER
 void temp_print(uint8_t index) {
 	uint8_t c = 0;
 	
@@ -260,3 +267,4 @@ void temp_print(uint8_t index) {
 	
 	sersendf_P(PSTR("T: %u.%u\n"), temp_sensors_runtime[index].last_read_temp >> 2, c);
 }
+#endif
