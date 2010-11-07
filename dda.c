@@ -491,11 +491,9 @@ void dda_step(DDA *dda) {
 				) {
 				dda->c = (int32_t) dda->c - ((int32_t) (dda->c * 2) / dda->n);
 				dda->n += 4;
-				setTimer(dda->c >> 8);
 			}
 			else if (dda->c != dda->end_c) {
 				dda->c = dda->end_c;
-				setTimer(dda->c >> 8);
 			}
 			// else we are already at target speed
 		}
@@ -525,18 +523,17 @@ void dda_step(DDA *dda) {
 					dda->ramp_state = RAMP_MAX;
 					dda->ramp_steps = dda->total_steps - dda->step_no;
 				}
-				setTimer(dda->c >> 8);
 				break;
 		}
 		dda->step_no++;
 	#endif
-
+	
 	if (did_step) {
 		// we stepped, reset timeout
 		steptimeout = 0;
 
-	// if we could do anything at all, we're still running
-	// otherwise, must have finished
+		// if we could do anything at all, we're still running
+		// otherwise, must have finished
 	}
 	else {
 		dda->live = 0;
@@ -546,7 +543,8 @@ void dda_step(DDA *dda) {
 		// in theory, we *could* update F every step, but that would require a divide in interrupt context which should be avoided if at all possible
 		current_position.F = dda->endpoint.F;
 	}
-
+	setTimer(dda->c >> 8);
+	
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something.
 	// we also hope that we don't step before the drivers register the low- limit maximum speed if you think this is a problem.
