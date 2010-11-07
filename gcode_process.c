@@ -14,6 +14,7 @@
 #include	"timer.h"
 #include	"sersendf.h"
 #include	"pinio.h"
+#include	"debug.h"
 
 /****************************************************************************
 *                                                                           *
@@ -387,20 +388,22 @@ void process_gcode_command() {
 				
 				// DEBUG: write arbitrary memory locatiom
 			case 254:
-				serwrite_hex8(next_target.S);
-				serial_writechar(':');
-				serwrite_hex8(*(volatile uint8_t *)(next_target.S));
-				serial_writestr_P(PSTR("->"));
-				serwrite_hex8(next_target.P);
-				serial_writechar('\n');
+// 				serwrite_hex8(next_target.S);
+// 				serial_writechar(':');
+// 				serwrite_hex8(*(volatile uint8_t *)(next_target.S));
+// 				serial_writestr_P(PSTR("->"));
+// 				serwrite_hex8(next_target.P);
+// 				serial_writechar('\n');
+				sersendf_P(PSTR("%x:%x->%x\n"), next_target.S, *(volatile uint8_t *)(next_target.S), next_target.P);
 				(*(volatile uint8_t *)(next_target.S)) = next_target.P;
 				break;
 				#endif /* DEBUG */
 				// unknown mcode: spit an error
 			default:
-				serial_writestr_P(PSTR("E: Bad M-code "));
+/*				serial_writestr_P(PSTR("E: Bad M-code "));
 				serwrite_uint8(next_target.M);
-				serial_writechar('\n');
+				serial_writechar('\n');*/
+				sersendf_P(PSTR("E: Bad M-code %d\n"), next_target.M);
 		}
 	}
 }
