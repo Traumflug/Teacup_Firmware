@@ -17,6 +17,7 @@
 #include	"heater.h"
 #include	"analog.h"
 #include	"pinio.h"
+#include	"arduino.h"
 
 void io_init(void) {
 	// disable modules we don't use
@@ -65,12 +66,12 @@ void io_init(void) {
 	WRITE(E_STEP_PIN, 0);	SET_OUTPUT(E_STEP_PIN);
 	WRITE(E_DIR_PIN,  0);	SET_OUTPUT(E_DIR_PIN);
 
-	// setup PWM timer: fast PWM, no prescaler
+	// setup PWM timers: fast PWM, no prescaler
 	TCCR0A = MASK(WGM01) | MASK(WGM00);
 	TCCR0B = MASK(CS00);
 	TIMSK0 = 0;
 	OCR0A = 0;
-	OCR0B = 255;
+	OCR0B = 0;
 
 	TCCR2A = MASK(WGM21) | MASK(WGM20);
 	TCCR2B = MASK(CS20);

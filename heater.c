@@ -46,18 +46,40 @@ typedef struct {
 	int16_t		EE_i_limit;
 } EE_factor;
 
-EE_factor EEMEM EE_factors[NUM_HEATERS];
+EE_factor EEMEM EE_factors[NUM_HEATERS] = {
+	{
+		DEFAULT_P,
+		DEFAULT_I,
+		DEFAULT_D,
+		DEFAULT_I_LIMIT
+	}
+};
 
 void heater_init() {
 	#if NUM_HEATERS > 0
 	uint8_t i;
 	// setup pins
 	for (i = 0; i < NUM_HEATERS; i++) {
-		*(heaters[i].heater_port) &= ~heaters[i].heater_pin;
+		*(heaters[i].heater_port) &= ~MASK(heaters[i].heater_pin);
 		// DDR is always 1 address below PORT. ugly code but saves ram and an extra field in heaters[] which will never be used anywhere but here
-		*((volatile uint8_t *) (heaters[i].heater_port - 1)) |= heaters[i].heater_pin;
-		if (heaters[i].heater_pwm)
+		*((volatile uint8_t *) (heaters[i].heater_port - 1)) |= MASK(heaters[i].heater_pin);
+		if (heaters[i].heater_pwm) {
 			*heaters[i].heater_pwm = 0;
+			switch((uint16_t) heaters[i].heater_pwm) {
+				case (uint16_t) &OCR0A:
+					TCCR0A |= MASK(COM0A1);
+					break;
+				case (uint16_t) &OCR0B:
+					TCCR0A |= MASK(COM0B1);
+					break;
+				case (uint16_t) &OCR2A:
+					TCCR2A |= MASK(COM2A1);
+					break;
+				case (uint16_t) &OCR2B:
+					TCCR2A |= MASK(COM2B1);
+					break;
+			}
+		}
 	}
 	
 	// read factors from eeprom
@@ -112,11 +134,11 @@ void heater_tick(uint8_t h, uint16_t current_temp, uint16_t target_temp) {
 	
 	// combine factors
 	int32_t pid_output_intermed = (
-	(
-	(((int32_t) heaters_runtime[h].heater_p) * heaters_pid[h].p_factor) +
-	(((int32_t) heaters_runtime[h].heater_i) * heaters_pid[h].i_factor) +
-	(((int32_t) heaters_runtime[h].heater_d) * heaters_pid[h].d_factor)
-	) / PID_SCALE
+		(
+			(((int32_t) heaters_runtime[h].heater_p) * heaters_pid[h].p_factor) +
+			(((int32_t) heaters_runtime[h].heater_i) * heaters_pid[h].i_factor) +
+			(((int32_t) heaters_runtime[h].heater_d) * heaters_pid[h].d_factor)
+		) / PID_SCALE
 	);
 	
 	// rebase and limit factors
@@ -138,13 +160,15 @@ void heater_tick(uint8_t h, uint16_t current_temp, uint16_t target_temp) {
 void heater_set(uint8_t index, uint8_t value) {
 	#if NUM_HEATERS > 0
 	if (heaters[index].heater_pwm) {
-		*heaters[index].heater_pwm = value;
+		*(heaters[index].heater_pwm) = value;
+		if (debug_flags & DEBUG_PID)
+			sersendf_P(PSTR("PWM{%u = %u}\n"), index, OCR0A);
 	}
 	else {
 		if (value >= 8)
-			*heaters[index].heater_port |= MASK(heaters[index].heater_pin);
+			*(heaters[index].heater_port) |= MASK(heaters[index].heater_pin);
 		else
-			*heaters[index].heater_port &= ~MASK(heaters[index].heater_pin);
+			*(heaters[index].heater_port) &= ~MASK(heaters[index].heater_pin);
 	}
 	#endif
 }
