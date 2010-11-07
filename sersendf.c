@@ -96,6 +96,10 @@ void sersendf_P(PGM_P format, ...) {
 						serwrite_int16(va_arg(args, int16_t));
 					j = 0;
 					break;
+				case 'c':
+					serial_writechar(va_arg(args, uint16_t));
+					j = 0;
+					break;
 /*				case 'x':
 					serial_writestr_P(str_ox);
 					if (j == 4)
@@ -106,8 +110,6 @@ void sersendf_P(PGM_P format, ...) {
 						serwrite_hex16(va_arg(args, uint16_t));
 					j = 0;
 					break;
-				case 'c':
-					serial_writechar(va_arg(args, uint16_t));
 				case 'p':
 					serwrite_hex16(va_arg(args, uint16_t));
 				default:
