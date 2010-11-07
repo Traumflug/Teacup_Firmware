@@ -108,14 +108,12 @@ mendel_cmd() {
 		local RSC=0
 		local cmd="$*"
 		echo "$cmd" >&3;
-		while [ "$REPLY" != "OK" ] && [ "$REPLY" != "ok" ]
+		local REPLY=""
+		while ! [[ "$REPLY" =~ ^OK ]] && ! [[ "$REPLY" =~ ^ok ]]
 		do
 			read -u 3
-			if [ "$REPLY" != "OK" ] && [ "$REPLY" != "ok" ]
-			then
-				echo "$REPLY"
-			fi
-			if [[ "$REPLY" =~ ^RESEND ]]
+			echo "${REPLY##ok }"
+			if [[ "$REPLY" =~ ^RESEND ]] || [[ "$REPLY" =~ ^rs ]]
 			then
 				if [ "$RSC" -le 3 ]
 				then
@@ -137,11 +135,12 @@ mendel_cmd_hr() {
 		local RSC=0
 		echo "$cmd" >&3
 		echo "S> $cmd"
-		while [ "$REPLY" != "OK" ] && [ "$REPLY" != "ok" ]
+		local REPLY=""
+		while ! [[ "$REPLY" =~ ^OK ]] && ! [[ "$REPLY" =~ ^ok ]]
 		do
 			read -u 3
 			echo "<R $REPLY"
-			if [[ "$REPLY" =~ ^RESEND ]]
+			if [[ "$REPLY" =~ ^RESEND ]] || [[ "$REPLY" =~ ^rs ]]
 			then
 				if [ "$RSC" -le 3 ]
 				then
