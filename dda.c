@@ -77,14 +77,6 @@
 #define	UM_PER_STEP_E		1000L / ((uint32_t) STEPS_PER_MM_E)
 
 /*
-	Maths
-*/
-
-#ifndef	ABS
-#define	ABS(v)		(((v) >= 0)?(v):(-(v)))
-#endif
-
-/*
 	step timeout
 */
 
@@ -187,10 +179,10 @@ void dda_create(DDA *dda, TARGET *target) {
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
-	dda->x_delta = ABS(target->X - startpoint.X);
-	dda->y_delta = ABS(target->Y - startpoint.Y);
-	dda->z_delta = ABS(target->Z - startpoint.Z);
-	dda->e_delta = ABS(target->E - startpoint.E);
+	dda->x_delta = labs(target->X - startpoint.X);
+	dda->y_delta = labs(target->Y - startpoint.Y);
+	dda->z_delta = labs(target->Z - startpoint.Z);
+	dda->e_delta = labs(target->E - startpoint.E);
 
 	dda->x_direction = (target->X >= startpoint.X)?1:0;
 	dda->y_direction = (target->Y >= startpoint.Y)?1:0;
