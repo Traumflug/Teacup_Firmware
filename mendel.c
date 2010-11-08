@@ -23,11 +23,11 @@ void io_init(void) {
 	// disable modules we don't use
 	#ifdef PRR
 		PRR = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
-	#endif
-	#ifdef PRR0
+	#elif defined PRR0
 		PRR0 = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
 		#ifdef PRR1
-			PRR1 = 0xFF;
+			// don't use USART2 or USART3- leave USART1 for GEN3 and derivatives
+			PRR1 = MASK(PRUSART3) | MASK(PRUSART2);
 		#endif
 	#endif
 	ACSR = MASK(ACD);
@@ -79,6 +79,30 @@ void io_init(void) {
 	OCR2A = 0;
 	OCR2B = 0;
 
+	#ifdef	TCCR3A
+		TCCR3A = MASK(WGM31) | MASK(WGM30);
+		TCCR3B = MASK(CS30);
+		TIMSK3 = 0;
+		OCR3A = 0;
+		OCR3B = 0;
+	#endif
+	
+	#ifdef	TCCR4A
+		TCCR4A = MASK(WGM41) | MASK(WGM40);
+		TCCR4B = MASK(CS40);
+		TIMSK4 = 0;
+		OCR4A = 0;
+		OCR4B = 0;
+	#endif
+	
+	#ifdef	TCCR5A
+		TCCR5A = MASK(WGM51) | MASK(WGM50);
+		TCCR5B = MASK(CS50);
+		TIMSK5 = 0;
+		OCR5A = 0;
+		OCR5B = 0;
+	#endif
+	
 	#ifdef	STEPPER_ENABLE_PIN
 		power_off();
 	#endif
