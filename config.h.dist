@@ -100,7 +100,7 @@
 
 #ifdef ACCELERATION_REPRAP
 	#ifdef ACCELERATION_RAMPING
-		#error Can't use ACCELERATION_REPRAP and ACCELERATION_RAMPING together.
+		#error "Can't use ACCELERATION_REPRAP and ACCELERATION_RAMPING together."
 	#endif
 #endif
 
@@ -309,6 +309,13 @@ struct {
 		however, a larger movebuffer will probably help with lots of short consecutive moves, as each move takes a bunch of math (hence time) to set up so a longer buffer allows more of the math to be done during preceding longer moves
 */
 #define	MOVEBUFFER_SIZE	8
+
+/*
+	DC extruder
+		If you have a DC motor extruder, configure it as a "heater" above and define this value as the index.
+*/
+// #define	DC_EXTRUDER 1
+// #define	DC_EXTRUDER_PWM	180
 
 /*
 	FiveD on Arduino implements a watchdog, which has to be reset every 250ms or it will reboot the controller. As rebooting (and letting the GCode sending application trying to continue the build with a then different Home point) is probably even worse than just hanging, and there is no better restore code in place, this is disabled for now.

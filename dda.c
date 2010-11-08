@@ -13,6 +13,10 @@
 #include	"pinio.h"
 #include	"config.h"
 
+#ifdef	DC_EXTRUDER
+	#include	"heater.h"
+#endif
+
 /*
 	X Stepper
 */
@@ -68,8 +72,11 @@
 	(so we don't have to delay in interrupt context)
 */
 
-#define unstep() 							do { _x_step(0); _y_step(0); _z_step(0); _e_step(0); } while (0)
-
+#ifndef	DC_EXTRUDER
+	#define unstep() 							do { _x_step(0); _y_step(0); _z_step(0); _e_step(0); } while (0)
+#else
+	#define unstep() 							do { _x_step(0); _y_step(0); _z_step(0); } while (0)
+#endif
 /*
 	Used in distance calculation during DDA setup
 */
@@ -401,12 +408,18 @@ void dda_start(DDA *dda) {
 			y_enable();
 			if (dda->z_delta)
 				z_enable();
-			
+
 			// set direction outputs
 			x_direction(dda->x_direction);
 			y_direction(dda->y_direction);
 			z_direction(dda->z_direction);
 			e_direction(dda->e_direction);
+			
+			#ifdef	DC_EXTRUDER
+			if (dda->e_delta)
+				heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
+			#endif
+			
 		}
 
 		// ensure this dda starts
@@ -629,6 +642,9 @@ void dda_step(DDA *dda) {
 		// linear acceleration code doesn't alter F during a move, so we must update it here
 		// in theory, we *could* update F every step, but that would require a divide in interrupt context which should be avoided if at all possible
 		current_position.F = dda->endpoint.F;
+		#ifdef	DC_EXTRUDER
+			heater_set(DC_EXTRUDER, 0);
+		#endif
 	}
 	
 	setTimer(dda->c >> 8);

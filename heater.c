@@ -46,14 +46,7 @@ typedef struct {
 	int16_t		EE_i_limit;
 } EE_factor;
 
-EE_factor EEMEM EE_factors[NUM_HEATERS] = {
-	{
-		DEFAULT_P,
-		DEFAULT_I,
-		DEFAULT_D,
-		DEFAULT_I_LIMIT
-	}
-};
+EE_factor EEMEM EE_factors[NUM_HEATERS];
 
 void heater_init() {
 	#if NUM_HEATERS > 0
