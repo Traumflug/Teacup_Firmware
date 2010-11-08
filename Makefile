@@ -25,36 +25,16 @@
 
 ##############################################################################
 #                                                                            #
-# Change these to suit your application                                      #
-#                                                                            #
-##############################################################################
-
-PROGRAM = mendel
-
-SOURCES = $(PROGRAM).c serial.c dda.c gcode_parse.c gcode_process.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c delay.c intercom.c pinio.c
-
-##############################################################################
-#                                                                            #
 # Change these to suit your hardware                                         #
 #                                                                            #
 ##############################################################################
 
-#MCU_TARGET = atmega168
+# MCU_TARGET = atmega168
 # MCU_TARGET = atmega328p
 MCU_TARGET = atmega644p
-#MCU_TARGET = atmega1280
+# MCU_TARGET = atmega1280
+
 F_CPU = 16000000L
-
-##############################################################################
-#                                                                            #
-# These defaults should be ok, change if you need to                         #
-#                                                                            #
-##############################################################################
-
-ARCH = avr-
-CC = $(ARCH)gcc
-OBJDUMP = $(ARCH)objdump
-OBJCOPY = $(ARCH)objcopy
 
 ##############################################################################
 #                                                                            #
@@ -70,16 +50,20 @@ OBJCOPY = $(ARCH)objcopy
 #   enables start/stop ramping                                               #
 # GEN3                                                                       #
 #   build for standard reprap electronics instead of your custom rig         #
+# HOST                                                                       #
+#   this is the motherboard for GEN3- don't touch! Extruder has its own      #
+#   Makefile.                                                                #
 #                                                                            #
 ##############################################################################
 
 DEFS = -DF_CPU=$(F_CPU) -DHOST -DGEN3
 # DEFS += "-DDEBUG=1"
 
-OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once -mcall-prologues
-# OPTIMIZE = -O0
-CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
-LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
+##############################################################################
+#                                                                            #
+# Programmer settings for "make program"                                     #
+#                                                                            #
+##############################################################################
 
 AVRDUDE = avrdude
 AVRDUDECONF = /etc/avrdude.conf
@@ -92,11 +76,34 @@ AVRDUDECONF = /etc/avrdude.conf
 #     MODE="0660"                                                            #
 #                                                                            #
 ##############################################################################
+
 PROGPORT = /dev/arduino
+
 # atmega168
 #PROGBAUD = 19200
 # atmega328p, 644p, 1280
 PROGBAUD = 57600
+
+
+##############################################################################
+#                                                                            #
+# These defaults should be ok, change if you need to                         #
+#                                                                            #
+##############################################################################
+
+PROGRAM = mendel
+
+SOURCES = $(PROGRAM).c serial.c dda.c gcode_parse.c gcode_process.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c delay.c intercom.c pinio.c
+
+ARCH = avr-
+CC = $(ARCH)gcc
+OBJDUMP = $(ARCH)objdump
+OBJCOPY = $(ARCH)objcopy
+
+OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once -mcall-prologues
+# OPTIMIZE = -O0
+CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
+LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
 
 OBJ = $(patsubst %.c,%.o,${SOURCES})
 
