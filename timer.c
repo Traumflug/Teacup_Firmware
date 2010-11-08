@@ -21,11 +21,9 @@ ISR(TIMER1_CAPT_vect) {
 	*/
 	if (next_step_time > TICK_TIME)
 		next_step_time -= TICK_TIME;
-	else {
-		if (next_step_time > 0) {
-			OCR1A = next_step_time & 0xFFFF;
-			TIMSK1 |= MASK(OCIE1A);
-		}
+	else if (next_step_time > 0) {
+		OCR1A = next_step_time & 0xFFFF;
+		TIMSK1 |= MASK(OCIE1A);
 	}
 	
 	/*
@@ -50,7 +48,8 @@ ISR(TIMER1_CAPT_vect) {
 	}
 }
 
-ISR(TIMER1_COMPA_vect) {
+void timer1_compa_isr(void) __attribute__ ((hot));
+void timer1_compa_isr() {
 	// led on
 	WRITE(SCK, 1);
 	
@@ -60,13 +59,15 @@ ISR(TIMER1_COMPA_vect) {
 	// ensure we don't interrupt again unless timer is reset
 	next_step_time = 0;
 	
-	/*
-	stepper tick
-	*/
+	// stepper tick
 	queue_step();
 	
 	// led off
 	WRITE(SCK, 0);
+}
+
+ISR(TIMER1_COMPA_vect) {
+	timer1_compa_isr();
 }
 
 void timer_init()
@@ -95,11 +96,11 @@ void setTimer(uint32_t delay)
 		// mangle timer variables
 		next_step_time = delay + TCNT1;
 		if (delay <= 16) {
-			// force interrupt
-			// TODO: datasheet says force only doesn't work in CTC:COMPA mode, test if CTC:ICR mode allows force
-			TIMSK1 |= MASK(OCIE1A);
-			TCCR1C |= MASK(FOC1A);
+			// unfortunately, force registers don't trigger an interrupt, so we do the following
+			// don't step from timer interrupt
 			next_step_time = 0;
+			// "fire" ISR- maybe it sets a new timeout
+			timer1_compa_isr();
 		}
 		else if (delay <= TICK_TIME) {
 			OCR1A = next_step_time & 0xFFFF;
