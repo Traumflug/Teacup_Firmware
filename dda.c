@@ -214,9 +214,8 @@ void dda_create(DDA *dda, TARGET *target) {
 	if (dda->e_delta > dda->total_steps)
 		dda->total_steps = dda->e_delta;
 
-	if (debug_flags & DEBUG_DDA) {
-		serial_writestr_P(PSTR("ts:")); serwrite_uint32(dda->total_steps);
-	}
+	if (debug_flags & DEBUG_DDA)
+		sersendf_P(PSTR("ts:%lu"), dda->total_steps);
 
 	if (dda->total_steps == 0) {
 		dda->nullmove = 1;
@@ -244,9 +243,8 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (distance < 2)
 			distance = dda->e_delta * UM_PER_STEP_E;
 
-		if (debug_flags & DEBUG_DDA) {
-			serial_writestr_P(PSTR(",ds:")); serwrite_uint32(distance);
-		}
+		if (debug_flags & DEBUG_DDA)
+			sersendf_P(PSTR(",ds:%lu"), distance);
 
 		// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 		// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
@@ -268,15 +266,19 @@ void dda_create(DDA *dda, TARGET *target) {
 		// similarly, find out how fast we can run our axes.
 		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
 		c_limit = 0;
+		// check X axis
 		c_limit_calc = ( (dda->x_delta * (UM_PER_STEP_X * 2400L)) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_X) << 8;
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
+		// check Y axis
 		c_limit_calc = ( (dda->y_delta * (UM_PER_STEP_Y * 2400L)) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Y) << 8;
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
+		// check Z axis
 		c_limit_calc = ( (dda->z_delta * (UM_PER_STEP_Z * 2400L)) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Z) << 8;
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
+		// check E axis
 		c_limit_calc = ( (dda->e_delta * (UM_PER_STEP_E * 2400L)) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_E) << 8;
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
@@ -290,10 +292,8 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (dda->end_c < c_limit)
 			dda->end_c = c_limit;
 
-		if (debug_flags & DEBUG_DDA) {
-			serial_writestr_P(PSTR(",md:")); serwrite_uint32(move_duration);
-			serial_writestr_P(PSTR(",c:")); serwrite_uint32(dda->c >> 8);
-		}
+		if (debug_flags & DEBUG_DDA)
+			sersendf_P(PSTR(",md:%lu,c:%lu"), move_duration, dda->c >> 8);
 
 		if (dda->c != dda->end_c) {
 			uint32_t stF = startpoint.F / 4;
@@ -329,9 +329,8 @@ void dda_create(DDA *dda, TARGET *target) {
 				dda->n = (((int32_t) ssq / dsq) * (int32_t) dda->total_steps) + 1;
 			}
 
-			if (debug_flags & DEBUG_DDA) {
+			if (debug_flags & DEBUG_DDA)
 				sersendf_P(PSTR("\n{DDA:CA end_c:%lu, n:%ld, md:%lu, ssq:%lu, esq:%lu, dsq:%lu, msbssq:%u, msbtot:%u}\n"), dda->end_c >> 8, dda->n, move_duration, ssq, esq, dsq, msb_ssq, msb_tot);
-			}
 
 			dda->accel = 1;
 		}
@@ -377,13 +376,19 @@ void dda_start(DDA *dda) {
 	}
 	else {
 		if (dda->waitfor_temp) {
-			serial_writestr_P(PSTR("Waiting for target temp\n"));
+			#ifndef	REPRAP_HOST_COMPATIBILITY
+				serial_writestr_P(PSTR("Waiting for target temp\n"));
+			#endif
 		}
 		else {
 			// ensure steppers are ready to go
 			steptimeout = 0;
 			power_on();
-
+			x_enable();
+			y_enable();
+			if (dda->z_delta)
+				z_enable();
+			
 			// set direction outputs
 			x_direction(dda->x_direction);
 			y_direction(dda->y_direction);
