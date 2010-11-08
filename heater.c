@@ -161,8 +161,10 @@ void heater_set(uint8_t index, uint8_t value) {
 	#if NUM_HEATERS > 0
 	if (heaters[index].heater_pwm) {
 		*(heaters[index].heater_pwm) = value;
+		#ifdef	DEBUG
 		if (debug_flags & DEBUG_PID)
 			sersendf_P(PSTR("PWM{%u = %u}\n"), index, OCR0A);
+		#endif
 	}
 	else {
 		if (value >= 8)
