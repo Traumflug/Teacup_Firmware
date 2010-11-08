@@ -77,7 +77,21 @@
 		Each movement starts at (almost) no speed, linearly accelerates to target speed and decelerates just in time to smoothly stop at the target. alternative to ACCELERATION_REPRAP
 		Can also be set in Makefile
 */
-#define ACCELERATION_RAMPING
+// #define ACCELERATION_RAMPING
+
+/*
+	temporal step algorithm
+		This algorithm causes the timer to fire when any axis needs to step, instead of synchronising to the axis with the most steps.
+
+		This algorithm is not a type of acceleration, and I haven't worked out how to integrate acceleration with it.
+		However it does control step timing, so acceleration algorithms seemed appropriate
+
+		The Bresenham algorithm is great for drawing lines, but not so good for steppers - In the case where X steps 3 times to Y's two, Y experiences massive jitter as it steps in sync with X every 2 out of 3 X steps. This is a worst-case, but the problem exists for most non-45/90 degree moves. At higher speeds, the jitter /will/ cause position loss and unnecessary vibration.
+		This algorithm instead calculates when a step occurs on any axis, and sets the timer to that value.
+
+		// TODO: figure out how to add acceleration to this algorithm
+*/
+// #define ACCELERATION_TEMPORAL
 
 // how fast to accelerate when using ACCELERATION_RAMPING
 // smaller values give quicker acceleration

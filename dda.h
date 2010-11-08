@@ -86,6 +86,12 @@ typedef struct {
 	int32_t						n;
 	ramp_state_t			ramp_state;
 	#endif
+	#ifdef ACCELERATION_TEMPORAL
+	uint32_t					x_step_interval;
+	uint32_t					y_step_interval;
+	uint32_t					z_step_interval;
+	uint32_t					e_step_interval;
+	#endif
 } DDA;
 
 /*

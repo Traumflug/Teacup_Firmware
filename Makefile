@@ -48,6 +48,9 @@ F_CPU = 16000000L
 #   enables reprap-style acceleration                                        #
 # ACCELERATION_RAMPING                                                       #
 #   enables start/stop ramping                                               #
+# ACCELERATION_TEMPORAL                                                      #
+#   enables experimental temporal step algorithm - not technically a type of #
+#   acceleration, but since it controls step timing it seems appropriate     #
 # GEN3                                                                       #
 #   build for standard reprap electronics instead of your custom rig         #
 # HOST                                                                       #
