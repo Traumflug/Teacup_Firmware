@@ -4,6 +4,7 @@
 
 #ifndef	ANALOG_MASK
 	#warning	define ANALOG_MASK as a bitmask of all the analog channels you wish to use
+	#warning	defining ANALOG_MASK as zero will prevent the analog subsystem from starting
 	#error		ANALOG_MASK not defined
 #endif
 
@@ -40,26 +41,26 @@ volatile uint16_t adc_result[8] __attribute__ ((__section__ (".bss")));
 
 void analog_init() {
 	#if ANALOG_MASK > 0
-	#ifdef	PRR
-		PRR &= ~MASK(PRADC);
-	#elif defined PRR0
-		PRR0 &= ~MASK(PRADC);
-	#endif
-	
-	ADMUX = REFERENCE;
-	
-	// ADC frequency must be less than 200khz or we lose precision. At 16MHz system clock, we must use the full prescale value of 128 to get an ADC clock of 125khz.
-	ADCSRA = MASK(ADEN) | MASK(ADPS2) | MASK(ADPS1) | MASK(ADPS0);
+		#ifdef	PRR
+			PRR &= ~MASK(PRADC);
+		#elif defined PRR0
+			PRR0 &= ~MASK(PRADC);
+		#endif
 
-	adc_counter = 0;
-	adc_running_mask = 1;
+		ADMUX = REFERENCE;
 
-	DDRC &= ANALOG_MASK;
-	DIDR0 = ANALOG_MASK & 0x3F;
+		// ADC frequency must be less than 200khz or we lose precision. At 16MHz system clock, we must use the full prescale value of 128 to get an ADC clock of 125khz.
+		ADCSRA = MASK(ADEN) | MASK(ADPS2) | MASK(ADPS1) | MASK(ADPS0);
 
-	// now we start the first conversion and leave the rest to the interrupt
-	ADCSRA |= MASK(ADIE) | MASK(ADSC);
-	#endif
+		adc_counter = 0;
+		adc_running_mask = 1;
+
+		DDRC &= ANALOG_MASK;
+		DIDR0 = ANALOG_MASK & 0x3F;
+
+		// now we start the first conversion and leave the rest to the interrupt
+		ADCSRA |= MASK(ADIE) | MASK(ADSC);
+	#endif /* ANALOG_MASK > 0 */
 }
 
 ISR(ADC_vect, ISR_NOBLOCK) {
@@ -81,19 +82,23 @@ ISR(ADC_vect, ISR_NOBLOCK) {
 }
 
 uint16_t	analog_read(uint8_t channel) {
-	uint16_t r;
+	#if ANALOG_MASK > 0
+		uint16_t r;
 
-	uint8_t sreg;
-	// save interrupt flag
-	sreg = SREG;
-	// disable interrupts
-	cli();
-	
-	// atomic 16-bit copy
-	r = adc_result[channel];
-	
-	// restore interrupt flag
-	SREG = sreg;
-	
-	return r;
+		uint8_t sreg;
+		// save interrupt flag
+		sreg = SREG;
+		// disable interrupts
+		cli();
+
+		// atomic 16-bit copy
+		r = adc_result[channel];
+
+		// restore interrupt flag
+		SREG = sreg;
+
+		return r;
+	#else
+		return 0;
+	#endif
 }
