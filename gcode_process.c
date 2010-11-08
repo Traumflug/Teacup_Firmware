@@ -271,30 +271,31 @@ void process_gcode_command() {
 				// M130- heater P factor
 			case 130:
 				if (next_target.seen_S)
-// 					p_factor = next_target.S;
 					pid_set_p(next_target.P, next_target.S);
 				break;
 				// M131- heater I factor
 			case 131:
 				if (next_target.seen_S)
-// 					i_factor = next_target.S;
 					pid_set_i(next_target.P, next_target.S);
 				break;
 				// M132- heater D factor
 			case 132:
 				if (next_target.seen_S)
-// 					d_factor = next_target.S;
 					pid_set_d(next_target.P, next_target.S);
 				break;
 				// M133- heater I limit
 			case 133:
 				if (next_target.seen_S)
-// 					i_limit = next_target.S;
 					pid_set_i_limit(next_target.P, next_target.S);
 				break;
 				// M134- save PID settings to eeprom
 			case 134:
 				heater_save_settings();
+				break;
+				// M135- set heater output
+			case 135:
+				if (next_target.seen_S)
+					heater_set(next_target.P, next_target.S);
 				break;
 			#endif	/* NUM_HEATERS > 0 */
 				
@@ -302,26 +303,26 @@ void process_gcode_command() {
 			case 190:
 				power_on();
 				#ifdef	X_ENABLE_PIN
-				WRITE(X_ENABLE_PIN, 0);
+					WRITE(X_ENABLE_PIN, 0);
 				#endif
 				#ifdef	Y_ENABLE_PIN
-				WRITE(Y_ENABLE_PIN, 0);
+					WRITE(Y_ENABLE_PIN, 0);
 				#endif
 				#ifdef	Z_ENABLE_PIN
-				WRITE(Z_ENABLE_PIN, 0);
+					WRITE(Z_ENABLE_PIN, 0);
 				#endif
 				steptimeout = 0;
 				break;
 				// M191- power off
 			case 191:
 				#ifdef	X_ENABLE_PIN
-				WRITE(X_ENABLE_PIN, 1);
+					WRITE(X_ENABLE_PIN, 1);
 				#endif
 				#ifdef	Y_ENABLE_PIN
-				WRITE(Y_ENABLE_PIN, 1);
+					WRITE(Y_ENABLE_PIN, 1);
 				#endif
 				#ifdef	Z_ENABLE_PIN
-				WRITE(Z_ENABLE_PIN, 1);
+					WRITE(Z_ENABLE_PIN, 1);
 				#endif
 				power_off();
 				break;
