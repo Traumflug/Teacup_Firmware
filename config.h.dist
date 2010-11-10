@@ -40,6 +40,8 @@
 /*
 	Values depending on the capabilities of your stepper motors and other mechanics.
 		All numbers are integers, no decimals allowed.
+
+		Units are mm/min
 */
 
 // used for G0 rapid moves and as a cap for all other feedrates
