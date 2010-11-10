@@ -182,19 +182,21 @@
 \***************************************************************************/
 
 /*
-	TEMP_HYSTERESIS: actual temperature must be target +/- hysteresis before target temperature can be achieved
+	TEMP_HYSTERESIS: actual temperature must be target +/- hysteresis before target temperature can be achieved.
+	  NOTE: format is 30.2 fixed point, so value of 20 actually means +/- 5 degrees
+
 	TEMP_RESIDENCY_TIME: actual temperature must be close to target for this long before target is achieved
 
 	temperature is "achieved" for purposes of M109 and friends when actual temperature is within [hysteresis] of target for [residency] seconds
 */
-#define	TEMP_HYSTERESIS				5
+#define	TEMP_HYSTERESIS				20
 #define	TEMP_RESIDENCY_TIME		60
 
 // which temperature sensors are you using? (intercom is the gen3-style separate extruder board)
 // #define	TEMP_MAX6675
 // #define	TEMP_THERMISTOR
 // #define	TEMP_AD595
-// #define	TEMP_INTERCOM
+#define	TEMP_INTERCOM
 
 // if you selected thermistor or AD595, what pin is it on? (this value only used to fill ANALOG_MASK for you)
 #define	TEMP_PIN_CHANNEL	AIO0_PIN
@@ -244,6 +246,9 @@ struct {
 
 // number of heaters- for GEN3, set to zero as extruder manages the heater by itself
 #define	NUM_HEATERS				0
+
+// check if heater responds to changes in target temperature, disable and spit errors if not
+// #define	HEATER_SANITY_CHECK
 
 /***************************************************************************\
 *                                                                           *
