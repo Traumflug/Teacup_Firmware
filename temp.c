@@ -110,7 +110,7 @@ void temp_init() {
 }
 
 void temp_sensor_tick() {
-	uint8_t	i = 0, all_within_range = 1;
+	uint8_t	i = 0;
 	for (; i < NUM_TEMP_SENSORS; i++) {
 		if (temp_sensors_runtime[i].next_read_time) {
 			temp_sensors_runtime[i].next_read_time--;
@@ -225,7 +225,6 @@ void temp_sensor_tick() {
 			}
 			else {
 				temp_sensors_runtime[i].temp_residency = 0;
-				all_within_range = 0;
 			}
 			
 			if (temp_sensors[i].heater_index < NUM_HEATERS) {
@@ -257,6 +256,7 @@ uint16_t temp_get(uint8_t index) {
 	return temp_sensors_runtime[index].last_read_temp;
 }
 
+// extruder doesn't have sersendf_P
 #ifndef	EXTRUDER
 void temp_print(uint8_t index) {
 	uint8_t c = 0;
