@@ -21,6 +21,16 @@
 \***************************************************************************/
 
 /*
+	Are you using the official GEN3 motherboard with separate extruder controller?
+*/
+#define	GEN3
+
+/*
+	This is the motherboard, as opposed to the extruder. See extruder/ directory for GEN3 extruder firmware
+*/
+#define	HOST
+
+/*
 	Values reflecting the gearing of your machine.
 		All numbers are fixed point integers, so no more than 3 digits to the right of the decimal point, please :-)
 */
@@ -112,7 +122,6 @@
 * 3. PINOUTS                                                                *
 *                                                                           *
 \***************************************************************************/
-
 
 /*
 	Machine Pin Definitions
@@ -229,7 +238,7 @@ struct {
 } temp_sensors[NUM_TEMP_SENSORS] =
 {
 	// type         pin heater
-	{ TT_INTERCOM,  0,  0 }
+	{ TT_INTERCOM,  0,  255 }
 };
 #endif
 
