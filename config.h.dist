@@ -228,11 +228,8 @@ struct {
 	uint8_t						heater_index;
 } temp_sensors[NUM_TEMP_SENSORS] =
 {
-	{
-		TT_INTERCOM,
-		0,
-		0
-	}
+	// type         pin heater
+	{ TT_INTERCOM,  0,  0 }
 };
 #endif
 
@@ -269,11 +266,8 @@ struct {
 	volatile uint8_t	*heater_pwm;
 } heaters[NUM_HEATERS]/* =
 {
-	{
-		&PORTD,
-		PIND6,
-		&OCR0A
-	}
+	// port   pin    pwm
+	{ &PORTD, PIND6, &OCR0A }
 }*/;
 #endif
 
