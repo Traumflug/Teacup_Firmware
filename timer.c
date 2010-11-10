@@ -11,9 +11,6 @@ uint8_t						clock_counter_250ms = 0;
 uint8_t						clock_counter_1s = 0;
 volatile uint8_t	clock_flag = 0;
 
-// how often we overflow and update our clock; with F_CPU=16MHz, max is < 4.096ms (TICK_TIME = 65535)
-#define		TICK_TIME		2 MS
-
 // timer overflow, happens every TICK_TIME
 ISR(TIMER1_CAPT_vect) {
 	/*
@@ -29,7 +26,7 @@ ISR(TIMER1_CAPT_vect) {
 	/*
 	clock stuff
 	*/
-	clock_counter_10ms += (TICK_TIME / (F_CPU / 1000));
+	clock_counter_10ms += TICK_TIME_MS;
 	if (clock_counter_10ms >= 10) {
 		clock_counter_10ms -= 10;
 		clock_flag |= CLOCK_FLAG_10MS;
