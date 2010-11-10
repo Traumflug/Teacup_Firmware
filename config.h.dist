@@ -21,6 +21,12 @@
 \***************************************************************************/
 
 /*
+	Set your microcontroller type in Makefile! atmega168/atmega328p/atmega644p/atmega1280
+
+	If you want to port this to a new chip, start off with arduino.h and see how you go.
+*/
+
+/*
 	Are you using the official GEN3 motherboard with separate extruder controller?
 */
 #define	GEN3
