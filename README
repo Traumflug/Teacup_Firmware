@@ -108,11 +108,11 @@ The PID code in heater.c is probably quite generalisable, and seems to work well
 *** analog.[ch]
 This is the analog subsystem. Only used if you have a thermistor or ad595
 
-*** arduino.h
-Pin mappings and helper functions for various arduinos ('168/'328-based and '644-based only so far, feel free to add '1280 and post a patch)
+*** arduino.h, arduino_[chip].h
+Pin mappings and helper functions for various atmegas
 
-*** clock.[ch]
-A system clock for periodic tasks. Supports a long-running clock, but this is disabled by default as nothing uses it (yet!)
+*** config.h.dist, config.h
+Configuration for your electronics and hardware. Copy config.h.dist to config.h, edit config.h to suit
 
 *** copier.[ch]
 A totally untested and currently unused chunk of code for copying firmware to another identical chip
@@ -126,20 +126,29 @@ The queue of moves received from the host.
 *** debug.[ch]
 Debugging aids
 
+*** delay.[ch]
+Delay functions
+
 *** FiveD_on_Arduino.pde
 Allows firmware to be built in arduino ide
 
 *** func.sh
 Lots of host-side shell scripts for talking to firmware
 
-*** gcode.[ch]
-Gcode interpreter. Scaling of factors to internally used integer or fixed point happens here too.
+*** gcode_parse.[ch]
+Gcode parser. Scaling of factors to internally used integer or fixed point happens here too.
+
+*** gcode_process.[ch]
+Gcodes actually get executed here after being parsed.
 
 *** heater.[ch]
 Heater management, including PID and PWM algorithms, and some configuration parameters
 
-*** machine.h
-Configuration variables to match firmware to your hardware
+*** intercom.[ch]
+Gen3 serial link control and communication
+
+*** LICENSE
+Gnu GPL2 license
 
 *** Makefile
 instructions for make on how to build firmware. has a list of modules to build which may need to be updated every so often
@@ -147,8 +156,8 @@ instructions for make on how to build firmware. has a list of modules to build w
 *** mendel.c
 Firmware startup and main loop code
 
-*** pinout.h
-This file associates various functions with particular pins on your avr
+*** pinio.h
+A few I/O primitives
 
 *** README
 this file
