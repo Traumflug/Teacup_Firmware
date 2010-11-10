@@ -18,10 +18,8 @@
 typedef enum {
 	TT_THERMISTOR,
 	TT_MAX6675,
-	TT_AD595
-#ifdef	GEN3
-	, TT_INTERCOM
-#endif
+	TT_AD595,
+	TT_INTERCOM
 } temp_types;
 
 typedef enum {
