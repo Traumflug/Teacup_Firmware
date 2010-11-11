@@ -233,6 +233,9 @@
 * for GEN3 set temp_type to TT_INTERCOM, temp_pin to 0 and heater index to  *
 *   255                                                                     *
 *                                                                           *
+* Types are same as TEMP_ list above- TT_MAX6675, TT_THERMISTOR, TT_AD595,  *
+*   TT_INTERCOM. See list in temp.c.                                        *
+*                                                                           *
 \***************************************************************************/
 
 #ifdef	TEMP_C
