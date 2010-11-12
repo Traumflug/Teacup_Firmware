@@ -163,9 +163,8 @@ void process_gcode_command() {
 					
 					// unknown gcode: spit an error
 				default:
-					serial_writestr_P(PSTR("E: Bad G-code "));
-					serwrite_uint8(next_target.G);
-					serial_writechar('\n');
+					sersendf_P(PSTR("E: Bad G-code %d"), next_target.G);
+					// newline is sent from gcode_parse after we return
 		}
 	}
 	else if (next_target.seen_M) {
@@ -260,11 +259,13 @@ void process_gcode_command() {
 				// M113- extruder PWM
 				// M114- report XYZEF to host
 			case 114:
-				sersendf_P(PSTR("X:%ld,Y:%ld,Z:%ld,E:%ld,F:%ld\n"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
+				sersendf_P(PSTR("X:%ld,Y:%ld,Z:%ld,E:%ld,F:%ld"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
+				// newline is sent from gcode_parse after we return
 				break;
 				// M115- capabilities string
 			case 115:
-				sersendf_P(PSTR("FIRMWARE_NAME:FiveD_on_Arduino FIRMWARE_URL:http%3A//github.com/triffid/FiveD_on_Arduino/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d\n"), 1, NUM_TEMP_SENSORS, NUM_HEATERS);
+				sersendf_P(PSTR("FIRMWARE_NAME:FiveD_on_Arduino FIRMWARE_URL:http%3A//github.com/triffid/FiveD_on_Arduino/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d"), 1, NUM_TEMP_SENSORS, NUM_HEATERS);
+				// newline is sent from gcode_parse after we return
 				break;
 
 			#if	NUM_HEATERS > 0
@@ -302,77 +303,43 @@ void process_gcode_command() {
 				// M190- power on
 			case 190:
 				power_on();
-				#ifdef	X_ENABLE_PIN
-					WRITE(X_ENABLE_PIN, 0);
-				#endif
-				#ifdef	Y_ENABLE_PIN
-					WRITE(Y_ENABLE_PIN, 0);
-				#endif
-				#ifdef	Z_ENABLE_PIN
-					WRITE(Z_ENABLE_PIN, 0);
-				#endif
+				x_enable();
+				y_enable();
+				z_enable();
 				steptimeout = 0;
 				break;
 				// M191- power off
 			case 191:
-				#ifdef	X_ENABLE_PIN
-					WRITE(X_ENABLE_PIN, 1);
-				#endif
-				#ifdef	Y_ENABLE_PIN
-					WRITE(Y_ENABLE_PIN, 1);
-				#endif
-				#ifdef	Z_ENABLE_PIN
-					WRITE(Z_ENABLE_PIN, 1);
-				#endif
+				x_disable();
+				y_disable();
+				z_disable();
 				power_off();
 				break;
 				
-				#ifdef	DEBUG
+			#ifdef	DEBUG
 				// M140- echo off
 			case 140:
 				debug_flags &= ~DEBUG_ECHO;
-				serial_writestr_P(PSTR("Echo off\n"));
+				serial_writestr_P(PSTR("Echo off"));
+				// newline is sent from gcode_parse after we return
 				break;
 				// M141- echo on
 			case 141:
 				debug_flags |= DEBUG_ECHO;
-				serial_writestr_P(PSTR("Echo on\n"));
+				serial_writestr_P(PSTR("Echo on"));
+				// newline is sent from gcode_parse after we return
 				break;
 				
-				// DEBUG: return current position
+				// DEBUG: return current position, end position, queue
 			case 250:
-				serial_writestr_P(PSTR("{X:"));
-				serwrite_int32(current_position.X);
-				serial_writestr_P(PSTR(",Y:"));
-				serwrite_int32(current_position.Y);
-				serial_writestr_P(PSTR(",Z:"));
-				serwrite_int32(current_position.Z);
-				serial_writestr_P(PSTR(",E:"));
-				serwrite_int32(current_position.E);
-				serial_writestr_P(PSTR(",F:"));
-				serwrite_int32(current_position.F);
-				serial_writestr_P(PSTR(",c:"));
-				serwrite_uint32(movebuffer[mb_tail].c);
-				serial_writestr_P(PSTR("}\n"));
-				
-				serial_writestr_P(PSTR("{X:"));
-				serwrite_int32(movebuffer[mb_tail].endpoint.X);
-				serial_writestr_P(PSTR(",Y:"));
-				serwrite_int32(movebuffer[mb_tail].endpoint.Y);
-				serial_writestr_P(PSTR(",Z:"));
-				serwrite_int32(movebuffer[mb_tail].endpoint.Z);
-				serial_writestr_P(PSTR(",E:"));
-				serwrite_int32(movebuffer[mb_tail].endpoint.E);
-				serial_writestr_P(PSTR(",F:"));
-				serwrite_int32(movebuffer[mb_tail].endpoint.F);
-				serial_writestr_P(PSTR(",c:"));
-				#ifdef ACCELERATION_REPRAP
-				serwrite_uint32(movebuffer[mb_tail].end_c);
-				#else
-				serwrite_uint32(movebuffer[mb_tail].c);
-				#endif
-				serial_writestr_P(PSTR("}\n"));
-				
+				sersendf_P(PSTR("{X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\t{X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\t"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F, movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.X, movebuffer[mb_tail].endpoint.Y, movebuffer[mb_tail].endpoint.Z, movebuffer[mb_tail].endpoint.E, movebuffer[mb_tail].endpoint.F,
+					#ifdef ACCELERATION_REPRAP
+						movebuffer[mb_tail].end_c
+					#else
+						movebuffer[mb_tail].c
+					#endif
+					);
+
 				print_queue();
 				break;
 				
@@ -384,27 +351,20 @@ void process_gcode_command() {
 					serwrite_hex8(*(volatile uint8_t *)(next_target.S));
 					next_target.S++;
 				}
-				serial_writechar('\n');
+				// newline is sent from gcode_parse after we return
 				break;
 				
 				// DEBUG: write arbitrary memory locatiom
 			case 254:
-// 				serwrite_hex8(next_target.S);
-// 				serial_writechar(':');
-// 				serwrite_hex8(*(volatile uint8_t *)(next_target.S));
-// 				serial_writestr_P(PSTR("->"));
-// 				serwrite_hex8(next_target.P);
-// 				serial_writechar('\n');
-				sersendf_P(PSTR("%x:%x->%x\n"), next_target.S, *(volatile uint8_t *)(next_target.S), next_target.P);
+				sersendf_P(PSTR("%x:%x->%x"), next_target.S, *(volatile uint8_t *)(next_target.S), next_target.P);
 				(*(volatile uint8_t *)(next_target.S)) = next_target.P;
+				// newline is sent from gcode_parse after we return
 				break;
-				#endif /* DEBUG */
+			#endif /* DEBUG */
 				// unknown mcode: spit an error
 			default:
-/*				serial_writestr_P(PSTR("E: Bad M-code "));
-				serwrite_uint8(next_target.M);
-				serial_writechar('\n');*/
-				sersendf_P(PSTR("E: Bad M-code %d\n"), next_target.M);
+				sersendf_P(PSTR("E: Bad M-code %d"), next_target.M);
+				// newline is sent from gcode_parse after we return
 		}
 	}
 }
