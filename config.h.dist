@@ -211,6 +211,7 @@
 // #define	TEMP_MAX6675
 // #define	TEMP_THERMISTOR
 // #define	TEMP_AD595
+// #define	TEMP_PT100
 #define	TEMP_INTERCOM
 
 // if you selected thermistor or AD595, what pin is it on? (this value only used to fill ANALOG_MASK for you)
@@ -285,7 +286,8 @@ struct {
 } heaters[NUM_HEATERS]/* =
 {
 	// port   pin    pwm
-	{ &PORTD, PIND6, &OCR0A }
+	{ &PORTD, PIND6, &OCR0A },
+	{ &PORTD, PIND5, &OCR0B }
 }*/;
 #endif
 

@@ -19,6 +19,7 @@ typedef enum {
 	TT_THERMISTOR,
 	TT_MAX6675,
 	TT_AD595,
+	TT_PT100,
 	TT_INTERCOM
 } temp_types;
 
@@ -205,6 +206,12 @@ void temp_sensor_tick() {
 					
 					break;
 				#endif	/* TEMP_AD595 */
+
+				#ifdef	TEMP_PT100
+				case TT_PT100:
+					#warning TODO: PT100 code
+					break
+				#endif	/* TEMP_PT100 */
 
 				#ifdef	GEN3
 				case TT_INTERCOM:
