@@ -1,5 +1,3 @@
-#ifdef	GEN3
-
 #include	"intercom.h"
 
 #include	<avr/interrupt.h>
@@ -7,6 +5,7 @@
 #include	"config.h"
 #include	"delay.h"
 
+#ifdef	GEN3
 #define		INTERCOM_BAUD			57600
 
 #define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  WRITE(RX_ENABLE_PIN,0); } while(0)

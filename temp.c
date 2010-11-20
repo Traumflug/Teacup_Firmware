@@ -4,17 +4,6 @@
 #include	<avr/eeprom.h>
 #include	<avr/pgmspace.h>
 
-#include	"arduino.h"
-#include	"delay.h"
-#include	"debug.h"
-#ifndef	EXTRUDER
-	#include	"sersendf.h"
-#endif
-#include	"heater.h"
-#ifdef	GEN3
-	#include	"intercom.h"
-#endif
-
 typedef enum {
 	TT_THERMISTOR,
 	TT_MAX6675,
@@ -30,6 +19,17 @@ typedef enum {
 
 #define		TEMP_C
 #include	"config.h"
+
+#include	"arduino.h"
+#include	"delay.h"
+#include	"debug.h"
+#ifndef	EXTRUDER
+	#include	"sersendf.h"
+#endif
+#include	"heater.h"
+#ifdef	GEN3
+	#include	"intercom.h"
+#endif
 
 // this struct holds the runtime sensor data- read temperatures, targets, etc
 struct {

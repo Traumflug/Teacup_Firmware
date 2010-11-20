@@ -3,9 +3,8 @@
 #include	<avr/interrupt.h>
 
 #ifndef	ANALOG_MASK
-	#warning	define ANALOG_MASK as a bitmask of all the analog channels you wish to use
-	#warning	defining ANALOG_MASK as zero will prevent the analog subsystem from starting
-	#error		ANALOG_MASK not defined
+	#warning	ANALOG_MASK not defined - analog subsystem disabled
+	#define	ANALOG_MASK	0
 #endif
 
 uint8_t adc_running_mask, adc_counter;

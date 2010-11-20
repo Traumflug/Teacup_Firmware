@@ -34,7 +34,7 @@
 MCU_TARGET = atmega644p
 # MCU_TARGET = atmega1280
 
-F_CPU = 16000000L
+# F_CPU = 16000000L
 
 ##############################################################################
 #                                                                            #
@@ -59,7 +59,7 @@ F_CPU = 16000000L
 #                                                                            #
 ##############################################################################
 
-DEFS = -DF_CPU=$(F_CPU) -DHOST -DGEN3
+# DEFS = -DF_CPU=$(F_CPU) -DHOST -DGEN3
 # DEFS += "-DDEBUG=1"
 
 ##############################################################################
@@ -133,6 +133,8 @@ size: $(PROGRAM).elf
 
 config.h: config.h.dist
 	@echo "Please review config.h, as config.h.dist is more recent."
+	@echo
+	@diff -bBEuF '^. [[:digit:]]. [[:upper:]]' config.h config.h.dist
 	@false
 
 %.o: %.c config.h Makefile
