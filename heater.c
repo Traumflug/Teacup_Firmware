@@ -6,7 +6,9 @@
 
 #include	"arduino.h"
 #include	"debug.h"
+#ifndef	EXTRUDER
 #include	"sersendf.h"
+#endif
 
 #define		HEATER_C
 #include	"config.h"
@@ -74,8 +76,10 @@ void heater_init() {
 			}
 		}
 
-		// 0 is a "sane" temperature when we're trying to cool down
-		heaters_runtime[i].sane_temperature = 0;
+		#ifdef	HEATER_SANITY_CHECK
+			// 0 is a "sane" temperature when we're trying to cool down
+			heaters_runtime[i].sane_temperature = 0;
+		#endif
 	
 	// read factors from eeprom
 		heaters_pid[i].p_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_p_factor);
