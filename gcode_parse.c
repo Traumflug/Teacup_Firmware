@@ -14,13 +14,13 @@
 /*
 	Switch user friendly values to coding friendly values
 
-	This also affects the possible build volume. We have +-2^31 numbers available and as we internally measure position in steps and use a precision factor of 1000, this translates into a possible range of
+	This also affects the possible build volume. We have +/- 2^31 numbers available and as we internally measure position in steps and use a precision factor of 1000, this translates into a possible range of
 
 		2^31 mm / STEPS_PER_MM_x / 1000
 
 	for each axis. For a M6 threaded rod driven machine and 1/16 microstepping this evaluates to
 
-		2^31 mm / 200 / 1 / 16 / 1000 = 671 mm,
+		2^31 mm / 200 / 16 / 1000 = 671 mm,
 
 	which is about the worst case we have. All other machines have a bigger build volume.
 */
@@ -390,13 +390,13 @@ void gcode_parse_char(uint8_t c) {
 	}
 }
 
-/****************************************************************************
+/***************************************************************************\
 *                                                                           *
 * Request a resend of the current line - used from various places.          *
 *                                                                           *
 * Relies on the global variable next_target.N being valid.                  *
 *                                                                           *
-****************************************************************************/
+\***************************************************************************/
 
 void request_resend(void) {
 	serial_writestr_P(PSTR("rs "));
