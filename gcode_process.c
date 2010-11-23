@@ -174,7 +174,9 @@ void process_gcode_command() {
 				if (temp_achieved() == 0) {
 					enqueue(NULL);
 				}
-				#if E_STARTSTOP_STEPS > 0
+				#ifdef DC_EXTRUDER
+					heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
+				#elif E_STARTSTOP_STEPS > 0
 					do {
 						// backup feedrate, move E very quickly then restore feedrate
 						backup_f = startpoint.F;
@@ -189,7 +191,9 @@ void process_gcode_command() {
 				
 				// M103- extruder off
 			case 103:
-				#if E_STARTSTOP_STEPS > 0
+				#ifdef DC_EXTRUDER
+					heater_set(DC_EXTRUDER, 0);
+				#elif E_STARTSTOP_STEPS > 0
 					do {
 						// backup feedrate, move E very quickly then restore feedrate
 						backup_f = startpoint.F;
