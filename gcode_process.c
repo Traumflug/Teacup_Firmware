@@ -15,6 +15,60 @@
 #include	"sersendf.h"
 #include	"pinio.h"
 #include	"debug.h"
+#include	"clock.h"
+
+/*
+public functions
+*/
+
+void zero_x(void) {
+	TARGET t = startpoint;
+	t.X = 0;
+	t.F = SEARCH_FEEDRATE_X;
+	enqueue(&t);
+}
+
+void zero_y(void) {
+	TARGET t = startpoint;
+	t.Y = 0;
+	t.F = SEARCH_FEEDRATE_X;
+	enqueue(&t);
+}
+
+void zero_z(void) {
+	TARGET t = startpoint;
+	t.Z = 0;
+	t.F = SEARCH_FEEDRATE_Z;
+	enqueue(&t);
+}
+
+void zero_e(void) {
+	TARGET t = startpoint;
+	t.E = 0;
+	enqueue(&t);
+}
+
+// void SpecialMoveXY(int32_t x, int32_t y, uint32_t f) {
+// 	TARGET t = startpoint;
+// 	t.X = x;
+// 	t.Y = y;
+// 	t.F = f;
+// 	enqueue(&t);
+// }
+// 
+// void SpecialMoveZ(int32_t z, uint32_t f) {
+// 	TARGET t = startpoint;
+// 	t.Z = z;
+// 	t.F = f;
+// 	enqueue(&t);
+// }
+
+void SpecialMoveE(int32_t e, uint32_t f) {
+	TARGET t = startpoint;
+	t.E = e;
+	t.F = f;
+	enqueue(&t);
+}
 
 /****************************************************************************
 *                                                                           *
@@ -38,6 +92,7 @@ void process_gcode_command() {
 	// moved to dda.c, end of dda_create() and dda_queue.c, next_move()
 	
 	if (next_target.seen_G) {
+		uint8_t axisSelected = 0;
 		switch (next_target.G) {
 			// 	G0 - rapid, unsynchronised motion
 			// since it would be a major hassle to force the dda to not synchronise, just provide a fast feedrate and hope it's close enough to what host expects
@@ -62,10 +117,14 @@ void process_gcode_command() {
 				//	G4 - Dwell
 			case 4:
 				// wait for all moves to complete
-				for (;queue_empty() == 0;)
-					wd_reset();
+				queue_wait();
 				// delay
-				delay_ms(next_target.P);
+				for (;next_target.P > 0;next_target.P--) {
+					ifclock(CLOCK_FLAG_10MS) {
+						clock_10ms();
+					}
+					delay_ms(1);
+				}
 				break;
 				
 				//	G20 - inches as units
@@ -85,61 +144,24 @@ void process_gcode_command() {
 				
 				//	G28 - go home
 			case 28:
-				/*
-				Home XY first
-				*/
-				// hit endstops, no acceleration- we don't care about skipped steps
-				startpoint.F = MAXIMUM_FEEDRATE_X;
-				SpecialMoveXY(-250L * STEPS_PER_MM_X, -250L * STEPS_PER_MM_Y, MAXIMUM_FEEDRATE_X);
-				startpoint.X = startpoint.Y = 0;
+				queue_wait();
 				
-				// move forward a bit
-				SpecialMoveXY(5 * STEPS_PER_MM_X, 5 * STEPS_PER_MM_Y, SEARCH_FEEDRATE_X);
-				
-				// move back in to endstops slowly
-				SpecialMoveXY(-20 * STEPS_PER_MM_X, -20 * STEPS_PER_MM_Y, SEARCH_FEEDRATE_X);
-				
-				// wait for queue to complete
-				for (;queue_empty() == 0;)
-					wd_reset();
-				
-				// this is our home point
-				startpoint.X = startpoint.Y = current_position.X = current_position.Y = 0;
-				
-				/*
-				Home Z
-				*/
-				// hit endstop, no acceleration- we don't care about skipped steps
-				startpoint.F = MAXIMUM_FEEDRATE_Z;
-				SpecialMoveZ(-250L * STEPS_PER_MM_Z, MAXIMUM_FEEDRATE_Z);
-				startpoint.Z = 0;
-				
-				// move forward a bit
-				SpecialMoveZ(5 * STEPS_PER_MM_Z, SEARCH_FEEDRATE_Z);
-				
-				// move back into endstop slowly
-				SpecialMoveZ(-20L * STEPS_PER_MM_Z, SEARCH_FEEDRATE_Z);
-				
-				// wait for queue to complete
-				for (;queue_empty() == 0;)
-					wd_reset();
-				
-				// this is our home point
-				startpoint.Z = current_position.Z = 0;
-				
-				/*
-				Home E
-				*/
-				// extruder only runs one way and we have no "endstop", just set this point as home
-				startpoint.E = current_position.E = 0;
-				
-				/*
-				Home F
-				*/
-				
-				// F has been left at SEARCH_FEEDRATE_Z by the last move, this is a usable "home"
-				// uncomment the following or substitute if you prefer a different default feedrate
-				// startpoint.F = SEARCH_FEEDRATE_Z
+				if (next_target.seen_X) {
+					zero_x();
+					axisSelected = 1;
+				}
+				if (next_target.seen_Y) {
+					zero_y();
+					axisSelected = 1;
+				}
+				if (next_target.seen_Z) {
+					zero_z();
+					axisSelected = 1;
+				}
+				if (next_target.seen_E) {
+					zero_e();
+					axisSelected = 1;
+				}
 				
 				break;
 				
@@ -155,10 +177,31 @@ void process_gcode_command() {
 					
 					//	G92 - set home
 				case 92:
-					startpoint.X = startpoint.Y = startpoint.Z = startpoint.E =
-					current_position.X = current_position.Y = current_position.Z = current_position.E = 0;
-					startpoint.F =
-					current_position.F = SEARCH_FEEDRATE_Z;
+					// wait for queue to empty
+					queue_wait();
+
+					if (next_target.seen_X) {
+						startpoint.X = current_position.X = next_target.target.X;
+						axisSelected = 1;
+					}
+					if (next_target.seen_Y) {
+						startpoint.Y = current_position.Y = next_target.target.Y;
+						axisSelected = 1;
+					}
+					if (next_target.seen_Z) {
+						startpoint.Z = current_position.Z = next_target.target.Z;
+						axisSelected = 1;
+					}
+					if (next_target.seen_E) {
+						startpoint.E = current_position.E = next_target.target.E;
+						axisSelected = 1;
+					}
+					if (axisSelected == 0) {
+						startpoint.X = current_position.X =
+						startpoint.Y = current_position.Y =
+						startpoint.Z = current_position.Z =
+						startpoint.E = current_position.E = 0;
+					}
 					break;
 					
 					// unknown gcode: spit an error

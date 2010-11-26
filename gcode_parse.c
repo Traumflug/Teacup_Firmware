@@ -87,32 +87,6 @@ int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator)
 	return r;
 }
 
-/*
-	public functions
-*/
-
-void SpecialMoveXY(int32_t x, int32_t y, uint32_t f) {
-	TARGET t = startpoint;
-	t.X = x;
-	t.Y = y;
-	t.F = f;
-	enqueue(&t);
-}
-
-void SpecialMoveZ(int32_t z, uint32_t f) {
-	TARGET t = startpoint;
-	t.Z = z;
-	t.F = f;
-	enqueue(&t);
-}
-
-void SpecialMoveE(int32_t e, uint32_t f) {
-	TARGET t = startpoint;
-	t.E = e;
-	t.F = f;
-	enqueue(&t);
-}
-
 /****************************************************************************
 *                                                                           *
 * Character Received - add it to our command                                *
