@@ -98,6 +98,15 @@ The fixed-point stuff is fun, although we have to manually ensure that the decim
 
 The PID code in heater.c is probably quite generalisable, and seems to work well when tuned. Google knows of plenty of PID tuning guides.
 
+##############################################################################
+#                                                                            #
+# Resources                                                                  #
+#                                                                            #
+##############################################################################
+
+Forum thread: http://forums.reprap.org/read.php?147,33082
+Source Repository: http://github.com/triffid/FiveD_on_Arduino
+Wiki Page: http://objects.reprap.org/wiki/FiveD_on_Arduino
 
 ##############################################################################
 #                                                                            #
@@ -110,6 +119,9 @@ This is the analog subsystem. Only used if you have a thermistor or ad595
 
 *** arduino.h, arduino_[chip].h
 Pin mappings and helper functions for various atmegas
+
+*** clock.[ch]
+Regular functions that run in main loop rather than an interrupt
 
 *** config.h.dist, config.h
 Configuration for your electronics and hardware. Copy config.h.dist to config.h, edit config.h to suit
