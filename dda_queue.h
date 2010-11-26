@@ -36,4 +36,7 @@ void print_queue(void);
 // flush the queue for eg; emergency stop
 void queue_flush(void);
 
+// wait for queue to empty
+void queue_wait(void);
+
 #endif	/* _DDA_QUEUE */

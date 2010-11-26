@@ -10,6 +10,7 @@
 #include	"temp.h"
 #include	"delay.h"
 #include	"sersendf.h"
+#include	"clock.h"
 
 uint8_t	mb_head = 0;
 uint8_t	mb_tail = 0;
@@ -113,4 +114,12 @@ void queue_flush() {
 
 	// restore interrupt flag
 	SREG = sreg;
+}
+
+void queue_wait() {
+	for (;queue_empty() == 0;) {
+		ifclock(CLOCK_FLAG_10MS) {
+			clock_10ms();
+		}
+	}
 }
