@@ -48,21 +48,6 @@ void zero_e(void) {
 	enqueue(&t);
 }
 
-// void SpecialMoveXY(int32_t x, int32_t y, uint32_t f) {
-// 	TARGET t = startpoint;
-// 	t.X = x;
-// 	t.Y = y;
-// 	t.F = f;
-// 	enqueue(&t);
-// }
-// 
-// void SpecialMoveZ(int32_t z, uint32_t f) {
-// 	TARGET t = startpoint;
-// 	t.Z = z;
-// 	t.F = f;
-// 	enqueue(&t);
-// }
-
 void SpecialMoveE(int32_t e, uint32_t f) {
 	TARGET t = startpoint;
 	t.E = e;
@@ -212,7 +197,19 @@ void process_gcode_command() {
 	}
 	else if (next_target.seen_M) {
 		switch (next_target.M) {
-			// M101- extruder on
+			// M2- program end
+			case 2:
+				timer_stop();
+				queue_flush();
+				x_disable();
+				y_disable();
+				z_disable();
+				power_off();
+				for (;;)
+					wd_reset();
+				break;
+			// M3/M101- extruder on
+			case 3:
 			case 101:
 				if (temp_achieved() == 0) {
 					enqueue(NULL);
@@ -232,7 +229,8 @@ void process_gcode_command() {
 				
 				// M102- extruder reverse
 				
-				// M103- extruder off
+				// M5/M103- extruder off
+			case 5:
 			case 103:
 				#ifdef DC_EXTRUDER
 					heater_set(DC_EXTRUDER, 0);
@@ -263,12 +261,14 @@ void process_gcode_command() {
 				temp_print(next_target.P);
 				break;
 				
-				// M106- fan on
+				// M7/M106- fan on
 			#if NUM_HEATERS > 1
+			case 7:
 			case 106:
 				heater_set(1, 255);
 				break;
 				// M107- fan off
+			case 9:
 			case 107:
 				heater_set(1, 0);
 				break;
