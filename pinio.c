@@ -12,7 +12,7 @@ void power_off() {
 	#endif
 
 	#ifdef	STEPPER_ENABLE_PIN
-		SET_INPUT(STEPPER_ENABLE_PIN);
+	WRITE(STEPPER_ENABLE_PIN, STEPPER_ENABLE_INVERT ^ 1)
 	#endif
 	#ifdef	PS_ON_PIN
 		SET_INPUT(PS_ON_PIN);
