@@ -75,7 +75,11 @@ void process_gcode_command() {
 	// easier way to do this
 	// 	startpoint.E = 0;
 	// moved to dda.c, end of dda_create() and dda_queue.c, next_move()
-	
+
+	if (next_target.seen_T) {
+		next_tool = next_target.T;
+	}
+
 	if (next_target.seen_G) {
 		uint8_t axisSelected = 0;
 		switch (next_target.G) {
@@ -207,6 +211,11 @@ void process_gcode_command() {
 				power_off();
 				for (;;)
 					wd_reset();
+				break;
+
+			// M6- tool change
+			case 6:
+				tool = next_tool;
 				break;
 			// M3/M101- extruder on
 			case 3:
@@ -412,6 +421,6 @@ void process_gcode_command() {
 			default:
 				sersendf_P(PSTR("E: Bad M-code %d"), next_target.M);
 				// newline is sent from gcode_parse after we return
-		}
-	}
-}
+		} // switch (next_target.M)
+	} // else if (next_target.seen_M)
+} // process_gcode_command()

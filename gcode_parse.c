@@ -183,6 +183,11 @@ void gcode_parse_char(uint8_t c) {
 					if (debug_flags & DEBUG_ECHO)
 						serwrite_uint16(next_target.P);
 					break;
+				case 'T':
+					next_target.T = read_digit.mantissa;
+					if (debug_flags & DEBUG_ECHO)
+						serwrite_uint8(next_target.T);
+					break;
 				case 'N':
 					next_target.N = decfloat_to_int(&read_digit, 1, 1);
 					if (debug_flags & DEBUG_ECHO)
@@ -243,6 +248,9 @@ void gcode_parse_char(uint8_t c) {
 				break;
 			case 'P':
 				next_target.seen_P = 1;
+				break;
+			case 'T':
+				next_target.seen_T = 1;
 				break;
 			case 'N':
 				next_target.seen_N = 1;
@@ -346,8 +354,8 @@ void gcode_parse_char(uint8_t c) {
 		// reset variables
 		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
 			next_target.seen_E = next_target.seen_F = next_target.seen_S = \
-			next_target.seen_P = next_target.seen_N = next_target.seen_M = \
-			next_target.seen_checksum = next_target.seen_semi_comment = \
+			next_target.seen_P = next_target.seen_T = next_target.seen_N = \
+			next_target.seen_M = next_target.seen_checksum = next_target.seen_semi_comment = \
 			next_target.seen_parens_comment = next_target.checksum_read = \
 			next_target.checksum_calculated = 0;
 		last_field = 0;

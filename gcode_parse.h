@@ -25,23 +25,28 @@ typedef struct {
 
 // this holds all the possible data from a received command
 typedef struct {
-	uint8_t					seen_G	:1;
-	uint8_t					seen_M	:1;
-	uint8_t					seen_X	:1;
-	uint8_t					seen_Y	:1;
-	uint8_t					seen_Z	:1;
-	uint8_t					seen_E	:1;
-	uint8_t					seen_F	:1;
-	uint8_t					seen_S	:1;
+	union {
+		struct {
+			uint8_t					seen_G	:1;
+			uint8_t					seen_M	:1;
+			uint8_t					seen_X	:1;
+			uint8_t					seen_Y	:1;
+			uint8_t					seen_Z	:1;
+			uint8_t					seen_E	:1;
+			uint8_t					seen_F	:1;
+			uint8_t					seen_S	:1;
 
-	uint8_t					seen_P	:1;
-	uint8_t					seen_N	:1;
-	uint8_t					seen_checksum				:1;
-	uint8_t					seen_semi_comment		:1;
-	uint8_t					seen_parens_comment	:1;
-
-	uint8_t					option_relative			:1;
-	uint8_t					option_inches				:1;
+			uint8_t					seen_P	:1;
+			uint8_t					seen_T	:1;
+			uint8_t					seen_N	:1;
+			uint8_t					seen_checksum				:1;
+			uint8_t					seen_semi_comment		:1;
+			uint8_t					seen_parens_comment	:1;
+			uint8_t					option_relative			:1;
+			uint8_t					option_inches				:1;
+		};
+		uint16_t				flags;
+	};
 
 	uint8_t						G;
 	uint8_t						M;
@@ -49,6 +54,8 @@ typedef struct {
 
 	int16_t						S;
 	uint16_t					P;
+
+	uint8_t						T;
 
 	uint32_t					N;
 	uint32_t					N_expected;
