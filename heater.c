@@ -108,6 +108,7 @@ void heater_save_settings() {
 }
 
 void heater_tick(uint8_t h, uint16_t current_temp, uint16_t target_temp) {
+	#if NUM_HEATERS > 0
 	int16_t		heater_p;
 	int16_t		heater_d;
 	uint8_t		pid_output;
@@ -209,9 +210,10 @@ void heater_tick(uint8_t h, uint16_t current_temp, uint16_t target_temp) {
 		pid_output = 0;
 		sersendf_P(PSTR("!! heater %d broken- temp is %d.%dC, target is %d.%dC, didn't reach %d.%dC in %d0 milliseconds\n"), h, current_temp >> 2, (current_temp & 3) * 25, target_temp >> 2, (target_temp & 3) * 25, heaters_runtime[h].sane_temperature >> 2, (heaters_runtime[h].sane_temperature & 3) * 25, heaters_runtime[h].sanity_counter);
 	}
-	#endif
+	#endif /* HEATER_SANITY_CHECK */
 
 	heater_set(h, pid_output);
+	#endif /* if NUM_HEATERS > 0 */
 }
 
 void heater_set(uint8_t index, uint8_t value) {
@@ -229,7 +231,7 @@ void heater_set(uint8_t index, uint8_t value) {
 		else
 			*(heaters[index].heater_port) &= ~MASK(heaters[index].heater_pin);
 	}
-	#endif
+	#endif /* if NUM_HEATERS > 0 */
 }
 
 void pid_set_p(uint8_t index, int32_t p) {

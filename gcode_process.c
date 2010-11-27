@@ -17,6 +17,12 @@
 #include	"debug.h"
 #include	"clock.h"
 
+// the current tool
+uint8_t tool;
+// the tool to be changed when we get an M6
+uint8_t next_tool;
+
+
 /*
 public functions
 */
