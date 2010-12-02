@@ -19,6 +19,7 @@ void sersendf(char *format, ...) {
 			switch(c) {
 				case 'l':
 					j = 4;
+					break;
 				case 'u':
 					if (j == 4)
 						serwrite_uint32(va_arg(args, uint32_t));
