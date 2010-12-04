@@ -288,15 +288,10 @@ void dda_create(DDA *dda, TARGET *target) {
 			dda->n = 1;
 			dda->ramp_state = RAMP_UP;
 		#elif defined ACCELERATION_TEMPORAL
-			dda->x_step_interval = move_duration / dda->x_delta;
-			dda->y_step_interval = move_duration / dda->y_delta;
-			dda->z_step_interval = move_duration / dda->z_delta;
-			dda->e_step_interval = move_duration / dda->e_delta;
-
-			dda->x_counter = 0;
-			dda->y_counter = 0;
-			dda->z_counter = 0;
-			dda->e_counter = 0;
+			dda->x_counter = dda->x_step_interval = move_duration / dda->x_delta;
+			dda->y_counter = dda->y_step_interval = move_duration / dda->y_delta;
+			dda->z_counter = dda->z_step_interval = move_duration / dda->z_delta;
+			dda->e_counter = dda->e_step_interval = move_duration / dda->e_delta;
 
 			dda->c = dda->x_step_interval;
 			if (dda->y_step_interval < dda->c)
@@ -379,7 +374,7 @@ void dda_step(DDA *dda) {
 	uint8_t	did_step = 0;
 
 	#ifdef ACCELERATION_TEMPORAL
-		if (dda->x_counter > dda->x_step_interval) {
+		if (dda->x_counter <= 0) {
 			if ((current_position.X != dda->endpoint.X) /* &&
 				(x_max() != dda->x_direction) && (x_min() == dda->x_direction) */) {
 				x_step();
@@ -388,10 +383,10 @@ void dda_step(DDA *dda) {
 			else
 				current_position.X--;
 			}
-			dda->x_counter -= dda->x_step_interval;
+			dda->x_counter += dda->x_step_interval;
 			dda->x_delta--;
 		}
-		if (dda->y_counter > dda->y_step_interval) {
+		if (dda->y_counter <= 0) {
 			if ((current_position.Y != dda->endpoint.Y) /* &&
 				(y_max() != dda->y_direction) && (y_min() == dda->y_direction) */) {
 				y_step();
@@ -400,10 +395,10 @@ void dda_step(DDA *dda) {
 			else
 				current_position.Y--;
 			}
-			dda->y_counter -= dda->y_step_interval;
+			dda->y_counter += dda->y_step_interval;
 			dda->y_delta--;
 		}
-		if (dda->z_counter > dda->z_step_interval) {
+		if (dda->z_counter <= 0) {
 			if ((current_position.Z != dda->endpoint.Z) /* &&
 				(z_max() != dda->z_direction) && (z_min() == dda->z_direction) */) {
 				z_step();
@@ -412,10 +407,10 @@ void dda_step(DDA *dda) {
 			else
 				current_position.Z--;
 			}
-			dda->z_counter -= dda->z_step_interval;
+			dda->z_counter += dda->z_step_interval;
 			dda->z_delta--;
 		}
-		if (dda->e_counter > dda->e_step_interval) {
+		if (dda->e_counter <= 0) {
 			if ((current_position.E != dda->endpoint.E) /* &&
 				(e_max() != dda->e_direction) && (e_min() == dda->e_direction) */) {
 				e_step();
@@ -424,7 +419,7 @@ void dda_step(DDA *dda) {
 			else
 				current_position.E--;
 			}
-			dda->e_counter -= dda->e_step_interval;
+			dda->e_counter += dda->e_step_interval;
 			dda->e_delta--;
 		}
 	#else
@@ -542,22 +537,22 @@ void dda_step(DDA *dda) {
 		dda->step_no++;
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
-		dda->c = dda->x_step_interval - dda->x_counter;
-		if ((dda->y_step_interval - dda->y_counter) < dda->c)
-			dda->c = dda->y_step_interval - dda->y_counter;
-		if ((dda->z_step_interval - dda->z_counter) < dda->c)
-			dda->c = dda->z_step_interval - dda->z_counter;
-		if ((dda->e_step_interval - dda->e_counter) < dda->c)
-			dda->c = dda->e_step_interval - dda->e_counter;
+		dda->c = dda->x_counter;
+		if (dda->y_counter < dda->c)
+			dda->c = dda->y_counter;
+		if (dda->z_counter < dda->c)
+			dda->c = dda->z_counter;
+		if (dda->e_counter < dda->c)
+			dda->c = dda->e_counter;
 
 		if (dda->x_delta)
-			dda->x_counter += dda->c;
+			dda->x_counter -= dda->c;
 		if (dda->y_delta)
-			dda->y_counter += dda->c;
+			dda->y_counter -= dda->c;
 		if (dda->z_delta)
-			dda->z_counter += dda->c;
+			dda->z_counter -= dda->c;
 		if (dda->e_delta)
-			dda->e_counter += dda->c;
+			dda->e_counter -= dda->c;
 		if (
 			(dda->x_delta > 0) ||
 			(dda->y_delta > 0) ||
