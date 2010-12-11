@@ -52,6 +52,7 @@ void sersendf(char *format, ...) {
 					j = 0;
 					break;
 				default:
+					serial_writechar(c);
 					j = 0;
 					break;
 			}
@@ -112,10 +113,11 @@ void sersendf_P(PGM_P format, ...) {
 					j = 0;
 					break;
 				case 'p':
-					serwrite_hex16(va_arg(args, uint16_t));
+					serwrite_hex16(va_arg(args, uint16_t));*/
 				default:
+					serial_writechar(c);
 					j = 0;
-					break;*/
+					break;
 			}
 		}
 		else {
