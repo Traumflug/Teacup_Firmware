@@ -18,9 +18,24 @@ Rewrite of Reprap Mendel firmware:
 2) check programming settings in Makefile
 3) make
 4) make program
+4a) if programming blank chip, make program-fuses
 5) ./sender.sh
 6) have a play, go to 1) if not right
 7) try printing something!
+
+##############################################################################
+#                                                                            #
+# Requirements                                                               #
+#                                                                            #
+##############################################################################
+
+Compile:
+	gnu make
+	binutils, gcc, etc built for avr target (avr-gcc, avr-as, etc)
+	avr-libc
+Program:
+	avrdude
+	something that avrdude supports: bootloader, separate programmer, whatever
 
 ##############################################################################
 #                                                                            #

@@ -3,6 +3,7 @@
 #include	<avr/interrupt.h>
 
 #include	"config.h"
+#include	"fuses.h"
 
 #include	"serial.h"
 #include	"dda_queue.h"
