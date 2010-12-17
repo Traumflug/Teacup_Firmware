@@ -235,7 +235,7 @@ void temp_sensor_tick() {
 			}
 			
 			if (temp_sensors[i].heater_index < NUM_HEATERS) {
-				heater_tick(temp_sensors[i].heater_index, temp_sensors_runtime[i].last_read_temp, temp_sensors_runtime[i].target_temp);
+				heater_tick(temp_sensors[i].heater_index, i, temp_sensors_runtime[i].last_read_temp, temp_sensors_runtime[i].target_temp);
 			}
 		}
 	}

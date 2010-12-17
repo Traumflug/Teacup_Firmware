@@ -94,10 +94,11 @@ void heater_init() {
 			heaters_pid[i].i_limit = DEFAULT_I_LIMIT;
 		}
 	}
-	#endif
+	#endif	/* NUM_HEATERS > 0 */
 }
 
 void heater_save_settings() {
+	#if NUM_HEATERS > 0
 	uint8_t i;
 	for (i = 0; i < NUM_HEATERS; i++) {
 		eeprom_write_dword((uint32_t *) &EE_factors[i].EE_p_factor, heaters_pid[i].p_factor);
@@ -105,10 +106,11 @@ void heater_save_settings() {
 		eeprom_write_dword((uint32_t *) &EE_factors[i].EE_d_factor, heaters_pid[i].d_factor);
 		eeprom_write_word((uint16_t *) &EE_factors[i].EE_i_limit, heaters_pid[i].i_limit);
 	}
+	#endif	/* NUM_HEATERS > 0 */
 }
 
-void heater_tick(uint8_t h, uint16_t current_temp, uint16_t target_temp) {
-	#if NUM_HEATERS > 0
+void heater_tick(uint8_t h, uint8_t t, uint16_t current_temp, uint16_t target_temp) {
+	#if (NUM_HEATERS > 0) && (NUM_TEMP_SENSORS > 0)
 	int16_t		heater_p;
 	int16_t		heater_d;
 	uint8_t		pid_output;
@@ -208,12 +210,12 @@ void heater_tick(uint8_t h, uint16_t current_temp, uint16_t target_temp) {
 	if (labs(current_temp - heaters_runtime[h].sane_temperature) > TEMP_HYSTERESIS) {
 		// no change, or change in wrong direction for a long time- heater is broken!
 		pid_output = 0;
-		sersendf_P(PSTR("!! heater %d broken- temp is %d.%dC, target is %d.%dC, didn't reach %d.%dC in %d0 milliseconds\n"), h, current_temp >> 2, (current_temp & 3) * 25, target_temp >> 2, (target_temp & 3) * 25, heaters_runtime[h].sane_temperature >> 2, (heaters_runtime[h].sane_temperature & 3) * 25, heaters_runtime[h].sanity_counter);
+		sersendf_P(PSTR("!! heater %d or temp sensor %d broken- temp is %d.%dC, target is %d.%dC, didn't reach %d.%dC in %d0 milliseconds\n"), h, t, current_temp >> 2, (current_temp & 3) * 25, target_temp >> 2, (target_temp & 3) * 25, heaters_runtime[h].sane_temperature >> 2, (heaters_runtime[h].sane_temperature & 3) * 25, heaters_runtime[h].sanity_counter);
 	}
 	#endif /* HEATER_SANITY_CHECK */
 
 	heater_set(h, pid_output);
-	#endif /* if NUM_HEATERS > 0 */
+	#endif /* if NUM_HEATERS > 0 && NUM_TEMP_SENSORS > 0 */
 }
 
 void heater_set(uint8_t index, uint8_t value) {

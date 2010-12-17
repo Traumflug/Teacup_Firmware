@@ -10,7 +10,7 @@ void heater_init(void);
 void heater_save_settings(void);
 
 void heater_set(uint8_t index, uint8_t value);
-void heater_tick(uint8_t h, uint16_t current_temp, uint16_t target_temp);
+void heater_tick(uint8_t h, uint8_t t, uint16_t current_temp, uint16_t target_temp);
 
 void pid_set_p(uint8_t index, int32_t p);
 void pid_set_i(uint8_t index, int32_t i);
