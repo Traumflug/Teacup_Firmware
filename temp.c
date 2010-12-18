@@ -9,7 +9,8 @@ typedef enum {
 	TT_MAX6675,
 	TT_AD595,
 	TT_PT100,
-	TT_INTERCOM
+	TT_INTERCOM,
+	TT_DUMMY,
 } temp_types;
 
 typedef enum {
@@ -213,7 +214,7 @@ void temp_sensor_tick() {
 					break
 				#endif	/* TEMP_PT100 */
 
-				#ifdef	GEN3
+				#ifdef	TEMP_INTERCOM
 				case TT_INTERCOM:
 					temp = get_read_cmd() << 2;
 
@@ -222,7 +223,21 @@ void temp_sensor_tick() {
 					temp_sensors_runtime[i].next_read_time = 0;
 
 					break;
-				#endif	/* GEN3 */
+				#endif	/* TEMP_INTERCOM */
+				
+				#ifdef	TEMP_DUMMY
+				case TT_DUMMY:
+					temp = temp_sensors_runtime[i].last_read_temp;
+
+					if (temp_sensors_runtime[i].target_temp > temp)
+						temp++;
+					else if (temp_sensors_runtime[i].target_temp < temp)
+						temp--;
+
+					temp_sensors_runtime[i].next_read_time = 0;
+
+					break;
+				#endif	/* TEMP_DUMMY */
 			}
 			temp_sensors_runtime[i].last_read_temp = temp;
 			
@@ -270,6 +285,6 @@ void temp_print(uint8_t index) {
 	
 	c = (temp_sensors_runtime[index].last_read_temp & 3) * 25;
 	
-	sersendf_P(PSTR("T: %u.%u\n"), temp_sensors_runtime[index].last_read_temp >> 2, c);
+	sersendf_P(PSTR("T:%u.%u\n"), temp_sensors_runtime[index].last_read_temp >> 2, c);
 }
 #endif
