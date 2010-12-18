@@ -330,32 +330,32 @@ void dda_start(DDA *dda) {
 		// keep dda->live = 0
 	}
 	else {
-		if (dda->waitfor_temp) {
+/*		if (dda->waitfor_temp) {
 			#ifndef	REPRAP_HOST_COMPATIBILITY
 				serial_writestr_P(PSTR("Waiting for target temp\n"));
 			#endif
 		}
-		else {
-			// ensure steppers are ready to go
-			steptimeout = 0;
-			power_on();
-			x_enable();
-			y_enable();
-			if (dda->z_delta)
-				z_enable();
+		else {*/
+		// ensure steppers are ready to go
+		steptimeout = 0;
+		power_on();
+		x_enable();
+		y_enable();
+		if (dda->z_delta)
+			z_enable();
 
-			// set direction outputs
-			x_direction(dda->x_direction);
-			y_direction(dda->y_direction);
-			z_direction(dda->z_direction);
-			e_direction(dda->e_direction);
-			
-			#ifdef	DC_EXTRUDER
-			if (dda->e_delta)
-				heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
-			#endif
-			
-		}
+		// set direction outputs
+		x_direction(dda->x_direction);
+		y_direction(dda->y_direction);
+		z_direction(dda->z_direction);
+		e_direction(dda->e_direction);
+
+		#ifdef	DC_EXTRUDER
+		if (dda->e_delta)
+			heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
+		#endif
+
+// 		}
 
 		// ensure this dda starts
 		dda->live = 1;

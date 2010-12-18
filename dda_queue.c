@@ -32,6 +32,7 @@ void queue_step() {
 	// do our next step
 	if (movebuffer[mb_tail].live) {
 		if (movebuffer[mb_tail].waitfor_temp) {
+			setTimer(movebuffer[mb_tail].c >> 8);
 			if (temp_achieved()) {
 				movebuffer[mb_tail].live = movebuffer[mb_tail].waitfor_temp = 0;
 				serial_writestr_P(PSTR("Temp achieved\n"));
@@ -90,7 +91,16 @@ void next_move() {
 		// next item
 		uint8_t t = mb_tail + 1;
 		t &= (MOVEBUFFER_SIZE - 1);
-		dda_start(&movebuffer[t]);
+		if (movebuffer[t].waitfor_temp) {
+			#ifndef	REPRAP_HOST_COMPATIBILITY
+				serial_writestr_P(PSTR("Waiting for target temp\n"));
+			#endif
+			movebuffer[t].live = 1;
+			setTimer(movebuffer[t].c >> 8);
+		}
+		else {
+			dda_start(&movebuffer[t]);
+		}
 		mb_tail = t;
 	}
 	else
