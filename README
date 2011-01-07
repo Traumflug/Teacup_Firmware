@@ -18,9 +18,24 @@ Rewrite of Reprap Mendel firmware:
 2) check programming settings in Makefile
 3) make
 4) make program
+4a) if programming blank chip, make program-fuses
 5) ./sender.sh
 6) have a play, go to 1) if not right
 7) try printing something!
+
+##############################################################################
+#                                                                            #
+# Requirements                                                               #
+#                                                                            #
+##############################################################################
+
+Compile:
+	gnu make
+	binutils, gcc, etc built for avr target (avr-gcc, avr-as, etc)
+	avr-libc
+Program:
+	avrdude
+	something that avrdude supports: bootloader, separate programmer, whatever
 
 ##############################################################################
 #                                                                            #
@@ -98,30 +113,15 @@ The fixed-point stuff is fun, although we have to manually ensure that the decim
 
 The PID code in heater.c is probably quite generalisable, and seems to work well when tuned. Google knows of plenty of PID tuning guides.
 
-
 ##############################################################################
 #                                                                            #
-# Simulation                                                                 #
+# Resources                                                                  #
 #                                                                            #
 ##############################################################################
 
-To compile the simulation code, use
-
-	$ make sim
-
-The simulation program will open a serial port for communication. If you don't want to connect a null modem cable, you can use 'socat' to connect a virtual serial port to your terminal:
-
-	$ socat -d -d PTY READLINE
-	2010/10/18 20:24:33 socat[3700] N PTY is /dev/pts/2
-	2010/10/18 20:24:33 socat[3700] N using readline on stdin for reading and stdio for writing
-	2010/10/18 20:24:33 socat[3700] N starting data transfer loop with FDs [3,3] and [0,0]
-
-On the first line of output, socat will tell you the name of the virtual serial port. Pass this as an argument to the simulation program (in another terminal):
-
-	$ ./sim /dev/pts/2
-
-Now you can send G-codes from the socat terminal. The simulation code will print any data sent via the firmware's serial interface. Stepper positions will be shown in green, counting a rising slope on the pin as one step.
-
+Forum thread: http://forums.reprap.org/read.php?147,33082
+Source Repository: http://github.com/triffid/FiveD_on_Arduino
+Wiki Page: http://objects.reprap.org/wiki/FiveD_on_Arduino
 
 ##############################################################################
 #                                                                            #
@@ -132,11 +132,14 @@ Now you can send G-codes from the socat terminal. The simulation code will print
 *** analog.[ch]
 This is the analog subsystem. Only used if you have a thermistor or ad595
 
-*** arduino.h
-Pin mappings and helper functions for various arduinos ('168/'328-based and '644-based only so far, feel free to add '1280 and post a patch)
+*** arduino.h, arduino_[chip].h
+Pin mappings and helper functions for various atmegas
 
 *** clock.[ch]
-A system clock for periodic tasks. Supports a long-running clock, but this is disabled by default as nothing uses it (yet!)
+Regular functions that run in main loop rather than an interrupt
+
+*** config.h.dist, config.h
+Configuration for your electronics and hardware. Copy config.h.dist to config.h, edit config.h to suit
 
 *** copier.[ch]
 A totally untested and currently unused chunk of code for copying firmware to another identical chip
@@ -150,20 +153,29 @@ The queue of moves received from the host.
 *** debug.[ch]
 Debugging aids
 
+*** delay.[ch]
+Delay functions
+
 *** FiveD_on_Arduino.pde
 Allows firmware to be built in arduino ide
 
 *** func.sh
 Lots of host-side shell scripts for talking to firmware
 
-*** gcode.[ch]
-Gcode interpreter. Scaling of factors to internally used integer or fixed point happens here too.
+*** gcode_parse.[ch]
+Gcode parser. Scaling of factors to internally used integer or fixed point happens here too.
+
+*** gcode_process.[ch]
+Gcodes actually get executed here after being parsed.
 
 *** heater.[ch]
 Heater management, including PID and PWM algorithms, and some configuration parameters
 
-*** machine.h
-Configuration variables to match firmware to your hardware
+*** intercom.[ch]
+Gen3 serial link control and communication
+
+*** LICENSE
+Gnu GPL2 license
 
 *** Makefile
 instructions for make on how to build firmware. has a list of modules to build which may need to be updated every so often
@@ -171,14 +183,11 @@ instructions for make on how to build firmware. has a list of modules to build w
 *** mendel.c
 Firmware startup and main loop code
 
-*** pinout.h
-This file associates various functions with particular pins on your avr
+*** pinio.h
+A few I/O primitives
 
 *** README
 this file
-
-*** simulation.[sh]
-helper code to run the code on any Unix PC
 
 *** sender.sh
 A simple talker

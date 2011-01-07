@@ -1,41 +1,20 @@
 #ifndef	_HEATER_H
 #define	_HEATER_H
 
-#include	"config.h"
-#include	"simulation.h"
+#include	<stdint.h>
 
-#ifdef HEATER_PIN
-
-#ifdef	HEATER_PWM
-	#define	enable_heater()			do { TCCR0A |=  MASK(COM0A1); } while (0)
-	#define	disable_heater()		do { TCCR0A &= ~MASK(COM0A1); } while (0)
-#else
-	#define	enable_heater()			WRITE(HEATER_PIN, 1)
-	#define	disable_heater()		WRITE(HEATER_PIN, 0)
-#endif
-
-// extruder heater PID factors
-// google "PID without a PHD" if you don't understand this PID stuff
-extern int32_t p_factor;
-extern int32_t i_factor;
-extern int32_t d_factor;
-extern int16_t i_limit;
-
-#define		PID_SCALE			1024L
-#define		I_LIMIT				4000
+#define	enable_heater()		heater_set(0, 64)
+#define	disable_heater()	heater_set(0, 0)
 
 void heater_init(void);
 void heater_save_settings(void);
-void heater_tick(int16_t current_temp, int16_t target_temp);
 
-#else	/* HEATER_PIN */
+void heater_set(uint8_t index, uint8_t value);
+void heater_tick(uint8_t h, uint8_t t, uint16_t current_temp, uint16_t target_temp);
 
-// if there is no heater pin, there is no heater
-#define enable_heater()					/* empty */
-#define disable_heater()				/* empty */
-#define heater_init()						/* empty */
-#define heater_save_settings()	/* empty */
-#define heater_tick(p1, p2)			/* empty */
+void pid_set_p(uint8_t index, int32_t p);
+void pid_set_i(uint8_t index, int32_t i);
+void pid_set_d(uint8_t index, int32_t d);
+void pid_set_i_limit(uint8_t index, int32_t i_limit);
 
-#endif 	/* HEATER_PIN */
 #endif	/* _HEATER_H */

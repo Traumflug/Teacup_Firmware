@@ -4,17 +4,24 @@
 #                                                                            #
 # by Triffid Hunter, Traumflug, jakepoz                                      #
 #                                                                            #
-##############################################################################
-
-##############################################################################
 #                                                                            #
-# Change these to suit your application                                      #
+# This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter   #
+#                                                                            #
+# This program is free software; you can redistribute it and/or modify       #
+# it under the terms of the GNU General Public License as published by       #
+# the Free Software Foundation; either version 2 of the License, or          #
+# (at your option) any later version.                                        #
+#                                                                            #
+# This program is distributed in the hope that it will be useful,            #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of             #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              #
+# GNU General Public License for more details.                               #
+#                                                                            #
+# You should have received a copy of the GNU General Public License          #
+# along with this program; if not, write to the Free Software                #
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA #
 #                                                                            #
 ##############################################################################
-
-PROGRAM = mendel
-
-SOURCES = $(PROGRAM).c serial.c dda.c gcode_parse.c gcode_process.c clock.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c delay.c
 
 ##############################################################################
 #                                                                            #
@@ -22,22 +29,12 @@ SOURCES = $(PROGRAM).c serial.c dda.c gcode_parse.c gcode_process.c clock.c time
 #                                                                            #
 ##############################################################################
 
-#MCU_TARGET = atmega168
-MCU_TARGET = atmega328p
-#MCU_TARGET = atmega644p
-#MCU_TARGET = atmega1280
-F_CPU = 16000000L
+# MCU_TARGET = atmega168
+# MCU_TARGET = atmega328p
+MCU_TARGET = atmega644p
+# MCU_TARGET = atmega1280
 
-##############################################################################
-#                                                                            #
-# These defaults should be ok, change if you need to                         #
-#                                                                            #
-##############################################################################
-
-ARCH = avr-
-CC = $(ARCH)gcc
-OBJDUMP = $(ARCH)objdump
-OBJCOPY = $(ARCH)objcopy
+# F_CPU = 16000000L
 
 ##############################################################################
 #                                                                            #
@@ -51,16 +48,25 @@ OBJCOPY = $(ARCH)objcopy
 #   enables reprap-style acceleration                                        #
 # ACCELERATION_RAMPING                                                       #
 #   enables start/stop ramping                                               #
+# ACCELERATION_TEMPORAL                                                      #
+#   enables experimental temporal step algorithm - not technically a type of #
+#   acceleration, but since it controls step timing it seems appropriate     #
+# GEN3                                                                       #
+#   build for standard reprap electronics instead of your custom rig         #
+# HOST                                                                       #
+#   this is the motherboard for GEN3- don't touch! Extruder has its own      #
+#   Makefile.                                                                #
 #                                                                            #
 ##############################################################################
 
-DEFS = -DF_CPU=$(F_CPU)
+# DEFS = -DF_CPU=$(F_CPU) -DHOST -DGEN3
 # DEFS += "-DDEBUG=1"
 
-OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once
-# OPTIMIZE = -O0
-CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
-LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
+##############################################################################
+#                                                                            #
+# Programmer settings for "make program"                                     #
+#                                                                            #
+##############################################################################
 
 AVRDUDE = avrdude
 AVRDUDECONF = /etc/avrdude.conf
@@ -73,11 +79,34 @@ AVRDUDECONF = /etc/avrdude.conf
 #     MODE="0660"                                                            #
 #                                                                            #
 ##############################################################################
+
 PROGPORT = /dev/arduino
+
 # atmega168
 #PROGBAUD = 19200
 # atmega328p, 644p, 1280
 PROGBAUD = 57600
+
+
+##############################################################################
+#                                                                            #
+# These defaults should be ok, change if you need to                         #
+#                                                                            #
+##############################################################################
+
+PROGRAM = mendel
+
+SOURCES = $(PROGRAM).c serial.c dda.c gcode_parse.c gcode_process.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c delay.c intercom.c pinio.c clock.c
+
+ARCH = avr-
+CC = $(ARCH)gcc
+OBJDUMP = $(ARCH)objdump
+OBJCOPY = $(ARCH)objcopy
+
+OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once -mcall-prologues
+# OPTIMIZE = -O0
+CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
+LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
 
 OBJ = $(patsubst %.c,%.o,${SOURCES})
 
@@ -93,23 +122,32 @@ program: $(PROGRAM).hex config.h
 	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U flash:w:$^
 	stty 115200 raw ignbrk -hup -echo ixoff < $(PROGPORT)
 
+program-fuses:
+	avr-objdump -s -j .fuse mendel.o | perl -ne '/\s0000\s([0-9a-f]{2})/ && print "$$1\n"' > lfuse
+	avr-objdump -s -j .fuse mendel.o | perl -ne '/\s0000\s..([0-9a-f]{2})/ && print "$$1\n"' > hfuse
+	avr-objdump -s -j .fuse mendel.o | perl -ne '/\s0000\s....([0-9a-f]{2})/ && print "$$1\n"' > efuse
+	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U lfuse:w:lfuse
+	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U hfuse:w:hfuse
+	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U efuse:w:efuse
+
 clean:
-	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~
-	rm -f sim
+	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~ *fuse
 
 size: $(PROGRAM).elf
 	@echo "  SIZE                   Atmega168        Atmega328p       Atmega644"
-	@$(OBJDUMP) -h $^ | perl -ne '/.(text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    FLASH : %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, $$a * 100 / (14 * 1024), 14, $$a * 100 / (30 * 1024), 30, $$a * 100 / (63 * 1024), 63 }'
-	@$(OBJDUMP) -h $^ | perl -ne '/.(data|bss)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    RAM   : %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, $$a * 100 / (1 * 1024), 1, $$a * 100 / (2 * 1024), 2, $$a * 100 / (4 * 1024), 4 }'
-	@$(OBJDUMP) -h $^ | perl -ne '/.(eeprom)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    EEPROM: %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, $$a * 100 / (1 * 1024), 1, $$a * 100 / (2 * 1024), 2, $$a * 100 / (2 * 1024), 2 }'
+	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    FLASH : %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, ceil($$a * 100 / (15 * 1024)), 15, ceil($$a * 100 / (31 * 1024)), 31, ceil($$a * 100 / (63 * 1024)), 63 }'
+	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(data|bss)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    RAM   : %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, ceil($$a * 100 / (1 * 1024)), 1, ceil($$a * 100 / (2 * 1024)), 2, ceil($$a * 100 / (4 * 1024)), 4 }'
+	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(eeprom)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    EEPROM: %5d bytes  (%2d%% of %2dkb)    (%2d%% of %2dkb)    (%2d%% of %2dkb)\n", $$a, ceil($$a * 100 / (1 * 1024)), 1, ceil($$a * 100 / (2 * 1024)), 2, ceil($$a * 100 / (2 * 1024)), 2 }'
 
 config.h: config.h.dist
 	@echo "Please review config.h, as config.h.dist is more recent."
+	@echo
+	@diff -bBEuF '^. [[:digit:]]. [[:upper:]]' config.h config.h.dist
 	@false
 
-%.o: %.c config.h
+%.o: %.c config.h Makefile
 	@echo "  CC        $@"
-	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(<:.c=.al) -o $@ $<
+	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(<:.c=.al) -o $@ $(subst .o,.c,$@)
 
 %.elf: $(OBJ)
 	@echo "  LINK      $@"
@@ -130,24 +168,3 @@ config.h: config.h.dist
 %.sym: %.elf
 	@echo "  SYM       $@"
 	@$(OBJDUMP) -t $< | perl -ne 'BEGIN { printf "  ADDR  NAME                  SIZE\n"; } /([0-9a-f]+)\s+(\w+)\s+O\s+\.(bss|data)\s+([0-9a-f]+)\s+(\w+)/ && printf "0x%04x  %-20s +%d\n", eval("0x$$1") & 0xFFFF, $$5, eval("0x$$4")' | sort -k1 > $@
-
-
-##############################################################################
-#                                                                            #
-# Simulation                                                                 #
-#                                                                            #
-##############################################################################
-
-SIM_SOURCES = $(PROGRAM).c serial_sim.c dda.c gcode_parse.c gcode_process.c timer_sim.c clock_sim.c temp.c sermsg.c dda_queue.c debug.c sersendf.c heater.c analog_sim.c delay_sim.c simulation.c
-SIM_HEADERS = config.h serial.h dda.h gcode_parse.h gcode_process.h timer.h clock.h temp.h sermsg.h dda_queue.h debug.h sersendf.h heater.h analog.h delay.h simulation.h
-
-SIM_OBJ = $(patsubst %.c,%.sim.o,${SIM_SOURCES})
-SIM_CFLAGS = -g -Wall -Wstrict-prototypes -Os $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fshort-enums
-
-%.sim.o: %.c $(SIM_HEADERS)
-	@echo "  CC        $@"
-	@cc -DDEBUG -DSIMULATION -Wa,-adhlns=$(<:.c=.al) -c $(SIM_CFLAGS) -o $@ $<
-
-sim:	$(SIM_OBJ)
-	@echo "  LINK      $@"
-	@cc $(SIM_CFLAGS) -o $@ $^

@@ -2,6 +2,48 @@
 #define	_CONFIG_H
 
 /*
+	CONTENTS
+	
+	1. Mechanical/Hardware
+	2. Acceleration settings
+	3. Pinouts
+	4. Temperature sensors
+	5. Heaters
+	6. Communication options
+	7. Miscellaneous
+	8. Appendix A - PWMable pins and mappings
+*/
+
+/***************************************************************************\
+*                                                                           *
+* 1. MECHANICAL/HARDWARE                                                    *
+*                                                                           *
+\***************************************************************************/
+
+/*
+	Set your microcontroller type in Makefile! atmega168/atmega328p/atmega644p/atmega1280
+
+	If you want to port this to a new chip, start off with arduino.h and see how you go.
+*/
+
+/*
+	CPU clock rate
+*/
+#ifndef	F_CPU
+	#define	F_CPU	16000000L
+#endif
+
+/*
+	Are you using the official GEN3 motherboard with separate extruder controller?
+*/
+#define	GEN3
+
+/*
+	This is the motherboard, as opposed to the extruder. See extruder/ directory for GEN3 extruder firmware
+*/
+#define	HOST
+
+/*
 	Values reflecting the gearing of your machine.
 		All numbers are fixed point integers, so no more than 3 digits to the right of the decimal point, please :-)
 */
@@ -17,9 +59,12 @@
 // http://blog.arcol.hu/?p=157 may help with this next one
 #define	STEPS_PER_MM_E				320.000
 
+
 /*
 	Values depending on the capabilities of your stepper motors and other mechanics.
 		All numbers are integers, no decimals allowed.
+
+		Units are mm/min
 */
 
 // used for G0 rapid moves and as a cap for all other feedrates
@@ -34,50 +79,236 @@
 #define	SEARCH_FEEDRATE_Z			50
 #define	SEARCH_FEEDRATE_E			50
 
-// extruder settings
-#define	TEMP_HYSTERESIS				20
-#define	TEMP_RESIDENCY_TIME		60
-
-// this is how many steps to suck back the filament by when we stop
+// this is how many steps to suck back the filament by when we stop. set to zero to disable
 #define	E_STARTSTOP_STEPS			20
+
+
+
+/***************************************************************************\
+*                                                                           *
+* 2. ACCELERATION                                                           *
+*                                                                           *
+* IMPORTANT: choose only one! These algorithms choose when to step, trying  *
+*            to use more than one will have undefined and probably          *
+*            disastrous results!                                            *
+*                                                                           *
+\***************************************************************************/
+
 
 /*
 	acceleration, reprap style.
 		Each movement starts at the speed of the previous command and accelerates or decelerates linearly to reach target speed at the end of the movement.
-		Can also be set in Makefile
 */
-#define ACCELERATION_REPRAP
+// #define ACCELERATION_REPRAP
+
 
 /*
 	acceleration and deceleration ramping.
 		Each movement starts at (almost) no speed, linearly accelerates to target speed and decelerates just in time to smoothly stop at the target. alternative to ACCELERATION_REPRAP
-		Can also be set in Makefile
 */
-//#define ACCELERATION_RAMPING
+// #define ACCELERATION_RAMPING
 
 // how fast to accelerate when using ACCELERATION_RAMPING
 // smaller values give quicker acceleration
 // valid range = 1 to 8,000,000; 500,000 is a good starting point
 #define ACCELERATION_STEEPNESS	500000
 
-#ifdef ACCELERATION_REPRAP
-	#ifdef ACCELERATION_RAMPING
-		#error Cant use ACCELERATION_REPRAP and ACCELERATION_RAMPING together.
-	#endif
-#endif
-
-// which temperature sensor are you using?
-// #define	TEMP_MAX6675
-#define	TEMP_THERMISTOR
-// #define	TEMP_AD595
-
-// if you selected thermistor or AD595, what pin is it on?
-#define	TEMP_PIN_CHANNEL	AIO0_PIN
-#define	ANALOG_MASK				MASK(TEMP_PIN_CHANNEL)
 
 /*
-	Firmware build options
+	temporal step algorithm
+		This algorithm causes the timer to fire when any axis needs to step, instead of synchronising to the axis with the most steps ala bresenham.
+
+		This algorithm is not a type of acceleration, and I haven't worked out how to integrate acceleration with it.
+		However it does control step timing, so acceleration algorithms seemed appropriate
+
+		The Bresenham algorithm is great for drawing lines, but not so good for steppers - In the case where X steps 3 times to Y's two, Y experiences massive jitter as it steps in sync with X every 2 out of 3 X steps. This is a worst-case, but the problem exists for most non-45/90 degree moves. At higher speeds, the jitter /will/ cause position loss and unnecessary vibration.
+		This algorithm instead calculates when a step occurs on any axis, and sets the timer to that value.
+
+		// TODO: figure out how to add acceleration to this algorithm
 */
+// #define ACCELERATION_TEMPORAL
+
+
+
+/***************************************************************************\
+*                                                                           *
+* 3. PINOUTS                                                                *
+*                                                                           *
+\***************************************************************************/
+
+/*
+	Machine Pin Definitions
+	- make sure to avoid duplicate usage of a pin
+	- comment out pins not in use, as this drops the corresponding code and makes operations faster
+*/
+
+#include	"arduino.h"
+
+#ifndef	GEN3
+	/*
+		user defined pins
+		adjust to suit your electronics,
+		or adjust your electronics to suit this
+	*/
+
+	#define	X_STEP_PIN						AIO0
+	#define	X_DIR_PIN							AIO1
+	#define	X_MIN_PIN							AIO2
+
+	#define	Y_STEP_PIN						AIO3
+	#define	Y_DIR_PIN							AIO4
+	#define	Y_MIN_PIN							AIO5
+
+	#define	Z_STEP_PIN						DIO2
+	#define	Z_DIR_PIN							DIO3
+	#define	Z_MIN_PIN							DIO4
+
+	#define	E_STEP_PIN						DIO7
+	#define	E_DIR_PIN							DIO8
+
+	#define	PS_ON_PIN							DIO9
+#else
+	/*
+		this is the official gen3 reprap motherboard pinout
+	*/
+	#define TX_ENABLE_PIN					DIO12
+	#define	RX_ENABLE_PIN					DIO13
+
+	#define	X_STEP_PIN						DIO15
+	#define	X_DIR_PIN							DIO18
+	#define	X_MIN_PIN							DIO20
+	#define	X_MAX_PIN							DIO21
+	#define	X_ENABLE_PIN					DIO19
+
+	#define	Y_STEP_PIN						DIO23
+	#define	Y_DIR_PIN							DIO22
+	#define	Y_MIN_PIN							AIO6
+	#define	Y_MAX_PIN							AIO5
+	#define	Y_ENABLE_PIN					DIO7
+
+	#define	Z_STEP_PIN						AIO4
+	#define	Z_DIR_PIN							AIO3
+	#define	Z_MIN_PIN							AIO1
+	#define	Z_MAX_PIN							AIO0
+	#define	Z_ENABLE_PIN					AIO2
+
+	#define	E_STEP_PIN						DIO16
+	#define	E_DIR_PIN							DIO17
+
+	#define	SD_CARD_DETECT				DIO2
+	#define	SD_WRITE_PROTECT			DIO3
+#endif
+
+
+
+/***************************************************************************\
+*                                                                           *
+* 4. TEMPERATURE SENSORS                                                    *
+*                                                                           *
+\***************************************************************************/
+
+/*
+	TEMP_HYSTERESIS: actual temperature must be target +/- hysteresis before target temperature can be achieved.
+	  NOTE: format is 30.2 fixed point, so value of 20 actually means +/- 5 degrees
+
+	TEMP_RESIDENCY_TIME: actual temperature must be close to target for this long before target is achieved
+
+	temperature is "achieved" for purposes of M109 and friends when actual temperature is within [hysteresis] of target for [residency] seconds
+*/
+#define	TEMP_HYSTERESIS				20
+#define	TEMP_RESIDENCY_TIME		60
+
+// which temperature sensors are you using? (intercom is the gen3-style separate extruder board)
+// #define	TEMP_MAX6675
+// #define	TEMP_THERMISTOR
+// #define	TEMP_AD595
+// #define	TEMP_PT100
+#define	TEMP_INTERCOM
+
+// if you selected thermistor or AD595, what pin is it on? (this value only used to fill ANALOG_MASK for you)
+#define	TEMP_PIN_CHANNEL	AIO0_PIN
+
+// ANALOG_MASK is a bitmask of all analog channels used- if you use more than one analog input (more than one temp sensor?), bitwise-or them all together
+#define	ANALOG_MASK				MASK(TEMP_PIN_CHANNEL)
+
+// how many temperature sensors do you have?
+#define	NUM_TEMP_SENSORS	1
+
+/***************************************************************************\
+*                                                                           *
+* Fill in the following struct according to your hardware                   *
+*                                                                           *
+* If your temperature sensor has no associated heater, enter '255' as the   *
+*   heater index. Unassociated temperature sensors are still read, but they *
+*   do not affect firmware operation                                        *
+*                                                                           *
+* for GEN3 set temp_type to TT_INTERCOM, temp_pin to 0 and heater index to  *
+*   255 - the extruder manages the heater for us                            *
+*                                                                           *
+* Types are same as TEMP_ list above- TT_MAX6675, TT_THERMISTOR, TT_AD595,  *
+*   TT_PT100, TT_INTERCOM. See list in temp.c.                              *
+*                                                                           *
+\***************************************************************************/
+
+#ifdef	TEMP_C
+struct {
+	uint8_t						temp_type;
+	uint8_t						temp_pin;
+
+	uint8_t						heater_index;
+} temp_sensors[NUM_TEMP_SENSORS] =
+{
+	// type         pin heater
+	{ TT_INTERCOM,  0,  255 }
+};
+#endif
+
+
+
+/***************************************************************************\
+*                                                                           *
+* 5. HEATERS                                                                *
+*                                                                           *
+\***************************************************************************/
+
+// number of heaters- for GEN3, set to zero as extruder manages the heater by itself
+#define	NUM_HEATERS				0
+
+// check if heater responds to changes in target temperature, disable and spit errors if not
+// #define	HEATER_SANITY_CHECK
+
+/***************************************************************************\
+*                                                                           *
+* Fill in the following struct according to your hardware                   *
+*                                                                           *
+* If your heater isn't on a PWM-able pin, set heater_pwm to zero and we'll  *
+*   use bang-bang output. Note that PID will still be used                  *
+*                                                                           *
+* If a heater isn't attached to a temperature sensor above, it can still be *
+*   controlled by host but otherwise is ignored by firmware                 *
+*                                                                           *
+\***************************************************************************/
+
+#ifdef	HEATER_C
+struct {
+	volatile uint8_t	*heater_port;
+	uint8_t						heater_pin;
+	volatile uint8_t	*heater_pwm;
+} heaters[NUM_HEATERS]/* =
+{
+	// port   pin    pwm
+	{ &PORTD, PIND6, &OCR0A },
+	{ &PORTD, PIND5, &OCR0B }
+}*/;
+#endif
+
+
+
+/***************************************************************************\
+*                                                                           *
+* 6. COMMUNICATION OPTIONS                                                  *
+*                                                                           *
+\***************************************************************************/
 
 /*
 	RepRap Host changes it's communications protocol from time to time and intentionally avoids backwards compatibility. Set this to the date the source code of your Host was fetched from RepRap's repository, which is likely also the build date.
@@ -89,17 +320,28 @@
 #define REPRAP_HOST_COMPATIBILITY 20100806
 // #define REPRAP_HOST_COMPATIBILITY <date of next RepRap Host compatibility break>
 
-
-// this option makes the step interrupt interruptible.
-// this should help immensely with dropped serial characters, but may also make debugging infuriating due to the complexities arising from nested interrupts
-#define		STEP_INTERRUPT_INTERRUPTIBLE	1
-
 /*
 	Xon/Xoff flow control.
 		Redundant when using RepRap Host for sending GCode, but mandatory when sending GCode files with a plain terminal emulator, like GtkTerm (Linux), CoolTerm (Mac) or HyperTerminal (Windows).
 		Can also be set in Makefile
 */
 // #define	XONXOFF
+
+
+
+/***************************************************************************\
+*                                                                           *
+* 7. MISCELLANEOUS OPTIONS                                                  *
+*                                                                           *
+\***************************************************************************/
+
+/*
+	DEBUG
+		enables /heaps/ of extra output, and some extra M-codes.
+		WARNING: this WILL break most host-side talkers that expect particular responses from firmware such as reprap host and replicatorG
+		use with serial terminal or other suitable talker only.
+*/
+// #define	DEBUG
 
 /*
 	move buffer size, in number of moves
@@ -109,6 +351,13 @@
 #define	MOVEBUFFER_SIZE	8
 
 /*
+	DC extruder
+		If you have a DC motor extruder, configure it as a "heater" above and define this value as the index.
+*/
+// #define	DC_EXTRUDER 1
+// #define	DC_EXTRUDER_PWM	180
+
+/*
 	FiveD on Arduino implements a watchdog, which has to be reset every 250ms or it will reboot the controller. As rebooting (and letting the GCode sending application trying to continue the build with a then different Home point) is probably even worse than just hanging, and there is no better restore code in place, this is disabled for now.
 */
 // #define USE_WATCHDOG
@@ -116,150 +365,71 @@
 /*
 	analog subsystem stuff
 	REFERENCE - which analog reference to use. see analog.h for choices
-	ANALOG_MASK - which analog inputs we will be using, bitmask. eg; #define ANALOG_MASK	MASK(AIO0_PIN) | MASK(3) for AIN0 and AIN3
 */
-#define	REFERENCE			REFERENCE_AREF
-
-#ifndef	ANALOG_MASK
-#define	ANALOG_MASK		0
-#endif
+#define	REFERENCE			REFERENCE_AVCC
 
 /*
-	Machine Pin Definitions
-
-	- make sure to avoid duplicate usage of a pin
-
-	- comment out pins not in use, as this drops the corresponding code and makes operations faster
+	this option makes the step interrupt interruptible (nested).
+	this should help immensely with dropped serial characters, but may also make debugging infuriating due to the complexities arising from nested interrupts
 */
-
-#ifndef SIMULATION
-	#include	"arduino.h"
-#endif
+#define		STEP_INTERRUPT_INTERRUPTIBLE	1
 
 /*
-	RESERVED pins
-	we NEED these for communication
+	how often we overflow and update our clock; with F_CPU=16MHz, max is < 4.096ms (TICK_TIME = 65535)
 */
-
-#define	RESERVED_RXD					DIO0
-#define	RESERVED_TXD					DIO1
+#define		TICK_TIME			2 MS
+#define		TICK_TIME_MS	(TICK_TIME / (F_CPU / 1000))
 
 /*
-	these pins are used for the MAX6675
-	Arduino Mega has SPI on different pins
+	temperature history count. This is how many temperature readings to keep in order to calculate derivative in PID loop
+	higher values make PID derivative term more stable at the expense of reaction time
 */
-#if defined (__AVR_ATmega1280__)
-	#define	RESERVED_SCK					DIO52
-	#define	RESERVED_MISO					DIO50
-	#define	RESERVED_MOSI					DIO51
-	#define	RESERVED_SS						DIO53
-#else
-	#define	RESERVED_SCK					DIO13
-	#define	RESERVED_MISO					DIO12
-	#define	RESERVED_MOSI					DIO11
-	#define	RESERVED_SS						DIO10
-#endif
+#define	TH_COUNT					8
 
-/*
-	user defined pins
-	adjust to suit your electronics,
-	or adjust your electronics to suit this
-*/
-
-#define	X_STEP_PIN						AIO0
-#define	X_DIR_PIN							AIO1
-#define	X_MIN_PIN							AIO2
-
-#define	Y_STEP_PIN						AIO3
-#define	Y_DIR_PIN							AIO4
-#define	Y_MIN_PIN							AIO5
-
-#define	Z_STEP_PIN						DIO2
-#define	Z_DIR_PIN							DIO3
-#define	Z_MIN_PIN							DIO4
-
-#define	E_STEP_PIN						DIO7
-#define	E_DIR_PIN							DIO8
-
-#define	STEPPER_ENABLE_PIN		DIO9
-
-/*
- *	list of PWM-able pins and corresponding timers
- *	timer1 is used for step timing so don't use OC1A/OC1B
- *	
- *	For Arduino Diecimila/Duemilanove/UNO
- *	Don't use OC1A/OC1B (DIO9/DIO10)
- *	
- *	OC0A												DIO6
- *	OC0B												DIO5
- *	OC1A												DIO9
- *	OC1B												DIO10
- *	OC2A												DIO11
- *	OC2B												DIO3
- *	
- *	For Arduino Mega
- *	Don't use OC1A/OC1B (DIO11/DIO12)
- *	
- *	OC0A				DIO13
- *	OC0B				DIO4
- *	OC1A				DIO11
- *	OC1B				DIO12
- *	OC2A				DIO10
- *	OC2B				DIO9
- *	OC3A				DIO5
- *	OC3B				DIO2
- *	OC3C				DIO3
- *	OC4A				DIO6
- *	OC4B				DIO7
- *	OC4C				DIO8
- *	OC5A				DIO46
- *	OC5B				DIO45
- *	OC5C				DIO44
- *
- */
+// this is the scaling of internally stored PID values. 1024L is a good value
+#define	PID_SCALE						1024L
 
 
-// comment out the ones you don't have
-#define	HEATER_PIN						DIO6
-#define	HEATER_PWM						OCR0A
 
-#define	FAN_PIN								DIO5
-#define	FAN_PWM								OCR0B
-
-// --------------------------------------------------------------------------
-// you shouldn't need to edit anything below this line
-
-/*
-	fan
-*/
-
-#ifdef	FAN_PIN
-	#ifdef	FAN_PWM
-		#define	enable_fan()				do { TCCR0A |=  MASK(COM0B1); } while (0)
-		#define	disable_fan()				do { TCCR0A &= ~MASK(COM0B1); } while (0)
-	#else
-		#define	enable_fan()				WRITE(FAN_PIN, 1)
-		#define	disable_fan()				WRITE(FAN_PIN, 0);
-	#endif
-#else
-	#define	enable_fan()				if (0) {}
-	#define	disable_fan()				if (0) {}
-#endif
-
-/*
-	Stepper Enable (ATX PSU pwr_good signal?)
-*/
-
-#ifdef	STEPPER_ENABLE_PIN
-	// for connection to stepper driver ENABLE pins (negative asserted)
-// 	#define	power_on()		WRITE(STEPPER_ENABLE_PIN, 0)
-// 	#define	power_off()	WRITE(STEPPER_ENABLE_PIN, 1)
-	// for connection to ATX PSU PWR_ON signal
-	#define	power_on()					do { WRITE(STEPPER_ENABLE_PIN, 0); SET_OUTPUT(STEPPER_ENABLE_PIN); } while (0)
-	#define	power_off()					SET_INPUT(STEPPER_ENABLE_PIN)
-#else
-	#define	power_on()					if (0) {}
-	#define	power_off()					if (0) {}
-#endif
+/***************************************************************************\
+*                                                                           *
+* 8. APPENDIX A - PWMABLE PINS AND MAPPINGS                                 *
+*                                                                           *
+*                                                                           *
+* list of PWM-able pins and corresponding timers                            *
+* timer1 is used for step timing so don't use OC1A/OC1B                     *
+* they are omitted from this listing for that reason                        *
+*                                                                           *
+* For the atmega168/328, timer/pin mappings are as follows                  *
+*                                                                           *
+* OCR0A - PD6                                                               *
+* OCR0B - PD5                                                               *
+* OCR2A - PB3                                                               *
+* OCR2B - PD3                                                               *
+*                                                                           *
+* For the atmega644, timer/pin mappings are as follows                      *
+*                                                                           *
+* OCR0A - PB3                                                               *
+* OCR0B - PB4                                                               *
+* OCR2A - PD7                                                               *
+* OCR2B - PD6                                                               *
+*                                                                           *
+* For the atmega1280, timer/pin mappings are as follows                     *
+*                                                                           *
+* OC0A - PB7                                                                *
+* OC0B - PG5                                                                *
+* OC2A - PB4                                                                *
+* OC2B - PH6                                                                *
+* OC3A - PE3                                                                *
+* OC3B - PE4                                                                *
+* OC3C - PE5                                                                *
+* OC4A - PH3                                                                *
+* OC4B - PH4                                                                *
+* OC4C - PH5                                                                *
+* OC5A - PL3                                                                *
+* OC5B - PL4                                                                *
+* OC5C - PL5                                                                *
+*                                                                           *
+\***************************************************************************/
 
 #endif	/* _CONFIG_H */

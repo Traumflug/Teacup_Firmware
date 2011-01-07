@@ -14,13 +14,13 @@
 /*
 	Switch user friendly values to coding friendly values
 
-	This also affects the possible build volume. We have +-2^31 numbers available and as we internally measure position in steps and use a precision factor of 1000, this translates into a possible range of
+	This also affects the possible build volume. We have +/- 2^31 numbers available and as we internally measure position in steps and use a precision factor of 1000, this translates into a possible range of
 
 		2^31 mm / STEPS_PER_MM_x / 1000
 
 	for each axis. For a M6 threaded rod driven machine and 1/16 microstepping this evaluates to
 
-		2^31 mm / 200 / 1 / 16 / 1000 = 671 mm,
+		2^31 mm / 200 / 16 / 1000 = 671 mm,
 
 	which is about the worst case we have. All other machines have a bigger build volume.
 */
@@ -60,10 +60,14 @@ int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator)
 		e--;
 
 	// scale factors
-	if (multiplicand != 1)
-		r *= multiplicand;
-	if (denominator != 1)
-		r /= denominator;
+// 	if (multiplicand != 1)
+// 		r *= multiplicand;
+// 	if (denominator != 1)
+// 		r /= denominator;
+
+	int32_t	rnew1 = r * (multiplicand / denominator)
+	int32_t	rnew2 = r * (multiplicand % denominator)
+	r = rnew1 + rnew2;
 
 	// sign
 	if (df->sign)
@@ -85,32 +89,6 @@ int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator)
 		r /= 10000;
 
 	return r;
-}
-
-/*
-	public functions
-*/
-
-void SpecialMoveXY(int32_t x, int32_t y, uint32_t f) {
-	TARGET t = startpoint;
-	t.X = x;
-	t.Y = y;
-	t.F = f;
-	enqueue(&t);
-}
-
-void SpecialMoveZ(int32_t z, uint32_t f) {
-	TARGET t = startpoint;
-	t.Z = z;
-	t.F = f;
-	enqueue(&t);
-}
-
-void SpecialMoveE(int32_t e, uint32_t f) {
-	TARGET t = startpoint;
-	t.E = e;
-	t.F = f;
-	enqueue(&t);
 }
 
 /****************************************************************************
@@ -192,11 +170,9 @@ void gcode_parse_char(uint8_t c) {
 					// but it takes less code, less memory and loses no precision if we do it here instead
 					if ((next_target.M == 104) || (next_target.M == 109))
 						next_target.S = decfloat_to_int(&read_digit, 4, 1);
-					#ifdef	HEATER_PIN
 					// if this is heater PID stuff, multiply by PID_SCALE because we divide by PID_SCALE later on
 					else if ((next_target.M >= 130) && (next_target.M <= 132))
 						next_target.S = decfloat_to_int(&read_digit, PID_SCALE, 1);
-					#endif
 					else
 						next_target.S = decfloat_to_int(&read_digit, 1, 1);
 					if (debug_flags & DEBUG_ECHO)
@@ -210,6 +186,11 @@ void gcode_parse_char(uint8_t c) {
 						next_target.P = decfloat_to_int(&read_digit, 1, 1);
 					if (debug_flags & DEBUG_ECHO)
 						serwrite_uint16(next_target.P);
+					break;
+				case 'T':
+					next_target.T = read_digit.mantissa;
+					if (debug_flags & DEBUG_ECHO)
+						serwrite_uint8(next_target.T);
 					break;
 				case 'N':
 					next_target.N = decfloat_to_int(&read_digit, 1, 1);
@@ -271,6 +252,9 @@ void gcode_parse_char(uint8_t c) {
 				break;
 			case 'P':
 				next_target.seen_P = 1;
+				break;
+			case 'T':
+				next_target.seen_T = 1;
 				break;
 			case 'N':
 				next_target.seen_N = 1;
@@ -374,8 +358,8 @@ void gcode_parse_char(uint8_t c) {
 		// reset variables
 		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
 			next_target.seen_E = next_target.seen_F = next_target.seen_S = \
-			next_target.seen_P = next_target.seen_N = next_target.seen_M = \
-			next_target.seen_checksum = next_target.seen_semi_comment = \
+			next_target.seen_P = next_target.seen_T = next_target.seen_N = \
+			next_target.seen_M = next_target.seen_checksum = next_target.seen_semi_comment = \
 			next_target.seen_parens_comment = next_target.checksum_read = \
 			next_target.checksum_calculated = 0;
 		last_field = 0;
@@ -392,13 +376,13 @@ void gcode_parse_char(uint8_t c) {
 	}
 }
 
-/****************************************************************************
+/***************************************************************************\
 *                                                                           *
 * Request a resend of the current line - used from various places.          *
 *                                                                           *
 * Relies on the global variable next_target.N being valid.                  *
 *                                                                           *
-****************************************************************************/
+\***************************************************************************/
 
 void request_resend(void) {
 	serial_writestr_P(PSTR("rs "));

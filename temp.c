@@ -1,35 +1,48 @@
-/*
-	temp.c
+#include	"temp.h"
 
-	This file currently reads temp from a MAX6675 on the SPI bus.
+#include	<stdlib.h>
+#include	<avr/eeprom.h>
+#include	<avr/pgmspace.h>
 
-	temp fields are 14.2 fixed point, so temp_set(500) will set the temperature to 125 celsius, and temp_get() = 600 is reporting a temperature of 150 celsius.
+typedef enum {
+	TT_THERMISTOR,
+	TT_MAX6675,
+	TT_AD595,
+	TT_PT100,
+	TT_INTERCOM,
+	TT_DUMMY,
+} temp_types;
 
-	the conversion to/from this unit is done in gcode.c, near:
-					if (next_target.M == 104)
-						next_target.S = decfloat_to_int(&read_digit, 4, 1);
-	and
-			// M105- get temperature
-			case 105:
-				uint16_t t = temp_get();
+typedef enum {
+	PRESENT,
+	TCOPEN
+} temp_flags_enum;
 
-	note that the MAX6675 can't do more than approx 5 conversions per second- we go for 4 so the timing isn't too tight
-*/
+#define		TEMP_C
+#include	"config.h"
 
-#include "temp.h"
-
-#ifndef SIMULATION
-	#include	<avr/eeprom.h>
+#include	"arduino.h"
+#include	"delay.h"
+#include	"debug.h"
+#ifndef	EXTRUDER
+	#include	"sersendf.h"
+#endif
+#include	"heater.h"
+#ifdef	GEN3
+	#include	"intercom.h"
 #endif
 
-#include	"clock.h"
-#include	"serial.h"
-#include	"sermsg.h"
-#include	"timer.h"
-#include	"dda.h"
-#include	"sersendf.h"
-#include	"debug.h"
-#include	"heater.h"
+// this struct holds the runtime sensor data- read temperatures, targets, etc
+struct {
+	temp_flags_enum		temp_flags;
+	
+	uint16_t					last_read_temp;
+	uint16_t					target_temp;
+	
+	uint8_t						temp_residency;
+	
+	uint16_t					next_read_time;
+} temp_sensors_runtime[NUM_TEMP_SENSORS];
 
 #ifdef	TEMP_MAX6675
 #endif
@@ -66,159 +79,212 @@ uint16_t temptable[NUMTEMPS][2] PROGMEM = {
 #include	"analog.h"
 #endif
 
-#ifndef	TEMP_MAX6675
-	#ifndef	TEMP_THERMISTOR
-		#ifndef	TEMP_AD595
-			#error none of TEMP_MAX6675, TEMP_THERMISTOR or TEMP_AD595 are defined! What type of temp sensor are you using?
+void temp_init() {
+	uint8_t i;
+	for (i = 0; i < NUM_TEMP_SENSORS; i++) {
+		switch(temp_sensors[i].temp_type) {
+		#ifdef	TEMP_MAX6675
+			// initialised when read
+/*			case TT_MAX6675:
+				break;*/
 		#endif
-	#endif
-#endif
 
-#include "simulation.h"
+		#ifdef	TEMP_THERMISTOR
+			// handled by analog_init()
+/*			case TT_THERMISTOR:
+				break;*/
+		#endif
 
-uint16_t	current_temp = 0;
-uint16_t	target_temp  = 0;
+		#ifdef	TEMP_AD595
+			// handled by analog_init()
+/*			case TT_AD595:
+				break;*/
+		#endif
 
-uint8_t		temp_flags		= 0;
-uint8_t		temp_residency	= 0;
+		#ifdef	GEN3
+			case TT_INTERCOM:
+				intercom_init();
+				update_send_cmd(0);
+				break;
+		#endif
+		}
+	}
+}
 
-#ifndef	ABSDELTA
-#define	ABSDELTA(a, b)	(((a) >= (b))?((a) - (b)):((b) - (a)))
-#endif
-
-uint16_t temp_read() {
-	uint16_t temp;
-
-#ifdef	TEMP_MAX6675
-	#ifdef	PRR
-		PRR &= ~MASK(PRSPI);
-	#elif defined PRR0
-		PRR0 &= ~MASK(PRSPI);
-	#endif
-
-	SPCR = MASK(MSTR) | MASK(SPE) | MASK(SPR0);
-
-	// enable MAX6675
-	WRITE(SS, 0);
-
-	// ensure 100ns delay - a bit extra is fine
-	delay(1);
-
-	// read MSB
-	SPDR = 0;
-	for (;(SPSR & MASK(SPIF)) == 0;);
-	temp = SPDR;
-	temp <<= 8;
-
-	// read LSB
-	SPDR = 0;
-	for (;(SPSR & MASK(SPIF)) == 0;);
-	temp |= SPDR;
-
-	// disable MAX6675
-	WRITE(SS, 1);
-
-	temp_flags = 0;
-	if ((temp & 0x8002) == 0) {
-		// got "device id"
-		temp_flags |= TEMP_FLAG_PRESENT;
-		if (temp & 4) {
-			// thermocouple open
-			temp_flags |= TEMP_FLAG_TCOPEN;
+void temp_sensor_tick() {
+	uint8_t	i = 0;
+	for (; i < NUM_TEMP_SENSORS; i++) {
+		if (temp_sensors_runtime[i].next_read_time) {
+			temp_sensors_runtime[i].next_read_time--;
 		}
 		else {
-			current_temp = temp >> 3;
-			return current_temp;
+			uint16_t	temp = 0;
+			//time to deal with this temp sensor
+			switch(temp_sensors[i].temp_type) {
+				#ifdef	TEMP_MAX6675
+				case TT_MAX6675:
+					#ifdef	PRR
+						PRR &= ~MASK(PRSPI);
+					#elif defined PRR0
+						PRR0 &= ~MASK(PRSPI);
+					#endif
+					
+					SPCR = MASK(MSTR) | MASK(SPE) | MASK(SPR0);
+					
+					// enable TT_MAX6675
+					WRITE(SS, 0);
+					
+					// ensure 100ns delay - a bit extra is fine
+					delay(1);
+					
+					// read MSB
+					SPDR = 0;
+					for (;(SPSR & MASK(SPIF)) == 0;);
+					temp = SPDR;
+					temp <<= 8;
+					
+					// read LSB
+					SPDR = 0;
+					for (;(SPSR & MASK(SPIF)) == 0;);
+					temp |= SPDR;
+					
+					// disable TT_MAX6675
+					WRITE(SS, 1);
+					
+					temp_sensors_runtime[i].temp_flags = 0;
+					if ((temp & 0x8002) == 0) {
+						// got "device id"
+						temp_sensors_runtime[i].temp_flags |= PRESENT;
+						if (temp & 4) {
+							// thermocouple open
+							temp_sensors_runtime[i].temp_flags |= TCOPEN;
+						}
+						else {
+							temp = temp >> 3;
+						}
+					}
+					
+					// this number depends on how frequently temp_sensor_tick is called. the MAX6675 can give a reading every 0.22s, so set this to about 250ms
+					temp_sensors_runtime[i].next_read_time = 25;
+					
+					break;
+				#endif	/* TEMP_MAX6675	*/
+					
+				#ifdef	TEMP_THERMISTOR
+				case TT_THERMISTOR:
+					do {
+						uint8_t j;
+						//Read current temperature
+						temp = analog_read(temp_sensors[i].temp_pin);
+
+						//Calculate real temperature based on lookup table
+						for (j = 1; j < NUMTEMPS; j++) {
+							if (pgm_read_word(&(temptable[j][0])) > temp) {
+								// multiply by 4 because internal temp is stored as 14.2 fixed point
+								temp = pgm_read_word(&(temptable[j][1])) * 4 + (pgm_read_word(&(temptable[j][0])) - temp) * 4 * (pgm_read_word(&(temptable[j-1][1])) - pgm_read_word(&(temptable[j][1]))) / (pgm_read_word(&(temptable[j][0])) - pgm_read_word(&(temptable[j-1][0])));
+								break;
+							}
+						}
+
+						//Clamp for overflows
+						if (j == NUMTEMPS)
+							temp = temptable[NUMTEMPS-1][1] * 4;
+
+						temp_sensors_runtime[i].next_read_time = 0;
+					} while (0);
+					break;
+				#endif	/* TEMP_THERMISTOR */
+					
+				#ifdef	TEMP_AD595
+				case TT_AD595:
+					temp = analog_read(temp_pin);
+					
+					// convert
+					// >>8 instead of >>10 because internal temp is stored as 14.2 fixed point
+					temp = (temp * 500L) >> 8;
+					
+					temp_sensors_runtime[i].next_read_time = 0;
+					
+					break;
+				#endif	/* TEMP_AD595 */
+
+				#ifdef	TEMP_PT100
+				case TT_PT100:
+					#warning TODO: PT100 code
+					break
+				#endif	/* TEMP_PT100 */
+
+				#ifdef	TEMP_INTERCOM
+				case TT_INTERCOM:
+					temp = get_read_cmd() << 2;
+
+					start_send();
+
+					temp_sensors_runtime[i].next_read_time = 0;
+
+					break;
+				#endif	/* TEMP_INTERCOM */
+				
+				#ifdef	TEMP_DUMMY
+				case TT_DUMMY:
+					temp = temp_sensors_runtime[i].last_read_temp;
+
+					if (temp_sensors_runtime[i].target_temp > temp)
+						temp++;
+					else if (temp_sensors_runtime[i].target_temp < temp)
+						temp--;
+
+					temp_sensors_runtime[i].next_read_time = 0;
+
+					break;
+				#endif	/* TEMP_DUMMY */
+			}
+			temp_sensors_runtime[i].last_read_temp = temp;
+			
+			if (labs(temp - temp_sensors_runtime[i].target_temp) < TEMP_HYSTERESIS) {
+				if (temp_sensors_runtime[i].temp_residency < TEMP_RESIDENCY_TIME)
+					temp_sensors_runtime[i].temp_residency++;
+			}
+			else {
+				temp_sensors_runtime[i].temp_residency = 0;
+			}
+			
+			if (temp_sensors[i].heater_index < NUM_HEATERS) {
+				heater_tick(temp_sensors[i].heater_index, i, temp_sensors_runtime[i].last_read_temp, temp_sensors_runtime[i].target_temp);
+			}
 		}
-	}
-#endif	/* TEMP_MAX6675	*/
-
-#ifdef	TEMP_THERMISTOR
-	uint8_t i;
-
-	//Read current temperature
-	temp = analog_read(TEMP_PIN_CHANNEL);
-
-	//Calculate real temperature based on lookup table
-	for (i = 1; i < NUMTEMPS; i++) {
-		if (pgm_read_word(&(temptable[i][0])) > temp) {
-			// multiply by 4 because internal temp is stored as 14.2 fixed point
-			temp = pgm_read_word(&(temptable[i][1])) + (pgm_read_word(&(temptable[i][0])) - temp) * 4 * (pgm_read_word(&(temptable[i-1][1])) - pgm_read_word(&(temptable[i][1]))) / (pgm_read_word(&(temptable[i][0])) - pgm_read_word(&(temptable[i-1][0])));
-			break;
-		}
-	}
-
-	//Clamp for overflows
-	if (i == NUMTEMPS)
-		temp = temptable[NUMTEMPS-1][1];
-
-	return temp;
-
-#endif	/* TEMP_THERMISTOR */
-
-#ifdef	TEMP_AD595
-	temp = analog_read(TEMP_PIN_CHANNEL);
-
-	// convert
-	// >>8 instead of >>10 because internal temp is stored as 14.2 fixed point
-	temp = (temp * 500L) >> 8;
-	
-	return temp;
-#endif	/* TEMP_AD595 */
-
-	return 0;
-}
-
-void temp_set(uint16_t t) {
-	if (t) {
-		steptimeout = 0;
-		power_on();
-	}
-	target_temp = t;
-}
-
-uint16_t temp_get() {
-	return current_temp;
-}
-
-uint16_t temp_get_target() {
-	return target_temp;
-}
-
-void temp_print() {
-	if (temp_flags & TEMP_FLAG_TCOPEN) {
-		serial_writestr_P(PSTR("T: no thermocouple!\n"));
-	}
-	else {
-		uint8_t c = 0, t = 0;
-
-		c = (current_temp & 3) * 25;
-		t = (target_temp & 3) * 25;
-		#ifdef REPRAP_HOST_COMPATIBILITY
-		sersendf_P(PSTR(" T: %u.%u\n"), current_temp >> 2, c);
-		#else
-		sersendf_P(PSTR("T: %u.%u/%u.%u :%u\n"), current_temp >> 2, c, target_temp >> 2, t, temp_residency);
-		#endif
-	}
-}
-
-void temp_tick() {
-	if (target_temp) {
-		steptimeout = 0;
-
-		temp_read();
-
-		heater_tick(current_temp, target_temp);
-
-		if (ABSDELTA(current_temp, target_temp) > TEMP_HYSTERESIS)
-			temp_residency = 0;
-		else if (temp_residency < TEMP_RESIDENCY_TIME)
-			temp_residency++;
 	}
 }
 
 uint8_t	temp_achieved() {
-	if (temp_residency >= TEMP_RESIDENCY_TIME)
-		return 255;
-	return 0;
+	uint8_t i, all_ok = 255;
+	for (i = 0; i < NUM_TEMP_SENSORS; i++) {
+		if (temp_sensors_runtime[i].temp_residency < TEMP_RESIDENCY_TIME)
+			all_ok = 0;
+	}
+	return all_ok;
 }
+
+void temp_set(uint8_t index, uint16_t temperature) {
+	temp_sensors_runtime[index].target_temp = temperature;
+	temp_sensors_runtime[index].temp_residency = 0;
+#ifdef	GEN3
+	if (temp_sensors[index].temp_type == TT_INTERCOM)
+		update_send_cmd(temperature >> 2);
+#endif
+}
+
+uint16_t temp_get(uint8_t index) {
+	return temp_sensors_runtime[index].last_read_temp;
+}
+
+// extruder doesn't have sersendf_P
+#ifndef	EXTRUDER
+void temp_print(uint8_t index) {
+	uint8_t c = 0;
+	
+	c = (temp_sensors_runtime[index].last_read_temp & 3) * 25;
+	
+	sersendf_P(PSTR("T:%u.%u\n"), temp_sensors_runtime[index].last_read_temp >> 2, c);
+}
+#endif

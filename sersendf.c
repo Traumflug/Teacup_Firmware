@@ -1,9 +1,7 @@
 #include	"sersendf.h"
 
 #include	<stdarg.h>
-#ifndef SIMULATION
-	#include <avr/pgmspace.h>
-#endif
+#include	<avr/pgmspace.h>
 
 #include	"serial.h"
 #include	"sermsg.h"
@@ -21,18 +19,19 @@ void sersendf(char *format, ...) {
 			switch(c) {
 				case 'l':
 					j = 4;
+					break;
 				case 'u':
 					if (j == 4)
 						serwrite_uint32(va_arg(args, uint32_t));
 					else
-						serwrite_uint16(va_arg(args, unsigned int));
+						serwrite_uint16(va_arg(args, uint16_t));
 					j = 0;
 					break;
 				case 'd':
 					if (j == 4)
 						serwrite_int32(va_arg(args, int32_t));
 					else
-						serwrite_int16(va_arg(args, int));
+						serwrite_int16(va_arg(args, int16_t));
 					j = 0;
 					break;
 				case 'p':
@@ -41,11 +40,11 @@ void sersendf(char *format, ...) {
 					if (j == 4)
 						serwrite_hex32(va_arg(args, uint32_t));
 					else
-						serwrite_hex16(va_arg(args, unsigned int));
+						serwrite_hex16(va_arg(args, uint16_t));
 					j = 0;
 					break;
 				case 'c':
-					serial_writechar(va_arg(args, unsigned int));
+					serial_writechar(va_arg(args, uint16_t));
 					j = 0;
 					break;
 				case 's':
@@ -53,6 +52,7 @@ void sersendf(char *format, ...) {
 					j = 0;
 					break;
 				default:
+					serial_writechar(c);
 					j = 0;
 					break;
 			}
@@ -88,14 +88,18 @@ void sersendf_P(PGM_P format, ...) {
 					if (j == 4)
 						serwrite_uint32(va_arg(args, uint32_t));
 					else
-						serwrite_uint16(va_arg(args, unsigned int));
+						serwrite_uint16(va_arg(args, uint16_t));
 					j = 0;
 					break;
 				case 'd':
 					if (j == 4)
 						serwrite_int32(va_arg(args, int32_t));
 					else
-						serwrite_int16(va_arg(args, int));
+						serwrite_int16(va_arg(args, int16_t));
+					j = 0;
+					break;
+				case 'c':
+					serial_writechar(va_arg(args, uint16_t));
 					j = 0;
 					break;
 /*				case 'x':
@@ -108,13 +112,12 @@ void sersendf_P(PGM_P format, ...) {
 						serwrite_hex16(va_arg(args, uint16_t));
 					j = 0;
 					break;
-				case 'c':
-					serial_writechar(va_arg(args, uint16_t));
 				case 'p':
-					serwrite_hex16(va_arg(args, uint16_t));
+					serwrite_hex16(va_arg(args, uint16_t));*/
 				default:
+					serial_writechar(c);
 					j = 0;
-					break;*/
+					break;
 			}
 		}
 		else {

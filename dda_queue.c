@@ -1,13 +1,7 @@
 #include	"dda_queue.h"
 
 #include	<string.h>
-
-#ifdef SIMULATION
-	#include	"simulation.h"
-#else
-	#include	<avr/interrupt.h>
-	#include	<util/atomic.h>
-#endif
+#include	<avr/interrupt.h>
 
 #include	"config.h"
 #include	"timer.h"
@@ -15,6 +9,8 @@
 #include	"sermsg.h"
 #include	"temp.h"
 #include	"delay.h"
+#include	"sersendf.h"
+#include	"clock.h"
 
 uint8_t	mb_head = 0;
 uint8_t	mb_tail = 0;
@@ -36,6 +32,7 @@ void queue_step() {
 	// do our next step
 	if (movebuffer[mb_tail].live) {
 		if (movebuffer[mb_tail].waitfor_temp) {
+			setTimer(movebuffer[mb_tail].c >> 8);
 			if (temp_achieved()) {
 				movebuffer[mb_tail].live = movebuffer[mb_tail].waitfor_temp = 0;
 				serial_writestr_P(PSTR("Temp achieved\n"));
@@ -84,7 +81,7 @@ void enqueue(TARGET *t) {
 	mb_head = h;
 
 	// fire up in case we're not running yet
-	if (timerInterruptIsEnabled() == 0)
+	if (movebuffer[mb_tail].live == 0)
 		next_move();
 }
 
@@ -94,29 +91,45 @@ void next_move() {
 		// next item
 		uint8_t t = mb_tail + 1;
 		t &= (MOVEBUFFER_SIZE - 1);
-		dda_start(&movebuffer[t]);
+		if (movebuffer[t].waitfor_temp) {
+			#ifndef	REPRAP_HOST_COMPATIBILITY
+				serial_writestr_P(PSTR("Waiting for target temp\n"));
+			#endif
+			movebuffer[t].live = 1;
+			setTimer(movebuffer[t].c >> 8);
+		}
+		else {
+			dda_start(&movebuffer[t]);
+		}
 		mb_tail = t;
 	}
 	else
-		disableTimerInterrupt();
+		setTimer(0);
 }
 
 void print_queue() {
-	serial_writechar('Q');
-	serwrite_uint8(mb_tail);
-	serial_writechar('/');
-	serwrite_uint8(mb_head);
-	if (queue_full())
-		serial_writechar('F');
-	if (queue_empty())
-		serial_writechar('E');
-	serial_writechar('\n');
+	sersendf_P(PSTR("Q%d/%d%c\n"), mb_tail, mb_head, (queue_full()?'F':(queue_empty()?'E':' ')));
 }
 
 void queue_flush() {
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		// flush queue
-		mb_tail = mb_head;
-		movebuffer[mb_head].live = 0;
+	// save interrupt flag
+	uint8_t sreg = SREG;
+
+	// disable interrupts
+	cli();
+
+	// flush queue
+	mb_tail = mb_head;
+	movebuffer[mb_head].live = 0;
+
+	// restore interrupt flag
+	SREG = sreg;
+}
+
+void queue_wait() {
+	for (;queue_empty() == 0;) {
+		ifclock(CLOCK_FLAG_10MS) {
+			clock_10ms();
+		}
 	}
 }

@@ -108,14 +108,12 @@ mendel_cmd() {
 		local RSC=0
 		local cmd="$*"
 		echo "$cmd" >&3;
-		while [ "$REPLY" != "OK" ] && [ "$REPLY" != "ok" ]
+		local REPLY=""
+		while ! [[ "$REPLY" =~ ^OK ]] && ! [[ "$REPLY" =~ ^ok ]]
 		do
 			read -u 3
-			if [ "$REPLY" != "OK" ] && [ "$REPLY" != "ok" ]
-			then
-				echo "$REPLY"
-			fi
-			if [[ "$REPLY" =~ ^RESEND ]]
+			echo "${REPLY##ok }"
+			if [[ "$REPLY" =~ ^RESEND ]] || [[ "$REPLY" =~ ^rs ]]
 			then
 				if [ "$RSC" -le 3 ]
 				then
@@ -137,11 +135,12 @@ mendel_cmd_hr() {
 		local RSC=0
 		echo "$cmd" >&3
 		echo "S> $cmd"
-		while [ "$REPLY" != "OK" ] && [ "$REPLY" != "ok" ]
+		local REPLY=""
+		while ! [[ "$REPLY" =~ ^OK ]] && ! [[ "$REPLY" =~ ^ok ]]
 		do
 			read -u 3
 			echo "<R $REPLY"
-			if [[ "$REPLY" =~ ^RESEND ]]
+			if [[ "$REPLY" =~ ^RESEND ]] || [[ "$REPLY" =~ ^rs ]]
 			then
 				if [ "$RSC" -le 3 ]
 				then
@@ -253,7 +252,7 @@ mendel_readsym_mb() {
 	local mbtail=$(mendel_readsym mb_tail)
 	perl - <<'ENDPERL' -- $val $mbhead $mbtail
 		$i = -1;
-		@a = qw/eX 4 eY 4 eZ 4 eE 4 eF 4 flags 9 dX 12 dY 4 dZ 4 dE 4 cX 12 cY 4 cZ 4 cE 4 ts 12 c 12 ec 4 n 4/;
+		@a = qw/eX 4 eY 4 eZ 4 eE 4 eF 4 flags 9 dX 12 dY 4 dZ 4 dE 4 cX 12 cY 4 cZ 4 cE 4 ts 12 c 12 rs 4 sn 4 cm 4 n 4 rs 1/;
 		$c = 0;
 		$c = 1234567;
 		while (length $ARGV[1]) {

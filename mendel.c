@@ -1,16 +1,15 @@
-#ifndef SIMULATION
-	#include	<avr/io.h>
-	#include	<avr/interrupt.h>
-#endif
+
+#include	<avr/io.h>
+#include	<avr/interrupt.h>
 
 #include	"config.h"
+#include	"fuses.h"
 
 #include	"serial.h"
 #include	"dda_queue.h"
 #include	"dda.h"
 #include	"gcode_parse.h"
 #include	"timer.h"
-#include	"clock.h"
 #include	"temp.h"
 #include	"sermsg.h"
 #include	"watchdog.h"
@@ -18,17 +17,19 @@
 #include	"sersendf.h"
 #include	"heater.h"
 #include	"analog.h"
-#include	"simulation.h"
+#include	"pinio.h"
+#include	"arduino.h"
+#include	"clock.h"
 
 void io_init(void) {
 	// disable modules we don't use
 	#ifdef PRR
 		PRR = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
-	#endif
-	#ifdef PRR0
+	#elif defined PRR0
 		PRR0 = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
 		#ifdef PRR1
-			PRR1 = 0xFF;
+			// don't use USART2 or USART3- leave USART1 for GEN3 and derivatives
+			PRR1 = MASK(PRUSART3) | MASK(PRUSART2);
 		#endif
 	#endif
 	ACSR = MASK(ACD);
@@ -37,35 +38,73 @@ void io_init(void) {
 	WRITE(X_STEP_PIN, 0);	SET_OUTPUT(X_STEP_PIN);
 	WRITE(X_DIR_PIN,  0);	SET_OUTPUT(X_DIR_PIN);
 	WRITE(X_MIN_PIN,  1);	SET_INPUT(X_MIN_PIN);
+	#ifdef X_MAX_PIN
+		WRITE(X_MAX_PIN, 1); SET_INPUT(X_MAX_PIN);
+	#endif
+	#ifdef X_ENABLE_PIN
+		WRITE(X_ENABLE_PIN, 1); SET_OUTPUT(X_ENABLE_PIN);
+	#endif
 
 	WRITE(Y_STEP_PIN, 0);	SET_OUTPUT(Y_STEP_PIN);
 	WRITE(Y_DIR_PIN,  0);	SET_OUTPUT(Y_DIR_PIN);
 	WRITE(Y_MIN_PIN,  1);	SET_INPUT(Y_MIN_PIN);
-
+	#ifdef Y_MAX_PIN
+		WRITE(Y_MAX_PIN, 1); SET_INPUT(Y_MAX_PIN);
+	#endif
+	#ifdef Y_ENABLE_PIN
+		WRITE(Y_ENABLE_PIN, 1); SET_OUTPUT(Y_ENABLE_PIN);
+	#endif
+	
 	WRITE(Z_STEP_PIN, 0);	SET_OUTPUT(Z_STEP_PIN);
 	WRITE(Z_DIR_PIN,  0);	SET_OUTPUT(Z_DIR_PIN);
 	WRITE(Z_MIN_PIN,  1);	SET_INPUT(Z_MIN_PIN);
-
+	#ifdef Z_MAX_PIN
+		WRITE(Z_MAX_PIN, 1); SET_INPUT(Z_MAX_PIN);
+	#endif
+	#ifdef Z_ENABLE_PIN
+		WRITE(Z_ENABLE_PIN, 1); SET_OUTPUT(Z_ENABLE_PIN);
+	#endif
+	
 	WRITE(E_STEP_PIN, 0);	SET_OUTPUT(E_STEP_PIN);
 	WRITE(E_DIR_PIN,  0);	SET_OUTPUT(E_DIR_PIN);
 
-	#ifdef	HEATER_PIN
-		WRITE(HEATER_PIN, 0); SET_OUTPUT(HEATER_PIN);
-	#endif
+	// setup PWM timers: fast PWM, no prescaler
+	TCCR0A = MASK(WGM01) | MASK(WGM00);
+	TCCR0B = MASK(CS00);
+	TIMSK0 = 0;
+	OCR0A = 0;
+	OCR0B = 0;
 
-	#ifdef	FAN_PIN
-		WRITE(FAN_PIN, 0); SET_OUTPUT(FAN_PIN);
-	#endif
+	TCCR2A = MASK(WGM21) | MASK(WGM20);
+	TCCR2B = MASK(CS20);
+	TIMSK2 = 0;
+	OCR2A = 0;
+	OCR2B = 0;
 
-	#if defined(HEATER_PWM) || defined(FAN_PWM)
-		// setup PWM timer: fast PWM, no prescaler
-		TCCR0A = MASK(WGM01) | MASK(WGM00);
-		TCCR0B = MASK(CS00);
-		TIMSK0 = 0;
-		OCR0A = 0;
-		OCR0B = 255;
+	#ifdef	TCCR3A
+		TCCR3A = MASK(WGM31) | MASK(WGM30);
+		TCCR3B = MASK(CS30);
+		TIMSK3 = 0;
+		OCR3A = 0;
+		OCR3B = 0;
 	#endif
-
+	
+	#ifdef	TCCR4A
+		TCCR4A = MASK(WGM41) | MASK(WGM40);
+		TCCR4B = MASK(CS40);
+		TIMSK4 = 0;
+		OCR4A = 0;
+		OCR4B = 0;
+	#endif
+	
+	#ifdef	TCCR5A
+		TCCR5A = MASK(WGM51) | MASK(WGM50);
+		TCCR5B = MASK(CS50);
+		TIMSK5 = 0;
+		OCR5A = 0;
+		OCR5B = 0;
+	#endif
+	
 	#ifdef	STEPPER_ENABLE_PIN
 		power_off();
 	#endif
@@ -78,7 +117,6 @@ void io_init(void) {
 }
 
 void init(void) {
-
 	// set up watchdog
 	wd_init();
 
@@ -89,10 +127,7 @@ void init(void) {
 	io_init();
 
 	// set up timers
-	setupTimerInterrupt();
-
-	// set up clock
-	clock_setup();
+	timer_init();
 
 	// read PID settings from EEPROM
 	heater_init();
@@ -102,7 +137,10 @@ void init(void) {
 
 	// start up analog read interrupt loop, if anything uses analog as determined by ANALOG_MASK in your config.h
 	analog_init();
-	
+
+	// set up temperature inputs
+	temp_init();
+
 	// enable interrupts
 	sei();
 
@@ -112,48 +150,6 @@ void init(void) {
 	// say hi to host
 	serial_writestr_P(PSTR("Start\nok\n"));
 
-}
-
-void clock_250ms(void) {
-	// reset watchdog
-	wd_reset();
-
-	temp_tick();
-
-	if (steptimeout > (30 * 4)) {
-		power_off();
-	}
-	else
-		steptimeout++;
-
-	ifclock(CLOCK_FLAG_1S) {
-		if (debug_flags & DEBUG_POSITION) {
-			// current position
-			sersendf_P(PSTR("Pos: %ld,%ld,%ld,%ld,%lu\n"),
-				(long int)current_position.X,
-				(long int)current_position.Y,
-				(long int)current_position.Z,
-				(long int)current_position.E,
-				(long unsigned int)current_position.F);
-
-			// target position
-			sersendf_P(PSTR("Dst: %ld,%ld,%ld,%ld,%lu\n"),
-				(long int)movebuffer[mb_tail].endpoint.X,
-				(long int)movebuffer[mb_tail].endpoint.Y,
-				(long int)movebuffer[mb_tail].endpoint.Z,
-				(long int)movebuffer[mb_tail].endpoint.E,
-				(long unsigned int)movebuffer[mb_tail].endpoint.F);
-
-			// Queue
-			print_queue();
-		}
-		
-		#ifndef	REPRAP_HOST_COMPATIBILITY
-			// temperature
-			if (temp_get_target())
-				temp_print();
-		#endif
-	}
 }
 
 int main (void)
@@ -169,8 +165,8 @@ int main (void)
 			gcode_parse_char(c);
 		}
 
-		ifclock(CLOCK_FLAG_250MS) {
-			clock_250ms();
+		ifclock(CLOCK_FLAG_10MS) {
+			clock_10ms();
 		}
 	}
 }

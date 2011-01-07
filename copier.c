@@ -1,11 +1,12 @@
+#ifdef	COPIER
+
 #include	"copier.h"
 
 #include	<avr/pgmspace.h>
 #include	<avr/boot.h>
 
 #include	"arduino.h"
-#include	"timer.h"
-#include	"serial.h"
+#include	"delay.h"
 
 uint32_t copier_xchange(uint32_t cmd) {
 	uint32_t r = 0, c = cmd;
@@ -96,3 +97,5 @@ void copy() {
 	SET_INPUT(SCK);
 	SET_INPUT(COPIER_RESET);
 }
+
+#endif	/* COPIER */

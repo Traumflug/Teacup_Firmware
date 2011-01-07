@@ -3,59 +3,27 @@
 
 #include	<stdint.h>
 
-#include	"config.h"
+/*
+NOTES
 
-#define		TEMP_FLAG_PRESENT		1
-#define		TEMP_FLAG_TCOPEN		2
+no point in specifying a port- all the different temp sensors we have must be on a particular port. The MAX6675 must be on the SPI, and the thermistor and AD595 must be on an analog port.
 
-#ifdef	TEMP_MAX6675
-typedef union {
-	struct {
-		uint8_t				high;
-		uint8_t				low;
-	} buf;
-	struct {
-		uint16_t			dummy				:1;
-		uint16_t			reading			:12;
-		uint16_t			tc_open			:1;
-		uint16_t			device_id		:1;
-		uint16_t			tristate		:1;
-	} interpret;
-} max6675_data_format;
-#endif
+we still need to specify which analog pins we use in machine.h for the analog sensors however, otherwise the analog subsystem won't read them.
+*/
 
-#if defined TEMP_THERMISTOR && !defined SIMULATION
-#include	<avr/pgmspace.h>
-#endif
+#define	temp_tick temp_sensor_tick
 
-#ifdef	TEMP_AD595
-#endif
-
-// setup temperature system
 void temp_init(void);
 
-// save PID factors to EEPROM
-void temp_save_settings(void);
+void temp_sensor_tick(void);
 
-// read temperature from sensor
-uint16_t temp_read(void);
-
-// set target temperature
-void temp_set(uint16_t t);
-
-// return last read temperature
-uint16_t temp_get(void);
-
-// return target temperature
-uint16_t temp_get_target(void);
-
-// true if last read temp is close to target temp, false otherwise
 uint8_t	temp_achieved(void);
 
-// send current temperature to host
-void temp_print(void);
+void temp_set(uint8_t index, uint16_t temperature);
+uint16_t temp_get(uint8_t index);
 
-// periodically read temperature and update heater with PID
-void temp_tick(void);
+void temp_print(uint8_t index);
+
+uint16_t	temp_read(uint8_t index);
 
 #endif	/* _TIMER_H */
