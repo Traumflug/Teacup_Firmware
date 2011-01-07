@@ -292,8 +292,10 @@ void gcode_parse_char(uint8_t c) {
 			#endif
 
 			default:
-				// can't do ranges in switch..case, so process actual digits here
-				if (c >= '0' && c <= '9') {
+				// can't do ranges in switch..case, so process actual digits here. Limit the digits right of the decimal to avoid variable overflow in decfloat_to_int() due to excess precision
+				if (c >= '0' && c <= '9' &&
+				    ((next_target.option_inches == 0 && read_digit.exponent < 4) ||
+				     (next_target.option_inches && read_digit.exponent < 5))) {
 					// this is simply mantissa = (mantissa * 10) + atoi(c) in different clothes
 					read_digit.mantissa = (read_digit.mantissa << 3) + (read_digit.mantissa << 1) + (c - '0');
 					if (read_digit.exponent)
