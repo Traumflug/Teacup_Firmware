@@ -66,7 +66,7 @@ int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator)
 // 		r /= denominator;
 
 	int32_t	rnew1 = r * (multiplicand / denominator);
-	int32_t	rnew2 = r * (multiplicand % denominator);
+	int32_t	rnew2 = r * (multiplicand % denominator) / denominator;
 	r = rnew1 + rnew2;
 
 	// sign
