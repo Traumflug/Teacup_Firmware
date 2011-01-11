@@ -25,10 +25,10 @@
 	which is about the worst case we have. All other machines have a bigger build volume.
 */
 
-#define	STEPS_PER_M_X			((uint32_t) (STEPS_PER_MM_X * 1000.0))
-#define	STEPS_PER_M_Y			((uint32_t) (STEPS_PER_MM_Y * 1000.0))
-#define	STEPS_PER_M_Z			((uint32_t) (STEPS_PER_MM_Z * 1000.0))
-#define	STEPS_PER_M_E			((uint32_t) (STEPS_PER_MM_E * 1000.0))
+#define	STEPS_PER_M_X			((uint32_t) ((STEPS_PER_MM_X * 1000.0) + 0.5))
+#define	STEPS_PER_M_Y			((uint32_t) ((STEPS_PER_MM_Y * 1000.0) + 0.5))
+#define	STEPS_PER_M_Z			((uint32_t) ((STEPS_PER_MM_Z * 1000.0) + 0.5))
+#define	STEPS_PER_M_E			((uint32_t) ((STEPS_PER_MM_E * 1000.0) + 0.5))
 
 /*
 	mm -> inch conversion
@@ -50,8 +50,10 @@ GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
 /*
 	utility functions
 */
+extern const uint32_t powers[];  // defined in sermsg.c
+const int32_t rounding[DECFLOAT_EXP_MAX] = {0,  5,  50,  500,  5000,  50000,  500000};
 
-int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator) {
+static int32_t decfloat_to_int(decfloat *df, int32_t multiplicand, uint32_t denominator) {
 	int32_t	r = df->mantissa;
 	uint8_t	e = df->exponent;
 
@@ -59,36 +61,21 @@ int32_t	decfloat_to_int(decfloat *df, int32_t multiplicand, int32_t denominator)
 	if (e)
 		e--;
 
-	// scale factors
-// 	if (multiplicand != 1)
-// 		r *= multiplicand;
-// 	if (denominator != 1)
-// 		r /= denominator;
-
 	int32_t	rnew1 = r * (multiplicand / denominator);
-	int32_t	rnew2 = r * (multiplicand % denominator) / denominator;
-	r = rnew1 + rnew2;
+	if (e)
+	{
+		int32_t	rnew2 = r * (multiplicand % denominator) / denominator;
+		r = rnew1 + rnew2;
 
-	// sign
-	if (df->sign)
-		r = -r;
-
-	// exponent- try to keep divides to a minimum for common (small) values at expense of slightly more code
-	while (e >= 5) {
-		r /= 100000;
-		e -= 5;
+		r = (r + rounding[e]) / powers[e];
+	}
+	else
+	{
+		int32_t	rnew2 = (r * (multiplicand % denominator) + (denominator / 2)) / denominator;
+		r = rnew1 + rnew2;
 	}
 
-	if (e == 1)
-		r /= 10;
-	else if (e == 2)
-		r /= 100;
-	else if (e == 3)
-		r /= 1000;
-	else if (e == 4)
-		r /= 10000;
-
-	return r;
+	return df->sign ? -r : r;
 }
 
 /****************************************************************************
@@ -292,10 +279,11 @@ void gcode_parse_char(uint8_t c) {
 			#endif
 
 			default:
-				// can't do ranges in switch..case, so process actual digits here. Limit the digits right of the decimal to avoid variable overflow in decfloat_to_int() due to excess precision
-				if (c >= '0' && c <= '9' &&
-				    ((next_target.option_inches == 0 && read_digit.exponent < 4) ||
-				     (next_target.option_inches && read_digit.exponent < 5))) {
+				// can't do ranges in switch..case, so process actual digits here.
+				if (    c >= '0'
+				     && c <= '9'
+				     && read_digit.mantissa < (DECFLOAT_MANT_MAX / 10)
+				     && read_digit.exponent < DECFLOAT_EXP_MAX ) {
 					// this is simply mantissa = (mantissa * 10) + atoi(c) in different clothes
 					read_digit.mantissa = (read_digit.mantissa << 3) + (read_digit.mantissa << 1) + (c - '0');
 					if (read_digit.exponent)
