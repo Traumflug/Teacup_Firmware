@@ -54,7 +54,7 @@ void analog_init() {
 		adc_counter = 0;
 		adc_running_mask = 1;
 
-		AIO0_DDR &= ANALOG_MASK;
+		AIO0_DDR &= ~(ANALOG_MASK);
 		DIDR0 = ANALOG_MASK & 0x3F;
 
 		// now we start the first conversion and leave the rest to the interrupt
