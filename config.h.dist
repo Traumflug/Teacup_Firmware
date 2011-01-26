@@ -284,6 +284,8 @@ struct {
 * If your heater isn't on a PWM-able pin, set heater_pwm to zero and we'll  *
 *   use bang-bang output. Note that PID will still be used                  *
 *                                                                           *
+* See Appendix 8 at the end of this file for PWMable pin mappings           *
+*                                                                           *
 * If a heater isn't attached to a temperature sensor above, it can still be *
 *   controlled by host but otherwise is ignored by firmware                 *
 *                                                                           *
@@ -402,33 +404,33 @@ struct {
 *                                                                           *
 * For the atmega168/328, timer/pin mappings are as follows                  *
 *                                                                           *
-* OCR0A - PD6                                                               *
-* OCR0B - PD5                                                               *
-* OCR2A - PB3                                                               *
-* OCR2B - PD3                                                               *
+* OCR0A - PD6  - DIO6                                                       *
+* OCR0B - PD5  - DIO5                                                       *
+* OCR2A - PB3  - DIO11                                                      *
+* OCR2B - PD3  - DIO3                                                       *
 *                                                                           *
 * For the atmega644, timer/pin mappings are as follows                      *
 *                                                                           *
-* OCR0A - PB3                                                               *
-* OCR0B - PB4                                                               *
-* OCR2A - PD7                                                               *
-* OCR2B - PD6                                                               *
+* OCR0A - PB3  - DIO3                                                       *
+* OCR0B - PB4  - DIO4                                                       *
+* OCR2A - PD7  - DIO15                                                      *
+* OCR2B - PD6  - DIO14                                                      *
 *                                                                           *
 * For the atmega1280, timer/pin mappings are as follows                     *
 *                                                                           *
-* OC0A - PB7                                                                *
-* OC0B - PG5                                                                *
-* OC2A - PB4                                                                *
-* OC2B - PH6                                                                *
-* OC3A - PE3                                                                *
-* OC3B - PE4                                                                *
-* OC3C - PE5                                                                *
-* OC4A - PH3                                                                *
-* OC4B - PH4                                                                *
-* OC4C - PH5                                                                *
-* OC5A - PL3                                                                *
-* OC5B - PL4                                                                *
-* OC5C - PL5                                                                *
+* OCR0A  - PB7 - DIO13                                                      *
+* OCR0B  - PG5 - DIO4                                                       *
+* OCR2A  - PB4 - DIO10                                                      *
+* OCR2B  - PH6 - DIO9                                                       *
+* OCR3AL - PE3 - DIO5                                                       *
+* OCR3BL - PE4 - DIO2                                                       *
+* OCR3CL - PE5 - DIO3                                                       *
+* OCR4AL - PH3 - DIO6                                                       *
+* OCR4BL - PH4 - DIO7                                                       *
+* OCR4CL - PH5 - DIO8                                                       *
+* OCR5AL - PL3 - DIO46                                                      *
+* OCR5BL - PL4 - DIO45                                                      *
+* OCR5CL - PL5 - DIO44                                                      *
 *                                                                           *
 \***************************************************************************/
 
