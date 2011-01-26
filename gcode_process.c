@@ -360,6 +360,16 @@ void process_gcode_command() {
 				if (next_target.seen_S)
 					heater_set(next_target.P, next_target.S);
 				break;
+
+			case 140: //Set heated bed temperature
+				temp_set(BED_HEATER, next_target.S);
+				if (next_target.S) {
+					power_on();
+				}
+				else {
+					disable_heater();
+				}
+				break;
 			#endif	/* NUM_HEATERS > 0 */
 				
 				// M190- power on
