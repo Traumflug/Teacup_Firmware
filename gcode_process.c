@@ -263,12 +263,8 @@ void process_gcode_command() {
 				// M104- set temperature
 			case 104:
 				temp_set(next_target.P, next_target.S);
-				if (next_target.S) {
+				if (next_target.S)
 					power_on();
-				}
-				else {
-					disable_heater();
-				}
 				break;
 				
 				// M105- get temperature
@@ -363,12 +359,8 @@ void process_gcode_command() {
 
 			case 140: //Set heated bed temperature
 				temp_set(BED_HEATER, next_target.S);
-				if (next_target.S) {
+				if (next_target.S)
 					power_on();
-				}
-				else {
-					disable_heater();
-				}
 				break;
 			#endif	/* NUM_HEATERS > 0 */
 				

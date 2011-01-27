@@ -273,7 +273,10 @@ struct {
 
 // number of heaters- for GEN3, set to zero as extruder manages the heater by itself
 #define	NUM_HEATERS				0
-#define BED_HEATER			3  //Set to 0 if no bed heater
+
+// index of bed heater for M105 and M140 commands. set to 255 if no bed heater
+#define BED_HEATER				1
+
 // check if heater responds to changes in target temperature, disable and spit errors if not
 // #define	HEATER_SANITY_CHECK
 
