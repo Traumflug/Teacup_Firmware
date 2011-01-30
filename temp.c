@@ -4,6 +4,17 @@
 #include	<avr/eeprom.h>
 #include	<avr/pgmspace.h>
 
+#include	"arduino.h"
+#include	"delay.h"
+#include	"debug.h"
+#ifndef	EXTRUDER
+	#include	"sersendf.h"
+#endif
+#include	"heater.h"
+#ifdef	GEN3
+	#include	"intercom.h"
+#endif
+
 typedef enum {
 	TT_THERMISTOR,
 	TT_MAX6675,
@@ -18,19 +29,19 @@ typedef enum {
 	TCOPEN
 } temp_flags_enum;
 
-#define		TEMP_C
-#include	"config.h"
+typedef struct {
+	uint8_t temp_type;
+	uint8_t temp_pin;
+	uint8_t heater_index;
+} temp_sensor_definition_t;
 
-#include	"arduino.h"
-#include	"delay.h"
-#include	"debug.h"
-#ifndef	EXTRUDER
-	#include	"sersendf.h"
-#endif
-#include	"heater.h"
-#ifdef	GEN3
-	#include	"intercom.h"
-#endif
+#undef DEFINE_TEMP_SENSOR
+#define DEFINE_TEMP_SENSOR(name, type, pin, heater) { (type), (pin), (heater) },
+static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
+{
+	#include	"config.h"
+};
+#undef DEFINE_TEMP_SENSOR
 
 // this struct holds the runtime sensor data- read temperatures, targets, etc
 struct {
@@ -80,7 +91,7 @@ uint16_t temptable[NUMTEMPS][2] PROGMEM = {
 #endif
 
 void temp_init() {
-	uint8_t i;
+	temp_sensor_t i;
 	for (i = 0; i < NUM_TEMP_SENSORS; i++) {
 		switch(temp_sensors[i].temp_type) {
 		#ifdef	TEMP_MAX6675
@@ -112,7 +123,7 @@ void temp_init() {
 }
 
 void temp_sensor_tick() {
-	uint8_t	i = 0;
+	temp_sensor_t i = 0;
 	for (; i < NUM_TEMP_SENSORS; i++) {
 		if (temp_sensors_runtime[i].next_read_time) {
 			temp_sensors_runtime[i].next_read_time--;
@@ -257,7 +268,9 @@ void temp_sensor_tick() {
 }
 
 uint8_t	temp_achieved() {
-	uint8_t i, all_ok = 255;
+	temp_sensor_t i;
+	uint8_t all_ok = 255;
+
 	for (i = 0; i < NUM_TEMP_SENSORS; i++) {
 		if (temp_sensors_runtime[i].temp_residency < TEMP_RESIDENCY_TIME)
 			all_ok = 0;
@@ -265,7 +278,10 @@ uint8_t	temp_achieved() {
 	return all_ok;
 }
 
-void temp_set(uint8_t index, uint16_t temperature) {
+void temp_set(temp_sensor_t index, uint16_t temperature) {
+	if (index >= NUM_TEMP_SENSORS)
+		return;
+
 	temp_sensors_runtime[index].target_temp = temperature;
 	temp_sensors_runtime[index].temp_residency = 0;
 #ifdef	GEN3
@@ -274,25 +290,31 @@ void temp_set(uint8_t index, uint16_t temperature) {
 #endif
 }
 
-uint16_t temp_get(uint8_t index) {
+uint16_t temp_get(temp_sensor_t index) {
+	if (index >= NUM_TEMP_SENSORS)
+		return 0;
+
 	return temp_sensors_runtime[index].last_read_temp;
 }
 
 // extruder doesn't have sersendf_P
 #ifndef	EXTRUDER
-void temp_print(uint8_t index) {
+void temp_print(temp_sensor_t index) {
 	uint8_t c = 0;
-	
+
+	if (index >= NUM_TEMP_SENSORS)
+		return;
+
 	c = (temp_sensors_runtime[index].last_read_temp & 3) * 25;
 
-#if BED_HEATER < NUM_HEATERS
-	uint8_t b = 0;
-	b = (temp_sensors_runtime[BED_HEATER].last_read_temp & 3) * 25;
+  if (BED_HEATER < NUM_HEATERS) {
+		uint8_t b = 0;
+		b = (temp_sensors_runtime[BED_HEATER].last_read_temp & 3) * 25;
 	
-	sersendf_P(PSTR("T:%u.%u  B:%u.%u\n"), temp_sensors_runtime[index].last_read_temp >> 2, c, temp_sensors_runtime[BED_HEATER].last_read_temp >> 2 , b);
-#else
+		sersendf_P(PSTR("T:%u.%u  B:%u.%u\n"), temp_sensors_runtime[index].last_read_temp >> 2, c, temp_sensors_runtime[BED_HEATER].last_read_temp >> 2 , b);
+	} else {
 		sersendf_P(PSTR("T:%u.%u"), temp_sensors_runtime[index].last_read_temp >> 2, c);
-#endif
+	}
 
 }
 #endif

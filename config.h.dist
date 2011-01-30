@@ -1,6 +1,3 @@
-#ifndef	_CONFIG_H
-#define	_CONFIG_H
-
 /*
 	CONTENTS
 	
@@ -231,12 +228,9 @@
 // ANALOG_MASK is a bitmask of all analog channels used- if you use more than one analog input (more than one temp sensor?), bitwise-or them all together
 #define	ANALOG_MASK				MASK(TEMP_PIN_CHANNEL)
 
-// how many temperature sensors do you have?
-#define	NUM_TEMP_SENSORS	1
-
 /***************************************************************************\
 *                                                                           *
-* Fill in the following struct according to your hardware                   *
+* Define your temperature sensors here                                      *
 *                                                                           *
 * If your temperature sensor has no associated heater, enter '255' as the   *
 *   heater index. Unassociated temperature sensors are still read, but they *
@@ -250,19 +244,12 @@
 *                                                                           *
 \***************************************************************************/
 
-#ifdef	TEMP_C
-struct {
-	uint8_t						temp_type;
-	uint8_t						temp_pin;
-
-	uint8_t						heater_index;
-} temp_sensors[NUM_TEMP_SENSORS] =
-{
-	// type         pin heater
-	{ TT_INTERCOM,  0,  255 }
-};
+#ifndef DEFINE_TEMP_SENSOR
+	#define DEFINE_TEMP_SENSOR(...)
 #endif
 
+//                 name       type          pin   heater index
+DEFINE_TEMP_SENSOR(extruder,  TT_INTERCOM,    0,           255)
 
 
 /***************************************************************************\
@@ -270,9 +257,6 @@ struct {
 * 5. HEATERS                                                                *
 *                                                                           *
 \***************************************************************************/
-
-// number of heaters- for GEN3, set to zero as extruder manages the heater by itself
-#define	NUM_HEATERS				0
 
 // index of bed heater for M105 and M140 commands. set to 255 if no bed heater
 #define BED_HEATER				1
@@ -282,7 +266,7 @@ struct {
 
 /***************************************************************************\
 *                                                                           *
-* Fill in the following struct according to your hardware                   *
+* Define your heaters here                                                  *
 *                                                                           *
 * If your heater isn't on a PWM-able pin, set heater_pwm to zero and we'll  *
 *   use bang-bang output. Note that PID will still be used                  *
@@ -294,19 +278,13 @@ struct {
 *                                                                           *
 \***************************************************************************/
 
-#ifdef	HEATER_C
-struct {
-	volatile uint8_t	*heater_port;
-	uint8_t						heater_pin;
-	volatile uint8_t	*heater_pwm;
-} heaters[NUM_HEATERS]/* =
-{
-	// port   pin    pwm
-	{ &PORTD, PIND6, &OCR0A },
-	{ &PORTD, PIND5, &OCR0B }
-}*/;
+#ifndef DEFINE_HEATER
+	#define DEFINE_HEATER(...)
 #endif
 
+//               name      port   pin    pwm
+// DEFINE_HEATER(extruder, PORTD, PIND6, OCR0A)
+// DEFINE_HEATER(bed,      PORTD, PIND5, OCR0B)
 
 
 /***************************************************************************\
@@ -436,5 +414,3 @@ struct {
 * OCR5CL - PL5 - DIO44                                                      *
 *                                                                           *
 \***************************************************************************/
-
-#endif	/* _CONFIG_H */

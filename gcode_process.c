@@ -273,17 +273,17 @@ void process_gcode_command() {
 				break;
 				
 				// M7/M106- fan on
-			#if NUM_HEATERS > 1
 			case 7:
 			case 106:
-				heater_set(1, 255);
+				if (NUM_HEATERS > 1)
+					heater_set(1, 255);
 				break;
 				// M107- fan off
 			case 9:
 			case 107:
-				heater_set(1, 0);
+				if (NUM_HEATERS > 1)
+					heater_set(1, 0);
 				break;
-			#endif
 				
 				// M109- set temp and wait
 			case 109:
@@ -326,7 +326,6 @@ void process_gcode_command() {
 				// newline is sent from gcode_parse after we return
 				break;
 
-			#if	NUM_HEATERS > 0
 				// M130- heater P factor
 			case 130:
 				if (next_target.seen_S)
@@ -362,7 +361,6 @@ void process_gcode_command() {
 				if (next_target.S)
 					power_on();
 				break;
-			#endif	/* NUM_HEATERS > 0 */
 				
 				// M190- power on
 			case 190:

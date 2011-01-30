@@ -9,9 +9,21 @@
 #ifndef	EXTRUDER
 #include	"sersendf.h"
 #endif
+#include	"temp.h"
 
-#define		HEATER_C
-#include	"config.h"
+typedef struct {
+	volatile uint8_t *heater_port;
+	uint8_t						heater_pin;
+	volatile uint8_t *heater_pwm;
+} heater_definition_t;
+
+#undef DEFINE_HEATER
+#define DEFINE_HEATER(name, port, pin, pwm) { &(port), (pin), &(pwm) },
+static const heater_definition_t heaters[NUM_HEATERS] =
+{
+	#include	"config.h"
+};
+#undef DEFINE_HEATER
 
 // this struct holds the heater PID factors that are stored in the EEPROM during poweroff
 struct {
@@ -50,8 +62,7 @@ typedef struct {
 EE_factor EEMEM EE_factors[NUM_HEATERS];
 
 void heater_init() {
-	#if NUM_HEATERS > 0
-	uint8_t i;
+	heater_t i;
 	// setup pins
 	for (i = 0; i < NUM_HEATERS; i++) {
 		*(heaters[i].heater_port) &= ~MASK(heaters[i].heater_pin);
@@ -94,28 +105,27 @@ void heater_init() {
 			heaters_pid[i].i_limit = DEFAULT_I_LIMIT;
 		}
 	}
-	#endif	/* NUM_HEATERS > 0 */
 }
 
 void heater_save_settings() {
-	#if NUM_HEATERS > 0
-	uint8_t i;
+	heater_t i;
 	for (i = 0; i < NUM_HEATERS; i++) {
 		eeprom_write_dword((uint32_t *) &EE_factors[i].EE_p_factor, heaters_pid[i].p_factor);
 		eeprom_write_dword((uint32_t *) &EE_factors[i].EE_i_factor, heaters_pid[i].i_factor);
 		eeprom_write_dword((uint32_t *) &EE_factors[i].EE_d_factor, heaters_pid[i].d_factor);
 		eeprom_write_word((uint16_t *) &EE_factors[i].EE_i_limit, heaters_pid[i].i_limit);
 	}
-	#endif	/* NUM_HEATERS > 0 */
 }
 
-void heater_tick(uint8_t h, uint8_t t, uint16_t current_temp, uint16_t target_temp) {
-	#if (NUM_HEATERS > 0) && (NUM_TEMP_SENSORS > 0)
+void heater_tick(heater_t h, temp_index_t t, uint16_t current_temp, uint16_t target_temp) {
 	int16_t		heater_p;
 	int16_t		heater_d;
 	uint8_t		pid_output;
 	
 	int16_t		t_error = target_temp - current_temp;
+
+	if (h >= NUM_HEATERS || t >= NUM_TEMP_SENSORS)
+		return;
 	
 	heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer++] = current_temp;
 	heaters_runtime[h].temp_history_pointer &= (TH_COUNT - 1);
@@ -215,11 +225,12 @@ void heater_tick(uint8_t h, uint8_t t, uint16_t current_temp, uint16_t target_te
 	#endif /* HEATER_SANITY_CHECK */
 
 	heater_set(h, pid_output);
-	#endif /* if NUM_HEATERS > 0 && NUM_TEMP_SENSORS > 0 */
 }
 
-void heater_set(uint8_t index, uint8_t value) {
-	#if NUM_HEATERS > 0
+void heater_set(heater_t index, uint8_t value) {
+	if (index >= NUM_HEATERS)
+		return;
+
 	if (heaters[index].heater_pwm) {
 		*(heaters[index].heater_pwm) = value;
 		#ifdef	DEBUG
@@ -233,21 +244,32 @@ void heater_set(uint8_t index, uint8_t value) {
 		else
 			*(heaters[index].heater_port) &= ~MASK(heaters[index].heater_pin);
 	}
-	#endif /* if NUM_HEATERS > 0 */
 }
 
-void pid_set_p(uint8_t index, int32_t p) {
+void pid_set_p(heater_t index, int32_t p) {
+	if (index >= NUM_HEATERS)
+		return;
+
 	heaters_pid[index].p_factor = p;
 }
 
-void pid_set_i(uint8_t index, int32_t i) {
+void pid_set_i(heater_t index, int32_t i) {
+	if (index >= NUM_HEATERS)
+		return;
+
 	heaters_pid[index].i_factor = i;
 }
 
-void pid_set_d(uint8_t index, int32_t d) {
+void pid_set_d(heater_t index, int32_t d) {
+	if (index >= NUM_HEATERS)
+		return;
+
 	heaters_pid[index].d_factor = d;
 }
 
-void pid_set_i_limit(uint8_t index, int32_t i_limit) {
+void pid_set_i_limit(heater_t index, int32_t i_limit) {
+	if (index >= NUM_HEATERS)
+		return;
+
 	heaters_pid[index].i_limit = i_limit;
 }
