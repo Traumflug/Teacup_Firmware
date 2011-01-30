@@ -117,7 +117,7 @@ void heater_save_settings() {
 	}
 }
 
-void heater_tick(heater_t h, temp_index_t t, uint16_t current_temp, uint16_t target_temp) {
+void heater_tick(heater_t h, temp_sensor_t t, uint16_t current_temp, uint16_t target_temp) {
 	int16_t		heater_p;
 	int16_t		heater_d;
 	uint8_t		pid_output;
