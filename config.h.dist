@@ -232,12 +232,7 @@
 *                                                                           *
 * Define your temperature sensors here                                      *
 *                                                                           *
-* If your temperature sensor has no associated heater, enter '255' as the   *
-*   heater index. Unassociated temperature sensors are still read, but they *
-*   do not affect firmware operation                                        *
-*                                                                           *
-* for GEN3 set temp_type to TT_INTERCOM, temp_pin to 0 and heater index to  *
-*   255 - the extruder manages the heater for us                            *
+* for GEN3 set temp_type to TT_INTERCOM and temp_pin to 0                   *
 *                                                                           *
 * Types are same as TEMP_ list above- TT_MAX6675, TT_THERMISTOR, TT_AD595,  *
 *   TT_PT100, TT_INTERCOM. See list in temp.c.                              *
@@ -248,8 +243,8 @@
 	#define DEFINE_TEMP_SENSOR(...)
 #endif
 
-//                 name       type          pin   heater index
-DEFINE_TEMP_SENSOR(extruder,  TT_INTERCOM,    0,           255)
+//                 name       type          pin
+DEFINE_TEMP_SENSOR(extruder,  TT_INTERCOM,    0)
 
 
 /***************************************************************************\
@@ -257,9 +252,6 @@ DEFINE_TEMP_SENSOR(extruder,  TT_INTERCOM,    0,           255)
 * 5. HEATERS                                                                *
 *                                                                           *
 \***************************************************************************/
-
-// index of bed heater for M105 and M140 commands. set to 255 if no bed heater
-#define BED_HEATER				1
 
 // check if heater responds to changes in target temperature, disable and spit errors if not
 // #define	HEATER_SANITY_CHECK
@@ -276,6 +268,11 @@ DEFINE_TEMP_SENSOR(extruder,  TT_INTERCOM,    0,           255)
 * If a heater isn't attached to a temperature sensor above, it can still be *
 *   controlled by host but otherwise is ignored by firmware                 *
 *                                                                           *
+* To attach a heater to a temp sensor above, simply use exactly the same    *
+*   name - copy+paste is your friend                                        *
+*                                                                           *
+* Some common names are 'extruder', 'bed', 'fan'                            *
+*                                                                           *
 \***************************************************************************/
 
 #ifndef DEFINE_HEATER
@@ -283,8 +280,8 @@ DEFINE_TEMP_SENSOR(extruder,  TT_INTERCOM,    0,           255)
 #endif
 
 //               name      port   pin    pwm
-// DEFINE_HEATER(extruder, PORTD, PIND6, OCR0A)
-// DEFINE_HEATER(bed,      PORTD, PIND5, OCR0B)
+DEFINE_HEATER(extruder, PORTD, PIND6, OCR0A)
+DEFINE_HEATER(bed,      PORTD, PIND5, OCR0B)
 
 
 /***************************************************************************\

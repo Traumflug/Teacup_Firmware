@@ -9,13 +9,17 @@
 #define	disable_heater()	heater_set(0, 0)
 
 #undef DEFINE_HEATER
-#define DEFINE_HEATER(name, port, pin, pwm) HEATER_##name,
+#define DEFINE_HEATER(name, port, pin, pwm) HEATER_ ## name,
 typedef enum
 {
 	#include "config.h"
 	NUM_HEATERS,
 	HEATER_none
 } heater_t;
+#undef DEFINE_HEATER
+
+#define DEFINE_HEATER(name, port, pin, pwm) #define HEATER_ ## name;
+#include "config.h"
 #undef DEFINE_HEATER
 
 void heater_init(void);
