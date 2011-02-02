@@ -192,7 +192,7 @@ void temp_sensor_tick() {
 						for (j = 1; j < NUMTEMPS; j++) {
 							if (pgm_read_word(&(temptable[j][0])) > temp) {
 								// multiply by 4 because internal temp is stored as 14.2 fixed point
-								temp = pgm_read_word(&(temptable[j][1])) * 4 + (pgm_read_word(&(temptable[j][0])) - temp) * 4 * (pgm_read_word(&(temptable[j-1][1])) - pgm_read_word(&(temptable[j][1]))) / (pgm_read_word(&(temptable[j][0])) - pgm_read_word(&(temptable[j-1][0])));
+								temp = pgm_read_word(&(temptable[j][1])) * 4 + (temp - pgm_read_word(&(temptable[j-1][0]))) * 4 * (pgm_read_word(&(temptable[j][1])) - pgm_read_word(&(temptable[j-1][1]))) / (pgm_read_word(&(temptable[j][0])) - pgm_read_word(&(temptable[j-1][0])));
 								break;
 							}
 						}
