@@ -13,7 +13,8 @@
 typedef enum
 {
 	#include "config.h"
-	NUM_HEATERS
+	NUM_HEATERS,
+	HEATER_none
 } heater_t;
 #undef DEFINE_HEATER
 

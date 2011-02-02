@@ -36,7 +36,7 @@ typedef struct {
 } temp_sensor_definition_t;
 
 #undef DEFINE_TEMP_SENSOR
-#define DEFINE_TEMP_SENSOR(name, type, pin, heater) { (type), (pin), (heater) },
+#define DEFINE_TEMP_SENSOR(name, type, pin) { (type), (pin), (HEATER_ ## name) },
 static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
 {
 	#include	"config.h"

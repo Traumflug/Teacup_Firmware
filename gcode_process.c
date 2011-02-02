@@ -275,14 +275,16 @@ void process_gcode_command() {
 				// M7/M106- fan on
 			case 7:
 			case 106:
-				if (NUM_HEATERS > 1)
+				#if NUM_HEATERS >= 1
 					heater_set(1, 255);
+				#endif
 				break;
 				// M107- fan off
 			case 9:
 			case 107:
-				if (NUM_HEATERS > 1)
+				#if NUM_HEATERS >= 1
 					heater_set(1, 0);
+				#endif
 				break;
 				
 				// M109- set temp and wait
