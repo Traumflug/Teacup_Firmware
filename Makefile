@@ -159,7 +159,7 @@ config.h: config.h.dist
 
 %.hex: %.elf
 	@echo "  OBJCOPY   $@"
-	@$(OBJCOPY) -j .text -j .data -O ihex $< $@
+	@$(OBJCOPY) -j .text -j .data -O ihex -R .eeprom -R .fuse -R .lock $< $@
 
 %.bin: %.elf
 	@echo "  OBJCOPY   $@"
