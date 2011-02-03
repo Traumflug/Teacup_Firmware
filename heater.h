@@ -18,10 +18,6 @@ typedef enum
 } heater_t;
 #undef DEFINE_HEATER
 
-#define DEFINE_HEATER(name, port, pin, pwm) #define HEATER_ ## name;
-#include "config.h"
-#undef DEFINE_HEATER
-
 void heater_init(void);
 void heater_save_settings(void);
 
