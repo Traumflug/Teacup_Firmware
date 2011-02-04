@@ -379,14 +379,14 @@ void process_gcode_command() {
 				break;
 				
 			#ifdef	DEBUG
-				// M140- echo off
-			case 140:
+				// M240- echo off
+			case 240:
 				debug_flags &= ~DEBUG_ECHO;
 				serial_writestr_P(PSTR("Echo off"));
 				// newline is sent from gcode_parse after we return
 				break;
-				// M141- echo on
-			case 141:
+				// M241- echo on
+			case 241:
 				debug_flags |= DEBUG_ECHO;
 				serial_writestr_P(PSTR("Echo on"));
 				// newline is sent from gcode_parse after we return
