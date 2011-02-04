@@ -69,7 +69,7 @@ X Stepper
 #define	_x_step(st)						WRITE(X_STEP_PIN, st)
 #define	x_step()							_x_step(1);
 #define	x_direction(dir)			WRITE(X_DIR_PIN, dir ^ X_INVERT_DIR)
-#define	x_min()								(READ(X_MIN_PIN)?(X_INVERT_MIN ^ 1):X_INVERT_DIR)
+#define	x_min()								(READ(X_MIN_PIN)?(X_INVERT_MIN ^ 1):X_INVERT_MIN)
 #ifdef	X_MAX_PIN
 	#define	x_max()							(READ(X_MAX_PIN)?(X_INVERT_MAX ^ 1):X_INVERT_MAX)
 #else
