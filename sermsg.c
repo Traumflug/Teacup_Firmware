@@ -21,8 +21,8 @@ void serwrite_hex16(uint16_t v) {
 }
 
 void serwrite_hex32(uint32_t v) {
-	serwrite_hex8(v >> 16);
-	serwrite_hex8(v & 0xFFFF);
+	serwrite_hex16(v >> 16);
+	serwrite_hex16(v & 0xFFFF);
 }
 
 const uint32_t powers[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
