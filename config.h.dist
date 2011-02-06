@@ -31,11 +31,6 @@
 #endif
 
 /*
-	Are you using the official GEN3 motherboard with separate extruder controller?
-*/
-#define	GEN3
-
-/*
 	This is the motherboard, as opposed to the extruder. See extruder/ directory for GEN3 extruder firmware
 */
 #define	HOST
@@ -141,60 +136,58 @@
 
 #include	"arduino.h"
 
-#ifndef	GEN3
-	/*
-		user defined pins
-		adjust to suit your electronics,
-		or adjust your electronics to suit this
-	*/
+/*
+	user defined pins
+	adjust to suit your electronics,
+	or adjust your electronics to suit this
+*/
 
-	#define	X_STEP_PIN						AIO0
-	#define	X_DIR_PIN							AIO1
-	#define	X_MIN_PIN							AIO2
+#define	X_STEP_PIN						AIO0
+#define	X_DIR_PIN							AIO1
+#define	X_MIN_PIN							AIO2
 
-	#define	Y_STEP_PIN						AIO3
-	#define	Y_DIR_PIN							AIO4
-	#define	Y_MIN_PIN							AIO5
+#define	Y_STEP_PIN						AIO3
+#define	Y_DIR_PIN							AIO4
+#define	Y_MIN_PIN							AIO5
 
-	#define	Z_STEP_PIN						DIO2
-	#define	Z_DIR_PIN							DIO3
-	#define	Z_MIN_PIN							DIO4
+#define	Z_STEP_PIN						DIO2
+#define	Z_DIR_PIN							DIO3
+#define	Z_MIN_PIN							DIO4
 
-	#define	E_STEP_PIN						DIO7
-	#define	E_DIR_PIN							DIO8
+#define	E_STEP_PIN						DIO7
+#define	E_DIR_PIN							DIO8
 
-	#define	PS_ON_PIN							DIO9
-#else
-	/*
-		this is the official gen3 reprap motherboard pinout
-	*/
-	#define TX_ENABLE_PIN					DIO12
-	#define	RX_ENABLE_PIN					DIO13
+#define	PS_ON_PIN							DIO9
 
-	#define	X_STEP_PIN						DIO15
-	#define	X_DIR_PIN							DIO18
-	#define	X_MIN_PIN							DIO20
-	#define	X_MAX_PIN							DIO21
-	#define	X_ENABLE_PIN					DIO19
-
-	#define	Y_STEP_PIN						DIO23
-	#define	Y_DIR_PIN							DIO22
-	#define	Y_MIN_PIN							AIO6
-	#define	Y_MAX_PIN							AIO5
-	#define	Y_ENABLE_PIN					DIO7
-
-	#define	Z_STEP_PIN						AIO4
-	#define	Z_DIR_PIN							AIO3
-	#define	Z_MIN_PIN							AIO1
-	#define	Z_MAX_PIN							AIO0
-	#define	Z_ENABLE_PIN					AIO2
-
-	#define	E_STEP_PIN						DIO16
-	#define	E_DIR_PIN							DIO17
-
-	#define	SD_CARD_DETECT				DIO2
-	#define	SD_WRITE_PROTECT			DIO3
-#endif
+/*
+	this is the official gen3 reprap motherboard pinout
+*/
+// 	#define TX_ENABLE_PIN					DIO12
+// 	#define	RX_ENABLE_PIN					DIO13
+// 
+// 	#define	X_STEP_PIN						DIO15
+// 	#define	X_DIR_PIN							DIO18
+// 	#define	X_MIN_PIN							DIO20
+// 	#define	X_MAX_PIN							DIO21
+// 	#define	X_ENABLE_PIN					DIO19
+// 
+// 	#define	Y_STEP_PIN						DIO23
+// 	#define	Y_DIR_PIN							DIO22
+// 	#define	Y_MIN_PIN							AIO6
+// 	#define	Y_MAX_PIN							AIO5
+// 	#define	Y_ENABLE_PIN					DIO7
+// 
+// 	#define	Z_STEP_PIN						AIO4
+// 	#define	Z_DIR_PIN							AIO3
+// 	#define	Z_MIN_PIN							AIO1
+// 	#define	Z_MAX_PIN							AIO0
+// 	#define	Z_ENABLE_PIN					AIO2
+// 
+// 	#define	E_STEP_PIN						DIO16
+// 	#define	E_DIR_PIN							DIO17
+// 
+// 	#define	SD_CARD_DETECT				DIO2
+// 	#define	SD_WRITE_PROTECT			DIO3
 
 
 
@@ -217,16 +210,13 @@
 
 // which temperature sensors are you using? (intercom is the gen3-style separate extruder board)
 // #define	TEMP_MAX6675
-// #define	TEMP_THERMISTOR
+#define	TEMP_THERMISTOR
 // #define	TEMP_AD595
 // #define	TEMP_PT100
-#define	TEMP_INTERCOM
+// #define	TEMP_INTERCOM
 
-// if you selected thermistor or AD595, what pin is it on? (this value only used to fill ANALOG_MASK for you)
-#define	TEMP_PIN_CHANNEL	AIO0_PIN
-
-// ANALOG_MASK is a bitmask of all analog channels used- if you use more than one analog input (more than one temp sensor?), bitwise-or them all together
-#define	ANALOG_MASK				MASK(TEMP_PIN_CHANNEL)
+// ANALOG_MASK is a bitmask of all analog channels used- bitwise-or them all together
+#define	ANALOG_MASK				MASK(AIO0_PIN)
 
 /***************************************************************************\
 *                                                                           *
@@ -283,6 +273,12 @@ DEFINE_TEMP_SENSOR(extruder,  TT_INTERCOM,    0)
 DEFINE_HEATER(extruder, PORTD, PIND6, OCR0A)
 DEFINE_HEATER(bed,      PORTD, PIND5, OCR0B)
 
+// and now because the c preprocessor isn't as smart as it could be,
+// uncomment the ones you've listed above and comment the rest
+
+#define	HEATER_EXTRUDER HEATER_extruder
+#define HEATER_BED HEATER_bed
+// #define HEATER_FAN HEATER_fan
 
 /***************************************************************************\
 *                                                                           *

@@ -11,7 +11,7 @@
 	#include	"sersendf.h"
 #endif
 #include	"heater.h"
-#ifdef	GEN3
+#ifdef	TEMP_INTERCOM
 	#include	"intercom.h"
 #endif
 
@@ -112,7 +112,7 @@ void temp_init() {
 				break;*/
 		#endif
 
-		#ifdef	GEN3
+		#ifdef	TEMP_INTERCOM
 			case TT_INTERCOM:
 				intercom_init();
 				update_send_cmd(0);
@@ -284,7 +284,7 @@ void temp_set(temp_sensor_t index, uint16_t temperature) {
 
 	temp_sensors_runtime[index].target_temp = temperature;
 	temp_sensors_runtime[index].temp_residency = 0;
-#ifdef	GEN3
+#ifdef	TEMP_INTERCOM
 	if (temp_sensors[index].temp_type == TT_INTERCOM)
 		update_send_cmd(temperature >> 2);
 #endif
@@ -308,10 +308,9 @@ void temp_print(temp_sensor_t index) {
 	c = (temp_sensors_runtime[index].last_read_temp & 3) * 25;
 
 	sersendf_P(PSTR("T:%u.%u"), temp_sensors_runtime[index].last_read_temp >> 2, c);
-	#ifdef _HEATER_bed
-	#warning heated bed enabled!
+	#ifdef HEATER_BED
 		uint8_t b = 0;
-		b = (temp_sensors_runtime[HEATER_bed].last_read_temp & 3) * 25;
+		b = (temp_sensors_runtime[HEATER_BED].last_read_temp & 3) * 25;
 	
 		sersendf_P(PSTR(" B:%u.%u"), temp_sensors_runtime[HEATER_bed].last_read_temp >> 2 , b);
 	#endif

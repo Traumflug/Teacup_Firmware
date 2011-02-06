@@ -275,15 +275,15 @@ void process_gcode_command() {
 				// M7/M106- fan on
 			case 7:
 			case 106:
-				#ifdef HEATER_fan
-					heater_set(HEATER_fan, 255);
+				#ifdef HEATER_FAN
+					heater_set(HEATER_FAN, 255);
 				#endif
 				break;
 				// M107- fan off
 			case 9:
 			case 107:
-				#ifdef HEATER_fan
-					heater_set(HEATER_fan, 0);
+				#ifdef HEATER_FAN
+					heater_set(HEATER_FAN, 0);
 				#endif
 				break;
 				
@@ -359,8 +359,8 @@ void process_gcode_command() {
 				break;
 
 			case 140: //Set heated bed temperature
-				#ifdef	HEATER_bed
-					temp_set(HEATER_bed, next_target.S);
+				#ifdef	HEATER_BED
+					temp_set(HEATER_BED, next_target.S);
 					if (next_target.S)
 						power_on();
 				#endif

@@ -5,7 +5,7 @@
 #include	"config.h"
 #include	"delay.h"
 
-#ifdef	GEN3
+#ifdef	TEMP_INTERCOM
 #define		INTERCOM_BAUD			57600
 
 #define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  WRITE(RX_ENABLE_PIN,0); } while(0)
@@ -216,4 +216,4 @@ ISR(USART_UDRE_vect)
 	}
 }
 
-#endif	/* GEN3 */
+#endif	/* TEMP_INTERCOM */
