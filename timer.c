@@ -31,9 +31,9 @@ ISR(TIMER1_CAPT_vect) {
 		clock_counter_10ms -= 10;
 		clock_flag |= CLOCK_FLAG_10MS;
 		
-		clock_counter_250ms += 10;
-		if (clock_counter_250ms >= 250) {
-			clock_counter_250ms -= 250;
+		clock_counter_250ms += 1;
+		if (clock_counter_250ms >= 25) {
+			clock_counter_250ms -= 25;
 			clock_flag |= CLOCK_FLAG_250MS;
 			
 			clock_counter_1s += 1;
@@ -99,7 +99,7 @@ void setTimer(uint32_t delay)
 			// "fire" ISR- maybe it sets a new timeout
 			timer1_compa_isr();
 		}
-		else if (delay <= TICK_TIME) {
+		else if (next_step_time <= TICK_TIME) {
 			OCR1A = next_step_time & 0xFFFF;
 			TIMSK1 |= MASK(OCIE1A);
 		}
