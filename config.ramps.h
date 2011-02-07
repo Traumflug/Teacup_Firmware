@@ -11,6 +11,8 @@
 	8. Appendix A - PWMable pins and mappings
 */
 
+#error this config is not tested, and may be incorrect! please post in forum or via git any corrections
+
 /***************************************************************************\
 *                                                                           *
 * 1. MECHANICAL/HARDWARE                                                    *
@@ -22,6 +24,9 @@
 
 	If you want to port this to a new chip, start off with arduino.h and see how you go.
 */
+#if ! ( defined (__AVR_ATmega644P__) || defined (__AVR_ATmega644PA__) )
+	#error GEN3 has a 644P/644PA! set your cpu type in Makefile!
+#endif
 
 /*
 	CPU clock rate
@@ -46,7 +51,7 @@
 // half-stepping doubles the number, quarter stepping requires * 4, etc.
 #define	STEPS_PER_MM_X				320.000
 #define	STEPS_PER_MM_Y				320.000
-#define	STEPS_PER_MM_Z				320.000
+#define	STEPS_PER_MM_Z				200.000
 
 // http://blog.arcol.hu/?p=157 may help with this next one
 #define	STEPS_PER_MM_E				320.000
@@ -98,7 +103,7 @@
 	acceleration and deceleration ramping.
 		Each movement starts at (almost) no speed, linearly accelerates to target speed and decelerates just in time to smoothly stop at the target. alternative to ACCELERATION_REPRAP
 */
-// #define ACCELERATION_RAMPING
+#define ACCELERATION_RAMPING
 
 // how fast to accelerate when using ACCELERATION_RAMPING
 // smaller values give quicker acceleration
@@ -137,57 +142,35 @@
 #include	"arduino.h"
 
 /*
-	user defined pins
-	adjust to suit your electronics,
-	or adjust your electronics to suit this
+	this is the ramps motherboard pinout
 */
+#error RAMPS pinout needs to be entered! The values below are almost definitely wrong. Please post correct pinout in forum or via git
+#define TX_ENABLE_PIN					DIO12
+#define	RX_ENABLE_PIN					DIO13
 
-#define	X_STEP_PIN						AIO0
-#define	X_DIR_PIN							AIO1
-#define	X_MIN_PIN							AIO2
+#define	X_STEP_PIN						DIO15
+#define	X_DIR_PIN							DIO18
+#define	X_MIN_PIN							DIO20
+#define	X_MAX_PIN							DIO21
+#define	X_ENABLE_PIN					DIO19
 
-#define	Y_STEP_PIN						AIO3
-#define	Y_DIR_PIN							AIO4
-#define	Y_MIN_PIN							AIO5
+#define	Y_STEP_PIN						DIO23
+#define	Y_DIR_PIN							DIO22
+#define	Y_MIN_PIN							AIO6
+#define	Y_MAX_PIN							AIO5
+#define	Y_ENABLE_PIN					DIO7
 
-#define	Z_STEP_PIN						DIO2
-#define	Z_DIR_PIN							DIO3
-#define	Z_MIN_PIN							DIO4
+#define	Z_STEP_PIN						AIO4
+#define	Z_DIR_PIN							AIO3
+#define	Z_MIN_PIN							AIO1
+#define	Z_MAX_PIN							AIO0
+#define	Z_ENABLE_PIN					AIO2
 
-#define	E_STEP_PIN						DIO7
-#define	E_DIR_PIN							DIO8
+#define	E_STEP_PIN						DIO16
+#define	E_DIR_PIN							DIO17
 
-#define	PS_ON_PIN							DIO9
-
-/*
-	this is the official gen3 reprap motherboard pinout
-*/
-// 	#define TX_ENABLE_PIN					DIO12
-// 	#define	RX_ENABLE_PIN					DIO13
-// 
-// 	#define	X_STEP_PIN						DIO15
-// 	#define	X_DIR_PIN							DIO18
-// 	#define	X_MIN_PIN							DIO20
-// 	#define	X_MAX_PIN							DIO21
-// 	#define	X_ENABLE_PIN					DIO19
-// 
-// 	#define	Y_STEP_PIN						DIO23
-// 	#define	Y_DIR_PIN							DIO22
-// 	#define	Y_MIN_PIN							AIO6
-// 	#define	Y_MAX_PIN							AIO5
-// 	#define	Y_ENABLE_PIN					DIO7
-// 
-// 	#define	Z_STEP_PIN						AIO4
-// 	#define	Z_DIR_PIN							AIO3
-// 	#define	Z_MIN_PIN							AIO1
-// 	#define	Z_MAX_PIN							AIO0
-// 	#define	Z_ENABLE_PIN					AIO2
-// 
-// 	#define	E_STEP_PIN						DIO16
-// 	#define	E_DIR_PIN							DIO17
-// 
-// 	#define	SD_CARD_DETECT				DIO2
-// 	#define	SD_WRITE_PROTECT			DIO3
+#define	SD_CARD_DETECT				DIO2
+#define	SD_WRITE_PROTECT			DIO3
 
 
 
@@ -216,7 +199,7 @@
 // #define	TEMP_INTERCOM
 
 // ANALOG_MASK is a bitmask of all analog channels used- bitwise-or them all together
-#define	ANALOG_MASK				MASK(AIO0_PIN)
+#define	ANALOG_MASK				MASK(AIO0_PIN) | MASK(AIO1_PIN)
 
 /***************************************************************************\
 *                                                                           *
@@ -234,8 +217,8 @@
 #endif
 
 //                 name       type          pin
-DEFINE_TEMP_SENSOR(extruder,	TT_INTERCOM,		0)
-// DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	1)
+DEFINE_TEMP_SENSOR(extruder,	TT_THERMISTOR,	AIO0_PIN)
+DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	AIO1_PIN)
 
 
 /***************************************************************************\

@@ -91,78 +91,91 @@ void heater_init() {
 			// 0 is a "sane" temperature when we're trying to cool down
 			heaters_runtime[i].sane_temperature = 0;
 		#endif
-	
-	// read factors from eeprom
-		heaters_pid[i].p_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_p_factor);
-		heaters_pid[i].i_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_i_factor);
-		heaters_pid[i].d_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_d_factor);
-		heaters_pid[i].i_limit = eeprom_read_word((uint16_t *) &EE_factors[i].EE_i_limit);
-		
-		if ((heaters_pid[i].p_factor == 0) && (heaters_pid[i].i_factor == 0) && (heaters_pid[i].d_factor == 0) && (heaters_pid[i].i_limit == 0)) {
-			heaters_pid[i].p_factor = DEFAULT_P;
-			heaters_pid[i].i_factor = DEFAULT_I;
-			heaters_pid[i].d_factor = DEFAULT_D;
-			heaters_pid[i].i_limit = DEFAULT_I_LIMIT;
-		}
+
+		#ifndef BANG_BANG
+			// read factors from eeprom
+			heaters_pid[i].p_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_p_factor);
+			heaters_pid[i].i_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_i_factor);
+			heaters_pid[i].d_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_d_factor);
+			heaters_pid[i].i_limit = eeprom_read_word((uint16_t *) &EE_factors[i].EE_i_limit);
+
+			if ((heaters_pid[i].p_factor == 0) && (heaters_pid[i].i_factor == 0) && (heaters_pid[i].d_factor == 0) && (heaters_pid[i].i_limit == 0)) {
+				heaters_pid[i].p_factor = DEFAULT_P;
+				heaters_pid[i].i_factor = DEFAULT_I;
+				heaters_pid[i].d_factor = DEFAULT_D;
+				heaters_pid[i].i_limit = DEFAULT_I_LIMIT;
+			}
+		#endif /* BANG_BANG */
 	}
 }
 
 void heater_save_settings() {
-	heater_t i;
-	for (i = 0; i < NUM_HEATERS; i++) {
-		eeprom_write_dword((uint32_t *) &EE_factors[i].EE_p_factor, heaters_pid[i].p_factor);
-		eeprom_write_dword((uint32_t *) &EE_factors[i].EE_i_factor, heaters_pid[i].i_factor);
-		eeprom_write_dword((uint32_t *) &EE_factors[i].EE_d_factor, heaters_pid[i].d_factor);
-		eeprom_write_word((uint16_t *) &EE_factors[i].EE_i_limit, heaters_pid[i].i_limit);
-	}
+	#ifndef BANG_BANG
+		heater_t i;
+		for (i = 0; i < NUM_HEATERS; i++) {
+			eeprom_write_dword((uint32_t *) &EE_factors[i].EE_p_factor, heaters_pid[i].p_factor);
+			eeprom_write_dword((uint32_t *) &EE_factors[i].EE_i_factor, heaters_pid[i].i_factor);
+			eeprom_write_dword((uint32_t *) &EE_factors[i].EE_d_factor, heaters_pid[i].d_factor);
+			eeprom_write_word((uint16_t *) &EE_factors[i].EE_i_limit, heaters_pid[i].i_limit);
+		}
+	#endif /* BANG_BANG */
 }
 
 void heater_tick(heater_t h, temp_sensor_t t, uint16_t current_temp, uint16_t target_temp) {
-	int16_t		heater_p;
-	int16_t		heater_d;
 	uint8_t		pid_output;
-	
-	int16_t		t_error = target_temp - current_temp;
+
+	#ifndef	BANG_BANG
+		int16_t		heater_p;
+		int16_t		heater_d;
+		int16_t		t_error = target_temp - current_temp;
+	#endif	/* BANG_BANG */
 
 	if (h >= NUM_HEATERS || t >= NUM_TEMP_SENSORS)
 		return;
-	
-	heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer++] = current_temp;
-	heaters_runtime[h].temp_history_pointer &= (TH_COUNT - 1);
-	
-	// PID stuff
-	// proportional
-	heater_p = t_error;
-	
-	// integral
-	heaters_runtime[h].heater_i += t_error;
-	// prevent integrator wind-up
-	if (heaters_runtime[h].heater_i > heaters_pid[h].i_limit)
-		heaters_runtime[h].heater_i = heaters_pid[h].i_limit;
-	else if (heaters_runtime[h].heater_i < -heaters_pid[h].i_limit)
-		heaters_runtime[h].heater_i = -heaters_pid[h].i_limit;
-	
-	// derivative
-	// note: D follows temp rather than error so there's no large derivative when the target changes
-	heater_d = heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer] - current_temp;
-	
-	// combine factors
-	int32_t pid_output_intermed = (
-		(
-			(((int32_t) heater_p) * heaters_pid[h].p_factor) +
-			(((int32_t) heaters_runtime[h].heater_i) * heaters_pid[h].i_factor) +
-			(((int32_t) heater_d) * heaters_pid[h].d_factor)
-		) / PID_SCALE
-	);
-	
-	// rebase and limit factors
-	if (pid_output_intermed > 255)
-		pid_output = 255;
-	else if (pid_output_intermed < 0)
-		pid_output = 0;
-	else
-		pid_output = pid_output_intermed & 0xFF;
 
+	#ifndef	BANG_BANG
+		heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer++] = current_temp;
+		heaters_runtime[h].temp_history_pointer &= (TH_COUNT - 1);
+
+		// PID stuff
+		// proportional
+		heater_p = t_error;
+
+		// integral
+		heaters_runtime[h].heater_i += t_error;
+		// prevent integrator wind-up
+		if (heaters_runtime[h].heater_i > heaters_pid[h].i_limit)
+			heaters_runtime[h].heater_i = heaters_pid[h].i_limit;
+		else if (heaters_runtime[h].heater_i < -heaters_pid[h].i_limit)
+			heaters_runtime[h].heater_i = -heaters_pid[h].i_limit;
+
+		// derivative
+		// note: D follows temp rather than error so there's no large derivative when the target changes
+		heater_d = heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer] - current_temp;
+
+		// combine factors
+		int32_t pid_output_intermed = (
+			(
+				(((int32_t) heater_p) * heaters_pid[h].p_factor) +
+				(((int32_t) heaters_runtime[h].heater_i) * heaters_pid[h].i_factor) +
+				(((int32_t) heater_d) * heaters_pid[h].d_factor)
+			) / PID_SCALE
+		);
+
+		// rebase and limit factors
+		if (pid_output_intermed > 255)
+			pid_output = 255;
+		else if (pid_output_intermed < 0)
+			pid_output = 0;
+		else
+			pid_output = pid_output_intermed & 0xFF;
+	#else
+		if (current_temp >= target_temp)
+			pid_output = BANG_BANG_ON;
+		else
+			pid_output = BANG_BANG_OFF;
+	#endif
+	
 	#ifdef	DEBUG
 	if (debug_flags & DEBUG_PID)
 		sersendf_P(PSTR("T{E:%d, P:%d * %ld = %ld / I:%d * %ld = %ld / D:%d * %ld = %ld # O: %ld = %u}\n"), t_error, heater_p, heaters_pid[h].p_factor, (int32_t) heater_p * heaters_pid[h].p_factor / PID_SCALE, heaters_runtime[h].heater_i, heaters_pid[h].i_factor, (int32_t) heaters_runtime[h].heater_i * heaters_pid[h].i_factor / PID_SCALE, heater_d, heaters_pid[h].d_factor, (int32_t) heater_d * heaters_pid[h].d_factor / PID_SCALE, pid_output_intermed, pid_output);
@@ -247,29 +260,37 @@ void heater_set(heater_t index, uint8_t value) {
 }
 
 void pid_set_p(heater_t index, int32_t p) {
-	if (index >= NUM_HEATERS)
-		return;
+	#ifndef	BANG_BANG
+		if (index >= NUM_HEATERS)
+			return;
 
-	heaters_pid[index].p_factor = p;
+		heaters_pid[index].p_factor = p;
+	#endif /* BANG_BANG */
 }
 
 void pid_set_i(heater_t index, int32_t i) {
-	if (index >= NUM_HEATERS)
-		return;
+	#ifndef	BANG_BANG
+		if (index >= NUM_HEATERS)
+			return;
 
-	heaters_pid[index].i_factor = i;
+		heaters_pid[index].i_factor = i;
+	#endif /* BANG_BANG */
 }
 
 void pid_set_d(heater_t index, int32_t d) {
-	if (index >= NUM_HEATERS)
-		return;
+	#ifndef	BANG_BANG
+		if (index >= NUM_HEATERS)
+			return;
 
-	heaters_pid[index].d_factor = d;
+		heaters_pid[index].d_factor = d;
+	#endif /* BANG_BANG */
 }
 
 void pid_set_i_limit(heater_t index, int32_t i_limit) {
-	if (index >= NUM_HEATERS)
-		return;
+	#ifndef	BANG_BANG
+		if (index >= NUM_HEATERS)
+			return;
 
-	heaters_pid[index].i_limit = i_limit;
+		heaters_pid[index].i_limit = i_limit;
+	#endif /* BANG_BANG */
 }
