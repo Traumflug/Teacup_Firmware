@@ -55,7 +55,7 @@ void analog_init() {
 		adc_running_mask = 1;
 
 		AIO0_DDR &= ~(ANALOG_MASK);
-		DIDR0 = ANALOG_MASK & 0x3F;
+		DIDR0 = (ANALOG_MASK) & 0x3F;
 
 		// now we start the first conversion and leave the rest to the interrupt
 		ADCSRA |= MASK(ADIE) | MASK(ADSC);
@@ -73,7 +73,7 @@ ISR(ADC_vect, ISR_NOBLOCK) {
 			adc_counter = ANALOG_START;
 			adc_running_mask = ANALOG_START_MASK;
 		}
-	} while ((adc_running_mask & ANALOG_MASK) == 0);
+	} while ((adc_running_mask & (ANALOG_MASK)) == 0);
 
 	// start next conversion
 	ADMUX = (adc_counter) | REFERENCE;
