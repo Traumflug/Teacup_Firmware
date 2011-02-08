@@ -1,6 +1,8 @@
 #ifndef	_PINIO_H
 #define	_PINIO_H
 
+#include	"config.h"
+
 #ifndef	X_INVERT_DIR
 	#define	X_INVERT_DIR 0
 #endif

@@ -16,6 +16,7 @@
 #include	"pinio.h"
 #include	"debug.h"
 #include	"clock.h"
+#include	"config.h"
 
 // the current tool
 uint8_t tool;
@@ -84,28 +85,28 @@ void process_gcode_command() {
 
 	// implement axis limits
 	#ifdef	X_MIN
-		if (next_target.X < (X_MIN * STEPS_PER_MM_X))
-			next_target.X = X_MIN;
+		if (next_target.target.X < (X_MIN * STEPS_PER_MM_X))
+			next_target.target.X = X_MIN;
 	#endif
 	#ifdef	X_MAX
-		if (next_target.X > (X_MAX * STEPS_PER_MM_X))
-			next_target.X = X_MAX;
+		if (next_target.target.X > (X_MAX * STEPS_PER_MM_X))
+			next_target.target.X = X_MAX;
 	#endif
 	#ifdef	Y_MIN
-		if (next_target.Y < (Y_MIN * STEPS_PER_MM_Y))
-			next_target.Y = Y_MIN;
+		if (next_target.target.Y < (Y_MIN * STEPS_PER_MM_Y))
+			next_target.target.Y = Y_MIN;
 	#endif
 	#ifdef	Y_MAY
-		if (next_target.Y > (Y_MAX * STEPS_PER_MM_Y))
-			next_target.Y = Y_MAX;
+		if (next_target.target.Y > (Y_MAX * STEPS_PER_MM_Y))
+			next_target.target.Y = Y_MAX;
 	#endif
 	#ifdef	Z_MIN
-		if (next_target.Z < (Z_MIN * STEPS_PER_MM_Z))
-			next_target.Z = Z_MIN;
+		if (next_target.target.Z < (Z_MIN * STEPS_PER_MM_Z))
+			next_target.target.Z = Z_MIN;
 	#endif
 	#ifdef	Z_MAX
-		if (next_target.Z > (Z_MAX * STEPS_PER_MM_Z))
-			next_target.Z = Z_MAX;
+		if (next_target.target.Z > (Z_MAX * STEPS_PER_MM_Z))
+			next_target.target.Z = Z_MAX;
 	#endif
 
 
