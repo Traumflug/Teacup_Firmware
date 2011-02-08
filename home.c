@@ -3,6 +3,7 @@
 #include	"dda.h"
 #include	"dda_queue.h"
 #include	"delay.h"
+#include	"pinio.h"
 
 
 // F is mm/min
@@ -37,7 +38,7 @@ void home() {
 			#endif
 				denoise_count++;
 			else
-				denoise_count == 0;
+				denoise_count = 0;
 			// step
 			x_step();
 			delay(5);
@@ -84,7 +85,7 @@ void home() {
 			#endif
 				denoise_count++;
 			else
-				denoise_count == 0;
+				denoise_count = 0;
 			// step
 			y_step();
 			delay(5);
@@ -131,7 +132,7 @@ void home() {
 			#endif
 				denoise_count++;
 			else
-				denoise_count == 0;
+				denoise_count = 0;
 			// step
 			z_step();
 			delay(5);
