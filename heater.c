@@ -44,6 +44,8 @@ struct {
 		uint16_t					sanity_counter;
 		uint16_t					sane_temperature;
 	#endif
+
+	uint8_t						heater_output;
 } heaters_runtime[NUM_HEATERS];
 
 #define		DEFAULT_P				8192
@@ -244,6 +246,8 @@ void heater_set(heater_t index, uint8_t value) {
 	if (index >= NUM_HEATERS)
 		return;
 
+	heaters_runtime[index].heater_output = value;
+
 	if (heaters[index].heater_pwm) {
 		*(heaters[index].heater_pwm) = value;
 		#ifdef	DEBUG
@@ -257,6 +261,16 @@ void heater_set(heater_t index, uint8_t value) {
 		else
 			*(heaters[index].heater_port) &= ~MASK(heaters[index].heater_pin);
 	}
+}
+
+uint8_t heaters_all_off() {
+	uint8_t i;
+	for (i = 0; i < NUM_HEATERS; i++) {
+		if (heaters_runtime[i].heater_output > 0)
+			return 0;
+	}
+
+	return 255;
 }
 
 void pid_set_p(heater_t index, int32_t p) {

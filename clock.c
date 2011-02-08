@@ -7,12 +7,13 @@
 #include	"temp.h"
 #include	"timer.h"
 #include	"debug.h"
+#include	"heater.h"
 
 void clock_250ms() {
 	if (steptimeout > (30 * 4)) {
 		power_off();
 	}
-	else
+	else if (heaters_all_off())
 		steptimeout++;
 	
 	ifclock(CLOCK_FLAG_1S) {

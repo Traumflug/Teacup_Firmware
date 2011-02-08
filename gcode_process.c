@@ -389,8 +389,10 @@ void process_gcode_command() {
 				break;
 				// M135- set heater output
 			case 135:
-				if (next_target.seen_S)
+				if (next_target.seen_S) {
 					heater_set(next_target.P, next_target.S);
+					power_on();
+				}
 				break;
 
 			case 140: //Set heated bed temperature
