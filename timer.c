@@ -100,8 +100,13 @@ void setTimer(uint32_t delay)
 			timer1_compa_isr();
 		}
 		else if (next_step_time <= TICK_TIME) {
+			// next step occurs before overflow, set comparator here
 			OCR1A = next_step_time & 0xFFFF;
 			TIMSK1 |= MASK(OCIE1A);
+		}
+		else {
+			// adjust next_step_time so overflow interrupt sets the correct timeout
+			next_step_time -= TICK_TIME;
 		}
 	}
 	else {
