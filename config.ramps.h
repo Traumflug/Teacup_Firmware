@@ -80,6 +80,21 @@
 #define	E_STARTSTOP_STEPS			20
 
 
+/*
+Soft axis limits, in mm
+undefine if you don't want to use them
+*/
+
+#define	X_MIN			0.0
+#define	X_MAX			200.0
+
+#define	Y_MIN			0.0
+#define	Y_MAX			200.0
+
+#define	Z_MIN			0.0
+#define	Z_MAX			140.0
+
+
 
 /***************************************************************************\
 *                                                                           *
