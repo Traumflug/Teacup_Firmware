@@ -169,6 +169,11 @@ void heater_tick(heater_t h, temp_sensor_t t, uint16_t current_temp, uint16_t ta
 			pid_output = 0;
 		else
 			pid_output = pid_output_intermed & 0xFF;
+
+		#ifdef	DEBUG
+		if (debug_flags & DEBUG_PID)
+			sersendf_P(PSTR("T{E:%d, P:%d * %ld = %ld / I:%d * %ld = %ld / D:%d * %ld = %ld # O: %ld = %u}\n"), t_error, heater_p, heaters_pid[h].p_factor, (int32_t) heater_p * heaters_pid[h].p_factor / PID_SCALE, heaters_runtime[h].heater_i, heaters_pid[h].i_factor, (int32_t) heaters_runtime[h].heater_i * heaters_pid[h].i_factor / PID_SCALE, heater_d, heaters_pid[h].d_factor, (int32_t) heater_d * heaters_pid[h].d_factor / PID_SCALE, pid_output_intermed, pid_output);
+		#endif
 	#else
 		if (current_temp >= target_temp)
 			pid_output = BANG_BANG_ON;
@@ -176,11 +181,6 @@ void heater_tick(heater_t h, temp_sensor_t t, uint16_t current_temp, uint16_t ta
 			pid_output = BANG_BANG_OFF;
 	#endif
 	
-	#ifdef	DEBUG
-	if (debug_flags & DEBUG_PID)
-		sersendf_P(PSTR("T{E:%d, P:%d * %ld = %ld / I:%d * %ld = %ld / D:%d * %ld = %ld # O: %ld = %u}\n"), t_error, heater_p, heaters_pid[h].p_factor, (int32_t) heater_p * heaters_pid[h].p_factor / PID_SCALE, heaters_runtime[h].heater_i, heaters_pid[h].i_factor, (int32_t) heaters_runtime[h].heater_i * heaters_pid[h].i_factor / PID_SCALE, heater_d, heaters_pid[h].d_factor, (int32_t) heater_d * heaters_pid[h].d_factor / PID_SCALE, pid_output_intermed, pid_output);
-	#endif
-
 	#ifdef	HEATER_SANITY_CHECK
 	// check heater sanity
 	// implementation is a moving window with some slow-down to compensate for thermal mass
