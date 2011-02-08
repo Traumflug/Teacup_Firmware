@@ -186,6 +186,13 @@ void process_gcode_command() {
 					axisSelected = 1;
 				}
 				
+				if (!axisSelected) {
+					zero_x();
+					zero_y();
+					zero_z();
+					zero_e();
+				}
+				
 				break;
 				
 				//	G90 - absolute positioning
