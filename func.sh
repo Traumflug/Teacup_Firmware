@@ -88,20 +88,36 @@
 # }
 
 
+# Initialize serial port settings
 mendel_setup() {
 	stty 115200 raw ignbrk -hup -echo ixoff < /dev/arduino
 }
 
+# Reset the arduino by dripping DTR
 mendel_reset() {
 	stty hup < /dev/arduino
 	stty hup < /dev/arduino
 	mendel_setup
 }
 
+#Connect, and type in commands and see the response yourself.
+#Basically, a lightweight terminal implementation
 mendel_talk() {
+	# If there is already a 'cat' process associated with this terminal,
+	# don't kill it.
+	if ps | grep 'cat$' >/dev/null; then
+		skip_kill_cat=1
+	fi
 	( cat <&3 & cat >&3; kill $! ; ) 3<>/dev/arduino
+	# You're supposed to use "^D" to exit. If somebody uses "^C" instead,
+	# it leaves the "cat" process connected between the terminal and /dev/arduino
+	# detect this condition and kill that process.
+	if [ "$skip_kill_cat" == "" ]; then
+		kill `ps | grep 'cat$'| cut -d " " -f -1` 2>/dev/null
+	fi
 }
 
+# Send a command, printing the reply.
 mendel_cmd() {
 	(
 		local IFS=$' \t\n'
@@ -128,6 +144,7 @@ mendel_cmd() {
 	) 3<>/dev/arduino;
 }
 
+#Send a command, printing both the command and the reply, prefix so you can tell which is which.
 mendel_cmd_hr() {
 	(
 		local IFS=$' \t\n'
@@ -156,6 +173,7 @@ mendel_cmd_hr() {
 	) 3<>/dev/arduino;
 }
 
+# Print a gcode file. Echos commands and replies.
 mendel_print() {
 	(
 		for F in "$@"
@@ -169,6 +187,11 @@ mendel_print() {
 	)
 }
 
+# Use the debug interface to directly read memory.
+# Usage: 
+#	mendel_readsym 0x<address>(:<size>)
+#   mendel_readsym <name>
+# determines address and size of "name" from mendel.sym
 mendel_readsym() {
 	(
 		local IFS=$' \t\n'
@@ -280,6 +303,7 @@ mendel_readsym_mb() {
 ENDPERL
 }
 
+# Read status of PID routines.
 mendel_heater_pid() {
 	local P=$(mendel_readsym_int16 heater_p)
 	local I=$(mendel_readsym_int16 heater_i)
