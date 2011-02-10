@@ -11,17 +11,10 @@ uint8_t						clock_counter_250ms = 0;
 uint8_t						clock_counter_1s = 0;
 volatile uint8_t	clock_flag = 0;
 
-// timer overflow, happens every TICK_TIME
-ISR(TIMER1_CAPT_vect) {
-	/*
-	check if next step time will occur before next overflow
-	*/
-	if (next_step_time > TICK_TIME)
-		next_step_time -= TICK_TIME;
-	else if (next_step_time > 0) {
-		OCR1A = next_step_time & 0xFFFF;
-		TIMSK1 |= MASK(OCIE1A);
-	}
+// comparator B is the "clock", happens every TICK_TIME
+ISR(TIMER1_COMPB_vect) {
+	// set output compare register to the next clock tick
+	OCR1B = (OCR1B + TICK_TIME) & 0xFFFF;
 	
 	/*
 	clock stuff
@@ -53,9 +46,6 @@ void timer1_compa_isr() {
 	// disable this interrupt. if we set a new timeout, it will be re-enabled when appropriate
 	TIMSK1 &= ~MASK(OCIE1A);
 	
-	// ensure we don't interrupt again unless timer is reset
-	next_step_time = 0;
-	
 	// stepper tick
 	queue_step();
 	
@@ -63,53 +53,87 @@ void timer1_compa_isr() {
 	WRITE(SCK, 0);
 }
 
+// comparator A is the step timer. It has higher priority then B.
 ISR(TIMER1_COMPA_vect) {
-	timer1_compa_isr();
+	// Check if this is a real step, or just a next_step_time "overflow"
+	if (next_step_time < 65536) {
+		// step!
+		timer1_compa_isr();
+		return;
+	}
+	
+	next_step_time -= 65536;
+
+	// similar algorithm as described in setTimer below.
+	if (next_step_time < 65536) {
+		OCR1A = (OCR1A + next_step_time) & 0xFFFF;
+	} else if(next_step_time < 75536){
+		OCR1A = (OCR1A - 10000) & 0xFFFF;
+		next_step_time += 10000;
+	}
+	// leave OCR1A as it was
 }
 
 void timer_init()
 {
 	// no outputs
 	TCCR1A = 0;
-	// CTC mode- use ICR for top
-	TCCR1B = MASK(WGM13) | MASK(WGM12) | MASK(CS10);
-	// set timeout- first timeout is indeterminate, probably doesn't matter
-	ICR1 = TICK_TIME;
-	// overflow interrupt (uses input capture interrupt in CTC:ICR mode)
-	TIMSK1 = MASK(ICIE1);
+	// Normal Mode
+	TCCR1B |= MASK(CS10);
+	// set up "clock" comparator for first tick
+	OCR1B = TICK_TIME & 0xFFFF;
+	// enable interrupt
+	TIMSK1 |= MASK(OCIE1B);
 }
 
 void setTimer(uint32_t delay)
 {
 	// save interrupt flag
 	uint8_t sreg = SREG;
+	uint16_t step_start = 0;
 	// disable interrupts
 	cli();
 
 	// re-enable clock interrupt in case we're recovering from emergency stop
-	TIMSK1 |= MASK(ICIE1);
+	TIMSK1 |= MASK(OCIE1B);
 	
 	if (delay > 0) {
-		// mangle timer variables
-		next_step_time = delay + TCNT1;
 		if (delay <= 16) {
 			// unfortunately, force registers don't trigger an interrupt, so we do the following
-			// don't step from timer interrupt
-			next_step_time = 0;
 			// "fire" ISR- maybe it sets a new timeout
 			timer1_compa_isr();
 		}
-		else if (next_step_time <= TICK_TIME) {
-			// next step occurs before overflow, set comparator here
-			OCR1A = next_step_time & 0xFFFF;
+		else {
+			// Assume all steps belong to one move. Within one move the delay is 
+			// from one step to the next one, which should be more or less the same
+			// as from one step interrupt to the next one. The last step interrupt happend
+			// at OCR1A, so start delay from there.
+			step_start = OCR1A;
+			if (next_step_time == 0) {
+				// new move, take current time as start value
+				step_start = TCNT1;
+			}
+
+			next_step_time = delay;
+			if (next_step_time < 65536) {
+				// set the comparator directly to the next real step
+				OCR1A = (next_step_time + step_start) & 0xFFFF;
+			}
+			else if (next_step_time < 75536) {
+				// Next comparator interrupt would have to trigger another
+				// interrupt within a short time (possibly within 1 cycle).
+				// Avoid the impossible by firing the interrupt earlier.
+				OCR1A = (step_start - 10000) & 0xFFFF;
+				next_step_time += 10000;
+			}
+			else {
+				OCR1A = step_start;
+			}
+			
 			TIMSK1 |= MASK(OCIE1A);
 		}
-		else {
-			// adjust next_step_time so overflow interrupt sets the correct timeout
-			next_step_time -= TICK_TIME;
-		}
-	}
-	else {
+	} else {
+		// flag: move has ended
 		next_step_time = 0;
 	}
 	
@@ -120,6 +144,4 @@ void setTimer(uint32_t delay)
 void timer_stop() {
 	// disable all interrupts
 	TIMSK1 = 0;
-	// reset timeout
-	next_step_time = 0;
 }
