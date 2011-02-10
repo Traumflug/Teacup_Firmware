@@ -11,8 +11,6 @@
 	8. Appendix A - PWMable pins and mappings
 */
 
-#error this config is not tested, and may be incorrect! please post in forum or via git any corrections
-
 /***************************************************************************\
 *                                                                           *
 * 1. MECHANICAL/HARDWARE                                                    *
@@ -24,8 +22,8 @@
 
 	If you want to port this to a new chip, start off with arduino.h and see how you go.
 */
-#if ! ( defined (__AVR_ATmega644P__) || defined (__AVR_ATmega644PA__) )
-	#error GEN3 has a 644P/644PA! set your cpu type in Makefile!
+#if ! ( defined (__AVR_ATmega1280__) || defined (__AVR_ATmega2560__) )
+	#error RAMPS has 1280/2560! set your cpu type in Makefile!
 #endif
 
 /*
@@ -49,12 +47,17 @@
 // for threaded rods, this is (steps motor per turn) / (pitch of the thread)
 // for belts, this is (steps per motor turn) / (number of gear teeth) / (belt module)
 // half-stepping doubles the number, quarter stepping requires * 4, etc.
-#define	STEPS_PER_MM_X				320.000
-#define	STEPS_PER_MM_Y				320.000
-#define	STEPS_PER_MM_Z				200.000
+#define MICROSTEPPING_X				16.0
+#define MICROSTEPPING_Y				16.0
+#define MICROSTEPPING_Z				16.0
+#define MICROSTEPPING_E				4.0
+
+#define	STEPS_PER_MM_X				(5.023*MICROSTEPPING_X)
+#define	STEPS_PER_MM_Y				(5.023*MICROSTEPPING_Y)
+#define	STEPS_PER_MM_Z				(416.699*MICROSTEPPING_Z)
 
 // http://blog.arcol.hu/?p=157 may help with this next one
-#define	STEPS_PER_MM_E				320.000
+#define	STEPS_PER_MM_E				(2.759*MICROSTEPPING_E)
 
 
 /*
@@ -68,16 +71,16 @@
 #define	MAXIMUM_FEEDRATE_X		200
 #define	MAXIMUM_FEEDRATE_Y		200
 #define	MAXIMUM_FEEDRATE_Z		100
-#define	MAXIMUM_FEEDRATE_E		200
+#define	MAXIMUM_FEEDRATE_E		600
 
 // used when searching endstops and as default feedrate
 #define	SEARCH_FEEDRATE_X			50
 #define	SEARCH_FEEDRATE_Y			50
-#define	SEARCH_FEEDRATE_Z			50
+#define	SEARCH_FEEDRATE_Z			1
 #define	SEARCH_FEEDRATE_E			50
 
 // this is how many steps to suck back the filament by when we stop. set to zero to disable
-#define	E_STARTSTOP_STEPS			20
+#define	E_STARTSTOP_STEPS			0
 
 
 /*
@@ -111,14 +114,14 @@ undefine if you don't want to use them
 	acceleration, reprap style.
 		Each movement starts at the speed of the previous command and accelerates or decelerates linearly to reach target speed at the end of the movement.
 */
-// #define ACCELERATION_REPRAP
+#define ACCELERATION_REPRAP
 
 
 /*
 	acceleration and deceleration ramping.
 		Each movement starts at (almost) no speed, linearly accelerates to target speed and decelerates just in time to smoothly stop at the target. alternative to ACCELERATION_REPRAP
 */
-#define ACCELERATION_RAMPING
+// #define ACCELERATION_RAMPING
 
 // how fast to accelerate when using ACCELERATION_RAMPING
 // smaller values give quicker acceleration
@@ -159,33 +162,34 @@ undefine if you don't want to use them
 /*
 	this is the ramps motherboard pinout
 */
-#error RAMPS pinout needs to be entered! The values below are almost definitely wrong. Please post correct pinout in forum or via git
-#define TX_ENABLE_PIN					DIO12
-#define	RX_ENABLE_PIN					DIO13
 
-#define	X_STEP_PIN						DIO15
-#define	X_DIR_PIN							DIO18
-#define	X_MIN_PIN							DIO20
-#define	X_MAX_PIN							DIO21
-#define	X_ENABLE_PIN					DIO19
+//#define TX_ENABLE_PIN					DIO12
+//#define	RX_ENABLE_PIN					DIO13
 
-#define	Y_STEP_PIN						DIO23
-#define	Y_DIR_PIN							DIO22
-#define	Y_MIN_PIN							AIO6
-#define	Y_MAX_PIN							AIO5
-#define	Y_ENABLE_PIN					DIO7
+#define	X_STEP_PIN						DIO26
+#define	X_DIR_PIN							DIO28
+#define	X_MIN_PIN							DIO3
+#define	X_MAX_PIN							DIO2
+#define	X_ENABLE_PIN					DIO24
 
-#define	Z_STEP_PIN						AIO4
-#define	Z_DIR_PIN							AIO3
-#define	Z_MIN_PIN							AIO1
-#define	Z_MAX_PIN							AIO0
-#define	Z_ENABLE_PIN					AIO2
+#define	Y_STEP_PIN						DIO38
+#define	Y_DIR_PIN							DIO40
+#define	Y_MIN_PIN							DIO16
+#define	Y_MAX_PIN							DIO17
+#define	Y_ENABLE_PIN					DIO36
 
-#define	E_STEP_PIN						DIO16
-#define	E_DIR_PIN							DIO17
+#define	Z_STEP_PIN						DIO44
+#define	Z_DIR_PIN							DIO46
+#define	Z_MIN_PIN							DIO18
+#define	Z_MAX_PIN							DIO19
+#define	Z_ENABLE_PIN					DIO42
 
-#define	SD_CARD_DETECT				DIO2
-#define	SD_WRITE_PROTECT			DIO3
+#define	E_STEP_PIN						DIO32
+#define	E_DIR_PIN							DIO34
+#define E_ENABLE_PIN					DIO30
+
+//#define	SD_CARD_DETECT				DIO2
+//#define	SD_WRITE_PROTECT			DIO3
 
 
 
@@ -214,7 +218,7 @@ undefine if you don't want to use them
 // #define	TEMP_INTERCOM
 
 // ANALOG_MASK is a bitmask of all analog channels used- bitwise-or them all together
-#define	ANALOG_MASK				MASK(AIO0_PIN) | MASK(AIO1_PIN)
+#define	ANALOG_MASK				MASK(AIO1_PIN) | MASK(AIO2_PIN)
 
 /***************************************************************************\
 *                                                                           *
@@ -232,7 +236,7 @@ undefine if you don't want to use them
 #endif
 
 //                 name       type          pin
-DEFINE_TEMP_SENSOR(extruder,	TT_THERMISTOR,	AIO0_PIN)
+DEFINE_TEMP_SENSOR(extruder,	TT_THERMISTOR,	AIO2_PIN)
 DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	AIO1_PIN)
 
 
@@ -269,10 +273,11 @@ DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	AIO1_PIN)
 	#define DEFINE_HEATER(...)
 #endif
 
+// NOTE: these pins are for RAMPS V1.1 and newer. V1.0 is different
 //               name      port   pin    pwm
-DEFINE_HEATER(extruder,	PORTD, PINB3, OCR0A)
-DEFINE_HEATER(bed,			PORTD, PINB4, OCR0B)
-// DEFINE_HEATER(fan,			PORTD, PINB4, OCR0B)
+DEFINE_HEATER(extruder,	PORTD, PINB4, OCR2A)
+DEFINE_HEATER(bed,			PORTD, PINH5, OCR4CL)
+DEFINE_HEATER(fan,			PORTD, PINH6, OCR2B)
 // DEFINE_HEATER(chamber,	PORTD, PIND7, OCR2A)
 // DEFINE_HEATER(motor,		PORTD, PIND6, OCR2B)
 
