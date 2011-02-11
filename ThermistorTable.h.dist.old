@@ -1,0 +1,40 @@
+// default thermistor lookup table
+// You may be able to improve the accuracy of this table in various ways.
+//   1. Measure the actual resistance of the resistor. It's "nominally" 4.7K, but that's ± 5%.
+//   2. Measure the actual beta of your thermistor:http://reprap.org/wiki/MeasuringThermistorBeta
+//   3. Generate more table entries than you need, then trim down the ones in uninteresting ranges.
+// In either case you'll have to regenerate this table, which requires python, which is difficult to install on windows.
+// Since you'll have to do some testing to determine the correct temperature for your application anyway, you
+// may decide that the effort isn't worth it. Who cares if it's reporting the "right" temperature as long as it's
+// keeping the temperature steady enough to print, right?
+// ./createTemperatureLookup.py --r0=100000 --t0=25 --r1=0 --r2=4700 --beta=4066 --max-adc=1023
+// r0: 100000
+// t0: 25
+// r1: 0
+// r2: 4700
+// beta: 4066
+// max adc: 1023
+#define NUMTEMPS 20
+// {ADC, temp*4 }, // temp
+uint16_t temptable[NUMTEMPS][2] PROGMEM = {
+   {1, 3364}, // 841.027617469 C
+   {54, 1021}, // 255.484742371 C
+   {107, 836}, // 209.086676326 C
+   {160, 736}, // 184.041730874 C
+   {213, 667}, // 166.757734773 C
+   {266, 613}, // 153.384693074 C
+   {319, 569}, // 142.306856925 C
+   {372, 530}, // 132.69219366 C
+   {425, 496}, // 124.050228124 C
+   {478, 464}, // 116.059537816 C
+   {531, 433}, // 108.487976164 C
+   {584, 404}, // 101.149819461 C
+   {637, 375}, // 93.8781909528 C
+   {690, 346}, // 86.5019752148 C
+   {743, 315}, // 78.8186715355 C
+   {796, 282}, // 70.5502229207 C
+   {849, 244}, // 61.2498501294 C
+   {902, 200}, // 50.050743055 C
+   {955, 138}, // 34.7070638836 C
+   {1008, 12} // 3.01733235284 C
+};

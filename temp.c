@@ -60,30 +60,7 @@ struct {
 
 #ifdef	TEMP_THERMISTOR
 #include	"analog.h"
-
-#define NUMTEMPS 20
-uint16_t temptable[NUMTEMPS][2] PROGMEM = {
-	{1, 841},
-	{54, 255},
-	{107, 209},
-	{160, 184},
-	{213, 166},
-	{266, 153},
-	{319, 142},
-	{372, 132},
-	{425, 124},
-	{478, 116},
-	{531, 108},
-	{584, 101},
-	{637, 93},
-	{690, 86},
-	{743, 78},
-	{796, 70},
-	{849, 61},
-	{902, 50},
-	{955, 34},
-	{1008, 3}
-};
+#include	"ThermistorTable.h"
 #endif
 
 #ifdef	TEMP_AD595
@@ -191,15 +168,44 @@ void temp_sensor_tick() {
 						//Calculate real temperature based on lookup table
 						for (j = 1; j < NUMTEMPS; j++) {
 							if (pgm_read_word(&(temptable[j][0])) > temp) {
-								// multiply by 4 because internal temp is stored as 14.2 fixed point
-								temp = pgm_read_word(&(temptable[j][1])) * 4 + (temp - pgm_read_word(&(temptable[j-1][0]))) * 4 * (pgm_read_word(&(temptable[j][1])) - pgm_read_word(&(temptable[j-1][1]))) / (pgm_read_word(&(temptable[j][0])) - pgm_read_word(&(temptable[j-1][0])));
+								// Thermistor table is already in 14.2 fixed point
+								if (debug_flags & DEBUG_PID)
+									sersendf_P(PSTR("pin:%d Raw ADC:%d table entry: %d"),temp_sensors[i].temp_pin,temp,j);
+								// Linear interpolating temperature value
+								// y = ((x - x₀)y₁ + (x₁-x)y₀ ) / (x₁ - x₀)
+								// y = temp
+								// x = ADC reading
+								// x₀= temptable[j-1][0]
+								// x₁= temptable[j][0]
+								// y₀= temptable[j-1][1]
+								// y₁= temptable[j][1]
+								// y = 
+								// Wikipedia's example linear interpolation formula.
+								temp = (
+								//     ((x - x₀)y₁
+									((uint32_t)temp - pgm_read_word(&(temptable[j-1][0]))) * pgm_read_word(&(temptable[j][1]))
+								//                 +
+									+
+								//                   (x₁-x)
+									(pgm_read_word(&(temptable[j][0])) - (uint32_t)temp)
+								//                         y₀ )
+									* pgm_read_word(&(temptable[j-1][1]))) 
+								//                              /
+									/
+								//                                (x₁ - x₀)
+									(pgm_read_word(&(temptable[j][0])) - pgm_read_word(&(temptable[j-1][0])));
+								if (debug_flags & DEBUG_PID)
+									sersendf_P(PSTR(" temp:%d.%d"),temp/4,(temp%4)*25);
 								break;
 							}
 						}
+						if (debug_flags & DEBUG_PID)
+							sersendf_P(PSTR(" Sensor:%d\n"),i);
+						
 
 						//Clamp for overflows
 						if (j == NUMTEMPS)
-							temp = temptable[NUMTEMPS-1][1] * 4;
+							temp = temptable[NUMTEMPS-1][1];
 
 						temp_sensors_runtime[i].next_read_time = 0;
 					} while (0);

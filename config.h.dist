@@ -247,8 +247,11 @@ undefine if you don't want to use them
 #endif
 
 //                 name       type          pin
-DEFINE_TEMP_SENSOR(extruder,	TT_INTERCOM,		0)
+DEFINE_TEMP_SENSOR(extruder,	TT_THERMISTOR,		0)
 // DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	1)
+// "noheater" is a special name for a sensor which doesn't have a heater.
+// Use "M105 P#" to read it, where # is a zero-based index into this list.
+// DEFINE_TEMP_SENSOR(noheater,				TT_THERMISTOR,	1)
 
 
 /***************************************************************************\
