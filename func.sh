@@ -108,6 +108,7 @@ mendel_talk() {
 	if ps | grep 'cat$' >/dev/null; then
 		skip_kill_cat=1
 	fi
+	echo "press ctrl+D to exit"
 	( cat <&3 & cat >&3; kill $! ; ) 3<>/dev/arduino
 	# You're supposed to use "^D" to exit. If somebody uses "^C" instead,
 	# it leaves the "cat" process connected between the terminal and /dev/arduino
