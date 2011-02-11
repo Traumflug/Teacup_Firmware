@@ -136,6 +136,7 @@ void setTimer(uint32_t delay)
 	} else {
 		// flag: move has ended
 		next_step_time = 0;
+		TIMSK1 &= ~MASK(OCIE1A);
 	}
 	
 	// restore interrupt flag
