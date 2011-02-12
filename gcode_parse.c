@@ -361,8 +361,9 @@ void gcode_parse_char(uint8_t c) {
 
 		if (next_target.option_relative) {
 			next_target.target.X = next_target.target.Y = next_target.target.Z = 0;
-			next_target.target.E = 0;
 		}
+		// E always relative
+		next_target.target.E = 0;
 	}
 }
 
