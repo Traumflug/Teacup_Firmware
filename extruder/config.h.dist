@@ -3,6 +3,9 @@
 
 #include	"arduino.h"
 
+// controller index- bus is multidrop after all
+#define	THIS_CONTROLLER_NUM 0
+
 //RS485 Interface pins
 #define RX_ENABLE_PIN DIO4
 #define TX_ENABLE_PIN AIO2
@@ -40,33 +43,13 @@
 #define	TEMP_HYSTERESIS				20
 #define	TEMP_RESIDENCY_TIME		60
 
-#define	NUM_TEMP_SENSORS	1
-#ifdef	TEMP_C
-/***************************************************************************\
-*                                                                           *
-* Fill in the following struct according to your hardware                   *
-*                                                                           *
-* If your temperature sensor has no associated heater, enter '255' as the   *
-*   heater index.                                                           *
-*                                                                           *
-* for GEN3 set temp_type to TT_INTERCOM, temp_pin to 0 and heater index to  *
-*   255                                                                     *
-*                                                                           *
-\***************************************************************************/
+#ifdef	DEFINE_TEMP_SENSOR
+DEFINE_TEMP_SENSOR(extruder,	TT_THERMISTOR,		PINC3)
+#endif
 
-struct {
-	uint8_t						temp_type;
-	uint8_t						temp_pin;
-
-	uint8_t						heater_index;
-} temp_sensors[NUM_TEMP_SENSORS] =
-{
-	{
-		TT_THERMISTOR,
-		PINC3,
-		0
-	}
-};
+#ifdef	DEFINE_HEATER
+DEFINE_HEATER(extruder,	PORTD, DIO6_PIN, OCR0A)
+DEFINE_HEATER(bed,			PORTD, DIO5_PIN, OCR0B)
 #endif
 
 // list of PWM-able pins and corresponding timers
@@ -81,49 +64,6 @@ struct {
 #define	TH_COUNT					8
 #define	PID_SCALE					1024L
 
-#define	NUM_HEATERS				2
-#ifdef	HEATER_C
-/***************************************************************************\
-*                                                                           *
-* Fill in the following struct according to your hardware                   *
-*                                                                           *
-* For the atmega168/328, timer/pin mappings are as follows                  *
-*                                                                           *
-* OCR0A - PD6                                                               *
-* OCR0B - PD5                                                               *
-* OCR2A - PB3                                                               *
-* OCR2B - PD3                                                               *
-*                                                                           *
-\***************************************************************************/
-struct {
-	volatile uint8_t	*heater_port;
-	uint8_t						heater_pin;
-	volatile uint8_t	*heater_pwm;
-} heaters[NUM_HEATERS] =
-{
-	{
-		&PORTD,
-		PIND6,
-		&OCR0A
-	},
-	{
-		&PORTB,
-		PINB4,
-		0
-	}
-};
-#endif
-
-// #define	HEATER_PIN						DIO11
-// #define	HEATER_PWM						OCR2A
-// 
-// #define BED_PIN								DIO12
-
-/*
-	Intercom
-*/
-#define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  WRITE(RX_ENABLE_PIN,0); } while(0)
-#define disable_transmit()			do { WRITE(TX_ENABLE_PIN,0);  WRITE(RX_ENABLE_PIN,0); } while(0)
 
 /*
 	Motors
@@ -131,17 +71,5 @@ struct {
 
 #define enable_motors()				do { TCCR0A |= MASK(COM0A1) | MASK(COM0B1); } while (0)
 #define disable_motors()			do { TCCR0A &= ~MASK(COM0A1) & ~MASK(COM0B1); } while (0)
-
-/*
-	Heater
-*/
-
-// #ifdef	HEATER_PWM
-// 	#define	enable_heater()			do { TCCR2A |=  MASK(COM2A1); } while (0)
-// 	#define	disable_heater()		do { TCCR2A &= ~MASK(COM2A1); } while (0)
-// #else
-// 	#define	enable_heater()			WRITE(HEATER_PIN, 1)
-// 	#define	disable_heater()		WRITE(HEATER_PIN, 0)
-// #endif
 
 #endif	/* _CONFIG_H */

@@ -187,7 +187,7 @@ int main (void)
 
 		temp_sensor_tick();
 
-		update_send_cmd(temp_get(0) >> 2);
-		temp_set(0, get_read_cmd());
+		send_temperature(0, temp_get(0));
+		temp_set(0, read_temperature(0));
 	}
 }

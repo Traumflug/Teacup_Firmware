@@ -1,47 +1,53 @@
 #include	"intercom.h"
 
+#include	<avr/io.h>
 #include	<avr/interrupt.h>
 
 #include	"config.h"
 #include	"delay.h"
 
-#ifdef	GEN3
+#if	 (defined TEMP_INTERCOM) || (defined EXTRUDER)
 #define		INTERCOM_BAUD			57600
 
-#define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  WRITE(RX_ENABLE_PIN,0); } while(0)
-#define disable_transmit()			do { WRITE(TX_ENABLE_PIN,0);  WRITE(RX_ENABLE_PIN,0); } while(0)
+#define	START	0x55
 
-/*
- Defines a super simple intercom interface using the RS485 modules
+enum {
+	ERROR_BAD_CRC
+} err_codes;
 
- Host will say: START1 START2 PWM_CMD PWM_CHK 
- Extruder will reply: START1 START2 TMP_CMD TMP_CHK 
+typedef struct {
+	uint8_t		start;
+	union {
+		struct {
+			uint8_t		dio0		:1;
+			uint8_t		dio1		:1;
+			uint8_t		dio2		:1;
+			uint8_t		dio3		:1;
+			uint8_t		dio4		:1;
+			uint8_t		dio5		:1;
+			uint8_t		dio6		:1;
+			uint8_t		dio7		:1;
+		};
+		uint8_t		dio;
+	};
+	uint8_t		controller_num;
+	uint16_t	temp[3];
+	uint8_t		err;
+	uint8_t		crc;
+} intercom_packet_t;
 
- CHK = 255-CMD, if they match do the work, if not, ignore this packet
+typedef union {
+	intercom_packet_t packet;
+	uint8_t						data[sizeof(intercom_packet_t)];
+} intercom_packet;
 
- in a loop
-*/
+intercom_packet tx;
+intercom_packet rx;
 
+uint8_t packet_pointer;
+uint8_t	rxcrc;
 
-#define		START1	0xAA
-#define		START2	0x55
-
-typedef enum {
-	SEND_START1,
-	SEND_START2,
-	SEND_CMD,
-	SEND_CHK,
-	SEND_DONE,
-
-	READ_START1,
-	READ_START2,
-	READ_CMD,
-	READ_CHK,
-} intercom_state_e;
-
-
-intercom_state_e state = READ_START1;
-uint8_t cmd, chk, send_cmd, read_cmd;
+volatile uint8_t	intercom_flags;
 
 void intercom_init(void)
 {
@@ -70,30 +76,60 @@ void intercom_init(void)
 
 	UCSR0B |= MASK(RXCIE0) | MASK(TXCIE0);
 #endif
+
+	intercom_flags = 0;
 }
 
-void update_send_cmd(uint8_t new_send_cmd) {
-	send_cmd = new_send_cmd;
+void send_temperature(uint8_t index, uint16_t temperature) {
+	tx.packet.temp[index] = temperature;
 }
 
-uint8_t get_read_cmd(void) {
-	return read_cmd;
+uint16_t read_temperature(uint8_t index) {
+	return rx.packet.temp[index];
 }
 
-static void write_byte(uint8_t val) {
 #ifdef HOST
-	UDR1 = val;
+void set_dio(uint8_t index, uint8_t value) {
+	if (value)
+		tx.packet.dio |= (1 << index);
+	else
+		tx.packet.dio &= ~(1 << index);
+}
 #else
-	UDR0 = val;
+uint8_t	get_dio(uint8_t index) {
+	return rx.packet.dio & (1 << index);
+}
 #endif
+
+void set_err(uint8_t err) {
+	tx.packet.err = err;
 }
 
+uint8_t get_err() {
+	return rx.packet.err;
+}
 
 void start_send(void) {
-	state = SEND_START1;
+	uint8_t txcrc = 0, i;
+
+	// atomically update flags
+	uint8_t sreg = SREG;
+	cli();
+	intercom_flags = (intercom_flags & ~FLAG_TX_FINISHED) | FLAG_TX_IN_PROGRESS;
+	SREG = sreg;
+
+	// calculate CRC for outgoing packet
+	for (i = 0; i < (sizeof(intercom_packet_t) - 1); i++) {
+		txcrc ^= tx.data[i];
+	}
+	tx.packet.crc = txcrc;
+
+	// enable transmit pin
 	enable_transmit();
 	delay_us(15);
-	//Enable interrupts so we can send next characters
+
+	// actually start sending the packet
+	packet_pointer = 0;
 #ifdef HOST
 	UCSR1B |= MASK(UDRIE1);
 #else
@@ -101,119 +137,100 @@ void start_send(void) {
 #endif
 }
 
-static void finish_send(void) {
-	state = READ_START1;
-	disable_transmit();
-}
-
-
 /*
 	Interrupts, UART 0 for mendel
 */
+
+// receive data interrupt- stuff into rx
 #ifdef HOST
 ISR(USART1_RX_vect)
 #else
 ISR(USART_RX_vect)
 #endif
 {
+	// pull character
 	static uint8_t c;
 
-#ifdef HOST
-	c = UDR1;
-	UCSR1A &= ~MASK(FE1) & ~MASK(DOR1) & ~MASK(UPE1);
-#else
-	c = UDR0;
-	UCSR0A &= ~MASK(FE0) & ~MASK(DOR0) & ~MASK(UPE0);
-#endif
-	
-	if (state >= READ_START1) {
-		
-		switch(state) {
-		case READ_START1:
-			if (c == START1) state = READ_START2;
-			break;
-		case READ_START2:
-			if (c == START2) state = READ_CMD;
-			else			 state = READ_START1;
-			break;
-		case READ_CMD:
-			cmd = c;
-			state = READ_CHK;
-			break;
-		case READ_CHK:
-			chk = c;
-					
-			if (chk == 255 - cmd) {	
-				//Values are correct, do something useful
-			WRITE(DEBUG_LED,1);	
-				read_cmd = cmd;
-#ifdef EXTRUDER
-				start_send();
-#endif
-			}
-			else
-			{
-				state = READ_START1;
-			}
-			break;
-		default:
-			break;
-		}
+	#ifdef HOST
+		c = UDR1;
+		UCSR1A &= ~MASK(FE1) & ~MASK(DOR1) & ~MASK(UPE1);
+	#else
+		c = UDR0;
+		UCSR0A &= ~MASK(FE0) & ~MASK(DOR0) & ~MASK(UPE0);
+	#endif
+
+	// are we waiting for a start byte? is this one?
+	if ((packet_pointer == 0) && (c == START)) {
+		rxcrc = rx.packet.start = START;
+		packet_pointer = 1;
+		intercom_flags |= FLAG_RX_IN_PROGRESS;
 	}
 
+	// we're receiving a packet
+	if (packet_pointer > 0) {
+		// calculate CRC (except CRC character!)
+		if (packet_pointer < (sizeof(intercom_packet_t) - 1))
+			rxcrc ^= c;
+		// stuff byte into structure
+		rx.data[packet_pointer++] = c;
+		// last byte?
+		if (packet_pointer >= sizeof(intercom_packet_t)) {
+			// reset pointer
+			packet_pointer = 0;
+
+			intercom_flags = (intercom_flags & ~FLAG_RX_IN_PROGRESS) | FLAG_NEW_RX;
+			#ifndef HOST
+				if (rx.packet.controller_num == THIS_CONTROLLER_NUM) {
+					if (rxcrc != rx.packet.crc)
+						tx.packet.err = ERROR_BAD_CRC;
+					start_send();
+				}
+			#endif
+		}
+	}
 }
 
+// finished transmitting interrupt- only enabled at end of packet
 #ifdef HOST
 ISR(USART1_TX_vect)
 #else
 ISR(USART_TX_vect)
 #endif
 {
-	if (state == SEND_DONE) {
-		finish_send();
-		
-					
-#ifdef HOST
-	UCSR1B &= ~MASK(TXCIE1);
-#else
-	UCSR0B &= ~MASK(TXCIE0);
-#endif
+	if (packet_pointer >= sizeof(intercom_packet_t)) {
+		disable_transmit();
+		packet_pointer = 0;
+		intercom_flags = (intercom_flags & ~FLAG_TX_IN_PROGRESS) | FLAG_TX_FINISHED;
+		#ifdef HOST
+			UCSR1B &= ~MASK(TXCIE1);
+		#else
+			UCSR0B &= ~MASK(TXCIE0);
+		#endif
 	}
 }
 
+// tx queue empty interrupt- send next byte
 #ifdef HOST
 ISR(USART1_UDRE_vect)
 #else
 ISR(USART_UDRE_vect)
 #endif
 {
-	switch(state) {
-	case SEND_START1:
-		write_byte(START1);
-		state = SEND_START2;
-		break;
-	case SEND_START2:
-		write_byte(START2);
-		state = SEND_CMD;
-		break;
-	case SEND_CMD:
-		write_byte(send_cmd);
-		state = SEND_CHK;
-		break;
-	case SEND_CHK:
-		write_byte(255 - send_cmd);
-		state = SEND_DONE;
-#ifdef HOST
-	UCSR1B &= ~MASK(UDRIE1);
-	UCSR1B |= MASK(TXCIE1);
-#else
-	UCSR0B &= ~MASK(UDRIE0);
-	UCSR0B |= MASK(TXCIE0);
-#endif
-		break;
-	default:
-		break;
+	#ifdef	HOST
+	UDR1 = tx.data[packet_pointer++];
+	#else
+	UDR0 = tx.data[packet_pointer++];
+	#endif
+
+	if (packet_pointer >= sizeof(intercom_packet_t)) {
+		#ifdef HOST
+			UCSR1B &= ~MASK(UDRIE1);
+			UCSR1B |= MASK(TXCIE1);
+		#else
+			UCSR0B &= ~MASK(UDRIE0);
+			UCSR0B |= MASK(TXCIE0);
+		#endif
 	}
 }
 
-#endif	/* GEN3 */
+#endif	/* TEMP_INTERCOM */
