@@ -96,7 +96,7 @@ void process_gcode_command() {
 		if (next_target.target.Y < (Y_MIN * STEPS_PER_MM_Y))
 			next_target.target.Y = Y_MIN;
 	#endif
-	#ifdef	Y_MAY
+	#ifdef	Y_MAX
 		if (next_target.target.Y > (Y_MAX * STEPS_PER_MM_Y))
 			next_target.target.Y = Y_MAX;
 	#endif
