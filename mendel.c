@@ -73,6 +73,9 @@ void io_init(void) {
 	
 	WRITE(E_STEP_PIN, 0);	SET_OUTPUT(E_STEP_PIN);
 	WRITE(E_DIR_PIN,  0);	SET_OUTPUT(E_DIR_PIN);
+	#ifdef E_ENABLE_PIN
+		WRITE(E_ENABLE_PIN, 1); SET_OUTPUT(E_ENABLE_PIN);
+	#endif
 
 	// setup PWM timers: fast PWM, no prescaler
 	TCCR0A = MASK(WGM01) | MASK(WGM00);
