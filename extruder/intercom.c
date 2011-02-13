@@ -185,6 +185,8 @@ ISR(USART_RX_vect)
 				if (rx.packet.controller_num == THIS_CONTROLLER_NUM) {
 					if (rxcrc != rx.packet.crc)
 						tx.packet.err = ERROR_BAD_CRC;
+					// not sure why exactly this delay is needed, but wihtout it first byte never arrives.
+					delay_us(150);
 					start_send();
 				}
 			#endif
