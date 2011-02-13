@@ -118,6 +118,9 @@ void start_send(void) {
 	intercom_flags = (intercom_flags & ~FLAG_TX_FINISHED) | FLAG_TX_IN_PROGRESS;
 	SREG = sreg;
 
+	// set start byte
+	tx.packet.start = START;
+
 	// calculate CRC for outgoing packet
 	for (i = 0; i < (sizeof(intercom_packet_t) - 1); i++) {
 		txcrc ^= tx.data[i];
