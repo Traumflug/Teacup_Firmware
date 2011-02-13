@@ -275,9 +275,9 @@ DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	AIO1_PIN)
 
 // NOTE: these pins are for RAMPS V1.1 and newer. V1.0 is different
 //               name      port   pin    pwm
-DEFINE_HEATER(extruder,	PORTD, PINB4, OCR2A)
-DEFINE_HEATER(bed,			PORTD, PINH5, OCR4CL)
-DEFINE_HEATER(fan,			PORTD, PINH6, OCR2B)
+DEFINE_HEATER(extruder,	PORTB, PINB4, OCR2A)
+DEFINE_HEATER(bed,			PORTH, PINH5, OCR4CL)
+DEFINE_HEATER(fan,			PORTH, PINH6, OCR2B)
 // DEFINE_HEATER(chamber,	PORTD, PIND7, OCR2A)
 // DEFINE_HEATER(motor,		PORTD, PIND6, OCR2B)
 
