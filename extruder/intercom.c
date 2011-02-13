@@ -168,9 +168,8 @@ ISR(USART_RX_vect)
 		packet_pointer = 1;
 		intercom_flags |= FLAG_RX_IN_PROGRESS;
 	}
-
-	// we're receiving a packet
-	if (packet_pointer > 0) {
+	else if (packet_pointer > 0) {
+		// we're receiving a packet
 		// calculate CRC (except CRC character!)
 		if (packet_pointer < (sizeof(intercom_packet_t) - 1))
 			rxcrc ^= c;
