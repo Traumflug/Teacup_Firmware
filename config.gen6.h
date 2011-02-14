@@ -57,7 +57,7 @@
 #define	STEPS_PER_MM_Z				(200.000*8)
 
 // http://blog.arcol.hu/?p=157 may help with this next one
-#define	STEPS_PER_MM_E				320.000
+#define	STEPS_PER_MM_E				(320.000*8)
 
 
 /*
@@ -265,11 +265,7 @@ DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PINA5)
 #endif
 
 //               name      port   pin    pwm
-DEFINE_HEATER(extruder,   PORTD, PIND6, OCR0A)
-// DEFINE_HEATER(bed,			PORTB, PINB4, OCR0B)
-// DEFINE_HEATER(fan,			PORTB, PINB4, OCR0B)
-// DEFINE_HEATER(chamber,	PORTD, PIND7, OCR2A)
-// DEFINE_HEATER(motor,		PORTD, PIND6, OCR2B)
+DEFINE_HEATER(extruder,   PORTD, PIND6, OCR2B)
 
 // and now because the c preprocessor isn't as smart as it could be,
 // uncomment the ones you've listed above and comment the rest.
