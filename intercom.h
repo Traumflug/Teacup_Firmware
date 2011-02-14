@@ -2,9 +2,15 @@
 #define	_INTERCOM_H
 
 #include	<stdint.h>
+#include	"config.h"
 
-#define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  WRITE(RX_ENABLE_PIN,0); } while(0)
-#define disable_transmit()			do { WRITE(TX_ENABLE_PIN,0);  WRITE(RX_ENABLE_PIN,0); } while(0)
+#ifdef HOST
+	#define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  UCSR1B &= ~MASK(RXEN1); } while(0)
+	#define disable_transmit()			do { WRITE(TX_ENABLE_PIN,0);  UCSR1B |= MASK(RXEN1); } while(0)
+#else
+	#define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  UCSR0B &= ~MASK(RXEN0); } while(0)
+	#define disable_transmit()			do { WRITE(TX_ENABLE_PIN,0);  UCSR0B |= MASK(RXEN0); } while(0)
+#endif
 
 // initialise serial subsystem
 void intercom_init(void);

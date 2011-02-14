@@ -28,6 +28,7 @@ void io_init(void) {
 	//Enable the RS485 transceiver
 	SET_OUTPUT(RX_ENABLE_PIN);
 	SET_OUTPUT(TX_ENABLE_PIN);
+	WRITE(RX_ENABLE_PIN,0);
 	disable_transmit();
 
 	#ifdef	HEATER_PIN
