@@ -17,6 +17,9 @@
 // #define	FEEDRATE_TO_DELAY(F)	60.0 * ((float) F_CPU) / STEPS_PER_MM_X / F
 
 void home() {
+	#if (! defined X_MIN_PIN) || (! defined Y_MIN_PIN) || (! defined Z_MIN_PIN)
+	TARGET t = {0, 0, 0, 0, 0};
+	#endif
 	queue_wait();
 
 	uint8_t	denoise_count = 0;
@@ -65,7 +68,15 @@ void home() {
 		}
 
 		// set X home
-		startpoint.X = current_position.X = 0;
+		#ifdef	X_MIN_PIN
+			startpoint.X = current_position.X = 0;
+		#else
+			// set position to MAX
+			startpoint.X = current_position.X = (int32_t) (X_MAX * STEPS_PER_MM_X);
+			// go to zero
+			t.F = MAXIMUM_FEEDRATE_X;
+			enqueue(&t);
+		#endif
 	#endif
 
 	// home Y
@@ -112,7 +123,15 @@ void home() {
 		}
 
 		// set Y home
-		startpoint.Y = current_position.Y = 0;
+		#ifdef	Y_MIN_PIN
+			startpoint.Y = current_position.Y = 0;
+		#else
+			// set position to MAX
+			startpoint.Y = current_position.Y = (int32_t) (Y_MAX * STEPS_PER_MM_Y);
+			// go to zero
+			t.F = MAXIMUM_FEEDRATE_Y;
+			enqueue(&t);
+		#endif
 	#endif
 
 	// home Z
@@ -159,6 +178,14 @@ void home() {
 		}
 
 		// set Z home
-		startpoint.Z = current_position.Z = 0;
+		#ifdef	Z_MIN_PIN
+			startpoint.Z = current_position.Z = 0;
+		#else
+			// set position to MAX
+			startpoint.Z = current_position.Z = (int32_t) (Z_MAX * STEPS_PER_MM_Z);
+			// go to zero
+			t.F = MAXIMUM_FEEDRATE_Z;
+			enqueue(&t);
+		#endif
 	#endif
 }
