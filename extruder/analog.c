@@ -9,7 +9,10 @@
 
 uint8_t adc_running_mask, adc_counter;
 
-#if	ANALOG_MASK & 2
+#if	ANALOG_MASK & 1
+	#define	ANALOG_START			0
+	#define	ANALOG_START_MASK	1
+#elif	ANALOG_MASK & 2
 	#define	ANALOG_START			1
 	#define	ANALOG_START_MASK	2
 #elif	ANALOG_MASK & 4
@@ -31,7 +34,7 @@ uint8_t adc_running_mask, adc_counter;
 	#define	ANALOG_START			7
 	#define	ANALOG_START_MASK	128
 #else
-	// ANALOG_MASK == 1 or 0, either way defines are the same except they're not used if ANALOG_MASK == 0
+	// ANALOG_MASK == 0
 	#define	ANALOG_START			0
 	#define	ANALOG_START_MASK	1
 #endif
