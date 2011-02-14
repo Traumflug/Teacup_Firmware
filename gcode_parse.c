@@ -155,7 +155,7 @@ void gcode_parse_char(uint8_t c) {
 					// if this is temperature, multiply by 4 to convert to quarter-degree units
 					// cosmetically this should be done in the temperature section,
 					// but it takes less code, less memory and loses no precision if we do it here instead
-					if ((next_target.M == 104) || (next_target.M == 109))
+					if ((next_target.M == 104) || (next_target.M == 109) || (next_target.M == 140))
 						next_target.S = decfloat_to_int(&read_digit, 4, 1);
 					// if this is heater PID stuff, multiply by PID_SCALE because we divide by PID_SCALE later on
 					else if ((next_target.M >= 130) && (next_target.M <= 132))
