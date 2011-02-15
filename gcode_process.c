@@ -38,7 +38,7 @@ void zero_x(void) {
 void zero_y(void) {
 	TARGET t = startpoint;
 	t.Y = 0;
-	t.F = SEARCH_FEEDRATE_X;
+	t.F = SEARCH_FEEDRATE_Y;
 	enqueue(&t);
 }
 
