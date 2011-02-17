@@ -166,11 +166,7 @@ void gcode_parse_char(uint8_t c) {
 						serwrite_uint16(next_target.S);
 					break;
 				case 'P':
-					// if this is dwell, multiply by 1000 to convert seconds to milliseconds
-					if (next_target.G == 4)
-						next_target.P = decfloat_to_int(&read_digit, 1000, 1);
-					else
-						next_target.P = decfloat_to_int(&read_digit, 1, 1);
+					next_target.P = decfloat_to_int(&read_digit, 1, 1);
 					if (debug_flags & DEBUG_ECHO)
 						serwrite_uint16(next_target.P);
 					break;
