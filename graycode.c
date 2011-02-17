@@ -7,9 +7,9 @@
 	By default, X Y and Z are graycode, while E remains step/dir. If this isn't what
 	you want, edit the lines just below.
 */
-#define X_GREYCODE
-#define Y_GREYCODE
-#define Z_GREYCODE
+// #define X_GREYCODE
+// #define Y_GREYCODE
+// #define Z_GREYCODE
 //#define E_GREYCODE
 
 
