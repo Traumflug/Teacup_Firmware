@@ -8,6 +8,12 @@ Rewrite of Reprap Mendel firmware:
 * porting to atmega1280 in progress
 * will work on larger atmegas with minor porting
 
+Forum Thread: http://forums.reprap.org/read.php?147
+Post all queries, comments, etc here
+
+Github: http://github.com/triffid/FiveD_on_Arduino
+patches, issues go here
+
 ##############################################################################
 #                                                                            #
 # How to use                                                                 #
