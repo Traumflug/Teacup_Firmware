@@ -238,7 +238,11 @@ void process_gcode_command() {
 				default:
 					sersendf_P(PSTR("E: Bad G-code %d"), next_target.G);
 					// newline is sent from gcode_parse after we return
+					return;
 		}
+		#ifdef	DEBUG
+			print_queue();
+		#endif
 	}
 	else if (next_target.seen_M) {
 		switch (next_target.M) {
