@@ -332,12 +332,12 @@ void gcode_parse_char(uint8_t c) {
 					next_target.N_expected = next_target.N + 1;
 			}
 			else {
-				sersendf_P(PSTR("rs %ld Expected checksum %d\n"), next_target.N_expected, next_target.checksum_calculated);
+				sersendf_P(PSTR("rs N%ld Expected checksum %d\n"), next_target.N_expected, next_target.checksum_calculated);
 				request_resend();
 			}
 		}
 		else {
-			sersendf_P(PSTR("rs %ld Expected line number %ld\n"), next_target.N_expected, next_target.N_expected);
+			sersendf_P(PSTR("rs N%ld Expected line number %ld\n"), next_target.N_expected, next_target.N_expected);
 			request_resend();
 		}
 
