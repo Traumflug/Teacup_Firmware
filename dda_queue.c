@@ -108,7 +108,7 @@ void next_move() {
 }
 
 void print_queue() {
-	sersendf_P(PSTR("Q%d/%d%c\n"), mb_tail, mb_head, (queue_full()?'F':(queue_empty()?'E':' ')));
+	sersendf_P(PSTR("Q%d/%d%c"), mb_tail, mb_head, (queue_full()?'F':(queue_empty()?'E':' ')));
 }
 
 void queue_flush() {
