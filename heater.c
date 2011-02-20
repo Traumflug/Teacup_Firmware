@@ -178,9 +178,9 @@ void heater_tick(heater_t h, temp_sensor_t t, uint16_t current_temp, uint16_t ta
 		#endif
 	#else
 		if (current_temp >= target_temp)
-			pid_output = BANG_BANG_ON;
-		else
 			pid_output = BANG_BANG_OFF;
+		else
+			pid_output = BANG_BANG_ON;
 	#endif
 	
 	#ifdef	HEATER_SANITY_CHECK
