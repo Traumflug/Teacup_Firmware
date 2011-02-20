@@ -17,6 +17,7 @@
 #include	"debug.h"
 #include	"clock.h"
 #include	"config.h"
+#include	"home.h"
 
 // the current tool
 uint8_t tool;
