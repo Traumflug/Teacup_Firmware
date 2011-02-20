@@ -6,10 +6,12 @@
 
 #include	"arduino.h"
 #include	"debug.h"
-#ifndef	EXTRUDER
-#include	"sersendf.h"
-#endif
 #include	"temp.h"
+#include	"crc.h"
+
+#ifndef	EXTRUDER
+	#include	"sersendf.h"
+#endif
 
 typedef struct {
 	volatile uint8_t *heater_port;
@@ -59,6 +61,7 @@ typedef struct {
 	int32_t		EE_i_factor;
 	int32_t		EE_d_factor;
 	int16_t		EE_i_limit;
+	uint16_t	crc;
 } EE_factor;
 
 EE_factor EEMEM EE_factors[NUM_HEATERS];
@@ -101,7 +104,8 @@ void heater_init() {
 			heaters_pid[i].d_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_d_factor);
 			heaters_pid[i].i_limit = eeprom_read_word((uint16_t *) &EE_factors[i].EE_i_limit);
 
-			if ((heaters_pid[i].p_factor == 0) && (heaters_pid[i].i_factor == 0) && (heaters_pid[i].d_factor == 0) && (heaters_pid[i].i_limit == 0)) {
+// 			if ((heaters_pid[i].p_factor == 0) && (heaters_pid[i].i_factor == 0) && (heaters_pid[i].d_factor == 0) && (heaters_pid[i].i_limit == 0)) {
+			if (crc_block(&heaters_pid[i].p_factor, 14) != eeprom_read_word((uint16_t *) &EE_factors[i].crc)) {
 				heaters_pid[i].p_factor = DEFAULT_P;
 				heaters_pid[i].i_factor = DEFAULT_I;
 				heaters_pid[i].d_factor = DEFAULT_D;
@@ -119,6 +123,7 @@ void heater_save_settings() {
 			eeprom_write_dword((uint32_t *) &EE_factors[i].EE_i_factor, heaters_pid[i].i_factor);
 			eeprom_write_dword((uint32_t *) &EE_factors[i].EE_d_factor, heaters_pid[i].d_factor);
 			eeprom_write_word((uint16_t *) &EE_factors[i].EE_i_limit, heaters_pid[i].i_limit);
+			eeprom_write_word((uint16_t *) &EE_factors[i].crc, crc_block(&heaters_pid[i].p_factor, 14));
 		}
 	#endif /* BANG_BANG */
 }
