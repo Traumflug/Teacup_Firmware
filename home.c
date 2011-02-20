@@ -18,10 +18,18 @@
 
 void home() {
 	#if (! defined X_MIN_PIN) || (! defined Y_MIN_PIN) || (! defined Z_MIN_PIN)
-	TARGET t = {0, 0, 0, 0, 0};
+// 	TARGET t = {0, 0, 0, 0, 0};
 	#endif
 	queue_wait();
 
+// 	uint8_t	denoise_count = 0;
+
+	home_x();
+	home_y();
+	home_z();
+}
+
+void home_x() {
 	uint8_t	denoise_count = 0;
 
 	// home X
@@ -71,6 +79,7 @@ void home() {
 		#ifdef	X_MIN_PIN
 			startpoint.X = current_position.X = 0;
 		#else
+			TARGET t = {0, 0, 0, 0, 0};
 			// set position to MAX
 			startpoint.X = current_position.X = (int32_t) (X_MAX * STEPS_PER_MM_X);
 			// go to zero
@@ -78,14 +87,18 @@ void home() {
 			enqueue(&t);
 		#endif
 	#endif
+}
 
+void home_y() {
+	uint8_t	denoise_count = 0;
+	
 	// home Y
 	#if defined Y_MIN_PIN || defined Y_MAX_PIN
 		// hit home hard
 		#ifdef	Y_MIN_PIN
-		y_direction(0);
+			y_direction(0);
 		#else
-		y_direction(1);
+			y_direction(1);
 		#endif
 		while (denoise_count < 8) {
 			// denoise
@@ -108,12 +121,12 @@ void home() {
 
 		// back off slowly
 		#ifdef	Y_MIN_PIN
-		y_direction(1);
-		while (y_min() != 0) {
+			y_direction(1);
+			while (y_min() != 0) {
 		#else
-		y_direction(0);
-		while (y_max() != 0) {
-			#endif
+			y_direction(0);
+			while (y_max() != 0) {
+		#endif
 			// step
 			y_step();
 			delay(5);
@@ -126,6 +139,7 @@ void home() {
 		#ifdef	Y_MIN_PIN
 			startpoint.Y = current_position.Y = 0;
 		#else
+			TARGET t = {0, 0, 0, 0, 0};
 			// set position to MAX
 			startpoint.Y = current_position.Y = (int32_t) (Y_MAX * STEPS_PER_MM_Y);
 			// go to zero
@@ -133,7 +147,11 @@ void home() {
 			enqueue(&t);
 		#endif
 	#endif
+}
 
+void home_z() {
+	uint8_t	denoise_count = 0;
+	
 	// home Z
 	#if defined Z_MIN_PIN || defined Z_MAX_PIN
 		// hit home hard
@@ -181,6 +199,7 @@ void home() {
 		#ifdef	Z_MIN_PIN
 			startpoint.Z = current_position.Z = 0;
 		#else
+			TARGET t = {0, 0, 0, 0, 0};
 			// set position to MAX
 			startpoint.Z = current_position.Z = (int32_t) (Z_MAX * STEPS_PER_MM_Z);
 			// go to zero
