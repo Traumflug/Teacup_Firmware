@@ -301,9 +301,9 @@ void process_gcode_command() {
 				#endif
 				break;
 				
-				// M102- extruder reverse
+			// M102- extruder reverse
 				
-				// M5/M103- extruder off
+			// M5/M103- extruder off
 			case 5:
 			case 103:
 				#ifdef DC_EXTRUDER
@@ -319,26 +319,26 @@ void process_gcode_command() {
 				#endif
 				break;
 				
-				// M104- set temperature
+			// M104- set temperature
 			case 104:
 				temp_set(next_target.P, next_target.S);
 				if (next_target.S)
 					power_on();
 				break;
 				
-				// M105- get temperature
+			// M105- get temperature
 			case 105:
 				temp_print(next_target.P);
 				break;
 				
-				// M7/M106- fan on
+			// M7/M106- fan on
 			case 7:
 			case 106:
 				#ifdef HEATER_FAN
 					heater_set(HEATER_FAN, 255);
 				#endif
 				break;
-				// M107- fan off
+			// M107- fan off
 			case 9:
 			case 107:
 				#ifdef HEATER_FAN
@@ -346,7 +346,7 @@ void process_gcode_command() {
 				#endif
 				break;
 				
-				// M109- set temp and wait
+			// M109- set temp and wait
 			case 109:
 				temp_set(next_target.P, next_target.S);
 				if (next_target.S) {
@@ -359,65 +359,71 @@ void process_gcode_command() {
 				enqueue(NULL);
 				break;
 				
-				// M110- set line number
+			// M110- set line number
 			case 110:
 				next_target.N_expected = next_target.S - 1;
 				break;
-				// M111- set debug level
-				#ifdef	DEBUG
+			// M111- set debug level
+			#ifdef	DEBUG
 			case 111:
 				debug_flags = next_target.S;
 				break;
-				#endif
-				// M112- immediate stop
+			#endif
+			// M112- immediate stop
 			case 112:
 				timer_stop();
 				queue_flush();
 				power_off();
 				break;
 				// M113- extruder PWM
-				// M114- report XYZEF to host
+			// M114- report XYZEF to host
 			case 114:
 				sersendf_P(PSTR("X:%ld,Y:%ld,Z:%ld,E:%ld,F:%ld"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
 				// newline is sent from gcode_parse after we return
 				break;
-				// M115- capabilities string
+			// M115- capabilities string
 			case 115:
 				sersendf_P(PSTR("FIRMWARE_NAME:FiveD_on_Arduino FIRMWARE_URL:http%%3A//github.com/triffid/FiveD_on_Arduino/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d"), 1, NUM_TEMP_SENSORS, NUM_HEATERS);
 				// newline is sent from gcode_parse after we return
 				break;
 
-				// M130- heater P factor
+			// M130- heater P factor
 			case 130:
 				if (next_target.seen_S)
 					pid_set_p(next_target.P, next_target.S);
 				break;
-				// M131- heater I factor
+			// M131- heater I factor
 			case 131:
 				if (next_target.seen_S)
 					pid_set_i(next_target.P, next_target.S);
 				break;
-				// M132- heater D factor
+			// M132- heater D factor
 			case 132:
 				if (next_target.seen_S)
 					pid_set_d(next_target.P, next_target.S);
 				break;
-				// M133- heater I limit
+			// M133- heater I limit
 			case 133:
 				if (next_target.seen_S)
 					pid_set_i_limit(next_target.P, next_target.S);
 				break;
-				// M134- save PID settings to eeprom
+			// M134- save PID settings to eeprom
 			case 134:
 				heater_save_settings();
 				break;
-				// M135- set heater output
+			// M135- set heater output
 			case 135:
 				if (next_target.seen_S) {
 					heater_set(next_target.P, next_target.S);
 					power_on();
 				}
 				break;
+			#ifdef	DEBUG
+			// M136- PRINT PID settings to host
+			case 136:
+				heater_print(next_target.P);
+				break;
+			#endif
 
 			case 140: //Set heated bed temperature
 				#ifdef	HEATER_BED
@@ -427,7 +433,7 @@ void process_gcode_command() {
 				#endif
 				break;
 				
-				// M190- power on
+			// M190- power on
 			case 190:
 				power_on();
 				x_enable();
@@ -435,7 +441,7 @@ void process_gcode_command() {
 				z_enable();
 				steptimeout = 0;
 				break;
-				// M191- power off
+			// M191- power off
 			case 191:
 				x_disable();
 				y_disable();
@@ -444,7 +450,7 @@ void process_gcode_command() {
 				break;
 				
 			#ifdef	DEBUG
-				// M240- echo off
+			// M240- echo off
 			case 240:
 				debug_flags &= ~DEBUG_ECHO;
 				serial_writestr_P(PSTR("Echo off"));
@@ -457,7 +463,7 @@ void process_gcode_command() {
 				// newline is sent from gcode_parse after we return
 				break;
 				
-				// DEBUG: return current position, end position, queue
+			// DEBUG: return current position, end position, queue
 			case 250:
 				sersendf_P(PSTR("{X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\t{X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\t"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F, movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.X, movebuffer[mb_tail].endpoint.Y, movebuffer[mb_tail].endpoint.Z, movebuffer[mb_tail].endpoint.E, movebuffer[mb_tail].endpoint.F,
 					#ifdef ACCELERATION_REPRAP
@@ -470,7 +476,7 @@ void process_gcode_command() {
 				print_queue();
 				break;
 				
-				// DEBUG: read arbitrary memory location
+			// DEBUG: read arbitrary memory location
 			case 253:
 				if (next_target.seen_P == 0)
 					next_target.P = 1;
@@ -481,7 +487,7 @@ void process_gcode_command() {
 				// newline is sent from gcode_parse after we return
 				break;
 				
-				// DEBUG: write arbitrary memory locatiom
+			// DEBUG: write arbitrary memory locatiom
 			case 254:
 				sersendf_P(PSTR("%x:%x->%x"), next_target.S, *(volatile uint8_t *)(next_target.S), next_target.P);
 				(*(volatile uint8_t *)(next_target.S)) = next_target.P;

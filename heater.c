@@ -313,3 +313,7 @@ void pid_set_i_limit(heater_t index, int32_t i_limit) {
 		heaters_pid[index].i_limit = i_limit;
 	#endif /* BANG_BANG */
 }
+
+void heater_print(uint16_t i) {
+	sersendf_P(PSTR("P:%ld I:%ld D:%ld Ilim:%u crc:%u "), heaters_pid[i].p_factor, heaters_pid[i].i_factor, heaters_pid[i].d_factor, heaters_pid[i].i_limit, crc_block(&heaters_pid[i].p_factor, 14));
+}
