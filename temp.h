@@ -21,6 +21,15 @@ typedef enum {
 } temp_sensor_t;
 #undef DEFINE_TEMP_SENSOR
 
+typedef enum {
+	TT_THERMISTOR,
+	TT_MAX6675,
+	TT_AD595,
+	TT_PT100,
+	TT_INTERCOM,
+	TT_DUMMY,
+} temp_type_t;
+
 #define	temp_tick temp_sensor_tick
 
 void temp_init(void);
@@ -34,4 +43,4 @@ uint16_t temp_get(temp_sensor_t index);
 
 void temp_print(temp_sensor_t index);
 
-#endif	/* _TIMER_H */
+#endif	/* _TEMP_H */

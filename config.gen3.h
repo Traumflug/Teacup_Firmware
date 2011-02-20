@@ -212,9 +212,6 @@ undefine if you don't want to use them
 // #define	TEMP_PT100
 #define	TEMP_INTERCOM
 
-// ANALOG_MASK is a bitmask of all analog channels used- bitwise-or them all together
-#define	ANALOG_MASK				0
-
 /***************************************************************************\
 *                                                                           *
 * Define your temperature sensors here                                      *

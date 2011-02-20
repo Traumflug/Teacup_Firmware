@@ -1,48 +1,21 @@
 #include "analog.h"
+#include "temp.h"
 
 #include	<avr/interrupt.h>
 
-#ifndef	ANALOG_MASK
-	#warning	ANALOG_MASK not defined - analog subsystem disabled
-	#define	ANALOG_MASK	0
-#endif
+/* OR-combined mask of all channels */
+#undef DEFINE_TEMP_SENSOR
+#define DEFINE_TEMP_SENSOR(name, type, pin) | (((type == TT_THERMISTOR) || (type == TT_AD595)) ? 1 << (pin) : 0)
+static const uint8_t analog_mask = 0
+#include "config.h"
+;
+#undef DEFINE_TEMP_SENSOR
 
-uint8_t adc_running_mask, adc_counter;
-
-#if	ANALOG_MASK & 1
-	#define	ANALOG_START			0
-	#define	ANALOG_START_MASK	1
-#elif	ANALOG_MASK & 2
-	#define	ANALOG_START			1
-	#define	ANALOG_START_MASK	2
-#elif	ANALOG_MASK & 4
-	#define	ANALOG_START			2
-	#define	ANALOG_START_MASK	4
-#elif	ANALOG_MASK & 8
-	#define	ANALOG_START			3
-	#define	ANALOG_START_MASK	8
-#elif	ANALOG_MASK & 16
-	#define	ANALOG_START			4
-	#define	ANALOG_START_MASK	16
-#elif	ANALOG_MASK & 32
-	#define	ANALOG_START			5
-	#define	ANALOG_START_MASK	32
-#elif	ANALOG_MASK & 64
-	#define	ANALOG_START			6
-	#define	ANALOG_START_MASK	64
-#elif	ANALOG_MASK & 128
-	#define	ANALOG_START			7
-	#define	ANALOG_START_MASK	128
-#else
-	// ANALOG_MASK == 0
-	#define	ANALOG_START			0
-	#define	ANALOG_START_MASK	1
-#endif
-
-volatile uint16_t adc_result[8] __attribute__ ((__section__ (".bss")));
+static uint8_t adc_counter;
+static volatile uint16_t adc_result[8] __attribute__ ((__section__ (".bss")));
 
 void analog_init() {
-	#if ANALOG_MASK > 0
+	if (analog_mask > 0) {
 		#ifdef	PRR
 			PRR &= ~MASK(PRADC);
 		#elif defined PRR0
@@ -55,36 +28,32 @@ void analog_init() {
 		ADCSRA = MASK(ADEN) | MASK(ADPS2) | MASK(ADPS1) | MASK(ADPS0);
 
 		adc_counter = 0;
-		adc_running_mask = 1;
 
-		AIO0_DDR &= ~(ANALOG_MASK);
-		DIDR0 = (ANALOG_MASK) & 0x3F;
-
+		AIO0_DDR &= ~analog_mask;
+		DIDR0 = analog_mask & 0x3F;
 		// now we start the first conversion and leave the rest to the interrupt
 		ADCSRA |= MASK(ADIE) | MASK(ADSC);
-	#endif /* ANALOG_MASK > 0 */
+	} /* analog_mask > 0 */
 }
 
 ISR(ADC_vect, ISR_NOBLOCK) {
 	// emulate free-running mode but be more deterministic about exactly which result we have, since this project has long-running interrupts
-	adc_result[ADMUX & 0x0F] = ADC;
-	// find next channel
-	do {
-		adc_counter++;
-		adc_running_mask <<= 1;
-		if (adc_counter == 8) {
-			adc_counter = ANALOG_START;
-			adc_running_mask = ANALOG_START_MASK;
-		}
-	} while ((adc_running_mask & (ANALOG_MASK)) == 0);
+	if (analog_mask > 0) {
+		adc_result[ADMUX & 0x0F] = ADC;
+	  // find next channel
+		do {
+			adc_counter++;
+      adc_counter &= 0x07;
+    } while ((analog_mask & (1 << adc_counter)) == 0);
 
-	// start next conversion
-	ADMUX = (adc_counter) | REFERENCE;
-	ADCSRA |= MASK(ADSC);
+		// start next conversion
+		ADMUX = (adc_counter) | REFERENCE;
+		ADCSRA |= MASK(ADSC);
+	}
 }
 
 uint16_t	analog_read(uint8_t channel) {
-	#if ANALOG_MASK > 0
+	if (analog_mask > 0) {
 		uint16_t r;
 
 		uint8_t sreg;
@@ -100,7 +69,7 @@ uint16_t	analog_read(uint8_t channel) {
 		SREG = sreg;
 
 		return r;
-	#else
+	} else {
 		return 0;
-	#endif
+	}
 }
