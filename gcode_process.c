@@ -233,6 +233,25 @@ void process_gcode_command() {
 						startpoint.E = current_position.E = 0;
 					}
 					break;
+
+				// G161 - Home negative
+				case 161:
+					if (next_target.seen_X)
+						home_x_negative();
+					if (next_target.seen_Y)
+						home_y_negative();
+					if (next_target.seen_Z)
+						home_z_negative();
+					break;
+				// G162 - Home positive
+				case 162:
+					if (next_target.seen_X)
+						home_x_positive();
+					if (next_target.seen_Y)
+						home_y_positive();
+					if (next_target.seen_Z)
+						home_z_positive();
+					break;
 					
 					// unknown gcode: spit an error
 				default:
