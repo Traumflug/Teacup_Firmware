@@ -22,6 +22,7 @@ void io_init(void) {
 
 	SET_INPUT(TRIM_POT);
 	SET_INPUT(TEMP_PIN);
+	SET_INPUT(TEMP_BED_PIN);
 	SET_INPUT(E_STEP_PIN);
 	SET_INPUT(E_DIR_PIN);
 
@@ -194,6 +195,8 @@ int main (void)
 		temp_sensor_tick();
 
 		send_temperature(0, temp_get(0));
+		send_temperature(1, temp_get(1));
 		temp_set(0, read_temperature(0));
+		temp_set(1, read_temperature(1));
 	}
 }
