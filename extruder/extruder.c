@@ -79,12 +79,12 @@ ISR(PCINT0_vect) {
 		else
 			coil_pos--;
 
-		coil_pos &= 31;
+		coil_pos &= 7;
 
 		//Grab the latest motor power to use
 		pwm = motor_pwm;
 
-		switch(coil_pos >> 2) {
+		switch(coil_pos) {
 			case 0:
 			  WRITE(H1D, 0);
 			  WRITE(H2D, 0);
