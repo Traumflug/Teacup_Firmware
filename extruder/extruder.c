@@ -65,13 +65,10 @@ void motor_init(void) {
 }
 
 ISR(PCINT0_vect) {
-	static uint8_t coil_pos, pwm, flag;
+	static uint8_t coil_pos, pwm;
 
-	if (flag == 1) flag = 0;
-	else flag = 1;
-		
 	//if the step pin is high, we advance the motor
-	if (flag) {
+	if (READ(E_STEP_PIN)) {
 
 		//Turn on motors only on first tick to save power I guess
 		enable_motors();
