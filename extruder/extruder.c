@@ -43,6 +43,10 @@ void io_init(void) {
 		WRITE(BED_PIN, 0); SET_OUTPUT(BED_PIN);
 	#endif
 
+	#ifdef FAN_PIN
+		WRITE(FAN_PIN, 0); SET_OUTPUT(FAN_PIN);
+	#endif
+
 // 	#if defined(HEATER_PWM) || defined(FAN_PWM) || defined(BED_PWM)
 		// setup PWM timer: fast PWM, no prescaler
 		TCCR2A = MASK(WGM21) | MASK(WGM20);

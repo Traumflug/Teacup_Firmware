@@ -39,6 +39,10 @@
 
 #define	TEMP_THERMISTOR
 
+#define	HEATER_PIN	DIO11
+#define BED_PIN		AIO1
+#define FAN_PIN		DIO12
+
 // extruder settings
 #define	TEMP_HYSTERESIS				20
 #define	TEMP_RESIDENCY_TIME		60
@@ -48,8 +52,8 @@ DEFINE_TEMP_SENSOR(extruder,	TT_THERMISTOR,		PINC3)
 #endif
 
 #ifdef	DEFINE_HEATER
-DEFINE_HEATER(extruder,	PORTD, DIO6_PIN, OCR0A)
-DEFINE_HEATER(bed,			PORTD, DIO5_PIN, OCR0B)
+DEFINE_HEATER(extruder,	PORTD, HEATER_PIN, OCR0A)
+DEFINE_HEATER(bed,			PORTD, BED_PIN, OCR0B)
 #endif
 
 // list of PWM-able pins and corresponding timers
@@ -57,7 +61,7 @@ DEFINE_HEATER(bed,			PORTD, DIO5_PIN, OCR0B)
 // OC0A												DIO6
 // OC0B												DIO5
 // OC1A												DIO9
-// OC1B												DIO10
+// OC1B												DIO10	
 // OC2A												DIO11
 // OC2B												DIO3
 
