@@ -25,6 +25,10 @@ void io_init(void) {
 	SET_INPUT(E_STEP_PIN);
 	SET_INPUT(E_DIR_PIN);
 
+	// use pull up resistors to avoid noise
+	WRITE(E_STEP_PIN, 1);
+	WRITE(E_DIR_PIN, 1);
+
 	//Enable the RS485 transceiver
 	SET_OUTPUT(RX_ENABLE_PIN);
 	SET_OUTPUT(TX_ENABLE_PIN);
