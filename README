@@ -20,8 +20,8 @@ patches, issues go here
 #                                                                            #
 ##############################################################################
 
-1) COPY config.h.dist to config.h and edit to suit your electronics
-2) check programming settings in Makefile
+1) COPY config.YOURBOARDHERE.h to config.h and edit to suit your electronics
+2) check programming settings in Makefile (chip type, avrdude settings, etc)
 3) make
 4) make program
 4a) if programming blank chip, make program-fuses
@@ -84,10 +84,13 @@ As soon as my new firmware was able to run a few consecutive moves, I released i
 The forum thread http://forums.reprap.org/read.php?147,33082 has much of the history from this point on.
 
 Traumflug was the first to send patches, and has done a significant amount of work on a number of different parts of this firmware.
-jakepoz ported it to official reprap electronics (gen3 branch)
+Jake Poznanski ported it to official reprap electronics (gen3 branch)
 Cefiar posted me some thermistors to sponsor addition of thermistor-reading code
+Markus Hitter really helped me out with some of the math, as well as cleaning up a lot of sequencing stuff
+Markus Amsler has done a significant amount of work on the new intercom-protocol, as well as lots of testing in the forum
+Stephen Walter provided the excellent simulation code, plus some fascinating preprocessor abuse which makes configuration significantly easier
 
-Many others have given encouragement and suggestions without which this firmware may never be what it is today.
+Many others have given patches, encouragement and suggestions without which this firmware may never be what it is today.
 
 
 ##############################################################################
@@ -113,7 +116,7 @@ It is necessary to keep interrupts very short on small microcontrollers, and I h
 The serial ringbuffers are critical for good communication, but for some reason the official arduino libraries don't implement a tx queue, all but preventing sending stuff from interrupt context. As long as the queues have a length of 2^n, we can use bitwise operations rather than numerical comparison to trim the read and write pointers. The serial send function (serial_writechar[serial.c]) is necessarily careful about checking if it's in an interrupt and only waiting for space in the queue if it's not.
 The dda queue is also a ringbuffer, although its implementation is harder to see as it's embedded in lots of other stuff.
 
-The gcode parser shows how to parse each character as it comes in, so 99% of a command can be processed before the EOL is even received. It started off as a simple state machine, which then grew and shrank and morphed until it was both smaller and more functional.
+The gcode parser shows how to parse each character as it comes in, so 99% of a command can be processed before the EOL is even received. It started off as a simple state machine, which then grew and shrank and morphed until it was both smaller and more functional. (FIXME: obsoleted by input-float branch if we ever merge it)
 
 The fixed-point stuff is fun, although we have to manually ensure that the decimal point stays in the right spot. decfloat_to_int[gcode.h] is used to convert incoming floats to integer implementations by starting off with a (very!) crude floating point implementation, then choosing appropriate scaling factors within the gcode parser itself. This allows us to do a little stuff that looks like floating-point math without the burdensome overhead of a full fp implementation.
 
@@ -144,11 +147,17 @@ Pin mappings and helper functions for various atmegas
 *** clock.[ch]
 Regular functions that run in main loop rather than an interrupt
 
-*** config.h.dist, config.h
+*** config.h.dist, config.h, config.*.h
 Configuration for your electronics and hardware. Copy config.h.dist to config.h, edit config.h to suit
 
 *** copier.[ch]
 A totally untested and currently unused chunk of code for copying firmware to another identical chip
+
+*** crc.[ch]
+block crc16 routine
+
+*** createTemperatureLookup.py
+A python script to generate your TemperatureTable.h
 
 *** dda.[ch]
 A rather complex block of math that figures out when to step each axis according to speed and acceleration profiles and received moves
@@ -174,8 +183,14 @@ Gcode parser. Scaling of factors to internally used integer or fixed point happe
 *** gcode_process.[ch]
 Gcodes actually get executed here after being parsed.
 
+*** graycode.c
+routines to drive stepper h-bridges directly instead of step/dir
+
 *** heater.[ch]
 Heater management, including PID and PWM algorithms, and some configuration parameters
+
+*** home.[ch]
+Home using endstop routines
 
 *** intercom.[ch]
 Gen3 serial link control and communication
@@ -202,13 +217,16 @@ A simple talker
 Serial management and buffers
 
 *** sermsg.[ch]
-Functions for sending messages and values to host
+Functions for sending primitive messages and values to host
 
 *** sersendf.[ch]
 A small, crude printf implementation
 
 *** temp.[ch]
 Temperature sensor management, includes some configuration parameters
+
+*** ThermistorTable.h
+linear interpolation table for your thermistor, maps analog reading -> temperature
 
 *** timer.[ch]
 Timer management, used primarily by dda.c for timing steps
