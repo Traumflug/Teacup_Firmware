@@ -275,9 +275,6 @@ void temp_sensor_tick() {
 			}
 		}
 	}
-	#ifdef	TEMP_INTERCOM
-	start_send();
-	#endif
 }
 
 uint8_t	temp_achieved() {
