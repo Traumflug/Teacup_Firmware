@@ -83,11 +83,10 @@ As soon as my new firmware was able to run a few consecutive moves, I released i
 
 The forum thread http://forums.reprap.org/read.php?147,33082 has much of the history from this point on.
 
-Traumflug was the first to send patches, and has done a significant amount of work on a number of different parts of this firmware.
-Jake Poznanski ported it to official reprap electronics (gen3 branch)
+Markus Hitter was the first to send patches, and has done a significant amount of work on a number of different parts of this firmware, particularly math and sequencing.
+Jake Poznanski did the initial port to official gen3 electronics with separate extruder board
 Cefiar posted me some thermistors to sponsor addition of thermistor-reading code
-Markus Hitter really helped me out with some of the math, as well as cleaning up a lot of sequencing stuff
-Markus Amsler has done a significant amount of work on the new intercom-protocol, as well as lots of testing in the forum
+Markus Amsler has done a significant amount of work on the new intercom protocol and the latest timer code, as well as tons of test results in the forum
 Stephen Walter provided the excellent simulation code, plus some fascinating preprocessor abuse which makes configuration significantly easier
 
 Many others have given patches, encouragement and suggestions without which this firmware may never be what it is today.
