@@ -22,12 +22,18 @@ void io_init(void) {
 
 	SET_INPUT(TRIM_POT);
 	SET_INPUT(TEMP_PIN);
+	SET_INPUT(TEMP_BED_PIN);
 	SET_INPUT(E_STEP_PIN);
 	SET_INPUT(E_DIR_PIN);
+
+	// use pull up resistors to avoid noise
+	WRITE(E_STEP_PIN, 1);
+	WRITE(E_DIR_PIN, 1);
 
 	//Enable the RS485 transceiver
 	SET_OUTPUT(RX_ENABLE_PIN);
 	SET_OUTPUT(TX_ENABLE_PIN);
+	WRITE(RX_ENABLE_PIN,0);
 	disable_transmit();
 
 	#ifdef	HEATER_PIN
@@ -36,6 +42,10 @@ void io_init(void) {
 
 	#ifdef BED_PIN
 		WRITE(BED_PIN, 0); SET_OUTPUT(BED_PIN);
+	#endif
+
+	#ifdef FAN_PIN
+		WRITE(FAN_PIN, 0); SET_OUTPUT(FAN_PIN);
 	#endif
 
 // 	#if defined(HEATER_PWM) || defined(FAN_PWM) || defined(BED_PWM)
@@ -64,13 +74,10 @@ void motor_init(void) {
 }
 
 ISR(PCINT0_vect) {
-	static uint8_t coil_pos, pwm, flag;
+	static uint8_t coil_pos, pwm;
 
-	if (flag == 1) flag = 0;
-	else flag = 1;
-		
 	//if the step pin is high, we advance the motor
-	if (flag) {
+	if (READ(E_STEP_PIN)) {
 
 		//Turn on motors only on first tick to save power I guess
 		enable_motors();
@@ -81,12 +88,12 @@ ISR(PCINT0_vect) {
 		else
 			coil_pos--;
 
-		coil_pos &= 31;
+		coil_pos &= 7;
 
 		//Grab the latest motor power to use
 		pwm = motor_pwm;
 
-		switch(coil_pos >> 2) {
+		switch(coil_pos) {
 			case 0:
 			  WRITE(H1D, 0);
 			  WRITE(H2D, 0);
@@ -187,7 +194,9 @@ int main (void)
 
 		temp_sensor_tick();
 
-		update_send_cmd(temp_get(0) >> 2);
-		temp_set(0, get_read_cmd());
+		send_temperature(0, temp_get(0));
+		send_temperature(1, temp_get(1));
+		temp_set(0, read_temperature(0));
+		temp_set(1, read_temperature(1));
 	}
 }

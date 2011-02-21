@@ -126,6 +126,16 @@ pins
 #define AIO5_WPORT	PORTC
 #define AIO5_DDR		DDRC
 
+#define AIO6_PIN		PINC6
+#define AIO6_RPORT	PINC
+#define AIO6_WPORT	PORTC
+#define AIO6_DDR		DDRC
+
+#define AIO7_PIN		PINC7
+#define AIO7_RPORT	PINC
+#define AIO7_WPORT	PORTC
+#define AIO7_DDR		DDRC
+
 #define PB0_PIN			PINB0
 #define PB0_RPORT		PINB
 #define PB0_WPORT		PORTB

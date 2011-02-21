@@ -83,7 +83,7 @@ void temp_init() {
 		#ifdef	TEMP_INTERCOM
 			case TT_INTERCOM:
 				intercom_init();
-				update_send_cmd(0);
+				send_temperature(0, 0);
 				break;
 		#endif
 
@@ -163,8 +163,10 @@ void temp_sensor_tick() {
 						for (j = 1; j < NUMTEMPS; j++) {
 							if (pgm_read_word(&(temptable[j][0])) > temp) {
 								// Thermistor table is already in 14.2 fixed point
+								#ifndef	EXTRUDER
 								if (debug_flags & DEBUG_PID)
 									sersendf_P(PSTR("pin:%d Raw ADC:%d table entry: %d"),temp_sensors[i].temp_pin,temp,j);
+								#endif
 								// Linear interpolating temperature value
 								// y = ((x - x₀)y₁ + (x₁-x)y₀ ) / (x₁ - x₀)
 								// y = temp
@@ -188,13 +190,17 @@ void temp_sensor_tick() {
 									/
 								//                                (x₁ - x₀)
 									(pgm_read_word(&(temptable[j][0])) - pgm_read_word(&(temptable[j-1][0])));
+								#ifndef	EXTRUDER
 								if (debug_flags & DEBUG_PID)
 									sersendf_P(PSTR(" temp:%d.%d"),temp/4,(temp%4)*25);
+								#endif
 								break;
 							}
 						}
+						#ifndef	EXTRUDER
 						if (debug_flags & DEBUG_PID)
 							sersendf_P(PSTR(" Sensor:%d\n"),i);
+						#endif
 						
 
 						//Clamp for overflows
@@ -227,9 +233,7 @@ void temp_sensor_tick() {
 
 				#ifdef	TEMP_INTERCOM
 				case TT_INTERCOM:
-					temp = get_read_cmd() << 2;
-
-					start_send();
+					temp = read_temperature(temp_sensors[i].temp_pin);
 
 					temp_sensors_runtime[i].next_read_time = 0;
 
@@ -289,7 +293,7 @@ void temp_set(temp_sensor_t index, uint16_t temperature) {
 	temp_sensors_runtime[index].temp_residency = 0;
 #ifdef	TEMP_INTERCOM
 	if (temp_sensors[index].temp_type == TT_INTERCOM)
-		update_send_cmd(temperature >> 2);
+		send_temperature(temp_sensors[index].temp_pin, temperature);
 #endif
 }
 

@@ -31,6 +31,9 @@ void clock_250ms() {
 		/*		if (temp_get_target())
 		temp_print();*/
 	}
+	#ifdef	TEMP_INTERCOM
+	start_send();
+	#endif
 }
 
 void clock_10ms() {
