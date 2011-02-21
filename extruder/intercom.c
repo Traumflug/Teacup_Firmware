@@ -41,8 +41,10 @@ typedef union {
 	uint8_t						data[sizeof(intercom_packet_t)];
 } intercom_packet;
 
-intercom_packet tx;
-intercom_packet rx;
+intercom_packet tx;		// this packet will be send
+intercom_packet rx;		// the last received packet with correct checksum
+intercom_packet _tx;	// current packet in transmission
+intercom_packet _rx;	// receiving packet
 
 uint8_t packet_pointer;
 uint8_t	rxcrc;
@@ -116,7 +118,6 @@ void start_send(void) {
 	uint8_t sreg = SREG;
 	cli();
 	intercom_flags = (intercom_flags & ~FLAG_TX_FINISHED) | FLAG_TX_IN_PROGRESS;
-	SREG = sreg;
 
 	// set start byte
 	tx.packet.start = START;
@@ -126,6 +127,12 @@ void start_send(void) {
 		txcrc ^= tx.data[i];
 	}
 	tx.packet.crc = txcrc;
+
+	for (i = 0; i < (sizeof(intercom_packet_t) ); i++) {
+		_tx.data[i] = tx.data[i];
+	}
+
+	SREG = sreg;
 
 	// enable transmit pin
 	enable_transmit();
@@ -164,7 +171,7 @@ ISR(USART_RX_vect)
 
 	// are we waiting for a start byte? is this one?
 	if ((packet_pointer == 0) && (c == START)) {
-		rxcrc = rx.packet.start = START;
+		rxcrc = _rx.packet.start = START;
 		packet_pointer = 1;
 		intercom_flags |= FLAG_RX_IN_PROGRESS;
 	}
@@ -174,16 +181,29 @@ ISR(USART_RX_vect)
 		if (packet_pointer < (sizeof(intercom_packet_t) - 1))
 			rxcrc ^= c;
 		// stuff byte into structure
-		rx.data[packet_pointer++] = c;
+		_rx.data[packet_pointer++] = c;
 		// last byte?
 		if (packet_pointer >= sizeof(intercom_packet_t)) {
 			// reset pointer
 			packet_pointer = 0;
 
+			#ifndef HOST
+			if (rxcrc == _rx.packet.crc && 
+			    _rx.packet.controller_num == THIS_CONTROLLER_NUM){
+			#else
+			if (rxcrc == _rx.packet.crc){
+			#endif
+				// correct crc copy packet
+				static uint8_t i;
+				for (i = 0; i < (sizeof(intercom_packet_t) ); i++) {
+					rx.data[i] = _rx.data[i];
+				}
+			}
+
 			intercom_flags = (intercom_flags & ~FLAG_RX_IN_PROGRESS) | FLAG_NEW_RX;
 			#ifndef HOST
-				if (rx.packet.controller_num == THIS_CONTROLLER_NUM) {
-					if (rxcrc != rx.packet.crc)
+				if (_rx.packet.controller_num == THIS_CONTROLLER_NUM) {
+					if (rxcrc != _rx.packet.crc)
 						tx.packet.err = ERROR_BAD_CRC;
 					// not sure why exactly this delay is needed, but wihtout it first byte never arrives.
 					delay_us(150);
@@ -221,9 +241,9 @@ ISR(USART_UDRE_vect)
 #endif
 {
 	#ifdef	HOST
-	UDR1 = tx.data[packet_pointer++];
+	UDR1 = _tx.data[packet_pointer++];
 	#else
-	UDR0 = tx.data[packet_pointer++];
+	UDR0 = _tx.data[packet_pointer++];
 	#endif
 
 	if (packet_pointer >= sizeof(intercom_packet_t)) {
