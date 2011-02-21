@@ -118,6 +118,7 @@ void start_send(void) {
 	uint8_t sreg = SREG;
 	cli();
 	intercom_flags = (intercom_flags & ~FLAG_TX_FINISHED) | FLAG_TX_IN_PROGRESS;
+	SREG = sreg;
 
 	// set start byte
 	tx.packet.start = START;
@@ -131,8 +132,6 @@ void start_send(void) {
 	for (i = 0; i < (sizeof(intercom_packet_t) ); i++) {
 		_tx.data[i] = tx.data[i];
 	}
-
-	SREG = sreg;
 
 	// enable transmit pin
 	enable_transmit();
