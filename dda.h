@@ -5,6 +5,12 @@
 
 #include	"config.h"
 
+#ifdef ACCELERATION_REPRAP
+	#ifdef ACCELERATION_RAMPING
+		#error Cant use ACCELERATION_REPRAP and ACCELERATION_RAMPING together.
+	#endif
+#endif
+
 /*
 	enums
 */
