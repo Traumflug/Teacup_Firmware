@@ -4,6 +4,12 @@
 
 #include	"dda_queue.h"
 
+/*
+	how often we overflow and update our clock; with F_CPU=16MHz, max is < 4.096ms (TICK_TIME = 65535)
+*/
+#define		TICK_TIME			2 MS
+#define		TICK_TIME_MS	(TICK_TIME / (F_CPU / 1000))
+
 volatile uint32_t	next_step_time;
 
 uint8_t						clock_counter_10ms = 0;

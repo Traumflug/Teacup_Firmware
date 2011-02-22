@@ -369,12 +369,6 @@ DEFINE_TEMP_SENSOR(noheater,	TT_INTERCOM,		0)
 #define		STEP_INTERRUPT_INTERRUPTIBLE	1
 
 /*
-	how often we overflow and update our clock; with F_CPU=16MHz, max is < 4.096ms (TICK_TIME = 65535)
-*/
-#define		TICK_TIME			2 MS
-#define		TICK_TIME_MS	(TICK_TIME / (F_CPU / 1000))
-
-/*
 	temperature history count. This is how many temperature readings to keep in order to calculate derivative in PID loop
 	higher values make PID derivative term more stable at the expense of reaction time
 */
