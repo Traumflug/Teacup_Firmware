@@ -62,12 +62,16 @@ GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
 		multiplicand:  1..105000       (17 bit)
 		denominator:   1 or 10         ( 4 bit)
 */
+// accordingly:
+#define	DECFLOAT_EXP_MAX 4
+#define	DECFLOAT_MANT_MM_MAX 1048075
+#define	DECFLOAT_MANT_IN_MAX 32267
 
 /*
 	utility functions
 */
 extern const uint32_t powers[];  // defined in sermsg.c
-const int32_t rounding[DECFLOAT_EXP_MAX] = {0,  5,  50,  500,  5000,  50000,  500000};
+const int32_t rounding[DECFLOAT_EXP_MAX] = {0,  5,  50,  500};
 
 static int32_t decfloat_to_int(decfloat *df, int32_t multiplicand, uint32_t denominator) {
 	int32_t	r = df->mantissa;
@@ -292,10 +296,12 @@ void gcode_parse_char(uint8_t c) {
 
 			default:
 				// can't do ranges in switch..case, so process actual digits here.
-				if (    c >= '0'
-				     && c <= '9'
-				     && read_digit.mantissa < (DECFLOAT_MANT_MAX / 10)
-				     && read_digit.exponent < DECFLOAT_EXP_MAX ) {
+				if (c >= '0' && c <= '9' &&
+				    read_digit.exponent < DECFLOAT_EXP_MAX &&
+				    ((next_target.option_inches == 0 &&
+				      read_digit.mantissa < DECFLOAT_MANT_MM_MAX) ||
+				     (next_target.option_inches &&
+				      read_digit.mantissa < DECFLOAT_MANT_IN_MAX))){
 					// this is simply mantissa = (mantissa * 10) + atoi(c) in different clothes
 					read_digit.mantissa = (read_digit.mantissa << 3) + (read_digit.mantissa << 1) + (c - '0');
 					if (read_digit.exponent)

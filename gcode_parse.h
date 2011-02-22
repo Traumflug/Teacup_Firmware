@@ -18,16 +18,10 @@
 
 // this is a very crude decimal-based floating point structure.
 // a real floating point would at least have signed exponent.
-// max (DECFLOAT_EXP_MAX - 1) digits after decimal point, because point is
-// counted as well
-#define DECFLOAT_EXP_WIDTH 3					
-#define DECFLOAT_EXP_MAX  ((1 << DECFLOAT_EXP_WIDTH) - 1)
-#define DECFLOAT_MANT_WIDTH (32 - 1 - DECFLOAT_EXP_WIDTH)
-#define DECFLOAT_MANT_MAX (((uint32_t)1 << DECFLOAT_MANT_WIDTH) - 1)
 typedef struct {
 	uint32_t	sign			:1;
-	uint32_t	mantissa	:DECFLOAT_MANT_WIDTH;
-	uint32_t	exponent	:DECFLOAT_EXP_WIDTH;
+	uint32_t	mantissa	:28;
+	uint32_t	exponent	:3;
 } decfloat;
 
 // this holds all the possible data from a received command
