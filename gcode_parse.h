@@ -15,9 +15,9 @@
 // this is a very crude decimal-based floating point structure.
 // a real floating point would at least have signed exponent.
 typedef struct {
-	uint32_t	sign			:1;
-	uint32_t	mantissa	:28;
-	uint32_t	exponent	:3;
+	uint32_t	mantissa;
+	uint8_t	exponent	:7;
+	uint8_t	sign			:1;
 } decfloat;
 
 // this holds all the possible data from a received command
