@@ -168,16 +168,19 @@ undefine if you don't want to use them
 #define	X_STEP_PIN						DIO15
 #define	X_DIR_PIN							DIO18
 #define	X_MIN_PIN							DIO20
+//#define	X_MAX_PIN							xxxx
 #define	X_ENABLE_PIN					DIO19
 
 #define	Y_STEP_PIN						DIO23
 #define	Y_DIR_PIN							DIO22
 #define	Y_MIN_PIN							DIO25
+//#define	Y_MAX_PIN							xxxx
 #define	Y_ENABLE_PIN					DIO24
 
 #define	Z_STEP_PIN						DIO27
 #define	Z_DIR_PIN							DIO28
 #define	Z_MIN_PIN							DIO30
+//#define	Z_MAX_PIN							xxxx
 #define	Z_ENABLE_PIN					DIO29
 
 #define	E_STEP_PIN						DIO4
