@@ -26,37 +26,39 @@ uint8_t next_tool;
 
 
 /*
-public functions
+	private functions
+
+	this is where we construct a move without a gcode command, useful for gcodes which require multiple moves eg; homing
 */
 
-void zero_x(void) {
+static void zero_x(void) {
 	TARGET t = startpoint;
 	t.X = 0;
 	t.F = SEARCH_FEEDRATE_X;
 	enqueue(&t);
 }
 
-void zero_y(void) {
+static void zero_y(void) {
 	TARGET t = startpoint;
 	t.Y = 0;
 	t.F = SEARCH_FEEDRATE_Y;
 	enqueue(&t);
 }
 
-void zero_z(void) {
+static void zero_z(void) {
 	TARGET t = startpoint;
 	t.Z = 0;
 	t.F = SEARCH_FEEDRATE_Z;
 	enqueue(&t);
 }
 
-void zero_e(void) {
+static void zero_e(void) {
 	TARGET t = startpoint;
 	t.E = 0;
 	enqueue(&t);
 }
 
-void SpecialMoveE(int32_t e, uint32_t f) {
+static void SpecialMoveE(int32_t e, uint32_t f) {
 	TARGET t = startpoint;
 	t.E = e;
 	t.F = f;
