@@ -44,6 +44,7 @@
 // for threaded rods, this is (steps motor per turn) / (pitch of the thread)
 // for belts, this is (steps per motor turn) / (number of gear teeth) / (belt module)
 // half-stepping doubles the number, quarter stepping requires * 4, etc.
+// valid range = 0.020 to 4194.303
 #define	STEPS_PER_MM_X				320.000
 #define	STEPS_PER_MM_Y				320.000
 #define	STEPS_PER_MM_Z				320.000

@@ -48,6 +48,22 @@ decfloat read_digit					__attribute__ ((__section__ (".bss")));
 GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
 
 /*
+	decfloat_to_int() is the weakest subject to variable overflow. For evaluation, we assume a build room of +-1000 mm and STEPS_PER_MM_x between 1.000 and 4096. Accordingly for metric units:
+
+		df->mantissa:  +-0..1048075    (20 bit - 500 for rounding)
+		df->exponent:  0, 2, 3 or 4    (10 bit)
+		multiplicand / denominator:  20..4194303 / 1000 (22 bit - 10 bit) or
+		                              0..4095 / 1       (12 bit -  0 bit)
+
+	imperial units:
+
+		df->mantissa:  +-0..32267      (15 bit - 500 for rounding)
+		df->exponent:  0, 2, 3 or 4    (10 bit)
+		multiplicand:  1..105000       (17 bit)
+		denominator:   1 or 10         ( 4 bit)
+*/
+
+/*
 	utility functions
 */
 extern const uint32_t powers[];  // defined in sermsg.c
