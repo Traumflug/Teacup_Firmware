@@ -74,28 +74,28 @@ extern const uint32_t powers[];  // defined in sermsg.c
 const int32_t rounding[DECFLOAT_EXP_MAX] = {0,  5,  50,  500};
 
 static int32_t decfloat_to_int(decfloat *df, uint32_t multiplicand, uint32_t denominator) {
-	int32_t	r = df->mantissa;
+	uint32_t	r = df->mantissa;
 	uint8_t	e = df->exponent;
 
 	// e=1 means we've seen a decimal point but no digits after it, and e=2 means we've seen a decimal point with one digit so it's too high by one if not zero
 	if (e)
 		e--;
 
-	int32_t	rnew1 = r * (multiplicand / denominator);
+	uint32_t	rnew1 = r * (multiplicand / denominator);
 	if (e)
 	{
-		int32_t	rnew2 = r * (multiplicand % denominator) / denominator;
+		uint32_t	rnew2 = r * (multiplicand % denominator) / denominator;
 		r = rnew1 + rnew2;
 
 		r = (r + rounding[e]) / powers[e];
 	}
 	else
 	{
-		int32_t	rnew2 = (r * (multiplicand % denominator) + (denominator / 2)) / denominator;
+		uint32_t	rnew2 = (r * (multiplicand % denominator) + (denominator / 2)) / denominator;
 		r = rnew1 + rnew2;
 	}
 
-	return df->sign ? -r : r;
+	return df->sign ? -(int32_t)r : (int32_t)r;
 }
 
 /****************************************************************************
