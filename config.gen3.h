@@ -184,6 +184,7 @@ undefine if you don't want to use them
 
 #define	E_STEP_PIN						DIO16
 #define	E_DIR_PIN							DIO17
+//#define E_ENABLE_PIN					xxxx
 
 #define	SD_CARD_DETECT				DIO2
 #define	SD_WRITE_PROTECT			DIO3

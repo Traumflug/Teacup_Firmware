@@ -162,19 +162,23 @@ undefine if you don't want to use them
 #define	X_DIR_PIN							AIO1
 #define	X_MIN_PIN							AIO2
 //#define	X_MAX_PIN							xxxx
+//#define	X_ENABLE_PIN					xxxx
 
 #define	Y_STEP_PIN						AIO3
 #define	Y_DIR_PIN							AIO4
 #define	Y_MIN_PIN							AIO5
 //#define	Y_MAX_PIN							xxxx
+//#define	Y_ENABLE_PIN					xxxx
 
 #define	Z_STEP_PIN						DIO2
 #define	Z_DIR_PIN							DIO3
 #define	Z_MIN_PIN							DIO4
 //#define	Z_MAX_PIN							xxxx
+//#define	Z_ENABLE_PIN					xxxx
 
 #define	E_STEP_PIN						DIO7
 #define	E_DIR_PIN							DIO8
+//#define E_ENABLE_PIN					xxxx
 
 #define	PS_ON_PIN							DIO9
 
