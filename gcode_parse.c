@@ -73,7 +73,7 @@ GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
 extern const uint32_t powers[];  // defined in sermsg.c
 const int32_t rounding[DECFLOAT_EXP_MAX] = {0,  5,  50,  500};
 
-static int32_t decfloat_to_int(decfloat *df, int32_t multiplicand, uint32_t denominator) {
+static int32_t decfloat_to_int(decfloat *df, uint32_t multiplicand, uint32_t denominator) {
 	int32_t	r = df->mantissa;
 	uint8_t	e = df->exponent;
 
