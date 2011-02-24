@@ -159,6 +159,12 @@ undefine if you don't want to use them
 #include	"arduino.h"
 
 /*
+	internal pullup resistors
+		the ATmega has internal pullup resistors on it's input pins which are counterproductive with the commonly used eletronic endstops, so they should be switched off. For other endstops, like mechanical ones, you may want to uncomment this.
+*/
+//#define USE_INTERNAL_PULLUPS
+
+/*
 	this is the official gen3 reprap motherboard pinout
 */
 #define TX_ENABLE_PIN					DIO12
