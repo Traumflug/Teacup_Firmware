@@ -355,7 +355,7 @@ DEFINE_HEATER(fan,			PORTH, PINH6, OCR2B)
 // #define	DC_EXTRUDER_PWM	180
 
 /*
-	FiveD on Arduino implements a watchdog, which has to be reset every 250ms or it will reboot the controller. As rebooting (and letting the GCode sending application trying to continue the build with a then different Home point) is probably even worse than just hanging, and there is no better restore code in place, this is disabled for now.
+	Teacup implements a watchdog, which has to be reset every 250ms or it will reboot the controller. As rebooting (and letting the GCode sending application trying to continue the build with a then different Home point) is probably even worse than just hanging, and there is no better restore code in place, this is disabled for now.
 */
 // #define USE_WATCHDOG
 

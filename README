@@ -11,7 +11,7 @@ Rewrite of Reprap Mendel firmware:
 Forum Thread: http://forums.reprap.org/read.php?147
 Post all queries, comments, etc here
 
-Github: http://github.com/triffid/FiveD_on_Arduino
+Github: http://github.com/triffid/Teacup_Firmware
 patches, issues go here
 
 ##############################################################################
@@ -98,7 +98,7 @@ Many others have given patches, encouragement and suggestions without which this
 #                                                                            #
 ##############################################################################
 
-FiveD on Arduino is quite similar to the official firmware in some ways, and markedly different in others. FiveD on Arduino has as much modularity as I could get away with without sacrificing efficiency.
+Teacup is quite similar to the official FiveD firmware in some ways, and markedly different in others. Teacup has as much modularity as I could get away with without sacrificing efficiency.
 
 // FIXME: make next paragraph easier to read
 At startup, the code in mendel.c is run first. This initialises all the modules that need it, then starts polling the clock flags and feeding incoming serial characters to the gcode parser. The gcode parser processes each character individually, keeping track via internal state rather than buffering a line and skipping back and forth. The gcode parser converts floating values to integer or fixed-point representations as soon as it encounters a non-numeric character. It calls many module functions directly, but the most interesting part is move creation, where it passes a target position and speed to enqueue()[dda_queue.c] which adds it to the queue, and fires up dda_start()[dda.c] if the queue was empty. dda_start initialises the dda, figures out the stepper directions and first step timeout and a few other bits of housekeeping, then sets the timer for the appropriate timeout. When the timer fires, it calls dda_step()[dda.c] which sends all the step signals then figures out the next step timeout based on acceleration and speed settings. When the last step has been made, the dda "dies" (sets 'live' property to 0) after which queue_step[dda_queue.c] advances the queue read pointer and starts the next dda.
@@ -128,8 +128,8 @@ The PID code in heater.c is probably quite generalisable, and seems to work well
 ##############################################################################
 
 Forum thread: http://forums.reprap.org/read.php?147,33082
-Source Repository: http://github.com/triffid/FiveD_on_Arduino
-Wiki Page: http://objects.reprap.org/wiki/FiveD_on_Arduino
+Source Repository: http://github.com/triffid/Teacup_Firmware
+Wiki Page: http://objects.reprap.org/wiki/Teacup_Firmware
 
 ##############################################################################
 #                                                                            #
@@ -170,7 +170,7 @@ Debugging aids
 *** delay.[ch]
 Delay functions
 
-*** FiveD_on_Arduino.pde
+*** Teacup.pde
 Allows firmware to be built in arduino ide
 
 *** func.sh
