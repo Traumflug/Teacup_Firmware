@@ -6,12 +6,6 @@
 #ifndef	X_INVERT_DIR
 	#define	X_INVERT_DIR 0
 #endif
-#ifndef	X_INVERT_MIN
-	#define	X_INVERT_MIN 0
-#endif
-#ifndef	X_INVERT_MAX
-	#define	X_INVERT_MAX 0
-#endif
 #ifndef	X_INVERT_ENABLE
 	#define	X_INVERT_ENABLE 0
 #endif
@@ -19,24 +13,12 @@
 #ifndef	Y_INVERT_DIR
 	#define	Y_INVERT_DIR 0
 #endif
-#ifndef	Y_INVERT_MIN
-	#define	Y_INVERT_MIN 0
-#endif
-#ifndef	Y_INVERT_MAX
-	#define	Y_INVERT_MAX 0
-#endif
 #ifndef	Y_INVERT_ENABLE
 	#define	Y_INVERT_ENABLE 0
 #endif
 
 #ifndef	Z_INVERT_DIR
 	#define	Z_INVERT_DIR 0
-#endif
-#ifndef	Z_INVERT_MIN
-	#define	Z_INVERT_MIN 0
-#endif
-#ifndef	Z_INVERT_MAX
-	#define	Z_INVERT_MAX 0
 #endif
 #ifndef	Z_INVERT_ENABLE
 	#define	Z_INVERT_ENABLE 0
@@ -75,12 +57,20 @@ X Stepper
 #define	x_step()							_x_step(1);
 #define	x_direction(dir)			WRITE(X_DIR_PIN, dir ^ X_INVERT_DIR)
 #ifdef	X_MIN_PIN
-	#define	x_min()							(READ(X_MIN_PIN)?(X_INVERT_MIN ^ 1):X_INVERT_MIN)
+	#ifndef X_INVERT_MIN
+		#define x_min()						(READ(X_MIN_PIN)?1:0)
+	#else
+		#define x_min()						(READ(X_MIN_PIN)?0:1)
+	#endif
 #else
 	#define	x_min()							(0)
 #endif
 #ifdef	X_MAX_PIN
-	#define	x_max()							(READ(X_MAX_PIN)?(X_INVERT_MAX ^ 1):X_INVERT_MAX)
+	#ifndef X_INVERT_MAX
+		#define x_max()						(READ(X_MAX_PIN)?1:0)
+	#else
+		#define x_max()						(READ(X_MAX_PIN)?0:1)
+	#endif
 #else
 	#define	x_max()							(0)
 #endif
@@ -93,12 +83,20 @@ Y Stepper
 #define	y_step()							_y_step(1);
 #define	y_direction(dir)			WRITE(Y_DIR_PIN, dir ^ Y_INVERT_DIR)
 #ifdef	Y_MIN_PIN
-	#define	y_min()							(READ(Y_MIN_PIN)?(Y_INVERT_MIN ^ 1):Y_INVERT_MIN)
+	#ifndef Y_INVERT_MIN
+		#define y_min()						(READ(Y_MIN_PIN)?1:0)
+	#else
+		#define y_min()						(READ(Y_MIN_PIN)?0:1)
+	#endif
 #else
 	#define	y_min()							(0)
 #endif
 #ifdef	Y_MAX_PIN
-	#define	y_max()							(READ(Y_MAX_PIN)?(Y_INVERT_MAX ^ 1):Y_INVERT_MAX)
+	#ifndef Y_INVERT_MAX
+		#define y_max()						(READ(Y_MAX_PIN)?1:0)
+	#else
+		#define y_max()						(READ(Y_MAX_PIN)?0:1)
+	#endif
 #else
 	#define	y_max()							(0)
 #endif
@@ -111,12 +109,20 @@ Z Stepper
 #define	z_step()							_z_step(1);
 #define	z_direction(dir)			WRITE(Z_DIR_PIN, dir ^ Z_INVERT_DIR)
 #ifdef	Z_MIN_PIN
-	#define	z_min()							(READ(Z_MIN_PIN)?(Z_INVERT_MIN ^ 1):Z_INVERT_MIN)
+	#ifndef Z_INVERT_MIN
+		#define z_min()						(READ(Z_MIN_PIN)?1:0)
+	#else
+		#define z_min()						(READ(Z_MIN_PIN)?0:1)
+	#endif
 #else
 	#define	z_min()							(0)
 #endif
 #ifdef	Z_MAX_PIN
-	#define	z_max()							(READ(Z_MAX_PIN)?(Z_INVERT_MAX ^ 1):Z_INVERT_MAX)
+	#ifndef Z_INVERT_MAX
+		#define z_max()						(READ(Z_MAX_PIN)?1:0)
+	#else
+		#define z_max()						(READ(Z_MAX_PIN)?0:1)
+	#endif
 #else
 	#define	z_max()							(0)
 #endif
