@@ -100,6 +100,25 @@ uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz )
 	return (( approx + 512 ) >> 10 );
 }
 
+// courtesy of http://www.embedded-systems.com/98/9802fe2.htm
+uint16_t int_sqrt(uint32_t a) {
+	uint32_t rem = 0;
+	uint32_t root = 0;
+	for (uint16_t i = 0; i < 16; i++) {
+		root <<= 1;
+		rem = ((rem << 2) + (a >> 30));
+		a <<= 2;
+		root++;
+		if (root <= rem) {
+			rem -= root;
+			root++;
+		}
+		else
+			root--;
+	}
+	return (uint16_t) ((root >> 1) & 0xFFFFL);
+}
+
 // this is an ultra-crude pseudo-logarithm routine, such that:
 // 2 ^ msbloc(v) >= v
 const uint8_t	msbloc (uint32_t v) {
