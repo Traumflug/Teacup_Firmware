@@ -105,11 +105,6 @@ static int32_t decfloat_to_int(decfloat *df, int32_t multiplicand, uint32_t deno
 ****************************************************************************/
 
 void gcode_parse_char(uint8_t c) {
-	#ifdef ASTERISK_IN_CHECKSUM_INCLUDED
-	if (next_target.seen_checksum == 0)
-		next_target.checksum_calculated = crc(next_target.checksum_calculated, c);
-	#endif
-
 	// uppercase
 	if (c >= 'a' && c <= 'z')
 		c &= ~32;
@@ -319,11 +314,8 @@ void gcode_parse_char(uint8_t c) {
 	} else if ( next_target.seen_parens_comment == 1 && c == ')')
 		next_target.seen_parens_comment = 0; // recognize stuff after a (comment)
 
-
-	#ifndef ASTERISK_IN_CHECKSUM_INCLUDED
 	if (next_target.seen_checksum == 0)
 		next_target.checksum_calculated = crc(next_target.checksum_calculated, c);
-	#endif
 
 	// end of line
 	if ((c == 10) || (c == 13)) {

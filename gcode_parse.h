@@ -5,10 +5,6 @@
 
 #include	"dda.h"
 
-// wether the asterisk (checksum-command) is included for checksum calculation
-// undefined for RepRap host software
-//#define ASTERISK_IN_CHECKSUM_INCLUDED
-
 // wether to insist on N line numbers
 // if not defined, N's are completely ignored
 //#define	REQUIRE_LINENUMBER
