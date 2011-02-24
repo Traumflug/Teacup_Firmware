@@ -1,3 +1,6 @@
+#ifndef	_CONFIG_H
+#define	_CONFIG_H
+
 /*
 	CONTENTS
 	
@@ -422,3 +425,5 @@ DEFINE_HEATER(fan,			PORTH, PINH6, OCR2B)
 * OCR5CL - PL5 - DIO44                                                      *
 *                                                                           *
 \***************************************************************************/
+
+#endif /* _CONFIG_H */

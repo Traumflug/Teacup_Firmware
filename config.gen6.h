@@ -1,3 +1,6 @@
+#ifndef	_CONFIG_H
+#define	_CONFIG_H
+
 /*
   Sample configuration file for the GEN6-Board sold by Camiel Gubbels.
   http://www.reprap.org/wiki/Generation_6_Electronics
@@ -408,3 +411,5 @@ DEFINE_HEATER(extruder,   PORTD, PIND6, OCR2B)
 * OCR5CL - PL5 - DIO44                                                      *
 *                                                                           *
 \***************************************************************************/
+
+#endif /* _CONFIG_H */

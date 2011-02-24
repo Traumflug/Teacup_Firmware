@@ -1,3 +1,6 @@
+#ifndef	_CONFIG_H
+#define	_CONFIG_H
+
 /*
 	CONTENTS
 	
@@ -419,3 +422,5 @@ DEFINE_TEMP_SENSOR(noheater,	TT_INTERCOM,		0)
 * OCR5CL - PL5 - DIO44                                                      *
 *                                                                           *
 \***************************************************************************/
+
+#endif /* _CONFIG_H */
