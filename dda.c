@@ -604,6 +604,8 @@ void dda_step(DDA *dda) {
 		#ifdef	DC_EXTRUDER
 			heater_set(DC_EXTRUDER, 0);
 		#endif
+		// z stepper is only enabled while moving
+		z_disable();
 	}
 	
 	setTimer(dda->c >> 8);
