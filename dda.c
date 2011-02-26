@@ -183,6 +183,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		y_enable();
 		if (dda->z_delta)
 			z_enable();
+		e_enable();
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
 		if (dda->z_delta == 0)
@@ -363,6 +364,7 @@ void dda_start(DDA *dda) {
 		y_enable();
 		if (dda->z_delta)
 			z_enable();
+		e_enable();
 
 		// set direction outputs
 		x_direction(dda->x_direction);

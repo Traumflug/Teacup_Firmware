@@ -45,6 +45,9 @@
 #ifndef	E_INVERT_DIR
 	#define	E_INVERT_DIR 0
 #endif
+#ifndef	E_INVERT_ENABLE
+	#define	E_INVERT_ENABLE 0
+#endif
 
 #ifndef	STEPPER_ENABLE_INVERT
 	#define	STEPPER_ENABLE_INVERT 0
@@ -163,6 +166,14 @@ Stepper Enable Pins
 #else
 	#define	z_enable()					do { } while (0)
 	#define	z_disable()					do { } while (0)
+#endif
+
+#ifdef	E_ENABLE_PIN
+	#define	e_enable()					do { WRITE(E_ENABLE_PIN, E_INVERT_ENABLE); SET_OUTPUT(E_ENABLE_PIN); } while (0)
+	#define	e_disable()					do { WRITE(E_ENABLE_PIN, E_INVERT_ENABLE ^ 1); SET_OUTPUT(E_ENABLE_PIN); } while (0)
+#else
+	#define	e_enable()					do { } while (0)
+	#define	e_disable()					do { } while (0)
 #endif
 
 #endif	/* _PINIO_H */
