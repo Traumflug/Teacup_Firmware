@@ -273,6 +273,7 @@ void process_gcode_command() {
 				x_disable();
 				y_disable();
 				z_disable();
+				e_disable();
 				power_off();
 				for (;;)
 					wd_reset();
@@ -439,6 +440,7 @@ void process_gcode_command() {
 				x_enable();
 				y_enable();
 				z_enable();
+				e_enable();
 				steptimeout = 0;
 				break;
 			// M191- power off
@@ -446,6 +448,7 @@ void process_gcode_command() {
 				x_disable();
 				y_disable();
 				z_disable();
+				e_disable();
 				power_off();
 				break;
 				

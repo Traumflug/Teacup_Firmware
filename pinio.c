@@ -10,6 +10,9 @@ void power_off() {
 	#ifdef	Z_ENABLE_PIN
 		z_disable();
 	#endif
+	#ifdef	E_ENABLE_PIN
+		e_disable();
+	#endif
 
 	#ifdef	STEPPER_ENABLE_PIN
 	WRITE(STEPPER_ENABLE_PIN, STEPPER_ENABLE_INVERT ^ 1);
