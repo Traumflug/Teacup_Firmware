@@ -57,6 +57,10 @@
 	#include	"arduino_1280.h"
 #endif	/* __AVR_ATmega1280__ */
 
+#if defined (__AVR_ATmega2560__)
+	#include    "arduino_1280.h" //2560 has the same pins and ports so we can reuse the 1280 file.
+#endif
+
 #ifndef	DIO0_PIN
 #error pins for this chip not defined in arduino.h! If you write an appropriate pin definition and have this firmware work on your chip, please tell us via the forum thread
 #endif

@@ -16,23 +16,14 @@
 #endif
 
 typedef enum {
-	TT_THERMISTOR,
-	TT_MAX6675,
-	TT_AD595,
-	TT_PT100,
-	TT_INTERCOM,
-	TT_DUMMY,
-} temp_types;
-
-typedef enum {
 	PRESENT,
 	TCOPEN
 } temp_flags_enum;
 
 typedef struct {
-	uint8_t temp_type;
-	uint8_t temp_pin;
-	uint8_t heater_index;
+	temp_type_t temp_type;
+	uint8_t     temp_pin;
+	heater_t    heater;
 } temp_sensor_definition_t;
 
 #undef DEFINE_TEMP_SENSOR
@@ -95,6 +86,9 @@ void temp_init() {
 				send_temperature(0, 0);
 				break;
 		#endif
+
+			default: /* prevent compiler warning */
+				break;
 		}
 	}
 }
@@ -241,8 +235,6 @@ void temp_sensor_tick() {
 				case TT_INTERCOM:
 					temp = read_temperature(temp_sensors[i].temp_pin);
 
-					start_send();
-
 					temp_sensors_runtime[i].next_read_time = 0;
 
 					break;
@@ -261,6 +253,9 @@ void temp_sensor_tick() {
 
 					break;
 				#endif	/* TEMP_DUMMY */
+
+				default: /* prevent compiler warning */
+					break;
 			}
 			temp_sensors_runtime[i].last_read_temp = temp;
 			
@@ -272,8 +267,8 @@ void temp_sensor_tick() {
 				temp_sensors_runtime[i].temp_residency = 0;
 			}
 			
-			if (temp_sensors[i].heater_index < NUM_HEATERS) {
-				heater_tick(temp_sensors[i].heater_index, i, temp_sensors_runtime[i].last_read_temp, temp_sensors_runtime[i].target_temp);
+			if (temp_sensors[i].heater < NUM_HEATERS) {
+				heater_tick(temp_sensors[i].heater, i, temp_sensors_runtime[i].last_read_temp, temp_sensors_runtime[i].target_temp);
 			}
 		}
 	}
