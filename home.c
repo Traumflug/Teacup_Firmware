@@ -32,6 +32,7 @@ void home_x_negative() {
 		uint8_t	denoise_count = 0;
 
 		// home X
+		x_enable();
 		// hit home hard
 		x_direction(0);
 		while (denoise_count < 8) {
@@ -70,6 +71,7 @@ void home_x_positive() {
 		uint8_t	denoise_count = 0;
 
 		// home X
+		x_enable();
 		// hit home hard
 		x_direction(1);
 		while (denoise_count < 8) {
@@ -113,6 +115,7 @@ void home_y_negative() {
 		uint8_t	denoise_count = 0;
 
 		// home Y
+		y_enable();
 		// hit home hard
 		y_direction(0);
 		while (denoise_count < 8) {
@@ -151,6 +154,7 @@ void home_y_positive() {
 		uint8_t	denoise_count = 0;
 
 		// home Y
+		y_enable();
 		// hit home hard
 		y_direction(1);
 		while (denoise_count < 8) {
@@ -194,6 +198,7 @@ void home_z_negative() {
 		uint8_t	denoise_count = 0;
 
 		// home Z
+		z_enable();
 		// hit home hard
 		z_direction(0);
 		while (denoise_count < 8) {
@@ -224,6 +229,7 @@ void home_z_negative() {
 
 		// set Z home
 		startpoint.Z = current_position.Z = 0;
+		z_disable();
 	#endif
 }
 
@@ -232,6 +238,7 @@ void home_z_positive() {
 		uint8_t	denoise_count = 0;
 
 		// home Z
+		z_enable();
 		// hit home hard
 		z_direction(1);
 		while (denoise_count < 8) {
