@@ -182,8 +182,6 @@ int main (void)
 
 	enable_heater();
 
-	start_send();
-
 	// main loop
 	for (;;)
 	{
