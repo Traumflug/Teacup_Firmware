@@ -1,5 +1,4 @@
-#ifndef	_CONFIG_H
-#define	_CONFIG_H
+/* Notice to developers: this file is intentionally included twice. */
 
 /*
 	CONTENTS
@@ -425,5 +424,3 @@ DEFINE_HEATER(fan,			PORTH, PINH6, OCR2B)
 * OCR5CL - PL5 - DIO44                                                      *
 *                                                                           *
 \***************************************************************************/
-
-#endif /* _CONFIG_H */

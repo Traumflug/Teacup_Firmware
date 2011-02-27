@@ -1,5 +1,4 @@
-#ifndef	_CONFIG_H
-#define	_CONFIG_H
+/* Notice to developers: this file is intentionally included twice. */
 
 /*
   Sample configuration file for the GEN6-Board sold by Camiel Gubbels.
@@ -411,5 +410,3 @@ DEFINE_HEATER(extruder,   PORTD, PIND6, OCR2B)
 * OCR5CL - PL5 - DIO44                                                      *
 *                                                                           *
 \***************************************************************************/
-
-#endif /* _CONFIG_H */
