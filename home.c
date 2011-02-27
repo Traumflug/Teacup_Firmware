@@ -58,7 +58,7 @@ void home_x_negative() {
 			delay(5);
 			unstep();
 			// wait until next step time
-			delay((uint32_t) (60.0 * ((float) F_CPU) / STEPS_PER_MM_X / ((float) SEARCH_FEEDRATE_X)));
+			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_X / ((float) SEARCH_FEEDRATE_X)));
 		}
 
 		// set X home
@@ -85,7 +85,7 @@ void home_x_positive() {
 			delay(5);
 			unstep();
 			// wait until next step time
-			delay((uint32_t) (60.0 * ((float) F_CPU) / STEPS_PER_MM_X / ((float) MAXIMUM_FEEDRATE_X)));
+			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_X / ((float) MAXIMUM_FEEDRATE_X)));
 		}
 		denoise_count = 0;
 
@@ -141,7 +141,7 @@ void home_y_negative() {
 			delay(5);
 			unstep();
 			// wait until next step time
-			delay((uint32_t) (60.0 * ((float) F_CPU) / STEPS_PER_MM_Y / ((float) SEARCH_FEEDRATE_Y)));
+			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Y / ((float) SEARCH_FEEDRATE_Y)));
 		}
 
 		// set Y home
@@ -168,7 +168,7 @@ void home_y_positive() {
 			delay(5);
 			unstep();
 			// wait until neyt step time
-			delay((uint32_t) (60.0 * ((float) F_CPU) / STEPS_PER_MM_Y / ((float) MAXIMUM_FEEDRATE_Y)));
+			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Y / ((float) MAXIMUM_FEEDRATE_Y)));
 		}
 		denoise_count = 0;
 
@@ -224,7 +224,7 @@ void home_z_negative() {
 			delay(5);
 			unstep();
 			// wait until next step time
-			delay((uint32_t) (60.0 * ((float) F_CPU) / STEPS_PER_MM_Z / ((float) SEARCH_FEEDRATE_Z)));
+			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Z / ((float) SEARCH_FEEDRATE_Z)));
 		}
 
 		// set Z home
@@ -252,7 +252,7 @@ void home_z_positive() {
 			delay(5);
 			unstep();
 			// wait until next step time
-			delay((uint32_t) (60.0 * ((float) F_CPU) / STEPS_PER_MM_Z / ((float) MAXIMUM_FEEDRATE_Z)));
+			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Z / ((float) MAXIMUM_FEEDRATE_Z)));
 		}
 		denoise_count = 0;
 
