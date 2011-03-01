@@ -3,30 +3,18 @@
 
 #include	"config.h"
 
-#ifndef	X_INVERT_DIR
-	#define	X_INVERT_DIR 0
-#endif
 #ifndef	X_INVERT_ENABLE
 	#define	X_INVERT_ENABLE 0
 #endif
 
-#ifndef	Y_INVERT_DIR
-	#define	Y_INVERT_DIR 0
-#endif
 #ifndef	Y_INVERT_ENABLE
 	#define	Y_INVERT_ENABLE 0
 #endif
 
-#ifndef	Z_INVERT_DIR
-	#define	Z_INVERT_DIR 0
-#endif
 #ifndef	Z_INVERT_ENABLE
 	#define	Z_INVERT_ENABLE 0
 #endif
 
-#ifndef	E_INVERT_DIR
-	#define	E_INVERT_DIR 0
-#endif
 #ifndef	E_INVERT_ENABLE
 	#define	E_INVERT_ENABLE 0
 #endif
@@ -55,7 +43,11 @@ X Stepper
 
 #define	_x_step(st)						WRITE(X_STEP_PIN, st)
 #define	x_step()							_x_step(1);
-#define	x_direction(dir)			WRITE(X_DIR_PIN, dir ^ X_INVERT_DIR)
+#ifndef	X_INVERT_DIR
+	#define	x_direction(dir)		WRITE(X_DIR_PIN, dir)
+#else
+	#define	x_direction(dir)		WRITE(X_DIR_PIN, dir^1)
+#endif
 #ifdef	X_MIN_PIN
 	#ifndef X_INVERT_MIN
 		#define x_min()						(READ(X_MIN_PIN)?1:0)
@@ -81,7 +73,11 @@ Y Stepper
 
 #define	_y_step(st)						WRITE(Y_STEP_PIN, st)
 #define	y_step()							_y_step(1);
-#define	y_direction(dir)			WRITE(Y_DIR_PIN, dir ^ Y_INVERT_DIR)
+#ifndef	Y_INVERT_DIR
+	#define	y_direction(dir)		WRITE(Y_DIR_PIN, dir)
+#else
+	#define	y_direction(dir)		WRITE(Y_DIR_PIN, dir^1)
+#endif
 #ifdef	Y_MIN_PIN
 	#ifndef Y_INVERT_MIN
 		#define y_min()						(READ(Y_MIN_PIN)?1:0)
@@ -107,7 +103,11 @@ Z Stepper
 
 #define	_z_step(st)						WRITE(Z_STEP_PIN, st)
 #define	z_step()							_z_step(1);
-#define	z_direction(dir)			WRITE(Z_DIR_PIN, dir ^ Z_INVERT_DIR)
+#ifndef	Z_INVERT_DIR
+	#define	z_direction(dir)		WRITE(Z_DIR_PIN, dir)
+#else
+	#define	z_direction(dir)		WRITE(Z_DIR_PIN, dir^1)
+#endif
 #ifdef	Z_MIN_PIN
 	#ifndef Z_INVERT_MIN
 		#define z_min()						(READ(Z_MIN_PIN)?1:0)
@@ -133,7 +133,11 @@ Extruder
 
 #define	_e_step(st)						WRITE(E_STEP_PIN, st)
 #define	e_step()							_e_step(1);
-#define	e_direction(dir)			WRITE(E_DIR_PIN, dir ^ E_INVERT_DIR)
+#ifndef	E_INVERT_DIR
+	#define	e_direction(dir)			WRITE(E_DIR_PIN, dir)
+#else
+	#define	e_direction(dir)			WRITE(E_DIR_PIN, dir^1)
+#endif
 
 /*
 End Step - All Steppers
