@@ -131,12 +131,18 @@ Z Stepper
 Extruder
 */
 
-#define	_e_step(st)						WRITE(E_STEP_PIN, st)
-#define	e_step()							_e_step(1);
-#ifndef	E_INVERT_DIR
-	#define	e_direction(dir)			WRITE(E_DIR_PIN, dir)
+#if defined E_STEP_PIN && defined E_DIR_PIN
+	#define	_e_step(st)						WRITE(E_STEP_PIN, st)
+	#define	e_step()							_e_step(1);
+	#ifndef	E_INVERT_DIR
+		#define	e_direction(dir)		WRITE(E_DIR_PIN, dir)
+	#else
+		#define	e_direction(dir)		WRITE(E_DIR_PIN, dir^1)
+	#endif
 #else
-	#define	e_direction(dir)			WRITE(E_DIR_PIN, dir^1)
+	#define	_e_step(st)						do { } while (0)
+	#define	e_step()							do { } while (0)
+	#define	e_direction(dir)			do { } while (0)
 #endif
 
 /*
