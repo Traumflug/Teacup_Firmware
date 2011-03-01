@@ -202,13 +202,33 @@ int main (void)
 		// check if we've had a new intercom packet
 		if (intercom_flags & FLAG_NEW_RX) {
 			intercom_flags &= ~FLAG_NEW_RX;
-			
-			send_temperature(0, temp_get(0));
-			send_temperature(1, temp_get(1));
-			temp_set(0, read_temperature(0));
-			temp_set(1, read_temperature(1));
-			
-			start_send();
+
+			switch (rx.packet.control_word) {
+				// M105- read temperatures
+				case 105:
+					send_temperature(0, temp_get(0));
+					temp_set(0, read_temperature(0));
+					send_temperature(1, temp_get(1));
+					temp_set(1, read_temperature(1));
+					start_send();
+					break;
+				// M130 - set PID P factor
+				case 130:
+					pid_set_p(rx.packet.control_index, rx.packet.control_data_int32);
+				// M131 - set PID I factor
+				case 131:
+					pid_set_i(rx.packet.control_index, rx.packet.control_data_int32);
+				// M132 - set PID D factor
+				case 132:
+					pid_set_d(rx.packet.control_index, rx.packet.control_data_int32);
+				// M133 - set PID I limit
+				case 133:
+					pid_set_i_limit(rx.packet.control_index, rx.packet.control_data_int32);
+				// M134 - save PID values to eeprom
+				case 134:
+					heater_save_settings();
+					break;
+			}
 		}
 	}
 }

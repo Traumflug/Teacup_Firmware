@@ -11,31 +11,6 @@
 
 #define	START	0x55
 
-enum {
-	ERROR_BAD_CRC
-} err_codes;
-
-typedef struct {
-	uint8_t		start;
-	uint8_t		dio;
-	uint8_t		controller_num;
-	uint8_t		control_word;
-	uint8_t		control_index;
-	union {
-		int32_t		control_data_int32;
-		uint32_t	control_data_uint32;
-		float			control_data_float;
-		uint16_t	temp[2];
-	};
-	uint8_t		err;
-	uint8_t		crc;
-} intercom_packet_t;
-
-typedef union {
-	intercom_packet_t packet;
-	uint8_t						data[sizeof(intercom_packet_t)];
-} intercom_packet;
-
 intercom_packet tx;		// this packet will be send
 intercom_packet rx;		// the last received packet with correct checksum
 intercom_packet _tx;	// current packet in transmission

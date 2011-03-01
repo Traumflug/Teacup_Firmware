@@ -12,6 +12,34 @@
 	#define disable_transmit()			do { WRITE(TX_ENABLE_PIN,0);  UCSR0B &= ~(MASK(TXCIE0) | MASK(UDRIE0)); UCSR0B |= MASK(RXEN0); } while(0)
 #endif
 
+enum {
+	ERROR_BAD_CRC
+} err_codes;
+
+typedef struct {
+	uint8_t		start;
+	uint8_t		dio;
+	uint8_t		controller_num;
+	uint8_t		control_word;
+	uint8_t		control_index;
+	union {
+		int32_t		control_data_int32;
+		uint32_t	control_data_uint32;
+		float			control_data_float;
+		uint16_t	temp[2];
+	};
+	uint8_t		err;
+	uint8_t		crc;
+} intercom_packet_t;
+
+typedef union {
+	intercom_packet_t packet;
+	uint8_t						data[sizeof(intercom_packet_t)];
+} intercom_packet;
+
+extern intercom_packet tx;
+extern intercom_packet rx;
+
 // initialise serial subsystem
 void intercom_init(void);
 
@@ -46,5 +74,7 @@ void start_send(void);
 #define FLAG_NEW_RX					4
 #define	FLAG_TX_FINISHED		8
 extern volatile uint8_t	intercom_flags;
+
+
 
 #endif	/* _INTERCOM_H */
