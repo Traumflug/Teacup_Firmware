@@ -9,6 +9,7 @@
 #include	"watchdog.h"
 #include	"heater.h"
 #include	"temp.h"
+#include	"timer.h"
 
 static uint8_t motor_pwm;
 
@@ -168,6 +169,9 @@ void init(void) {
 	// set up extruder motor driver
 	motor_init();
 
+	// set up clock
+	timer_init();
+	
 	// enable interrupts
 	sei();
 
@@ -190,11 +194,21 @@ int main (void)
 		//Read motor PWM
 		motor_pwm = analog_read(TRIM_POT_CHANNEL) >> 2;
 
-		temp_sensor_tick();
-
-		send_temperature(0, temp_get(0));
-		send_temperature(1, temp_get(1));
-		temp_set(0, read_temperature(0));
-		temp_set(1, read_temperature(1));
+		ifclock(CLOCK_FLAG_10MS) {
+			// check temperatures and manage heaters
+			temp_sensor_tick();
+		}
+		
+		// check if we've had a new intercom packet
+		if (intercom_flags & FLAG_NEW_RX) {
+			intercom_flags &= ~FLAG_NEW_RX;
+			
+			send_temperature(0, temp_get(0));
+			send_temperature(1, temp_get(1));
+			temp_set(0, read_temperature(0));
+			temp_set(1, read_temperature(1));
+			
+			start_send();
+		}
 	}
 }

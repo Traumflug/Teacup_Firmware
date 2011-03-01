@@ -9,6 +9,7 @@
 #define	disable_heater()	heater_set(0, 0)
 
 #undef DEFINE_HEATER
+#undef _CONFIG_H
 #define DEFINE_HEATER(name, port, pin, pwm) HEATER_ ## name,
 typedef enum
 {

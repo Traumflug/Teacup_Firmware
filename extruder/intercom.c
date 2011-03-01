@@ -17,21 +17,16 @@ enum {
 
 typedef struct {
 	uint8_t		start;
-	union {
-		struct {
-			uint8_t		dio0		:1;
-			uint8_t		dio1		:1;
-			uint8_t		dio2		:1;
-			uint8_t		dio3		:1;
-			uint8_t		dio4		:1;
-			uint8_t		dio5		:1;
-			uint8_t		dio6		:1;
-			uint8_t		dio7		:1;
-		};
-		uint8_t		dio;
-	};
+	uint8_t		dio;
 	uint8_t		controller_num;
-	uint16_t	temp[3];
+	uint8_t		control_word;
+	uint8_t		control_index;
+	union {
+		int32_t		control_data_int32;
+		uint32_t	control_data_uint32;
+		float			control_data_float;
+		uint16_t	temp[2];
+	};
 	uint8_t		err;
 	uint8_t		crc;
 } intercom_packet_t;
@@ -120,8 +115,15 @@ void start_send(void) {
 	intercom_flags = (intercom_flags & ~FLAG_TX_FINISHED) | FLAG_TX_IN_PROGRESS;
 	SREG = sreg;
 
+	// enable transmit pin
+	enable_transmit();
+	
 	// set start byte
 	tx.packet.start = START;
+
+	// set packet type
+	tx.packet.control_word = 105;
+	tx.packet.control_index = 0;
 
 	// calculate CRC for outgoing packet
 	for (i = 0; i < (sizeof(intercom_packet_t) - 1); i++) {
@@ -133,17 +135,14 @@ void start_send(void) {
 		_tx.data[i] = tx.data[i];
 	}
 
-	// enable transmit pin
-	enable_transmit();
-	delay_us(15);
+	packet_pointer = 0;
 
 	// actually start sending the packet
-	packet_pointer = 0;
-#ifdef HOST
-	UCSR1B |= MASK(UDRIE1);
-#else
-	UCSR0B |= MASK(UDRIE0);
-#endif
+	#ifdef HOST
+		UCSR1B |= MASK(UDRIE1);
+	#else
+		UCSR0B |= MASK(UDRIE0);
+	#endif
 }
 
 /*
@@ -199,15 +198,18 @@ ISR(USART_RX_vect)
 				}
 			}
 
-			intercom_flags = (intercom_flags & ~FLAG_RX_IN_PROGRESS) | FLAG_NEW_RX;
 			#ifndef HOST
-				if (_rx.packet.controller_num == THIS_CONTROLLER_NUM) {
+				if (rx.packet.controller_num == THIS_CONTROLLER_NUM) {
 					if (rxcrc != _rx.packet.crc)
 						tx.packet.err = ERROR_BAD_CRC;
+					else
+						intercom_flags = (intercom_flags & ~FLAG_RX_IN_PROGRESS) | FLAG_NEW_RX;
 					// not sure why exactly this delay is needed, but wihtout it first byte never arrives.
-					delay_us(150);
-					start_send();
+// 					delay_us(150);
+// 					start_send();
 				}
+			#else
+				intercom_flags = (intercom_flags & ~FLAG_RX_IN_PROGRESS) | FLAG_NEW_RX;
 			#endif
 		}
 	}

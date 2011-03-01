@@ -5,11 +5,11 @@
 #include	"config.h"
 
 #ifdef HOST
-	#define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  UCSR1B &= ~MASK(RXEN1); } while(0)
-	#define disable_transmit()			do { WRITE(TX_ENABLE_PIN,0);  UCSR1B |= MASK(RXEN1); } while(0)
+	#define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  UCSR1B &=~MASK(RXEN1); } while(0)
+	#define disable_transmit()			do { WRITE(TX_ENABLE_PIN,0);  UCSR1B &= ~(MASK(TXCIE1) | MASK(UDRIE1)); UCSR1B |= MASK(RXEN1); } while(0)
 #else
 	#define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  UCSR0B &= ~MASK(RXEN0); } while(0)
-	#define disable_transmit()			do { WRITE(TX_ENABLE_PIN,0);  UCSR0B |= MASK(RXEN0); } while(0)
+	#define disable_transmit()			do { WRITE(TX_ENABLE_PIN,0);  UCSR0B &= ~(MASK(TXCIE0) | MASK(UDRIE0)); UCSR0B |= MASK(RXEN0); } while(0)
 #endif
 
 // initialise serial subsystem
