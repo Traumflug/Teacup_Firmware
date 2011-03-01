@@ -150,11 +150,7 @@ End Step - All Steppers
 (so we don't have to delay in interrupt context)
 */
 
-#ifndef	DC_EXTRUDER
-	#define unstep() 							do { _x_step(0); _y_step(0); _z_step(0); _e_step(0); } while (0)
-#else
-	#define unstep() 							do { _x_step(0); _y_step(0); _z_step(0); } while (0)
-#endif
+#define unstep() 							do { _x_step(0); _y_step(0); _z_step(0); _e_step(0); } while (0)
 
 /*
 Stepper Enable Pins

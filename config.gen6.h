@@ -359,7 +359,7 @@ DEFINE_HEATER(extruder,   PORTD, PIND6, OCR2B)
 
 /*
 	DC extruder
-		If you have a DC motor extruder, configure it as a "heater" above and define this value as the index or name
+		If you have a DC motor extruder, configure it as a "heater" above and define this value as the index or name. You probably also want to comment out E_STEP_PIN and E_DIR_PIN in the Pinouts section above
 */
 // #define	DC_EXTRUDER HEATER_motor
 // #define	DC_EXTRUDER_PWM	180
