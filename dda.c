@@ -183,8 +183,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		power_on();
 		x_enable();
 		y_enable();
-		if (dda->z_delta)
-			z_enable();
+		// Z is enabled in dda_start()
 		e_enable();
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
@@ -359,14 +358,10 @@ void dda_start(DDA *dda) {
 			#endif
 		}
 		else {*/
-		// ensure steppers are ready to go
+		// get ready to go
 		steptimeout = 0;
-		power_on();
-		x_enable();
-		y_enable();
 		if (dda->z_delta)
 			z_enable();
-		e_enable();
 
 		// set direction outputs
 		x_direction(dda->x_direction);
