@@ -39,17 +39,19 @@ void io_init(void) {
 	WRITE(X_STEP_PIN, 0);	SET_OUTPUT(X_STEP_PIN);
 	WRITE(X_DIR_PIN,  0);	SET_OUTPUT(X_DIR_PIN);
 	#ifdef X_MIN_PIN
+		SET_INPUT(X_MIN_PIN);
 		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(X_MIN_PIN, 1);	SET_INPUT(X_MIN_PIN);
+			WRITE(X_MIN_PIN, 1);
 		#else
-			WRITE(X_MIN_PIN, 0);	SET_INPUT(X_MIN_PIN);
+			WRITE(X_MIN_PIN, 0);
 		#endif
 	#endif
 	#ifdef X_MAX_PIN
+		SET_INPUT(X_MAX_PIN);
 		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(X_MAX_PIN, 1); SET_INPUT(X_MAX_PIN);
+			WRITE(X_MAX_PIN, 1);
 		#else
-			WRITE(X_MAX_PIN, 0); SET_INPUT(X_MAX_PIN);
+			WRITE(X_MAX_PIN, 0);
 		#endif
 	#endif
 	#ifdef X_ENABLE_PIN
@@ -59,17 +61,19 @@ void io_init(void) {
 	WRITE(Y_STEP_PIN, 0);	SET_OUTPUT(Y_STEP_PIN);
 	WRITE(Y_DIR_PIN,  0);	SET_OUTPUT(Y_DIR_PIN);
 	#ifdef Y_MIN_PIN
+		SET_INPUT(Y_MIN_PIN);
 		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(Y_MIN_PIN, 1);	SET_INPUT(Y_MIN_PIN);
+			WRITE(Y_MIN_PIN, 1);
 		#else
-			WRITE(Y_MIN_PIN, 0);	SET_INPUT(Y_MIN_PIN);
+			WRITE(Y_MIN_PIN, 0);
 		#endif
 	#endif
 	#ifdef Y_MAX_PIN
+		SET_INPUT(Y_MAX_PIN);
 		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(Y_MAX_PIN, 1); SET_INPUT(Y_MAX_PIN);
+			WRITE(Y_MAX_PIN, 1);
 		#else
-			WRITE(Y_MAX_PIN, 0); SET_INPUT(Y_MAX_PIN);
+			WRITE(Y_MAX_PIN, 0);
 		#endif
 	#endif
 	#ifdef Y_ENABLE_PIN
@@ -79,17 +83,19 @@ void io_init(void) {
 	WRITE(Z_STEP_PIN, 0);	SET_OUTPUT(Z_STEP_PIN);
 	WRITE(Z_DIR_PIN,  0);	SET_OUTPUT(Z_DIR_PIN);
 	#ifdef Z_MIN_PIN
+		SET_INPUT(Z_MIN_PIN);
 		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(Z_MIN_PIN, 1);	SET_INPUT(Z_MIN_PIN);
+			WRITE(Z_MIN_PIN, 1);
 		#else
-			WRITE(Z_MIN_PIN, 0);	SET_INPUT(Z_MIN_PIN);
+			WRITE(Z_MIN_PIN, 0);
 		#endif
 	#endif
 	#ifdef Z_MAX_PIN
+		SET_INPUT(Z_MAX_PIN);
 		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(Z_MAX_PIN, 1); SET_INPUT(Z_MAX_PIN);
+			WRITE(Z_MAX_PIN, 1);
 		#else
-			WRITE(Z_MAX_PIN, 0); SET_INPUT(Z_MAX_PIN);
+			WRITE(Z_MAX_PIN, 0);
 		#endif
 	#endif
 	#ifdef Z_ENABLE_PIN
