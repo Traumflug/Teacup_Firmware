@@ -28,9 +28,13 @@ void io_init(void) {
 		PRR = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
 	#elif defined PRR0
 		PRR0 = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
-		#ifdef PRR1
+		#if defined(PRUSART3) 
 			// don't use USART2 or USART3- leave USART1 for GEN3 and derivatives
-			PRR1 = MASK(PRUSART3) | MASK(PRUSART2);
+			PRR1 |= MASK(PRUSART3) | MASK(PRUSART2);
+		#endif
+		#if defined(PRUSART2) 
+			// don't use USART2 or USART3- leave USART1 for GEN3 and derivatives
+			PRR1 |= MASK(PRUSART2);
 		#endif
 	#endif
 	ACSR = MASK(ACD);
