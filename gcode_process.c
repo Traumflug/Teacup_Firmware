@@ -364,7 +364,7 @@ void process_gcode_command() {
 				
 			// M110- set line number
 			case 110:
-				next_target.N_expected = next_target.S - 1;
+				// this is a no-op in Teacup
 				break;
 			// M111- set debug level
 			#ifdef	DEBUG

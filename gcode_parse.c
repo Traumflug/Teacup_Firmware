@@ -324,7 +324,8 @@ void gcode_parse_char(uint8_t c) {
 
 		if (
 		#ifdef	REQUIRE_LINENUMBER
-			(next_target.N >= next_target.N_expected) && (next_target.seen_N == 1)
+			((next_target.N >= next_target.N_expected) && (next_target.seen_N == 1)) ||
+			(next_target.seen_M && (next_target.M == 110))
 		#else
 			1
 		#endif
