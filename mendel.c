@@ -151,12 +151,14 @@ void io_init(void) {
 		power_off();
 	#endif
 
-	// setup SPI
-	WRITE(SCK, 0);				SET_OUTPUT(SCK);
-	WRITE(MOSI, 1);				SET_OUTPUT(MOSI);
-	WRITE(MISO, 1);				SET_INPUT(MISO);
-	WRITE(SS, 1);					SET_OUTPUT(SS);
-
+	#ifdef	TEMP_MAX6675
+		// setup SPI
+		WRITE(SCK, 0);				SET_OUTPUT(SCK);
+		WRITE(MOSI, 1);				SET_OUTPUT(MOSI);
+		WRITE(MISO, 1);				SET_INPUT(MISO);
+		WRITE(SS, 1);					SET_OUTPUT(SS);
+	#endif
+	
 	#ifdef TEMP_INTERCOM
 		// Enable the RS485 transceiver
 		SET_OUTPUT(RX_ENABLE_PIN);
