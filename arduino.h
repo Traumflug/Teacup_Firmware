@@ -61,6 +61,10 @@
 	#include    "arduino_1280.h" //2560 has the same pins and ports so we can reuse the 1280 file.
 #endif
 
+#if defined (__AVR_AT90USB1287__)
+	#include    "arduino_usb1287.h"
+#endif
+
 #ifndef	DIO0_PIN
 #error pins for this chip not defined in arduino.h! If you write an appropriate pin definition and have this firmware work on your chip, please tell us via the forum thread
 #endif
