@@ -33,8 +33,10 @@
 # MCU_TARGET = atmega328p
 MCU_TARGET = atmega644p
 # MCU_TARGET = atmega1280
+# MCU_TARGET = at90usb1287
 
 # F_CPU = 16000000L
+# F_CPU = 8000000L
 
 ##############################################################################
 #                                                                            #
@@ -96,7 +98,7 @@ PROGBAUD = 57600
 
 PROGRAM = mendel
 
-SOURCES = $(PROGRAM).c serial.c dda.c gcode_parse.c gcode_process.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c delay.c intercom.c pinio.c clock.c home.c crc.c
+SOURCES = $(PROGRAM).c dda.c gcode_parse.c gcode_process.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c delay.c intercom.c pinio.c clock.c home.c crc.c
 
 ARCH = avr-
 CC = $(ARCH)gcc
@@ -108,13 +110,31 @@ OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once -mcall-prologu
 CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
 LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
 LIBS = -lm
+LIBDEPS =
+SUBDIRS =
+
+ifneq (,$(findstring usb,$(MCU_TARGET)))
+LDFLAGS += -Llufa_serial
+LIBS += -llufa_serial
+SUBDIRS += lufa_serial
+LIBDEPS += lufa_serial/liblufa_serial.a
+else
+SOURCES += serial.c
+endif
 
 OBJ = $(patsubst %.c,%.o,${SOURCES})
 
-.PHONY: all program clean size
+.PHONY: all program clean size subdirs
 .PRECIOUS: %.o %.elf
 
-all: config.h $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
+all: config.h subdirs $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
+
+$(PROGRAM).elf: $(LIBDEPS)
+
+subdirs:
+	@for dir in $(SUBDIRS); do \
+	  $(MAKE) -C $$dir; \
+	done
 
 program: $(PROGRAM).hex config.h
 	stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
@@ -131,8 +151,13 @@ program-fuses:
 	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U hfuse:w:hfuse
 	$(AVRDUDE) -cstk500v1 -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U efuse:w:efuse
 
-clean:
+clean: clean-subdirs
 	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~ *fuse
+
+clean-subdirs:
+	@for dir in $(SUBDIRS); do \
+	  $(MAKE) -C $$dir clean; \
+	done
 
 size: $(PROGRAM).elf
 	@echo "  SIZE                   Atmega168        Atmega328p       Atmega644"

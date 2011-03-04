@@ -5,6 +5,7 @@ Rewrite of Reprap Mendel firmware:
 * can fit onto atmega168 depending on selected options
 * works on atmega328p
 * works on atmega644p
+* works on at90usb1287 with direct USB serial
 * porting to atmega1280 in progress
 * will work on larger atmegas with minor porting
 
@@ -20,6 +21,8 @@ patches, issues go here
 #                                                                            #
 ##############################################################################
 
+0) If using USB serial via LUFA, fetch the submodule with:
+        git submodule init; git submodule update
 1) COPY config.YOURBOARDHERE.h to config.h and edit to suit your electronics
 2) check programming settings in Makefile (chip type, avrdude settings, etc)
 3) make
