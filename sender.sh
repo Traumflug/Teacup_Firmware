@@ -19,6 +19,10 @@ stty $BAUD raw ignbrk -hup -echo ixon < $DEV
 		do
 			read -s -u 3
 			echo "< $REPLY"
+                        case "$REPLY" in
+                                *ok*) REPLY=OK ;;
+                                *OK*) REPLY=OK ;;
+                        esac
 		done
 		read -t 1; RV=$?
 	done
