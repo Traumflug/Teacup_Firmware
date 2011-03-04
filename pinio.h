@@ -110,9 +110,9 @@ Z Stepper
 	#define	z_direction(dir)		WRITE(Z_DIR_PIN, dir^1)
 #endif
 #else
-#define _z_step(x)
-#define z_step()
-#define z_direction(x)
+	#define	_z_step(x)					do { } while (0)
+	#define	z_step()						do { } while (0)
+	#define	z_direction(x)			do { } while (0)
 #endif
 #ifdef	Z_MIN_PIN
 	#ifndef Z_INVERT_MIN
