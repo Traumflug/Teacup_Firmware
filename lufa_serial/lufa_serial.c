@@ -209,13 +209,7 @@ void serial_writestr_P(PGM_P data)
         /* Select the Serial Tx Endpoint */
         Endpoint_SelectEndpoint(CDC_TX_EPNUM);
         size_t len = strlen_P(data);
-        /*
-        if (pgm_read_byte(&data[len-1]) == '\n') {
-            Endpoint_Write_PStream_LE(data, len-1);
-            Endpoint_Write_PStream_LE(PSTR("\r\n"), 2);
-        } else */ {
-            Endpoint_Write_PStream_LE(data, len);
-        }
+        Endpoint_Write_PStream_LE(data, len);
         serial_flush();
 }
 
@@ -224,12 +218,6 @@ void serial_writechar(uint8_t data)
 	if (USB_DeviceState != DEVICE_STATE_Configured)
 	  return;
 
-        /*
-        if (data == '\n') {
-            serial_writestr_P(PSTR("\r\n"));
-            return;
-        }
-        */
         /* Select the Serial Tx Endpoint */
         Endpoint_SelectEndpoint(CDC_TX_EPNUM);
         Endpoint_Write_Stream_LE(&data, 1);
