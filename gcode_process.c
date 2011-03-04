@@ -89,27 +89,27 @@ void process_gcode_command() {
 	// implement axis limits
 	#ifdef	X_MIN
 		if (next_target.target.X < (X_MIN * STEPS_PER_MM_X))
-			next_target.target.X = X_MIN;
+			next_target.target.X = X_MIN * STEPS_PER_MM_X;
 	#endif
 	#ifdef	X_MAX
 		if (next_target.target.X > (X_MAX * STEPS_PER_MM_X))
-			next_target.target.X = X_MAX;
+			next_target.target.X = X_MAX * STEPS_PER_MM_X;
 	#endif
 	#ifdef	Y_MIN
 		if (next_target.target.Y < (Y_MIN * STEPS_PER_MM_Y))
-			next_target.target.Y = Y_MIN;
+			next_target.target.Y = Y_MIN * STEPS_PER_MM_Y;
 	#endif
 	#ifdef	Y_MAX
 		if (next_target.target.Y > (Y_MAX * STEPS_PER_MM_Y))
-			next_target.target.Y = Y_MAX;
+			next_target.target.Y = Y_MAX * STEPS_PER_MM_Y;
 	#endif
 	#ifdef	Z_MIN
 		if (next_target.target.Z < (Z_MIN * STEPS_PER_MM_Z))
-			next_target.target.Z = Z_MIN;
+			next_target.target.Z = Z_MIN * STEPS_PER_MM_Z;
 	#endif
 	#ifdef	Z_MAX
 		if (next_target.target.Z > (Z_MAX * STEPS_PER_MM_Z))
-			next_target.target.Z = Z_MAX;
+			next_target.target.Z = Z_MAX * STEPS_PER_MM_Z;
 	#endif
 
 
