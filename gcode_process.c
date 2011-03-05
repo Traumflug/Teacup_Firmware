@@ -124,7 +124,7 @@ void process_gcode_command() {
 			// since it would be a major hassle to force the dda to not synchronise, just provide a fast feedrate and hope it's close enough to what host expects
 			case 0:
 				backup_f = next_target.target.F;
-				next_target.target.F = MAXIMUM_FEEDRATE_X * 2;
+				next_target.target.F = MAXIMUM_FEEDRATE_X * 2L;
 				enqueue(&next_target.target);
 				next_target.target.F = backup_f;
 				break;
