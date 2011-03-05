@@ -188,6 +188,21 @@ mendel_print() {
 	)
 }
 
+# Print a gcode file. Press a key after each line. Echos commands and replies.
+mendel_print_interactive() {
+	(
+		for F in "$@"
+		do
+			local IFS=$'\n'
+			for L in $(< $F)
+			do
+				mendel_cmd_hr "$L"
+				read
+			done
+		done
+	)
+}
+
 # Use the debug interface to directly read memory.
 # Usage: 
 #	mendel_readsym 0x<address>(:<size>)
