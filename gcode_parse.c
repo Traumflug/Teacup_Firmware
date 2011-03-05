@@ -291,16 +291,18 @@ void gcode_parse_char(uint8_t c) {
 
 			default:
 				// can't do ranges in switch..case, so process actual digits here.
-				if (c >= '0' && c <= '9' &&
-				    read_digit.exponent < DECFLOAT_EXP_MAX &&
-				    ((next_target.option_inches == 0 &&
-				      read_digit.mantissa < DECFLOAT_MANT_MM_MAX) ||
-				     (next_target.option_inches &&
-				      read_digit.mantissa < DECFLOAT_MANT_IN_MAX))){
-					// this is simply mantissa = (mantissa * 10) + atoi(c) in different clothes
-					read_digit.mantissa = (read_digit.mantissa << 3) + (read_digit.mantissa << 1) + (c - '0');
-					if (read_digit.exponent)
-						read_digit.exponent++;
+				if (c >= '0' && c <= '9') {
+					if (read_digit.exponent < DECFLOAT_EXP_MAX &&
+							((next_target.option_inches == 0 &&
+							read_digit.mantissa < DECFLOAT_MANT_MM_MAX) ||
+							(next_target.option_inches &&
+							read_digit.mantissa < DECFLOAT_MANT_IN_MAX)))
+					{
+						// this is simply mantissa = (mantissa * 10) + atoi(c) in different clothes
+						read_digit.mantissa = (read_digit.mantissa << 3) + (read_digit.mantissa << 1) + (c - '0');
+						if (read_digit.exponent)
+							read_digit.exponent++;
+					}
 				}
 				#ifdef	DEBUG
 				else {
