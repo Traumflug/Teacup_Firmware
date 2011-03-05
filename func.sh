@@ -341,12 +341,12 @@ mendel_heater_pid() {
 	echo "O=$O	T=$T"
 }
 
-if [[ "$0" =~ ^mendel_(setup|reset|cmd|readsym|heater_pid) ]]
+if [[ "$0" =~ ^mendel_(setup|reset|talk|cmd|readsym|heater_pid|print) ]]
 then
 	eval "$0" "$@"
 fi
 
-if [[ "$1" =~ ^mendel_(setup|reset|cmd|readsym|heater_pid) ]]
+if [[ "$1" =~ ^mendel_(setup|reset|talk|cmd|readsym|heater_pid|print) ]]
 then
 	eval "$@"
 fi
