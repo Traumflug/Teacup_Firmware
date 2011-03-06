@@ -365,8 +365,7 @@ void gcode_parse_char(uint8_t c) {
 			next_target.seen_M = next_target.seen_checksum = next_target.seen_semi_comment = \
 			next_target.seen_parens_comment = next_target.checksum_read = \
 			next_target.checksum_calculated = 0;
-		last_field = 0;
-		read_digit.sign = read_digit.mantissa = read_digit.exponent = 0;
+		// last_field and read_digit are reset above already
 
 		// assume a G1 by default
 		next_target.seen_G = 1;
