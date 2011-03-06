@@ -52,12 +52,6 @@ static void zero_z(void) {
 	enqueue(&t);
 }
 
-static void zero_e(void) {
-	TARGET t = startpoint;
-	t.E = 0;
-	enqueue(&t);
-}
-
 static void SpecialMoveE(int32_t e, uint32_t f) {
 	TARGET t = startpoint;
 	t.E = e;
@@ -184,16 +178,12 @@ void process_gcode_command() {
 					zero_z();
 					axisSelected = 1;
 				}
-				if (next_target.seen_E) {
-					zero_e();
-					axisSelected = 1;
-				}
+				// there's no point in moving E, as E is always relative
 				
 				if (!axisSelected) {
 					zero_x();
 					zero_y();
 					zero_z();
-					zero_e();
 				}
 				
 				break;
