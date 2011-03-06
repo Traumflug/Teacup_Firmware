@@ -340,7 +340,7 @@ void gcode_parse_char(uint8_t c) {
 				// process
 				serial_writestr_P(PSTR("ok "));
 				process_gcode_command();
-				serial_writestr_P(PSTR("\n"));
+				serial_writechar('\n');
 
 				// expect next line number
 				if (next_target.seen_N == 1)
