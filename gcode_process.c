@@ -225,15 +225,12 @@ void process_gcode_command() {
 						startpoint.Z = current_position.Z = next_target.target.Z;
 						axisSelected = 1;
 					}
-					if (next_target.seen_E) {
-						startpoint.E = current_position.E = next_target.target.E;
-						axisSelected = 1;
-					}
+					// there's no point in setting E, as E is always relative
+
 					if (axisSelected == 0) {
 						startpoint.X = current_position.X =
 						startpoint.Y = current_position.Y =
-						startpoint.Z = current_position.Z =
-						startpoint.E = current_position.E = 0;
+						startpoint.Z = current_position.Z = 0;
 					}
 					break;
 
