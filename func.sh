@@ -245,37 +245,37 @@ mendel_readsym() {
 mendel_readsym_uint8() {
 	local sym=$1
 	local val=$(mendel_readsym $sym)
-	perl -e 'printf "%u\n", eval "0x".$ARGV[0]' $val
+	perl -e 'printf "%u\n", hex "0x".$ARGV[0]' $val
 }
 
 mendel_readsym_int8() {
 	local sym=$1
 	local val=$(mendel_readsym $sym)
-	perl -e 'printf "%d\n", ((eval "0x".$ARGV[0]) & 0x7F) - (((eval "0x".$ARGV[0]) & 0x80)?0x80:0)' $val
+	perl -e 'printf "%d\n", ((hex "0x".$ARGV[0]) & 0x7F) - (((hex "0x".$ARGV[0]) & 0x80)?0x80:0)' $val
 }
 
 mendel_readsym_uint16() {
 	local sym=$1
 	local val=$(mendel_readsym $sym)
-	perl -e '$ARGV[0] =~ m#(..)(..)# && printf "%u\n", eval "0x$2$1"' $val
+	perl -e '$ARGV[0] =~ m#(..)(..)# && printf "%u\n", hex "0x$2$1"' $val
 }
 
 mendel_readsym_int16() {
 	local sym=$1
 	local val=$(mendel_readsym $sym)
-	perl -e '$ARGV[0] =~ m#(..)(..)# && printf "%d\n", ((eval "0x$2$1") & 0x7FFF) - (((eval "0x$2$1") & 0x8000)?0x8000:0)' $val
+	perl -e '$ARGV[0] =~ m#(..)(..)# && printf "%d\n", ((hex "0x$2$1") & 0x7FFF) - (((hex "0x$2$1") & 0x8000)?0x8000:0)' $val
 }
 
 mendel_readsym_uint32() {
 	local sym=$1
 	local val=$(mendel_readsym $sym)
-	perl -e '$ARGV[0] =~ m#(..)(..)(..)(..)# && printf "%u\n", eval "0x$4$3$2$1"' $val
+	perl -e '$ARGV[0] =~ m#(..)(..)(..)(..)# && printf "%u\n", hex "0x$4$3$2$1"' $val
 }
 
 mendel_readsym_int32() {
 	local sym=$1
 	local val=$(mendel_readsym $sym)
-	perl -e '$ARGV[0] =~ m#(..)(..)(..)(..)# && printf "%d\n", eval "0x$4$3$2$1"' $val
+	perl -e '$ARGV[0] =~ m#(..)(..)(..)(..)# && printf "%d\n", hex "0x$4$3$2$1"' $val
 }
 
 mendel_readsym_target() {
@@ -283,7 +283,7 @@ mendel_readsym_target() {
 	local val=$(mendel_readsym "$sym")
 	if [ -n "$val" ]
 	then
-		perl -e '@a = qw/X Y Z E F/; $c = 0; while (length $ARGV[0]) { $ARGV[0] =~ s#^(..)(..)(..)(..)##; printf "%s: %d\n", $a[$c], eval "0x$4$3$2$1"; $c++; }' "$val"
+		perl -e '@a = qw/X Y Z E F/; $c = 0; while (length $ARGV[0]) { $ARGV[0] =~ s#^(..)(..)(..)(..)##; printf "%s: %d\n", $a[$c], hex "0x$4$3$2$1"; $c++; }' "$val"
 	fi
 }
 
@@ -309,11 +309,11 @@ mendel_readsym_mb() {
 			}
 			if (($a[$c * 2 + 1] & 7) == 4) {
 				$ARGV[1] =~ s#^(..)(..)(..)(..)##;
-				printf "\t%s: %d", $a[$c * 2], eval "0x$4$3$2$1";
+				printf "\t%s: %d", $a[$c * 2], hex "0x$4$3$2$1";
 			}
 			elsif (($a[$c * 2 + 1] & 7) == 1) {
 				$ARGV[1] =~ s#^(..)##;
-				printf "\t%s: %d", $a[$c * 2], eval "0x$1";
+				printf "\t%s: %d", $a[$c * 2], hex "0x$1";
 			}
 			$c++;
 		}
