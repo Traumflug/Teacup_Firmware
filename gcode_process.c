@@ -218,9 +218,9 @@ void process_gcode_command() {
 					// there's no point in setting E, as E is always relative
 
 					if (axisSelected == 0) {
-						startpoint.X = current_position.X =
-						startpoint.Y = current_position.Y =
-						startpoint.Z = current_position.Z = 0;
+						startpoint.X = current_position.X = next_target.target.X =
+						startpoint.Y = current_position.Y = next_target.target.Y =
+						startpoint.Z = current_position.Z = next_target.target.Z = 0;
 					}
 					break;
 
