@@ -88,20 +88,22 @@ void enqueue(TARGET *t) {
 // sometimes called from normal program execution, sometimes from interrupt context
 void next_move() {
 	if (queue_empty() == 0) {
-		// next item
-		uint8_t t = mb_tail + 1;
-		t &= (MOVEBUFFER_SIZE - 1);
-		if (movebuffer[t].waitfor_temp) {
-			#ifndef	REPRAP_HOST_COMPATIBILITY
-				serial_writestr_P(PSTR("Waiting for target temp\n"));
-			#endif
-			movebuffer[t].live = 1;
-			setTimer(movebuffer[t].c >> 8);
-		}
-		else {
-			dda_start(&movebuffer[t]);
-		}
-		mb_tail = t;
+		do {
+			// next item
+			uint8_t t = mb_tail + 1;
+			t &= (MOVEBUFFER_SIZE - 1);
+			if (movebuffer[t].waitfor_temp) {
+				#ifndef	REPRAP_HOST_COMPATIBILITY
+					serial_writestr_P(PSTR("Waiting for target temp\n"));
+				#endif
+				movebuffer[t].live = 1;
+				setTimer(movebuffer[t].c >> 8);
+			}
+			else {
+				dda_start(&movebuffer[t]);
+			}
+			mb_tail = t;
+		} while ((queue_empty() == 0) && (movebuffer[mb_tail].live == 0));
 	}
 	else
 		setTimer(0);

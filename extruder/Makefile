@@ -31,7 +31,7 @@
 
 PROGRAM = extruder
 
-SOURCES = $(PROGRAM).c intercom.c delay.c analog.c watchdog.c heater.c temp.c
+SOURCES = $(PROGRAM).c intercom.c delay.c analog.c watchdog.c heater.c temp.c timer.c crc.c
 
 ##############################################################################
 #                                                                            #

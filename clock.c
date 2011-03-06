@@ -8,6 +8,7 @@
 #include	"timer.h"
 #include	"debug.h"
 #include	"heater.h"
+#include	"serial.h"
 
 void clock_250ms() {
 	if (steptimeout > (30 * 4)) {
@@ -26,6 +27,9 @@ void clock_250ms() {
 			
 			// Queue
 			print_queue();
+
+			// newline
+			serial_writechar('\n');
 		}
 		// temperature
 		/*		if (temp_get_target())
