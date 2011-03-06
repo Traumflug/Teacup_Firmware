@@ -269,7 +269,7 @@ mendel_readsym_target() {
 	local val=$(mendel_readsym "$sym")
 	if [ -n "$val" ]
 	then
-		perl -e '@a = qw/X Y Z E F/; $c = 0; while (length $ARGV[0]) { $ARGV[0] =~ s#^(..)(..)(..)(..)##; printf "%s: %d\n", $a[$c], hex "0x$4$3$2$1"; $c++; }' "$val"
+		perl -e '@a = qw/X Y Z E F/; $c = 0; while (length $ARGV[0]) { last unless $ARGV[0] =~ s#^(..)(..)(..)(..)##; printf "%s: %d\n", $a[$c], hex "0x$4$3$2$1"; $c++; }' "$val"
 	fi
 }
 
