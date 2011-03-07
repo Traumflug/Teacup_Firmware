@@ -1,6 +1,6 @@
 ##############################################################################
 #                                                                            #
-# FiveD on Arduino - alternative firmware for repraps                        #
+# Teacup - alternative firmware for repraps                                  #
 #                                                                            #
 # by Triffid Hunter, Traumflug, jakepoz                                      #
 #                                                                            #

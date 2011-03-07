@@ -1,3 +1,9 @@
+##############################################################################
+#                                                                            #
+# Teacup (formely FiveD on Arduino) firmware                                 #
+#                                                                            #
+##############################################################################
+
 Rewrite of Reprap Mendel firmware:
 
 * 100% integer computations
