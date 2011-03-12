@@ -230,5 +230,9 @@ int main (void)
 					break;
 			}
 		}
+		
+		if (intercom_flags & FLAG_TX_FINISHED) {
+			WRITE(TX_ENABLE_PIN,0);
+		}
 	}
 }
