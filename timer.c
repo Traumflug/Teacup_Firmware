@@ -69,7 +69,6 @@ void timer1_compa_isr() {
 ISR(TIMER1_COMPA_vect) {
 	// Check if this is a real step, or just a next_step_time "overflow"
 	if (next_step_time < 65536) {
-		next_step_time = 0;
 		// step!
 		timer1_compa_isr();
 		return;
