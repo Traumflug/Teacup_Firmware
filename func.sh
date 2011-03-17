@@ -1,5 +1,7 @@
 #!/bin/bash
 
+MENDEL_DEV=/dev/arduino
+
 #
 # this file is designed to be sourced into your current shell like this:
 #
@@ -90,13 +92,13 @@
 
 # Initialize serial port settings
 mendel_setup() {
-	stty 115200 raw ignbrk -hup -echo ixoff < /dev/arduino
+	stty 115200 raw ignbrk -hup -echo ixoff < $MENDEL_DEV
 }
 
 # Reset the arduino by dripping DTR
 mendel_reset() {
-	stty hup < /dev/arduino
-	stty hup < /dev/arduino
+	stty hup < $MENDEL_DEV
+	stty hup < $MENDEL_DEV
 	mendel_setup
 }
 
@@ -109,9 +111,9 @@ mendel_talk() {
 		skip_kill_cat=1
 	fi
 	echo "press ctrl+D to exit"
-	( cat <&3 & cat >&3; kill $! ; ) 3<>/dev/arduino
+	( cat <&3 & cat >&3; kill $! ; ) 3<>$MENDEL_DEV
 	# You're supposed to use "^D" to exit. If somebody uses "^C" instead,
-	# it leaves the "cat" process connected between the terminal and /dev/arduino
+	# it leaves the "cat" process connected between the terminal and $MENDEL_DEV
 	# detect this condition and kill that process.
 	if [ "$skip_kill_cat" == "" ]; then
 		kill `ps | grep 'cat$'| cut -d " " -f -1` 2>/dev/null
@@ -142,7 +144,7 @@ mendel_cmd() {
 				fi
 			fi
 		done
-	) 3<>/dev/arduino;
+	) 3<>$MENDEL_DEV;
 }
 
 #Send a command, printing both the command and the reply, prefix so you can tell which is which.
@@ -171,7 +173,7 @@ mendel_cmd_hr() {
 				fi
 			fi
 		done
-	) 3<>/dev/arduino;
+	) 3<>$MENDEL_DEV;
 }
 
 # Print a gcode file. Echos commands and replies.
@@ -204,7 +206,7 @@ mendel_print_interactive() {
 }
 
 # Use the debug interface to directly read memory.
-# Usage: 
+# Usage:
 #	mendel_readsym 0x<address>(:<size>)
 #   mendel_readsym <name>
 # determines address and size of "name" from mendel.sym
