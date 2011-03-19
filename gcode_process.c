@@ -389,7 +389,10 @@ void process_gcode_command() {
 				sersendf_P(PSTR("FIRMWARE_NAME:Teacup FIRMWARE_URL:http%%3A//github.com/triffid/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d"), 1, NUM_TEMP_SENSORS, NUM_HEATERS);
 				// newline is sent from gcode_parse after we return
 				break;
-
+			// M116 - Wait for all temperatures and other slowly-changing variables to arrive at their set values.
+			case 116:
+				enqueue(NULL);
+				break;
 			// M130- heater P factor
 			case 130:
 				if (next_target.seen_S)
