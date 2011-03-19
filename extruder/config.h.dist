@@ -1,6 +1,19 @@
 #ifndef	_CONFIG_H
 #define	_CONFIG_H
 
+/*
+	CPU clock rate
+*/
+#ifndef	F_CPU
+	#define	F_CPU	16000000L
+#endif
+
+/*
+	other fallbacks for the Arduino IDE
+*/
+#define EXTRUDER
+#define GEN3
+
 #include	"arduino.h"
 
 // controller index- bus is multidrop after all
