@@ -2,11 +2,10 @@
 
 #include	<avr/interrupt.h>
 
-#include	"config.h" // for XONXOFF
+#include	"config.h"
 #include	"arduino.h"
 
 #define		BUFSIZE			64
-#define		BAUD				115200
 
 #define		ASCII_XOFF	19
 #define		ASCII_XON		17

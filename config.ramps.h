@@ -111,13 +111,11 @@ undefine if you don't want to use them
 *                                                                           *
 \***************************************************************************/
 
-
 /*
 	acceleration, reprap style.
 		Each movement starts at the speed of the previous command and accelerates or decelerates linearly to reach target speed at the end of the movement.
 */
 #define ACCELERATION_REPRAP
-
 
 /*
 	acceleration and deceleration ramping.
@@ -129,7 +127,6 @@ undefine if you don't want to use them
 // smaller values give quicker acceleration
 // valid range = 1 to 8,000,000; 500,000 is a good starting point
 #define ACCELERATION_STEEPNESS	500000
-
 
 /*
 	temporal step algorithm
@@ -258,6 +255,7 @@ DEFINE_TEMP_SENSOR(extruder,	TT_THERMISTOR,	AIO2_PIN)
 DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	AIO1_PIN)
 
 
+
 /***************************************************************************\
 *                                                                           *
 * 5. HEATERS                                                                *
@@ -309,6 +307,8 @@ DEFINE_HEATER(fan,			PORTH, PINH6, OCR2B)
 #define HEATER_BED HEATER_bed
 // #define HEATER_FAN HEATER_fan
 
+
+
 /***************************************************************************\
 *                                                                           *
 * 6. COMMUNICATION OPTIONS                                                  *
@@ -324,6 +324,11 @@ DEFINE_HEATER(fan,			PORTH, PINH6, OCR2B)
 // #define REPRAP_HOST_COMPATIBILITY 19750101
 #define REPRAP_HOST_COMPATIBILITY 20100806
 // #define REPRAP_HOST_COMPATIBILITY <date of next RepRap Host compatibility break>
+
+/*
+	Baud rate for the connection to the host. Usually 115200, other common values are 19200, 38400 or 57600.
+*/
+#define	BAUD	115200
 
 /*
 	Xon/Xoff flow control.
