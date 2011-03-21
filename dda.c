@@ -1,5 +1,9 @@
 #include	"dda.h"
 
+/** \file
+	\brief Digital differential analyser - this is where we figure out which steppers need to move, and when they need to move
+*/
+
 #include	<string.h>
 #include	<stdlib.h>
 #include	<avr/interrupt.h>
@@ -18,25 +22,30 @@
 	#include	"heater.h"
 #endif
 
-/*
-	Used in distance calculation during DDA setup
-*/
+// Used in distance calculation during DDA setup
+/// micrometers per step X
 #define	UM_PER_STEP_X		1000L / ((uint32_t) STEPS_PER_MM_X)
+/// micrometers per step Y
 #define	UM_PER_STEP_Y		1000L / ((uint32_t) STEPS_PER_MM_Y)
+/// micrometers per step Z
 #define	UM_PER_STEP_Z		1000L / ((uint32_t) STEPS_PER_MM_Z)
+/// micrometers per step E
 #define	UM_PER_STEP_E		1000L / ((uint32_t) STEPS_PER_MM_E)
 
-/*
-	step timeout
-*/
-
+/// step timeout
 uint8_t	steptimeout = 0;
 
 /*
 	position tracking
 */
 
+/// \var startpoint
+/// \brief target position of last move in queue
 TARGET startpoint __attribute__ ((__section__ (".bss")));
+
+/// \var current_position
+/// \brief actual position of extruder head
+/// \todo make current_position = real_position (from endstops) + offset from G28 and friends
 TARGET current_position __attribute__ ((__section__ (".bss")));
 
 /*
@@ -44,6 +53,13 @@ TARGET current_position __attribute__ ((__section__ (".bss")));
 */
 
 // courtesy of http://www.flipcode.com/archives/Fast_Approximate_Distance_Functions.shtml
+/*! linear approximation 2d distance formula
+	\param dx distance in X plane
+	\param dy distance in Y plane
+	\return 3-part linear approximation of \f$\sqrt{\Delta x^2 + \Delta y^2}\f$
+
+	see http://www.flipcode.com/archives/Fast_Approximate_Distance_Functions.shtml
+*/
 uint32_t approx_distance( uint32_t dx, uint32_t dy )
 {
 	uint32_t min, max, approx;
@@ -66,6 +82,14 @@ uint32_t approx_distance( uint32_t dx, uint32_t dy )
 }
 
 // courtesy of http://www.oroboro.com/rafael/docserv.php/index/programming/article/distance
+/*! linear approximation 3d distance formula
+	\param dx distance in X plane
+	\param dy distance in Y plane
+	\param dz distance in Z plane
+	\return 3-part linear approximation of \f$\sqrt{\Delta x^2 + \Delta y^2 + \Delta z^2}\f$
+
+	see http://www.oroboro.com/rafael/docserv.php/index/programming/article/distance
+*/
 uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz )
 {
 	uint32_t min, med, max, approx;
@@ -100,6 +124,13 @@ uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz )
 	return (( approx + 512 ) >> 10 );
 }
 
+/*!
+	integer square root algorithm
+	\param a find square root of this number
+	\return sqrt(a - 1) < returnvalue <= sqrt(a)
+
+	see http://www.embedded-systems.com/98/9802fe2.htm
+*/
 // courtesy of http://www.embedded-systems.com/98/9802fe2.htm
 uint16_t int_sqrt(uint32_t a) {
 	uint32_t rem = 0;
@@ -123,6 +154,10 @@ uint16_t int_sqrt(uint32_t a) {
 
 // this is an ultra-crude pseudo-logarithm routine, such that:
 // 2 ^ msbloc(v) >= v
+/*! crude logarithm algorithm
+	\param v value to find \f$log_2\f$ of
+	\return floor(log(v) / log(2))
+*/
 const uint8_t	msbloc (uint32_t v) {
 	uint8_t i;
 	uint32_t c;
@@ -134,10 +169,18 @@ const uint8_t	msbloc (uint32_t v) {
 	return 0;
 }
 
-/*
-	CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
-*/
+/*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
+	\param *dda pointer to a dda_queue entry to overwrite
+	\param *target the target position of this move
 
+	\ref startpoint the beginning position of this move
+
+	This function does a /lot/ of math. It works out directions for each axis, distance travelled, the time between the first and second step
+
+	It also pre-fills any data that the selected accleration algorithm needs, and can be pre-computed for the whole move.
+
+	This algorithm is probably the main limiting factor to print speed in terms of firmware limitations
+*/
 void dda_create(DDA *dda, TARGET *target) {
 	uint32_t	distance, c_limit, c_limit_calc;
 
@@ -193,13 +236,13 @@ void dda_create(DDA *dda, TARGET *target) {
 			distance = dda->z_delta * UM_PER_STEP_Z;
 		else
 			distance = approx_distance_3(dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y, dda->z_delta * UM_PER_STEP_Z);
-		
+
 		if (distance < 2)
 			distance = dda->e_delta * UM_PER_STEP_E;
-		
+
 		if (debug_flags & DEBUG_DDA)
 			sersendf_P(PSTR(",ds:%lu"), distance);
-		
+
 		#ifdef	ACCELERATION_TEMPORAL
 			// bracket part of this equation in an attempt to avoid overflow: 60 * 16MHz * 5mm is >32 bits
 			uint32_t move_duration = distance * (60 * F_CPU / startpoint.F);
@@ -224,7 +267,7 @@ void dda_create(DDA *dda, TARGET *target) {
 			//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
 			uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
 		#endif
-		
+
 		// similarly, find out how fast we can run our axes.
 		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
 		c_limit = 0;
@@ -340,10 +383,15 @@ void dda_create(DDA *dda, TARGET *target) {
 	startpoint.E = 0;
 }
 
-/*
-	Start a prepared DDA
-*/
+/*! Start a prepared DDA
+	\param *dda pointer to entry in dda_queue to start
 
+	This function actually begins the move described by the passed DDA entry.
+
+	We set direction and enable outputs, and set the timer for the first step from the precalculated value.
+
+	We also mark this DDA as running, so other parts of the firmware know that something is happening
+*/
 void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!
 	if (dda->nullmove) {
@@ -384,10 +432,18 @@ void dda_start(DDA *dda) {
 	}
 }
 
-/*
-	STEP
-*/
+/*! STEP
+	\param *dda the current move
 
+	This is called from our timer interrupt every time a step needs to occur.
+	We first work out which axes need to step, and generate step pulses for them
+	Then we re-enable global interrupts so serial data reception and other important things can occur while we do some math.
+	Next, we work out how long until our next step using the selected acceleration algorithm and set the timer.
+	Then we decide if this was the last step for this move, and if so mark this dda as dead so next timer interrupt we can start a new one.
+	Finally we de-assert any asserted step pins.
+
+	\todo take into account the time that interrupt takes to run
+*/
 void dda_step(DDA *dda) {
 	// called from interrupt context! keep it as simple as possible
 	uint8_t	did_step = 0;
@@ -581,7 +637,7 @@ void dda_step(DDA *dda) {
 
 		dda->c <<= 8;
 	#endif
-	
+
 	if (did_step) {
 		// we stepped, reset timeout
 		steptimeout = 0;
@@ -602,9 +658,9 @@ void dda_step(DDA *dda) {
 		// z stepper is only enabled while moving
 		z_disable();
 	}
-	
+
 	setTimer(dda->c >> 8);
-	
+
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something.
 	// we also hope that we don't step before the drivers register the low- limit maximum speed if you think this is a problem.

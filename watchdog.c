@@ -1,5 +1,14 @@
-
 #include	"watchdog.h"
+
+/** \file
+	\brief Watchdog - reset if main loop doesn't run for too long
+
+	The usefulness of this feature is questionable at best.
+
+	What do you think will happen if your avr resets in the middle of a print?
+
+	Is that preferable to it simply locking up?
+*/
 
 #ifdef USE_WATCHDOG
 
@@ -26,16 +35,18 @@ ISR(WDT_vect) {
 	wd_flag |= 1;
 }
 
+/// intialise watchdog
 void wd_init() {
 	// check if we were reset by the watchdog
 // 	if (mcusr_mirror & MASK(WDRF))
 // 		serial_writestr_P(PSTR("Watchdog Reset!\n"));
 
-	// 0.25s timeout, interrupt and system reset
+	// 0.5s timeout, interrupt and system reset
 	wdt_enable(WDTO_500MS);
 	WDTCSR |= MASK(WDIE);
 }
 
+/// reset watchdog. MUST be called every 0.5s after init or avr will reset.
 void wd_reset() {
 	wdt_reset();
 	if (wd_flag) {

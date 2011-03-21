@@ -12,15 +12,16 @@
 // wether to insist on a checksum
 //#define	REQUIRE_CHECKSUM
 
-// this is a very crude decimal-based floating point structure.
-// a real floating point would at least have signed exponent.
+/// this is a very crude decimal-based floating point structure.
+/// a real floating point would at least have signed exponent.\n
+/// resulting value is \f$ mantissa * 10^{-(exponent - 1)} * ((sign * 2) - 1)\f$
 typedef struct {
-	uint32_t	mantissa;
-	uint8_t	exponent	:7;
-	uint8_t	sign			:1;
+	uint32_t	mantissa;		///< the actual digits of our floating point number
+	uint8_t	exponent	:7;	///< scale mantissa by \f$10^{-exponent}\f$
+	uint8_t	sign			:1; ///< positive or negative?
 } decfloat;
 
-// this holds all the possible data from a received command
+/// this holds all the possible data from a received command
 typedef struct {
 	union {
 		struct {
@@ -36,35 +37,35 @@ typedef struct {
 			uint8_t					seen_P	:1;
 			uint8_t					seen_T	:1;
 			uint8_t					seen_N	:1;
-			uint8_t					seen_checksum				:1;
-			uint8_t					seen_semi_comment		:1;
-			uint8_t					seen_parens_comment	:1;
-			uint8_t					option_relative			:1;
-			uint8_t					option_inches				:1;
+			uint8_t					seen_checksum				:1; ///< seen a checksum?
+			uint8_t					seen_semi_comment		:1; ///< seen a semicolon?
+			uint8_t					seen_parens_comment	:1; ///< seen an open parenthesis
+			uint8_t					option_relative			:1; ///< relative or absolute coordinates?
+			uint8_t					option_inches				:1; ///< inches or millimeters?
 		};
 		uint16_t				flags;
 	};
 
-	uint8_t						G;
-	uint8_t						M;
-	TARGET						target;
+	uint8_t						G;				///< G command number
+	uint8_t						M;				///< M command number
+	TARGET						target;		///< target position: X, Y, Z, E and F
 
-	int16_t						S;
-	uint16_t					P;
+	int16_t						S;				///< S word (various uses)
+	uint16_t					P;				///< P word (various uses)
 
-	uint8_t						T;
+	uint8_t						T;				///< T word (tool index)
 
-	uint32_t					N;
-	uint32_t					N_expected;
+	uint32_t					N;				///< line number
+	uint32_t					N_expected;	///< expected line number
 
-	uint8_t						checksum_read;
-	uint8_t						checksum_calculated;
+	uint8_t						checksum_read;				///< checksum in gcode command
+	uint8_t						checksum_calculated;	///< checksum we calculated
 } GCODE_COMMAND;
 
-// the command being processed
+/// the command being processed
 extern GCODE_COMMAND next_target;
 
-// accept the next character and process it
+/// accept the next character and process it
 void gcode_parse_char(uint8_t c);
 
 // uses the global variable next_target.N

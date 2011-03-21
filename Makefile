@@ -91,7 +91,7 @@ PROGPORT = /dev/arduino
 #PROGBAUD = 19200
 # atmega328p, 644p, 1280
 PROGBAUD = 57600
-# atmega 2560 
+# atmega 2560
 #PROGBAUD = 115200
 
 # at least mega2560 needs stk500v2
@@ -177,6 +177,9 @@ config.h: config.h.dist
 	@echo
 	@diff -bBEuF '^. [[:digit:]]. [[:upper:]]' config.h config.h.dist
 	@false
+
+doc: Doxyfile *.c *.h
+	doxygen $<
 
 %.o: %.c config.h Makefile
 	@echo "  CC        $@"

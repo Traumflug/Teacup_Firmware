@@ -1,5 +1,9 @@
 #include	"intercom.h"
 
+/** \file
+	\brief motherboard <-> extruder board protocol
+*/
+
 #include	<avr/io.h>
 #include	<avr/interrupt.h>
 
@@ -11,12 +15,16 @@
 
 #define	START	0x55
 
-intercom_packet tx;		// this packet will be send
-intercom_packet rx;		// the last received packet with correct checksum
-intercom_packet _tx;	// current packet in transmission
-intercom_packet _rx;	// receiving packet
+intercom_packet tx;		///< this packet will be sent
+intercom_packet rx;		///< the last received packet with correct checksum
+intercom_packet _tx;	///< current packet in transmission
+intercom_packet _rx;	///< current packet being received
 
+/// pointer to location in transferring packet.
+/// since we run half duplex, we can share the pointer between rx and tx
 uint8_t packet_pointer;
+/// crc for currently transferring packet
+/// since we run half duplex, we can share the crc between rx and tx
 uint8_t	rxcrc;
 
 volatile uint8_t	intercom_flags;
@@ -92,7 +100,7 @@ void start_send(void) {
 
 	// enable transmit pin
 	enable_transmit();
-	
+
 	// set start byte
 	tx.packet.start = START;
 
@@ -161,7 +169,7 @@ ISR(USART_RX_vect)
 			packet_pointer = 0;
 
 			#ifndef HOST
-			if (rxcrc == _rx.packet.crc && 
+			if (rxcrc == _rx.packet.crc &&
 			    _rx.packet.controller_num == THIS_CONTROLLER_NUM){
 			#else
 			if (rxcrc == _rx.packet.crc){

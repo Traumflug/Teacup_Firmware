@@ -1,10 +1,16 @@
-#include "analog.h"
+#include	"analog.h"
+
+/** \file
+	\brief Analog subsystem
+*/
+
 #include "temp.h"
 
 #include	<avr/interrupt.h>
 
 /* OR-combined mask of all channels */
 #undef DEFINE_TEMP_SENSOR
+//! automagically generate analog_mask from DEFINE_TEMP_SENSOR entries in config.h
 #define DEFINE_TEMP_SENSOR(name, type, pin) | (((type == TT_THERMISTOR) || (type == TT_AD595)) ? 1 << (pin) : 0)
 static const uint8_t analog_mask = 0
 #include "config.h"
@@ -14,6 +20,7 @@ static const uint8_t analog_mask = 0
 static uint8_t adc_counter;
 static volatile uint16_t adc_result[8] __attribute__ ((__section__ (".bss")));
 
+//! Configure all registers, start interrupt loop
 void analog_init() {
 	if (analog_mask > 0) {
 		#ifdef	PRR
@@ -36,6 +43,10 @@ void analog_init() {
 	} /* analog_mask > 0 */
 }
 
+/*! Analog Interrupt
+
+	This is where we read our analog value and store it in an array for later retrieval
+*/
 ISR(ADC_vect, ISR_NOBLOCK) {
 	// emulate free-running mode but be more deterministic about exactly which result we have, since this project has long-running interrupts
 	if (analog_mask > 0) {
@@ -52,6 +63,10 @@ ISR(ADC_vect, ISR_NOBLOCK) {
 	}
 }
 
+/*! Read analog value from saved result array
+	\param channel Channel to be read
+	\return analog reading, 10-bit right aligned
+*/
 uint16_t	analog_read(uint8_t channel) {
 	if (analog_mask > 0) {
 		uint16_t r;

@@ -1,3 +1,7 @@
+/** \file
+ \brief I/O primitives - step, enable, direction, endstops etc
+*/
+
 #ifndef	_PINIO_H
 #define	_PINIO_H
 

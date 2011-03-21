@@ -1,5 +1,9 @@
 #include	"gcode_process.h"
 
+/** \file
+	\brief Work out what to do with received G-Code commands
+*/
+
 #include	<string.h>
 
 #include	"gcode_parse.h"
@@ -19,9 +23,10 @@
 #include	"config.h"
 #include	"home.h"
 
-// the current tool
+/// the current tool
 uint8_t tool;
-// the tool to be changed when we get an M6
+
+/// the tool to be changed when we get an M6
 uint8_t next_tool;
 
 
@@ -31,6 +36,7 @@ uint8_t next_tool;
 	this is where we construct a move without a gcode command, useful for gcodes which require multiple moves eg; homing
 */
 
+/// move to X = 0
 static void zero_x(void) {
 	TARGET t = startpoint;
 	t.X = 0;
@@ -38,6 +44,7 @@ static void zero_x(void) {
 	enqueue(&t);
 }
 
+/// move to Y = 0
 static void zero_y(void) {
 	TARGET t = startpoint;
 	t.Y = 0;
@@ -45,6 +52,7 @@ static void zero_y(void) {
 	enqueue(&t);
 }
 
+/// move to Z = 0
 static void zero_z(void) {
 	TARGET t = startpoint;
 	t.Z = 0;
@@ -52,6 +60,7 @@ static void zero_z(void) {
 	enqueue(&t);
 }
 
+/// move E by a certain amount at a certain speed
 static void SpecialMoveE(int32_t e, uint32_t f) {
 	TARGET t = startpoint;
 	t.E = e;
@@ -59,15 +68,19 @@ static void SpecialMoveE(int32_t e, uint32_t f) {
 	enqueue(&t);
 }
 
-/****************************************************************************
-*                                                                           *
-* Command Received - process it                                             *
-*                                                                           *
-****************************************************************************/
+/************************************************************************//**
+
+  \brief Processes command stored in global \ref next_target.
+  This is where we work out what to actually do with each command we
+    receive. All data has already been scaled to integers in gcode_process.
+    If you want to add support for a new G or M code, this is the place.
+
+
+*//*************************************************************************/
 
 void process_gcode_command() {
 	uint32_t	backup_f;
-	
+
 	// convert relative to absolute
 	if (next_target.option_relative) {
 		next_target.target.X += startpoint.X;
@@ -122,18 +135,18 @@ void process_gcode_command() {
 				enqueue(&next_target.target);
 				next_target.target.F = backup_f;
 				break;
-				
+
 				//	G1 - synchronised motion
 			case 1:
 				enqueue(&next_target.target);
 				break;
-				
+
 				//	G2 - Arc Clockwise
 				// unimplemented
-				
+
 				//	G3 - Arc Counter-clockwise
 				// unimplemented
-				
+
 				//	G4 - Dwell
 			case 4:
 				// wait for all moves to complete
@@ -146,26 +159,26 @@ void process_gcode_command() {
 					delay_ms(1);
 				}
 				break;
-				
+
 				//	G20 - inches as units
 			case 20:
 				next_target.option_inches = 1;
 				break;
-				
+
 				//	G21 - mm as units
 			case 21:
 				next_target.option_inches = 0;
 				break;
-				
+
 				//	G30 - go home via point
 			case 30:
 				enqueue(&next_target.target);
 				// no break here, G30 is move and then go home
-				
+
 				//	G28 - go home
 			case 28:
 				queue_wait();
-				
+
 				if (next_target.seen_X) {
 					zero_x();
 					axisSelected = 1;
@@ -179,25 +192,25 @@ void process_gcode_command() {
 					axisSelected = 1;
 				}
 				// there's no point in moving E, as E is always relative
-				
+
 				if (!axisSelected) {
 					zero_x();
 					zero_y();
 					zero_z();
 				}
-				
+
 				break;
-				
+
 				//	G90 - absolute positioning
 				case 90:
 					next_target.option_relative = 0;
 					break;
-					
+
 					//	G91 - relative positioning
 				case 91:
 					next_target.option_relative = 1;
 					break;
-					
+
 					//	G92 - set home
 				case 92:
 					// wait for queue to empty
@@ -242,7 +255,7 @@ void process_gcode_command() {
 					if (next_target.seen_Z)
 						home_z_positive();
 					break;
-					
+
 					// unknown gcode: spit an error
 				default:
 					sersendf_P(PSTR("E: Bad G-code %d"), next_target.G);
@@ -290,9 +303,9 @@ void process_gcode_command() {
 					} while (0);
 				#endif
 				break;
-				
+
 			// M102- extruder reverse
-				
+
 			// M5/M103- extruder off
 			case 5:
 			case 103:
@@ -308,19 +321,19 @@ void process_gcode_command() {
 					} while (0);
 				#endif
 				break;
-				
+
 			// M104- set temperature
 			case 104:
 				temp_set(next_target.P, next_target.S);
 				if (next_target.S)
 					power_on();
 				break;
-				
+
 			// M105- get temperature
 			case 105:
 				temp_print(next_target.P);
 				break;
-				
+
 			// M7/M106- fan on
 			case 7:
 			case 106:
@@ -335,7 +348,7 @@ void process_gcode_command() {
 					heater_set(HEATER_FAN, 0);
 				#endif
 				break;
-				
+
 			// M109- set temp and wait
 			case 109:
 				temp_set(next_target.P, next_target.S);
@@ -348,7 +361,7 @@ void process_gcode_command() {
 				}
 				enqueue(NULL);
 				break;
-				
+
 			// M110- set line number
 			case 110:
 				// this is a no-op in Teacup
@@ -422,7 +435,7 @@ void process_gcode_command() {
 						power_on();
 				#endif
 				break;
-				
+
 			// M190- power on
 			case 190:
 				power_on();
@@ -440,7 +453,7 @@ void process_gcode_command() {
 				e_disable();
 				power_off();
 				break;
-				
+
 			#ifdef	DEBUG
 			// M240- echo off
 			case 240:
@@ -454,7 +467,7 @@ void process_gcode_command() {
 				serial_writestr_P(PSTR("Echo on"));
 				// newline is sent from gcode_parse after we return
 				break;
-				
+
 			// DEBUG: return current position, end position, queue
 			case 250:
 				sersendf_P(PSTR("{X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\t{X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\t"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F, movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.X, movebuffer[mb_tail].endpoint.Y, movebuffer[mb_tail].endpoint.Z, movebuffer[mb_tail].endpoint.E, movebuffer[mb_tail].endpoint.F,
@@ -467,7 +480,7 @@ void process_gcode_command() {
 
 				print_queue();
 				break;
-				
+
 			// DEBUG: read arbitrary memory location
 			case 253:
 				if (next_target.seen_P == 0)
@@ -478,7 +491,7 @@ void process_gcode_command() {
 				}
 				// newline is sent from gcode_parse after we return
 				break;
-				
+
 			// DEBUG: write arbitrary memory locatiom
 			case 254:
 				sersendf_P(PSTR("%x:%x->%x"), next_target.S, *(volatile uint8_t *)(next_target.S), next_target.P);

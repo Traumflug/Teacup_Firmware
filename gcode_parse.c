@@ -1,5 +1,9 @@
 #include	"gcode_parse.h"
 
+/** \file
+	\brief Parse received G-Codes
+*/
+
 #include	<string.h>
 
 #include	"serial.h"
@@ -39,12 +43,17 @@
 #define	STEPS_PER_IN_Z		((uint32_t) ((25.4 * STEPS_PER_MM_Z) + 0.5))
 #define	STEPS_PER_IN_E		((uint32_t) ((25.4 * STEPS_PER_MM_E) + 0.5))
 
+/// current or previous gcode word
+/// for working out what to do with data just received
 uint8_t last_field = 0;
 
+/// crude crc macro
 #define crc(a, b)		(a ^ b)
 
+/// crude floating point data storage
 decfloat read_digit					__attribute__ ((__section__ (".bss")));
 
+/// this is where we store all the data for the current command before we work out what to do with it
 GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
 
 /*
@@ -73,6 +82,13 @@ GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
 extern const uint32_t powers[];  // defined in sermsg.c
 const int32_t rounding[DECFLOAT_EXP_MAX] = {0,  5,  50,  500};
 
+/// convert a floating point input value into an integer with appropriate scaling.
+/// \param *df pointer to floating point structure that holds fp value to convert
+/// \param multiplicand multiply by this amount during conversion to integer
+/// \param denominator divide by this amount during conversion to integer
+///
+/// lots of work has been done in exploring this function's limitations in terms of overflow and rounding
+/// this work may not be finished
 static int32_t decfloat_to_int(decfloat *df, uint32_t multiplicand, uint32_t denominator) {
 	uint32_t	r = df->mantissa;
 	uint8_t	e = df->exponent;
@@ -98,12 +114,8 @@ static int32_t decfloat_to_int(decfloat *df, uint32_t multiplicand, uint32_t den
 	return df->sign ? -(int32_t)r : (int32_t)r;
 }
 
-/****************************************************************************
-*                                                                           *
-* Character Received - add it to our command                                *
-*                                                                           *
-****************************************************************************/
-
+/// Character Received - add it to our command
+/// \param c the next character to process
 void gcode_parse_char(uint8_t c) {
 	// uppercase
 	if (c >= 'a' && c <= 'z')
@@ -350,12 +362,12 @@ void gcode_parse_char(uint8_t c) {
 			}
 			else {
 				sersendf_P(PSTR("rs N%ld Expected checksum %d\n"), next_target.N_expected, next_target.checksum_calculated);
-				request_resend();
+// 				request_resend();
 			}
 		}
 		else {
 			sersendf_P(PSTR("rs N%ld Expected line number %ld\n"), next_target.N_expected, next_target.N_expected);
-			request_resend();
+// 			request_resend();
 		}
 
 		// reset variables

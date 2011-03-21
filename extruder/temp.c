@@ -1,5 +1,11 @@
 #include	"temp.h"
 
+/** \file
+	\brief Manage temperature sensors
+
+	\note \b ALL temperatures are stored as 14.2 fixed point in teacup, so we have a range of 0 - 16383.75 celsius and a precision of 0.25 celsius. That includes the ThermistorTable, which is why you can't copy and paste one from other firmwares which don't do this.
+*/
+
 #include	<stdlib.h>
 #include	<avr/eeprom.h>
 #include	<avr/pgmspace.h>
@@ -20,13 +26,15 @@ typedef enum {
 	TCOPEN
 } temp_flags_enum;
 
+/// holds metadata for each temperature sensor
 typedef struct {
-	temp_type_t temp_type;
-	uint8_t     temp_pin;
-	heater_t    heater;
+	temp_type_t temp_type; ///< type of sensor
+	uint8_t     temp_pin;  ///< pin that sensor is on
+	heater_t    heater;    ///< associated heater if any
 } temp_sensor_definition_t;
 
 #undef DEFINE_TEMP_SENSOR
+/// help build list of sensors from entries in config.h
 #define DEFINE_TEMP_SENSOR(name, type, pin) { (type), (pin), (HEATER_ ## name) },
 static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
 {
@@ -34,16 +42,16 @@ static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
 };
 #undef DEFINE_TEMP_SENSOR
 
-// this struct holds the runtime sensor data- read temperatures, targets, etc
+/// this struct holds the runtime sensor data- read temperatures, targets, etc
 struct {
-	temp_flags_enum		temp_flags;
-	
-	uint16_t					last_read_temp;
-	uint16_t					target_temp;
-	
-	uint8_t						temp_residency;
-	
-	uint16_t					next_read_time;
+	temp_flags_enum		temp_flags;     ///< flags
+
+	uint16_t					last_read_temp; ///< last received reading
+	uint16_t					target_temp;		///< manipulate attached heater to attempt to achieve this value
+
+	uint8_t						temp_residency; ///< how long have we been close to target temperature?
+
+	uint16_t					next_read_time; ///< how long until we can read this sensor again?
 } temp_sensors_runtime[NUM_TEMP_SENSORS];
 
 #ifdef	TEMP_MAX6675
@@ -58,6 +66,7 @@ struct {
 #include	"analog.h"
 #endif
 
+/// set up temp sensors. Currently only the 'intercom' sensor needs initialisation.
 void temp_init() {
 	temp_sensor_t i;
 	for (i = 0; i < NUM_TEMP_SENSORS; i++) {
@@ -93,6 +102,7 @@ void temp_init() {
 	}
 }
 
+/// called every 10ms from clock.c - check all temp sensors that are ready for checking
 void temp_sensor_tick() {
 	temp_sensor_t i = 0;
 	for (; i < NUM_TEMP_SENSORS; i++) {
@@ -110,29 +120,29 @@ void temp_sensor_tick() {
 					#elif defined PRR0
 						PRR0 &= ~MASK(PRSPI);
 					#endif
-					
+
 					SPCR = MASK(MSTR) | MASK(SPE) | MASK(SPR0);
-					
+
 					// enable TT_MAX6675
 					WRITE(SS, 0);
-					
+
 					// ensure 100ns delay - a bit extra is fine
 					delay(1);
-					
+
 					// read MSB
 					SPDR = 0;
 					for (;(SPSR & MASK(SPIF)) == 0;);
 					temp = SPDR;
 					temp <<= 8;
-					
+
 					// read LSB
 					SPDR = 0;
 					for (;(SPSR & MASK(SPIF)) == 0;);
 					temp |= SPDR;
-					
+
 					// disable TT_MAX6675
 					WRITE(SS, 1);
-					
+
 					temp_sensors_runtime[i].temp_flags = 0;
 					if ((temp & 0x8002) == 0) {
 						// got "device id"
@@ -145,13 +155,13 @@ void temp_sensor_tick() {
 							temp = temp >> 3;
 						}
 					}
-					
+
 					// this number depends on how frequently temp_sensor_tick is called. the MAX6675 can give a reading every 0.22s, so set this to about 250ms
 					temp_sensors_runtime[i].next_read_time = 25;
-					
+
 					break;
 				#endif	/* TEMP_MAX6675	*/
-					
+
 				#ifdef	TEMP_THERMISTOR
 				case TT_THERMISTOR:
 					do {
@@ -175,7 +185,7 @@ void temp_sensor_tick() {
 								// x₁= temptable[j][0]
 								// y₀= temptable[j-1][1]
 								// y₁= temptable[j][1]
-								// y = 
+								// y =
 								// Wikipedia's example linear interpolation formula.
 								temp = (
 								//     ((x - x₀)y₁
@@ -185,7 +195,7 @@ void temp_sensor_tick() {
 								//                   (x₁-x)
 									(pgm_read_word(&(temptable[j][0])) - (uint32_t)temp)
 								//                         y₀ )
-									* pgm_read_word(&(temptable[j-1][1]))) 
+									* pgm_read_word(&(temptable[j-1][1])))
 								//                              /
 									/
 								//                                (x₁ - x₀)
@@ -201,7 +211,7 @@ void temp_sensor_tick() {
 						if (debug_flags & DEBUG_PID)
 							sersendf_P(PSTR(" Sensor:%d\n"),i);
 						#endif
-						
+
 
 						//Clamp for overflows
 						if (j == NUMTEMPS)
@@ -211,17 +221,17 @@ void temp_sensor_tick() {
 					} while (0);
 					break;
 				#endif	/* TEMP_THERMISTOR */
-					
+
 				#ifdef	TEMP_AD595
 				case TT_AD595:
 					temp = analog_read(temp_sensors[i].temp_pin);
-					
+
 					// convert
 					// >>8 instead of >>10 because internal temp is stored as 14.2 fixed point
 					temp = (temp * 500L) >> 8;
-					
+
 					temp_sensors_runtime[i].next_read_time = 0;
-					
+
 					break;
 				#endif	/* TEMP_AD595 */
 
@@ -239,7 +249,7 @@ void temp_sensor_tick() {
 
 					break;
 				#endif	/* TEMP_INTERCOM */
-				
+
 				#ifdef	TEMP_DUMMY
 				case TT_DUMMY:
 					temp = temp_sensors_runtime[i].last_read_temp;
@@ -258,7 +268,7 @@ void temp_sensor_tick() {
 					break;
 			}
 			temp_sensors_runtime[i].last_read_temp = temp;
-			
+
 			if (labs(temp - temp_sensors_runtime[i].target_temp) < TEMP_HYSTERESIS) {
 				if (temp_sensors_runtime[i].temp_residency < TEMP_RESIDENCY_TIME)
 					temp_sensors_runtime[i].temp_residency++;
@@ -266,7 +276,7 @@ void temp_sensor_tick() {
 			else {
 				temp_sensors_runtime[i].temp_residency = 0;
 			}
-			
+
 			if (temp_sensors[i].heater < NUM_HEATERS) {
 				heater_tick(temp_sensors[i].heater, i, temp_sensors_runtime[i].last_read_temp, temp_sensors_runtime[i].target_temp);
 			}
@@ -274,6 +284,8 @@ void temp_sensor_tick() {
 	}
 }
 
+/// report whether all temp sensors are reading their target temperatures
+/// used for M109 and friends
 uint8_t	temp_achieved() {
 	temp_sensor_t i;
 	uint8_t all_ok = 255;
@@ -285,6 +297,9 @@ uint8_t	temp_achieved() {
 	return all_ok;
 }
 
+/// specify a target temperature
+/// \param index sensor to set a target for
+/// \param temperature target temperature to aim for
 void temp_set(temp_sensor_t index, uint16_t temperature) {
 	if (index >= NUM_TEMP_SENSORS)
 		return;
@@ -297,6 +312,8 @@ void temp_set(temp_sensor_t index, uint16_t temperature) {
 #endif
 }
 
+/// return most recent reading for a sensor
+/// \param index sensor to read
 uint16_t temp_get(temp_sensor_t index) {
 	if (index >= NUM_TEMP_SENSORS)
 		return 0;
@@ -306,6 +323,8 @@ uint16_t temp_get(temp_sensor_t index) {
 
 // extruder doesn't have sersendf_P
 #ifndef	EXTRUDER
+/// send temperatures to host
+/// \param index sensor value to send
 void temp_print(temp_sensor_t index) {
 	uint8_t c = 0;
 
@@ -318,7 +337,7 @@ void temp_print(temp_sensor_t index) {
 	#ifdef HEATER_BED
 		uint8_t b = 0;
 		b = (temp_sensors_runtime[HEATER_BED].last_read_temp & 3) * 25;
-	
+
 		sersendf_P(PSTR(" B:%u.%u"), temp_sensors_runtime[HEATER_bed].last_read_temp >> 2 , b);
 	#endif
 

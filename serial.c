@@ -1,28 +1,51 @@
 #include	"serial.h"
 
+/** \file
+	\brief Serial subsystem
+
+	Teacup's serial subsystem is a powerful, thoroughly tested and highly modular serial management system.
+
+	It uses ringbuffers for both transmit and receive, and intelligently decides whether to wait or drop transmitted characters if the buffer is full.
+
+	It also supports XON/XOFF flow control of the receive buffer, to help avoid overruns.
+*/
+
 #include	<avr/interrupt.h>
 
 #include	"config.h"
 #include	"arduino.h"
 
+/// size of TX and RX buffers. MUST be a \f$2^n\f$ value
 #define		BUFSIZE			64
 
+/// ascii XOFF character
 #define		ASCII_XOFF	19
+/// ascii XON character
 #define		ASCII_XON		17
 
+/// rx buffer head pointer. Points to next available space.
 volatile uint8_t rxhead = 0;
+/// rx buffer tail pointer. Points to last character in buffer
 volatile uint8_t rxtail = 0;
+/// rx buffer
 volatile uint8_t rxbuf[BUFSIZE];
 
+/// tx buffer head pointer. Points to next available space.
 volatile uint8_t txhead = 0;
+/// tx buffer tail pointer. Points to last character in buffer
 volatile uint8_t txtail = 0;
+/// tx buffer
 volatile uint8_t txbuf[BUFSIZE];
 
+/// check if we can read from this buffer
 #define	buf_canread(buffer)			((buffer ## head - buffer ## tail    ) & (BUFSIZE - 1))
-#define	buf_canwrite(buffer)		((buffer ## tail - buffer ## head - 1) & (BUFSIZE - 1))
-
-#define	buf_push(buffer, data)	do { buffer ## buf[buffer ## head] = data; buffer ## head = (buffer ## head + 1) & (BUFSIZE - 1); } while (0)
+/// read from buffer
 #define	buf_pop(buffer, data)		do { data = buffer ## buf[buffer ## tail]; buffer ## tail = (buffer ## tail + 1) & (BUFSIZE - 1); } while (0)
+
+/// check if we can write to this buffer
+#define	buf_canwrite(buffer)		((buffer ## tail - buffer ## head - 1) & (BUFSIZE - 1))
+/// write to buffer
+#define	buf_push(buffer, data)	do { buffer ## buf[buffer ## head] = data; buffer ## head = (buffer ## head + 1) & (BUFSIZE - 1); } while (0)
 
 /*
 	ringbuffer logic:
@@ -55,6 +78,9 @@ volatile uint8_t txbuf[BUFSIZE];
 volatile uint8_t flowflags = FLOWFLAG_SEND_XON;
 #endif
 
+/// initialise serial subsystem
+///
+/// set up baud generator and interrupts, clear buffers
 void serial_init()
 {
 #if BAUD > 38401
@@ -75,6 +101,9 @@ void serial_init()
 	Interrupts
 */
 
+/// receive interrupt
+///
+/// we have received a character, stuff it in the rx buffer if we can, or drop it if we can't
 #ifdef	USART_RX_vect
 ISR(USART_RX_vect)
 #else
@@ -101,6 +130,9 @@ ISR(USART0_RX_vect)
 	#endif
 }
 
+/// transmit buffer ready interrupt
+///
+/// provide the next character to transmit if we can, otherwise disable this interrupt
 #ifdef	USART_UDRE_vect
 ISR(USART_UDRE_vect)
 #else
@@ -128,11 +160,13 @@ ISR(USART0_UDRE_vect)
 	Read
 */
 
+/// check how many characters can be read
 uint8_t serial_rxchars()
 {
 	return buf_canread(rx);
 }
 
+/// read one character
 uint8_t serial_popchar()
 {
 	uint8_t c = 0;
@@ -156,6 +190,7 @@ uint8_t serial_popchar()
 	Write
 */
 
+/// send one character
 void serial_writechar(uint8_t data)
 {
 	// check if interrupts are enabled
@@ -174,6 +209,7 @@ void serial_writechar(uint8_t data)
 	UCSR0B |= MASK(UDRIE0);
 }
 
+/// send a whole block
 void serial_writeblock(void *data, int datalen)
 {
 	int i;
@@ -182,6 +218,7 @@ void serial_writeblock(void *data, int datalen)
 		serial_writechar(((uint8_t *) data)[i]);
 }
 
+/// send a string- look for null byte instead of expecting a length
 void serial_writestr(uint8_t *data)
 {
 	uint8_t i = 0, r;
@@ -190,8 +227,8 @@ void serial_writestr(uint8_t *data)
 		serial_writechar(r);
 }
 
-/*
-	Write from FLASH
+/**
+	Write block from FLASH
 
 	Extensions to output flash memory pointers. This prevents the data to
 	become part of the .data segment instead of the .code segment. That means
@@ -200,7 +237,6 @@ void serial_writestr(uint8_t *data)
 	For single character writes (i.e. '\n' instead of "\n"), using
 	serial_writechar() directly is the better choice.
 */
-
 void serial_writeblock_P(PGM_P data, int datalen)
 {
 	int i;
@@ -209,6 +245,7 @@ void serial_writeblock_P(PGM_P data, int datalen)
 		serial_writechar(pgm_read_byte(&data[i]));
 }
 
+/// Write string from FLASH
 void serial_writestr_P(PGM_P data)
 {
 	uint8_t r, i = 0;

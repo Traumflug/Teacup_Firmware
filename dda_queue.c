@@ -1,5 +1,9 @@
 #include	"dda_queue.h"
 
+/** \file
+	\brief DDA Queue - manage the move queue
+*/
+
 #include	<string.h>
 #include	<avr/interrupt.h>
 
@@ -12,14 +16,22 @@
 #include	"sersendf.h"
 #include	"clock.h"
 
+/// movebuffer head pointer. Points to the last move in the queue.
 uint8_t	mb_head = 0;
+
+/// movebuffer tail pointer. Points to the currently executing move
 uint8_t	mb_tail = 0;
+
+/// move buffer.
+/// holds move queue
 DDA movebuffer[MOVEBUFFER_SIZE] __attribute__ ((__section__ (".bss")));
 
+/// check if the queue is completely full
 uint8_t queue_full() {
 	return (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) == 0)?255:0;
 }
 
+/// check if the queue is completely empty
 uint8_t queue_empty() {
 	return ((mb_tail == mb_head) && (movebuffer[mb_tail].live == 0))?255:0;
 }
@@ -28,6 +40,7 @@ uint8_t queue_empty() {
 // This is the one function called by the timer interrupt.
 // It calls a few other functions, though.
 // -------------------------------------------------------
+/// Take a step or go to the next move.
 void queue_step() {
 	// do our next step
 	if (movebuffer[mb_tail].live) {
@@ -54,6 +67,8 @@ void queue_step() {
 		next_move();
 }
 
+/// add a move to the movebuffer
+/// \note this function waits for space to be available if necessary, check queue_full() first if waiting is a problem
 void enqueue(TARGET *t) {
 	// don't call this function when the queue is full, but just in case, wait for a move to complete and free up the space for the passed target
 	while (queue_full())
@@ -85,7 +100,8 @@ void enqueue(TARGET *t) {
 		next_move();
 }
 
-// sometimes called from normal program execution, sometimes from interrupt context
+/// go to the next move.
+/// be aware that this is sometimes called from interrupt context, sometimes not.
 void next_move() {
 	if (queue_empty() == 0) {
 		do {
@@ -109,10 +125,14 @@ void next_move() {
 		setTimer(0);
 }
 
+/// DEBUG - print queue.
+/// Qt/hs format, t is tail, h is head, s is F/full, E/empty or neither
 void print_queue() {
 	sersendf_P(PSTR("Q%d/%d%c"), mb_tail, mb_head, (queue_full()?'F':(queue_empty()?'E':' ')));
 }
 
+/// dump queue for emergency stop.
+/// \todo effect on startpoint/current_position is undefined!
 void queue_flush() {
 	// save interrupt flag
 	uint8_t sreg = SREG;
@@ -128,6 +148,7 @@ void queue_flush() {
 	SREG = sreg;
 }
 
+/// waits for a space in the queue to become available
 void queue_wait() {
 	for (;queue_empty() == 0;) {
 		ifclock(CLOCK_FLAG_10MS) {

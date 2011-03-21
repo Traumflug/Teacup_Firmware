@@ -26,6 +26,7 @@
 #endif
 
 void 			analog_init(void);
+
 uint16_t	analog_read(uint8_t channel);
 
 #endif	/* _ANALOG_H */
