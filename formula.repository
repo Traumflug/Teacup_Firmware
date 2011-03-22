@@ -1,0 +1,33 @@
+\form#0:$2^PIN$
+\form#1:$\sqrt(dx^2 + dy^2)$
+\form#2:$\sqrt(dx^2 + dy^2 + dz^2)$
+\form#3:$log_2$
+\form#4:$\sqrt{(dx^2 + dy^2)}$
+\form#5:$\sqrt{(dx^2 + dy^2 + dz^2)}$
+\form#6:$\sqrt{dx^2 + dy^2}$
+\form#7:$\sqrt{dx^2 + dy^2 + dz^2}$
+\form#8:$\max{x_delta, y_delta, z_delta, e_delta}$
+\form#9:$\max(\delta x, \delta y, z_delta, e_delta)$
+\form#10:$\max(\delta x, \delta y, \delta z, \delta e)$
+\form#11:$\max(\Delta x, \Delta y, \Delta z, \Delta e)$
+\form#12:$\sqrt{\Delta x^2 + \Delta y^2}$
+\form#13:$\sqrt{\Delta x^2 + \Delta y^2 + \Delta z^2}$
+\form#14:$-i_limit < i_factor < i_limit$
+\form#15:$-i__limit < i__factor < i__limit$
+\form#16:$-i_{limit} < i_{factor} < i_{limit}$
+\form#17:$\sum{\Delta t}$
+\form#18:$\lim{-i_{limit}}{i_{limit}}{\sum{\Delta t}}$
+\form#19:$\limit{-i_{limit}}{i_{limit}}{\sum{\Delta t}}$
+\form#20:$\lim_{-i_{limit}\toi_{limit}}{\sum{\Delta t}}$
+\form#21:$\lim_{-i_{limit}\to i_{limit}}{\sum{\Delta t}}$
+\form#22:$-i_{limit} < \sum{\Delta t} < i_{limit}$
+\form#23:$OUT = k_P \Delta T + k_I \int \Delta T + k_D \frac{dT}{dt}$
+\form#24:$OUT = k_P (S - T) + k_I \int (S - T) + k_D \frac{dT}{dt}$
+\form#25:$OUT = k_P (S - T) + k_I \int^ilim_-ilim (S - T) + k_D \frac{dT}{dt}$
+\form#26:$2^n$
+\form#27:$nrp@eclecti.cc$
+\form#28:$<nrp@eclecti.cc>$
+\form#29:$10^{exponent}$
+\form#30:$10^{-exponent}$
+\form#31:$ mantissa * 10^{-exponent} * ((sign * 2) - 1)$
+\form#32:$ mantissa * 10^{-(exponent - 1)} * ((sign * 2) - 1)$
