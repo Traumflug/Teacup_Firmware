@@ -16,7 +16,9 @@
 #include	<avr/interrupt.h>
 
 #include	"arduino.h"
-#include	"serial.h"
+#ifndef	EXTRUDER
+	#include	"serial.h"
+#endif
 
 volatile uint8_t	wd_flag = 0;
 
