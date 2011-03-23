@@ -70,7 +70,7 @@ OBJCOPY = $(ARCH)objcopy
 #                                                                            #
 ##############################################################################
 
-DEFS = -DF_CPU=$(F_CPU) -DEXTRUDER -DGEN3
+DEFS = -DF_CPU=$(F_CPU)
 # DEFS += "-DDEBUG=1"
 
 OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once
