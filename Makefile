@@ -2,7 +2,7 @@
 #                                                                            #
 # Teacup - alternative firmware for repraps                                  #
 #                                                                            #
-# by Triffid Hunter, Traumflug, jakepoz                                      #
+# by Triffid Hunter, Traumflug, jakepoz, Markus Hitter, many others          #
 #                                                                            #
 #                                                                            #
 # This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter   #
@@ -43,32 +43,6 @@ DEFS = -DF_CPU=$(F_CPU)
 
 ##############################################################################
 #                                                                            #
-# Available Defines:                                                         #
-#                                                                            #
-# DEBUG                                                                      #
-#   enables tons of debugging output. may cause host-side talkers to choke   #
-# XONXOFF                                                                    #
-#   enables XON/XOFF flow control for stupid or crude talkers                #
-# ACCELERATION_REPRAP                                                        #
-#   enables reprap-style acceleration                                        #
-# ACCELERATION_RAMPING                                                       #
-#   enables start/stop ramping                                               #
-# ACCELERATION_TEMPORAL                                                      #
-#   enables experimental temporal step algorithm - not technically a type of #
-#   acceleration, but since it controls step timing it seems appropriate     #
-# GEN3                                                                       #
-#   build for standard reprap electronics instead of your custom rig         #
-# HOST                                                                       #
-#   this is the motherboard for GEN3- don't touch! Extruder has its own      #
-#   Makefile.                                                                #
-#                                                                            #
-##############################################################################
-
-# DEFS = -DF_CPU=$(F_CPU) -DHOST -DGEN3
-# DEFS += "-DDEBUG=1"
-
-##############################################################################
-#                                                                            #
 # Programmer settings for "make program"                                     #
 #                                                                            #
 ##############################################################################
@@ -86,6 +60,7 @@ AVRDUDECONF = /etc/avrdude.conf
 ##############################################################################
 
 PROGPORT = /dev/arduino
+# PROGPORT = /dev/ttyUSB0
 
 # atmega168
 #PROGBAUD = 19200

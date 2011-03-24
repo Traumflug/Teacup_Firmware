@@ -53,25 +53,7 @@ CC = $(ARCH)gcc
 OBJDUMP = $(ARCH)objdump
 OBJCOPY = $(ARCH)objcopy
 
-##############################################################################
-#                                                                            #
-# Available Defines:                                                         #
-#                                                                            #
-# DEBUG                                                                      #
-#   enables tons of debugging output. may cause host-side talkers to choke   #
-# XONXOFF                                                                    #
-#   enables XON/XOFF flow control for stupid or crude talkers                #
-# ACCELERATION_REPRAP                                                        #
-#   enables reprap-style acceleration                                        #
-# ACCELERATION_RAMPING                                                       #
-#   enables start/stop ramping                                               #
-# GEN3                                                                       #
-#   build for standard reprap electronics instead of your custom rig         #
-#                                                                            #
-##############################################################################
-
 DEFS = -DF_CPU=$(F_CPU)
-# DEFS += "-DDEBUG=1"
 
 OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once
 # OPTIMIZE = -O0
@@ -89,7 +71,10 @@ AVRDUDECONF = /etc/avrdude.conf
 #     MODE="0660"                                                            #
 #                                                                            #
 ##############################################################################
+
 PROGPORT = /dev/arduino
+# PROGPORT = /dev/ttyUSB0
+
 PROGBAUD = 57600
 
 OBJ = $(patsubst %.c,%.o,${SOURCES})
