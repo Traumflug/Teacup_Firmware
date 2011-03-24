@@ -13,6 +13,9 @@
 #include	"debug.h"
 #include	"heater.h"
 #include	"serial.h"
+#ifdef	TEMP_INTERCOM
+	#include	"intercom.h"
+#endif
 
 /*!	do stuff every 1/4 second
 

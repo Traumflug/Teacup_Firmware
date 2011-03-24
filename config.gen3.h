@@ -16,7 +16,7 @@
 	8. Appendix A - PWMable pins and mappings
 */
 
-#error this config is not tested, and may be incorrect! please post in forum or via git any corrections
+#error this config is marginally, and may be incorrect! please post in forum or via git any corrections
 
 /***************************************************************************\
 *                                                                           *
@@ -185,7 +185,7 @@
 #define	Y_DIR_PIN							DIO22
 #define	Y_MIN_PIN							AIO6
 #define	Y_MAX_PIN							AIO5
-#define	Y_ENABLE_PIN					DIO7
+#define	Y_ENABLE_PIN					AIO7
 //#define	Y_INVERT_DIR
 //#define	Y_INVERT_MIN
 //#define	Y_INVERT_MAX
@@ -201,13 +201,15 @@
 //#define	Z_INVERT_MAX
 //#define	Z_INVERT_ENABLE
 
-#define	E_STEP_PIN						DIO16
-#define	E_DIR_PIN							DIO17
+#define	E_STEP_PIN						DIO17
+#define	E_DIR_PIN							DIO16
 //#define E_ENABLE_PIN					xxxx
 //#define	E_INVERT_DIR
 
 #define	SD_CARD_DETECT				DIO2
 #define	SD_WRITE_PROTECT			DIO3
+
+#define	PS_ON_PIN							DIO14
 
 
 
