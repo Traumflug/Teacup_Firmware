@@ -304,12 +304,15 @@ void temp_set(temp_sensor_t index, uint16_t temperature) {
 	if (index >= NUM_TEMP_SENSORS)
 		return;
 
-	temp_sensors_runtime[index].target_temp = temperature;
-	temp_sensors_runtime[index].temp_residency = 0;
-#ifdef	TEMP_INTERCOM
-	if (temp_sensors[index].temp_type == TT_INTERCOM)
-		send_temperature(temp_sensors[index].temp_pin, temperature);
-#endif
+	// only reset residency if temp really changed
+	if (temp_sensors_runtime[index].target_temp != temperature) {
+		temp_sensors_runtime[index].target_temp = temperature;
+		temp_sensors_runtime[index].temp_residency = 0;
+	#ifdef	TEMP_INTERCOM
+		if (temp_sensors[index].temp_type == TT_INTERCOM)
+			send_temperature(temp_sensors[index].temp_pin, temperature);
+	#endif
+	}
 }
 
 /// return most recent reading for a sensor
