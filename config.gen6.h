@@ -213,9 +213,9 @@
 
 /**
 	TEMP_HYSTERESIS: actual temperature must be target +/- hysteresis before target temperature can be achieved.
-	  NOTE: format is 30.2 fixed point, so value of 20 actually means +/- 5 degrees
+	Unit is degree Celsius.
 */
-#define	TEMP_HYSTERESIS				20
+#define	TEMP_HYSTERESIS				5
 /**
 	TEMP_RESIDENCY_TIME: actual temperature must be close to target for this long before target is achieved
 

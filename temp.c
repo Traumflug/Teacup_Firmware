@@ -269,7 +269,7 @@ void temp_sensor_tick() {
 			}
 			temp_sensors_runtime[i].last_read_temp = temp;
 
-			if (labs((int16_t)(temp - temp_sensors_runtime[i].target_temp)) < TEMP_HYSTERESIS) {
+			if (labs((int16_t)(temp - temp_sensors_runtime[i].target_temp)) < (TEMP_HYSTERESIS*4)) {
 				if (temp_sensors_runtime[i].temp_residency < TEMP_RESIDENCY_TIME)
 					temp_sensors_runtime[i].temp_residency++;
 			}

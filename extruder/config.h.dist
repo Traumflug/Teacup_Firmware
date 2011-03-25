@@ -62,7 +62,7 @@
 #define FAN_PIN		DIO12
 
 // extruder settings
-#define	TEMP_HYSTERESIS				20
+#define	TEMP_HYSTERESIS				5
 #define	TEMP_RESIDENCY_TIME		60
 
 #ifdef	DEFINE_TEMP_SENSOR
