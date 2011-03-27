@@ -245,7 +245,7 @@ void temp_sensor_tick() {
 				case TT_INTERCOM:
 					temp = read_temperature(temp_sensors[i].temp_pin);
 
-					temp_sensors_runtime[i].next_read_time = 0;
+					temp_sensors_runtime[i].next_read_time = 25;
 
 					break;
 				#endif	/* TEMP_INTERCOM */
