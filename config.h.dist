@@ -292,8 +292,8 @@ DEFINE_TEMP_SENSOR(extruder,	TT_THERMISTOR,		0)
 #endif
 
 //               name      port   pin    pwm
-DEFINE_HEATER(extruder,	PORTB, PINB3, OCR0A)
-DEFINE_HEATER(bed,			PORTB, PINB4, OCR0B)
+DEFINE_HEATER(extruder,	PB3)
+DEFINE_HEATER(bed,			PB4)
 // DEFINE_HEATER(fan,			PORTB, PINB4, OCR0B)
 // DEFINE_HEATER(chamber,	PORTD, PIND7, OCR2A)
 // DEFINE_HEATER(motor,		PORTD, PIND6, OCR2B)
