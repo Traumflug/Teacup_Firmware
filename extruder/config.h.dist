@@ -33,7 +33,7 @@
 #define H1E_PWM OCR0B
 #define H2E_PWM OCR0A
 
-//Step/Dir Pins from motherboard to extruder 
+//Step/Dir Pins from motherboard to extruder
 //IMPORTANT: Assumes that the step pin is on PCIE0
 #define E_STEP_PIN DIO10
 #define E_DIR_PIN DIO9
@@ -71,8 +71,8 @@ DEFINE_TEMP_SENSOR(bed,			TT_THERMISTOR,		TEMP_BED_PIN_CHANNEL)
 #endif
 
 #ifdef	DEFINE_HEATER
-DEFINE_HEATER(extruder,	PORTD, HEATER_PIN, OCR0A)
-DEFINE_HEATER(bed,			PORTD, BED_PIN, OCR0B)
+DEFINE_HEATER(extruder,	DIO11)
+DEFINE_HEATER(bed,			AIO1)
 #endif
 
 // list of PWM-able pins and corresponding timers
@@ -80,7 +80,7 @@ DEFINE_HEATER(bed,			PORTD, BED_PIN, OCR0B)
 // OC0A												DIO6
 // OC0B												DIO5
 // OC1A												DIO9
-// OC1B												DIO10	
+// OC1B												DIO10
 // OC2A												DIO11
 // OC2B												DIO3
 
