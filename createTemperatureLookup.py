@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # Creates a C code lookup table for doing ADC to temperature conversion
 # on a microcontroller
