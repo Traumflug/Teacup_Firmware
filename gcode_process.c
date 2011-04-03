@@ -60,6 +60,7 @@ static void zero_z(void) {
 	enqueue(&t);
 }
 
+#if E_STARTSTOP_STEPS > 0
 /// move E by a certain amount at a certain speed
 static void SpecialMoveE(int32_t e, uint32_t f) {
 	TARGET t = startpoint;
@@ -67,6 +68,7 @@ static void SpecialMoveE(int32_t e, uint32_t f) {
 	t.F = f;
 	enqueue(&t);
 }
+#endif /* E_STARTSTOP_STEPS > 0 */
 
 /************************************************************************//**
 
