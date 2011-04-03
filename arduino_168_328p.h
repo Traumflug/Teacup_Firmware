@@ -48,7 +48,7 @@ pins
 #define DIO3_RPORT	PIND
 #define DIO3_WPORT	PORTD
 #define DIO3_DDR		DDRD
-#define DIO3_PWM		OCR2B
+#define DIO3_PWM		&OCR2B
 
 #define DIO4_PIN		PIND4
 #define DIO4_RPORT	PIND
@@ -60,13 +60,13 @@ pins
 #define DIO5_RPORT	PIND
 #define DIO5_WPORT	PORTD
 #define DIO5_DDR		DDRD
-#define DIO5_PWM		OCR0B
+#define DIO5_PWM		&OCR0B
 
 #define DIO6_PIN		PIND6
 #define DIO6_RPORT	PIND
 #define DIO6_WPORT	PORTD
 #define DIO6_DDR		DDRD
-#define DIO6_PWM		OCR0A
+#define DIO6_PWM		&OCR0A
 
 #define DIO7_PIN		PIND7
 #define DIO7_RPORT	PIND
@@ -96,7 +96,7 @@ pins
 #define DIO11_RPORT	PINB
 #define DIO11_WPORT	PORTB
 #define DIO11_DDR		DDRB
-#define DIO11_PWM		OCR2A
+#define DIO11_PWM		&OCR2A
 
 #define DIO12_PIN		PINB4
 #define DIO12_RPORT	PINB
@@ -183,7 +183,7 @@ pins
 #define PB3_RPORT		PINB
 #define PB3_WPORT		PORTB
 #define PB3_DDR			DDRB
-#define PB3_PWM			OCR2A
+#define PB3_PWM			&OCR2A
 
 #define PB4_PIN			PINB4
 #define PB4_RPORT		PINB
@@ -281,7 +281,7 @@ pins
 #define PD3_RPORT		PIND
 #define PD3_WPORT		PORTD
 #define PD3_DDR			DDRD
-#define PD3_PWM			OCR2B
+#define PD3_PWM			&OCR2B
 
 #define PD4_PIN			PIND4
 #define PD4_RPORT		PIND
@@ -293,13 +293,13 @@ pins
 #define PD5_RPORT		PIND
 #define PD5_WPORT		PORTD
 #define PD5_DDR			DDRD
-#define PD5_PWM			OCR0B
+#define PD5_PWM			&OCR0B
 
 #define PD6_PIN			PIND6
 #define PD6_RPORT		PIND
 #define PD6_WPORT		PORTD
 #define PD6_DDR			DDRD
-#define PD6_PWM			OCR0A
+#define PD6_PWM			&OCR0A
 
 #define PD7_PIN			PIND7
 #define PD7_RPORT		PIND

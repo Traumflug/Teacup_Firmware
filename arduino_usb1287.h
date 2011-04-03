@@ -1,4 +1,6 @@
 
+#warning this config doesn't have PWM pins yet!
+
 // SPI
 #define	SCK					DIO9
 #define	MISO				DIO11

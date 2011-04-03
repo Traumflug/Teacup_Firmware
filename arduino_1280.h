@@ -51,55 +51,55 @@ pins
 #define	DIO2_RPORT	PINE
 #define	DIO2_WPORT	PORTE
 #define	DIO2_DDR		DDRE
-#define DIO2_PWM		OCR3BL
+#define DIO2_PWM		&OCR3BL
 
 #define	DIO3_PIN		PINE5
 #define	DIO3_RPORT	PINE
 #define	DIO3_WPORT	PORTE
 #define	DIO3_DDR		DDRE
-#define DIO3_PWM		OCR3CL
+#define DIO3_PWM		&OCR3CL
 
 #define	DIO4_PIN		PING5
 #define	DIO4_RPORT	PING
 #define	DIO4_WPORT	PORTG
 #define	DIO4_DDR		DDRG
-#define DIO4_PWM		OCR0B
+#define DIO4_PWM		&OCR0B
 
 #define	DIO5_PIN		PINE3
 #define	DIO5_RPORT	PINE
 #define	DIO5_WPORT	PORTE
 #define	DIO5_DDR		DDRE
-#define DIO5_PWM		OCR3AL
+#define DIO5_PWM		&OCR3AL
 
 #define	DIO6_PIN		PINH3
 #define	DIO6_RPORT	PINH
 #define	DIO6_WPORT	PORTH
 #define	DIO6_DDR		DDRH
-#define DIO6_PWM		OCR4AL
+#define DIO6_PWM		&OCR4AL
 
 #define	DIO7_PIN		PINH4
 #define	DIO7_RPORT	PINH
 #define	DIO7_WPORT	PORTH
 #define	DIO7_DDR		DDRH
-#define DIO7_PWM		OCR4BL
+#define DIO7_PWM		&OCR4BL
 
 #define	DIO8_PIN		PINH5
 #define	DIO8_RPORT	PINH
 #define	DIO8_WPORT	PORTH
 #define	DIO8_DDR		DDRH
-#define DIO8_PWM		OCR4CL
+#define DIO8_PWM		&OCR4CL
 
 #define	DIO9_PIN		PINH6
 #define	DIO9_RPORT	PINH
 #define	DIO9_WPORT	PORTH
 #define	DIO9_DDR		DDRH
-#define DIO9_PWM		OCR2B
+#define DIO9_PWM		&OCR2B
 
 #define	DIO10_PIN		PINB4
 #define	DIO10_RPORT	PINB
 #define	DIO10_WPORT	PORTB
 #define	DIO10_DDR		DDRB
-#define DIO10_PWM		OCR2A
+#define DIO10_PWM		&OCR2A
 
 #define	DIO11_PIN		PINB5
 #define	DIO11_RPORT	PINB
@@ -117,7 +117,7 @@ pins
 #define	DIO13_RPORT	PINB
 #define	DIO13_WPORT	PORTB
 #define	DIO13_DDR		DDRB
-#define DIO13_PWM		OCR0A
+#define DIO13_PWM		&OCR0A
 
 #define	DIO14_PIN		PINJ1
 #define	DIO14_RPORT	PINJ
@@ -303,19 +303,19 @@ pins
 #define	DIO44_RPORT	PINL
 #define	DIO44_WPORT	PORTL
 #define	DIO44_DDR		DDRL
-#define DIO44_PWM		OCR5CL
+#define DIO44_PWM		&OCR5CL
 
 #define	DIO45_PIN		PINL4
 #define	DIO45_RPORT	PINL
 #define	DIO45_WPORT	PORTL
 #define	DIO45_DDR		DDRL
-#define DIO45_PWM		OCR5BL
+#define DIO45_PWM		&OCR5BL
 
 #define	DIO46_PIN		PINL3
 #define	DIO46_RPORT	PINL
 #define	DIO46_WPORT	PORTL
 #define	DIO46_DDR		DDRL
-#define DIO46_PWM		OCR5AL
+#define DIO46_PWM		&OCR5AL
 
 #define	DIO47_PIN		PINL2
 #define	DIO47_RPORT	PINL
@@ -522,7 +522,7 @@ pins
 #define PB4_RPORT		PINB
 #define PB4_WPORT		PORTB
 #define PB4_DDR			DDRB
-#define PB4_PWM			OCR2A
+#define PB4_PWM			&OCR2A
 #define PB5_PIN			PINB5
 #define PB5_RPORT		PINB
 #define PB5_WPORT		PORTB
@@ -537,7 +537,7 @@ pins
 #define PB7_RPORT		PINB
 #define PB7_WPORT		PORTB
 #define PB7_DDR			DDRB
-#define PB7_PWM			OCR0A
+#define PB7_PWM			&OCR0A
 
 #define PC0_PIN			PINC0
 #define PC0_RPORT		PINC
@@ -640,17 +640,17 @@ pins
 #define PE3_RPORT		PINE
 #define PE3_WPORT		PORTE
 #define PE3_DDR			DDRE
-#define PE3_PWM			OCR3AL
+#define PE3_PWM			&OCR3AL
 #define PE4_PIN			PINE4
 #define PE4_RPORT		PINE
 #define PE4_WPORT		PORTE
 #define PE4_DDR			DDRE
-#define PE4_PWM			OCR3BL
+#define PE4_PWM			&OCR3BL
 #define PE5_PIN			PINE5
 #define PE5_RPORT		PINE
 #define PE5_WPORT		PORTE
 #define PE5_DDR			DDRE
-#define PE5_PWM			OCR3CL
+#define PE5_PWM			&OCR3CL
 #define PE6_PIN			PINE6
 #define PE6_RPORT		PINE
 #define PE6_WPORT		PORTE
@@ -732,7 +732,7 @@ pins
 #define PG5_RPORT		PING
 #define PG5_WPORT		PORTG
 #define PG5_DDR			DDRG
-#define PG5_PWM			OCR0B
+#define PG5_PWM			&OCR0B
 #define PG6_PIN			PING6
 #define PG6_RPORT		PING
 #define PG6_WPORT		PORTG
@@ -763,22 +763,22 @@ pins
 #define PH3_RPORT		PINH
 #define PH3_WPORT		PORTH
 #define PH3_DDR			DDRH
-#define PH3_PWM			OCR4AL
+#define PH3_PWM			&OCR4AL
 #define PH4_PIN			PINH4
 #define PH4_RPORT		PINH
 #define PH4_WPORT		PORTH
 #define PH4_DDR			DDRH
-#define PH4_PWM			OCR4BL
+#define PH4_PWM			&OCR4BL
 #define PH5_PIN			PINH5
 #define PH5_RPORT		PINH
 #define PH5_WPORT		PORTH
 #define PH5_DDR			DDRH
-#define PH5_PWM			OCR4CL
+#define PH5_PWM			&OCR4CL
 #define PH6_PIN			PINH6
 #define PH6_RPORT		PINH
 #define PH6_WPORT		PORTH
 #define PH6_DDR			DDRH
-#define PH6_PWM			OCR2B
+#define PH6_PWM			&OCR2B
 #define PH7_PIN			PINH7
 #define PH7_RPORT		PINH
 #define PH7_WPORT		PORTH
@@ -886,17 +886,17 @@ pins
 #define PL3_RPORT		PINL
 #define PL3_WPORT		PORTL
 #define PL3_DDR			DDRL
-#define PL3_PWM			OCR5AL
+#define PL3_PWM			&OCR5AL
 #define PL4_PIN			PINL4
 #define PL4_RPORT		PINL
 #define PL4_WPORT		PORTL
 #define PL4_DDR			DDRL
-#define PL4_PWM			OCR5BL
+#define PL4_PWM			&OCR5BL
 #define PL5_PIN			PINL5
 #define PL5_RPORT		PINL
 #define PL5_WPORT		PORTL
 #define PL5_DDR			DDRL
-#define PL5_PWM			OCR5CL
+#define PL5_PWM			&OCR5CL
 #define PL6_PIN			PINL6
 #define PL6_RPORT		PINL
 #define PL6_WPORT		PORTL
