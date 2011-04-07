@@ -1,5 +1,4 @@
-#ifndef	_CONFIG_H
-#define	_CONFIG_H
+/* Notice to developers: this file is intentionally included twice. */
 
 /*
 	CPU clock rate
@@ -94,5 +93,3 @@ DEFINE_HEATER(bed,			AIO1)
 
 #define enable_motors()				do { TCCR0A |= MASK(COM0A1) | MASK(COM0B1); } while (0)
 #define disable_motors()			do { TCCR0A &= ~MASK(COM0A1) & ~MASK(COM0B1); } while (0)
-
-#endif	/* _CONFIG_H */
