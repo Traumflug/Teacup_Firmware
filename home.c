@@ -11,8 +11,6 @@
 
 /// home all 3 axes
 void home() {
-	queue_wait();
-
 	#if defined	X_MIN_PIN
 		home_x_negative();
 	#elif defined X_MAX_PIN
@@ -34,6 +32,8 @@ void home() {
 
 /// find X MIN endstop
 void home_x_negative() {
+	queue_wait();
+
 	#if defined X_MIN_PIN
 		uint8_t	denoise_count = 0;
 
@@ -74,6 +74,8 @@ void home_x_negative() {
 
 /// find X_MAX endstop
 void home_x_positive() {
+	queue_wait();
+
 	#if defined X_MAX_PIN
 		uint8_t	denoise_count = 0;
 
@@ -119,6 +121,8 @@ void home_x_positive() {
 
 /// fund Y MIN endstop
 void home_y_negative() {
+	queue_wait();
+
 	#if defined Y_MIN_PIN
 		uint8_t	denoise_count = 0;
 
@@ -159,6 +163,8 @@ void home_y_negative() {
 
 /// find Y MAX endstop
 void home_y_positive() {
+	queue_wait();
+
 	#if defined Y_MAX_PIN
 		uint8_t	denoise_count = 0;
 
@@ -204,6 +210,8 @@ void home_y_positive() {
 
 /// find Z MIN endstop
 void home_z_negative() {
+	queue_wait();
+
 	#if defined Z_MIN_PIN
 		uint8_t	denoise_count = 0;
 
@@ -245,6 +253,8 @@ void home_z_negative() {
 
 /// find Z MAX endstop
 void home_z_positive() {
+	queue_wait();
+
 	#if defined Z_MAX_PIN
 		uint8_t	denoise_count = 0;
 
