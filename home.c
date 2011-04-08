@@ -23,10 +23,10 @@ void home() {
 		home_y_positive();
 	#endif
 
-	#if defined	Z_MIN_PIN
-		home_z_negative();
-	#elif defined Z_MAX_PIN
+	#if defined Z_MAX_PIN
 		home_z_positive();
+	#elif defined	Z_MIN_PIN
+		home_z_negative();
 	#endif
 }
 
