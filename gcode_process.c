@@ -88,6 +88,9 @@ void process_gcode_command() {
 		next_target.target.X += startpoint.X;
 		next_target.target.Y += startpoint.Y;
 		next_target.target.Z += startpoint.Z;
+		#ifdef	E_ABSOLUTE
+			next_target.target.E += startpoint.E;
+		#endif
 	}
 	// E ALWAYS relative, otherwise we overflow our registers after only a few layers
 	// 	next_target.target.E += startpoint.E;
@@ -193,7 +196,7 @@ void process_gcode_command() {
 					zero_z();
 					axisSelected = 1;
 				}
-				// there's no point in moving E, as E is always relative
+				// there's no point in moving E, as E has no endstops
 
 				if (!axisSelected) {
 					zero_x();
@@ -231,7 +234,9 @@ void process_gcode_command() {
 						axisSelected = 1;
 					}
 					if (next_target.seen_E) {
-						// there's no point in setting E, as E is always relative
+						#ifdef	E_ABSOLUTE
+							startpoint.E = current_position.E = next_target.target.E;
+						#endif
 						axisSelected = 1;
 					}
 

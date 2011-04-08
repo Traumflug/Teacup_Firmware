@@ -385,9 +385,14 @@ void gcode_parse_char(uint8_t c) {
 
 		if (next_target.option_relative) {
 			next_target.target.X = next_target.target.Y = next_target.target.Z = 0;
+			#ifdef	E_ABSOLUTE
+				next_target.target.E = 0;
+			#endif
 		}
-		// E always relative
-		next_target.target.E = 0;
+		#ifndef	E_ABSOLUTE
+			// E always relative
+			next_target.target.E = 0;
+		#endif
 	}
 }
 
