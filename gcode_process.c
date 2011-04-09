@@ -471,7 +471,7 @@ void process_gcode_command() {
 					break;
         #ifdef HEATER_EXTRUDER
           if ( ! next_target.seen_P)
-            next_target.P = HEATER_EXTRUDER;
+            next_target.P = next_target.target.T;
         // else use the first available device
         #endif
 				temp_set(next_target.P, next_target.S);
@@ -495,7 +495,7 @@ void process_gcode_command() {
 					queue_wait();
 				#endif
 				if ( ! next_target.seen_P)
-					next_target.P = TEMP_SENSOR_none;
+					next_target.P = next_target.target.T;
 				temp_print(next_target.P);
 				break;
 
