@@ -33,6 +33,7 @@ typedef struct {
 	int32_t						Z;
 	int32_t						E;
 	uint32_t					F;
+	uint8_t						T;
 
 	uint8_t		e_relative				:1; ///< bool: e axis relative? Overrides all_relative
 } TARGET;
@@ -118,6 +119,8 @@ typedef struct {
 		};
 		uint8_t							allflags;	///< used for clearing all flags
 	};
+
+	uint8_t						tool; ///< which extruder we're using
 
 	// distances
 	uint32_t					x_delta; ///< number of steps on X axis

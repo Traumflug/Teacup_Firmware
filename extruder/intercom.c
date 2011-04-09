@@ -89,7 +89,7 @@ uint8_t get_err() {
 	return rx.packet.err;
 }
 
-void start_send(void) {
+void start_send(uint8_t index) {
 	uint8_t txcrc = 0, i;
 
 	// atomically update flags
@@ -103,6 +103,9 @@ void start_send(void) {
 
 	// set start byte
 	tx.packet.start = START;
+
+	// set target board
+	tx.packet.controller_num = index;
 
 	// set packet type
 	tx.packet.control_word = 105;

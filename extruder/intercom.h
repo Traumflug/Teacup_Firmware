@@ -72,7 +72,8 @@ uint8_t get_err(void);
 
 /// if host, send packet to extruder
 /// if extruder, return packet to host
-void start_send(void);
+/// \param index index of controller to send packet to. HOST IS ALWAYS ZERO
+void start_send(uint8_t index);
 
 #define	FLAG_RX_IN_PROGRESS	1
 #define	FLAG_TX_IN_PROGRESS	2

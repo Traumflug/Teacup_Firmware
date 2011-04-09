@@ -84,7 +84,7 @@ ISR(PCINT0_vect) {
 		enable_motors();
 
 		//Advance the coil position
-		if (READ(E_DIR_PIN)) 
+		if (READ(E_DIR_PIN))
 			coil_pos++;
 		else
 			coil_pos--;
@@ -123,25 +123,25 @@ ISR(PCINT0_vect) {
 			  WRITE(H1D, 1);
 			  WRITE(H2D, 1);
 			  H1E_PWM = 0;
-			  H2E_PWM = pwm;  
+			  H2E_PWM = pwm;
 			  break;
 			case 5:
 			  WRITE(H1D, 0);
 			  WRITE(H2D, 1);
 			  H1E_PWM = pwm;
-			  H2E_PWM = pwm;  
+			  H2E_PWM = pwm;
 			  break;
 			case 6:
 			  WRITE(H1D, 0);
 			  WRITE(H2D, 1);
 			  H1E_PWM = pwm;
-			  H2E_PWM = 0;  
+			  H2E_PWM = 0;
 			  break;
 			case 7:
 			  WRITE(H1D, 0);
 			  WRITE(H2D, 0);
 			  H1E_PWM = pwm;
-			  H2E_PWM = pwm;  
+			  H2E_PWM = pwm;
 			  break;
 		}
 	}
@@ -171,7 +171,7 @@ void init(void) {
 
 	// set up clock
 	timer_init();
-	
+
 	// enable interrupts
 	sei();
 
@@ -198,7 +198,7 @@ int main (void)
 			// check temperatures and manage heaters
 			temp_sensor_tick();
 		}
-		
+
 		// check if we've had a new intercom packet
 		if (intercom_flags & FLAG_NEW_RX) {
 			intercom_flags &= ~FLAG_NEW_RX;
@@ -210,7 +210,7 @@ int main (void)
 					temp_set(0, read_temperature(0));
 					send_temperature(1, temp_get(1));
 					temp_set(1, read_temperature(1));
-					start_send();
+					start_send(0);
 					break;
 				// M130 - set PID P factor
 				case 130:
@@ -230,7 +230,7 @@ int main (void)
 					break;
 			}
 		}
-		
+
 		if (intercom_flags & FLAG_TX_FINISHED) {
 			WRITE(TX_ENABLE_PIN,0);
 		}

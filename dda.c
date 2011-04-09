@@ -28,6 +28,30 @@
 	#include	"heater.h"
 #endif
 
+#undef	DEFINE_EXTRUDER
+#define	_DEFINE_EXTRUDER(enable_pin, active_low) { &( enable_pin ## _WPORT), MASK( enable_pin ## _PIN), active_low },
+#define	DEFINE_EXTRUDER(enable_pin, active_low) _DEFINE_EXTRUDER(enable_pin, active_low)
+
+struct {
+	volatile uint8_t *enable_port;
+	uint8_t enable_pin;
+	uint8_t active_low;
+} extruders[] = {
+	DEFINE_EXTRUDER(E_ENABLE_PIN, 1)
+	#include	"config.h"
+};
+
+#undef	DEFINE_EXTRUDER
+#define	DEFINE_EXTRUDER(enable_pin, active_low) extruder_ ## enable_pin,
+enum {
+	#include	"config.h"
+	NUM_EXTRUDERS
+} extruder_names;
+#undef DEFINE_EXTRUDER
+
+/// step timeout
+volatile uint8_t	steptimeout = 0;
+
 /* 32-bit-specific abs fn coerces argument to 32-bit signed value first */
 #define abs32(x) labs((int32_t)(x))
 
@@ -431,6 +455,20 @@ void dda_start(DDA *dda) {
 		y_direction(dda->y_direction);
 		z_direction(dda->z_direction);
 		e_direction(dda->e_direction);
+
+		// enable relevant extruder
+		if (NUM_EXTRUDERS > 1) {
+			if (startpoint.T != dda->endpoint.T) {
+				if (extruders[startpoint.T].active_low)
+					*extruders[startpoint.T].enable_port |= extruders[startpoint.T].enable_pin;
+				else
+					*extruders[startpoint.T].enable_port &= ~(extruders[startpoint.T].enable_pin);
+				if (extruders[dda->endpoint.T].active_low)
+					*extruders[dda->endpoint.T].enable_port &= ~(extruders[dda->endpoint.T].enable_pin);
+				else
+					*extruders[dda->endpoint.T].enable_port |= extruders[dda->endpoint.T].enable_pin;
+			}
+		}
 
 		#ifdef	DC_EXTRUDER
 		if (dda->e_delta)

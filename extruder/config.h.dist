@@ -15,8 +15,8 @@
 
 #include	"arduino.h"
 
-// controller index- bus is multidrop after all
-#define	THIS_CONTROLLER_NUM 0
+// controller index- bus is multidrop after all. HOST IS ALWAYS ZERO
+#define	THIS_CONTROLLER_NUM 1
 
 //RS485 Interface pins
 #define RX_ENABLE_PIN DIO4
@@ -51,6 +51,8 @@
 
 
 #define	REFERENCE	REFERENCE_AVCC
+
+#define ANALOG_MASK	(MASK(TRIM_POT_CHANNEL) | MASK(TEMP_PIN_CHANNEL) | MASK(TEMP_BED_PIN_CHANNEL))
 
 #define	TEMP_THERMISTOR
 

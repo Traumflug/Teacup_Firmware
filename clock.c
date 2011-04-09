@@ -52,8 +52,10 @@ static void clock_250ms(void) {
 		/*		if (temp_get_target())
 		temp_print();*/
 	}
+
 	#ifdef	TEMP_INTERCOM
-	start_send();
+	/// \todo handle multiple extruder boards here
+	start_send(1);
 	#endif
 }
 
