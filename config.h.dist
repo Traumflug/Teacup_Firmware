@@ -78,7 +78,7 @@
 #define	SEARCH_FEEDRATE_X			50
 #define	SEARCH_FEEDRATE_Y			50
 #define	SEARCH_FEEDRATE_Z			50
-#define	SEARCH_FEEDRATE_E			50
+// no SEARCH_FEEDRATE_E, as E can't be searched
 
 /// this is how many steps to suck back the filament by when we stop. set to zero to disable
 #define	E_STARTSTOP_STEPS			20
