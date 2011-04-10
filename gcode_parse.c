@@ -98,18 +98,11 @@ static int32_t decfloat_to_int(decfloat *df, uint32_t multiplicand, uint8_t divi
 		e--;
 
 	uint32_t	rnew1 = r * (multiplicand / denominator);
-	if (e)
-	{
-		uint32_t	rnew2 = r * (multiplicand % denominator) / denominator;
-		r = rnew1 + rnew2;
+	uint32_t	rnew2 = (r * (multiplicand % denominator) + (denominator / 2)) / denominator;
+	r = rnew1 + rnew2;
 
+	if (e)
 		r = (r + powers[e] / 2) / powers[e];
-	}
-	else
-	{
-		uint32_t	rnew2 = (r * (multiplicand % denominator) + (denominator / 2)) / denominator;
-		r = rnew1 + rnew2;
-	}
 
 	return df->sign ? -(int32_t)r : (int32_t)r;
 }
