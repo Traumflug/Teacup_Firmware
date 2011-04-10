@@ -80,7 +80,6 @@ GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
 	utility functions
 */
 extern const uint32_t powers[];  // defined in sermsg.c
-const int32_t rounding[DECFLOAT_EXP_MAX] = {0,  5,  50,  500};
 
 /// convert a floating point input value into an integer with appropriate scaling.
 /// \param *df pointer to floating point structure that holds fp value to convert
@@ -104,7 +103,7 @@ static int32_t decfloat_to_int(decfloat *df, uint32_t multiplicand, uint8_t divi
 		uint32_t	rnew2 = r * (multiplicand % denominator) / denominator;
 		r = rnew1 + rnew2;
 
-		r = (r + rounding[e]) / powers[e];
+		r = (r + powers[e] / 2) / powers[e];
 	}
 	else
 	{
