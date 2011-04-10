@@ -91,15 +91,20 @@ extern const uint32_t powers[];  // defined in sermsg.c
 static int32_t decfloat_to_int(decfloat *df, uint32_t multiplicand, uint8_t divide_by_1000) {
 	uint32_t	r = df->mantissa;
 	uint8_t	e = df->exponent;
-	uint32_t	denominator = divide_by_1000 ? 1000 : 1;
+	uint32_t	rnew1, rnew2;
 
 	// e=1 means we've seen a decimal point but no digits after it, and e=2 means we've seen a decimal point with one digit so it's too high by one if not zero
 	if (e)
 		e--;
 
-	uint32_t	rnew1 = r * (multiplicand / denominator);
-	uint32_t	rnew2 = (r * (multiplicand % denominator) + (denominator / 2)) / denominator;
-	r = rnew1 + rnew2;
+	if (divide_by_1000) {
+		rnew1 = r * (multiplicand / 1000);
+		rnew2 = (r * (multiplicand % 1000) + (1000 / 2)) / 1000;
+		r = rnew1 + rnew2;
+	}
+	else {
+		r *= multiplicand;
+	}
 
 	if (e)
 		r = (r + powers[e] / 2) / powers[e];
