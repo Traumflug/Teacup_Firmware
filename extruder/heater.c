@@ -114,6 +114,39 @@ void heater_init() {
 				case (uint16_t) &OCR2B:
 					TCCR2A |= MASK(COM2B1);
 					break;
+				#ifdef TCCR3A
+				case (uint16_t) &OCR3AL:
+					TCCR3A |= MASK(COM3A1);
+					break;
+				case (uint16_t) &OCR3BL:
+					TCCR3A |= MASK(COM3B1);
+					break;
+				case (uint16_t) &OCR3CL:
+					TCCR3A |= MASK(COM3C1);
+					break;
+				#endif
+				#ifdef	TCCR4A
+				case (uint16_t) &OCR4AL:
+					TCCR4A |= MASK(COM4A1);
+					break;
+				case (uint16_t) &OCR4BL:
+					TCCR4A |= MASK(COM4B1);
+					break;
+				case (uint16_t) &OCR4CL:
+					TCCR4A |= MASK(COM4C1);
+					break;
+				#endif
+				#ifdef	TCCR5A
+				case (uint16_t) &OCR5AL:
+					TCCR5A |= MASK(COM5A1);
+					break;
+				case (uint16_t) &OCR5BL:
+					TCCR5A |= MASK(COM5B1);
+					break;
+				case (uint16_t) &OCR5CL:
+					TCCR5A |= MASK(COM5C1);
+					break;
+				#endif
 			}
 		}
 
