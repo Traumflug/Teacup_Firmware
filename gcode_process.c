@@ -273,7 +273,8 @@ void process_gcode_command() {
 					return;
 		}
 		#ifdef	DEBUG
-			print_queue();
+			if (debug_flags & DEBUG_POSITION)
+				print_queue();
 		#endif
 	}
 	else if (next_target.seen_M) {
