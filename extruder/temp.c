@@ -245,7 +245,7 @@ void temp_sensor_tick() {
 				case TT_INTERCOM:
 					temp = read_temperature(temp_sensors[i].temp_pin);
 
-					temp_sensors_runtime[i].next_read_time = 0;
+					temp_sensors_runtime[i].next_read_time = 25;
 
 					break;
 				#endif	/* TEMP_INTERCOM */
@@ -341,7 +341,7 @@ void temp_print(temp_sensor_t index) {
 		uint8_t b = 0;
 		b = (temp_sensors_runtime[HEATER_BED].last_read_temp & 3) * 25;
 
-		sersendf_P(PSTR(" B:%u.%u"), temp_sensors_runtime[HEATER_bed].last_read_temp >> 2 , b);
+		sersendf_P(PSTR(" B:%u.%u"), temp_sensors_runtime[HEATER_BED].last_read_temp >> 2 , b);
 	#endif
 
 }

@@ -341,7 +341,7 @@ void temp_print(temp_sensor_t index) {
 		uint8_t b = 0;
 		b = (temp_sensors_runtime[HEATER_BED].last_read_temp & 3) * 25;
 
-		sersendf_P(PSTR(" B:%u.%u"), temp_sensors_runtime[HEATER_bed].last_read_temp >> 2 , b);
+		sersendf_P(PSTR(" B:%u.%u"), temp_sensors_runtime[HEATER_BED].last_read_temp >> 2 , b);
 	#endif
 
 }
