@@ -379,8 +379,10 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	// next dda starts where we finish
 	memcpy(&startpoint, target, sizeof(TARGET));
-	// E is always relative, reset it here
-	startpoint.E = 0;
+	// if E is relative, reset it here
+	#ifndef E_ABSOLUTE
+		startpoint.E = 0;
+	#endif
 }
 
 /*! Start a prepared DDA
@@ -647,8 +649,10 @@ void dda_step(DDA *dda) {
 	}
 	else {
 		dda->live = 0;
-		// reset E- always relative
-		current_position.E = 0;
+		// if E is relative reset it
+		#ifndef E_ABSOLUTE
+			current_position.E = 0;
+		#endif
 		// linear acceleration code doesn't alter F during a move, so we must update it here
 		// in theory, we *could* update F every step, but that would require a divide in interrupt context which should be avoided if at all possible
 		current_position.F = dda->endpoint.F;
