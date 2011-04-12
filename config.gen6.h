@@ -247,8 +247,8 @@
 	#define DEFINE_TEMP_SENSOR(...)
 #endif
 
-//                 name       type          pin
-DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PINA5)
+//                 name       type          pin		additional
+DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PINA5,	THERMISTOR_EXTRUDER)
 
 
 

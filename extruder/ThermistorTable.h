@@ -1,4 +1,11 @@
 // default thermistor lookup table
+
+// How many thermistor tables we have
+#define NUMTABLES 1
+
+#define THERMISTOR_EXTRUDER	0
+// #define THERMISTOR_BED		1
+
 // Thermistor lookup table, generated with --num-temps=50 and trimmed in lower temperature ranges.
 // You may be able to improve the accuracy of this table in various ways.
 //   1. Measure the actual resistance of the resistor. It's "nominally" 4.7K, but that's ± 5%.
@@ -17,7 +24,8 @@
 // max adc: 1023
 #define NUMTEMPS 20
 // {ADC, temp*4 }, // temp
-uint16_t temptable[NUMTEMPS][2] PROGMEM = {
+uint16_t temptable[NUMTABLES][NUMTEMPS][2] PROGMEM = {
+{
    {1, 3364}, // 841.027617469 C
    {21, 1329}, // 332.486789769 C
    {41, 1104}, // 276.102666373 C
@@ -38,4 +46,5 @@ uint16_t temptable[NUMTEMPS][2] PROGMEM = {
    {881, 219}, // 54.8051659223 C
    {981, 93}, // 23.4825243529 C
    {1010, 1} // 0.498606463441 C
+}
 };

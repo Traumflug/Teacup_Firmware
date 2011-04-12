@@ -21,6 +21,18 @@
 	#include	"intercom.h"
 #endif
 
+#ifdef	TEMP_MAX6675
+#endif
+
+#ifdef	TEMP_THERMISTOR
+#include	"analog.h"
+#include	"ThermistorTable.h"
+#endif
+
+#ifdef	TEMP_AD595
+#include	"analog.h"
+#endif
+
 typedef enum {
 	PRESENT,
 	TCOPEN
@@ -31,11 +43,12 @@ typedef struct {
 	temp_type_t temp_type; ///< type of sensor
 	uint8_t     temp_pin;  ///< pin that sensor is on
 	heater_t    heater;    ///< associated heater if any
+	uint8_t		additional; ///< additional, sensor type specifc config
 } temp_sensor_definition_t;
 
 #undef DEFINE_TEMP_SENSOR
 /// help build list of sensors from entries in config.h
-#define DEFINE_TEMP_SENSOR(name, type, pin) { (type), (pin), (HEATER_ ## name) },
+#define DEFINE_TEMP_SENSOR(name, type, pin, additional) { (type), (pin), (HEATER_ ## name), (additional) },
 static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
 {
 	#include	"config.h"
@@ -53,18 +66,6 @@ struct {
 
 	uint16_t					next_read_time; ///< how long until we can read this sensor again?
 } temp_sensors_runtime[NUM_TEMP_SENSORS];
-
-#ifdef	TEMP_MAX6675
-#endif
-
-#ifdef	TEMP_THERMISTOR
-#include	"analog.h"
-#include	"ThermistorTable.h"
-#endif
-
-#ifdef	TEMP_AD595
-#include	"analog.h"
-#endif
 
 /// set up temp sensors. Currently only the 'intercom' sensor needs initialisation.
 void temp_init() {
@@ -165,13 +166,15 @@ void temp_sensor_tick() {
 				#ifdef	TEMP_THERMISTOR
 				case TT_THERMISTOR:
 					do {
-						uint8_t j;
+						uint8_t j, table_num;
 						//Read current temperature
 						temp = analog_read(temp_sensors[i].temp_pin);
+						// for thermistors the thermistor table number is in the additional field
+						table_num = temp_sensors[i].additional;
 
 						//Calculate real temperature based on lookup table
 						for (j = 1; j < NUMTEMPS; j++) {
-							if (pgm_read_word(&(temptable[j][0])) > temp) {
+							if (pgm_read_word(&(temptable[table_num][j][0])) > temp) {
 								// Thermistor table is already in 14.2 fixed point
 								#ifndef	EXTRUDER
 								if (debug_flags & DEBUG_PID)
@@ -189,17 +192,17 @@ void temp_sensor_tick() {
 								// Wikipedia's example linear interpolation formula.
 								temp = (
 								//     ((x - x₀)y₁
-									((uint32_t)temp - pgm_read_word(&(temptable[j-1][0]))) * pgm_read_word(&(temptable[j][1]))
+									((uint32_t)temp - pgm_read_word(&(temptable[table_num][j-1][0]))) * pgm_read_word(&(temptable[table_num][j][1]))
 								//                 +
 									+
 								//                   (x₁-x)
-									(pgm_read_word(&(temptable[j][0])) - (uint32_t)temp)
+									(pgm_read_word(&(temptable[table_num][j][0])) - (uint32_t)temp)
 								//                         y₀ )
-									* pgm_read_word(&(temptable[j-1][1])))
+									* pgm_read_word(&(temptable[table_num][j-1][1])))
 								//                              /
 									/
 								//                                (x₁ - x₀)
-									(pgm_read_word(&(temptable[j][0])) - pgm_read_word(&(temptable[j-1][0])));
+									(pgm_read_word(&(temptable[table_num][j][0])) - pgm_read_word(&(temptable[table_num][j-1][0])));
 								#ifndef	EXTRUDER
 								if (debug_flags & DEBUG_PID)
 									sersendf_P(PSTR(" temp:%d.%d"),temp/4,(temp%4)*25);
@@ -215,7 +218,7 @@ void temp_sensor_tick() {
 
 						//Clamp for overflows
 						if (j == NUMTEMPS)
-							temp = temptable[NUMTEMPS-1][1];
+							temp = temptable[table_num][NUMTEMPS-1][1];
 
 						temp_sensors_runtime[i].next_read_time = 0;
 					} while (0);

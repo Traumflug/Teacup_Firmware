@@ -254,9 +254,9 @@
 	#define DEFINE_TEMP_SENSOR(...)
 #endif
 
-//                 name       type          pin
-DEFINE_TEMP_SENSOR(noheater,	TT_INTERCOM,		0)
-// DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	1)
+//                 name       type          pin			additional
+DEFINE_TEMP_SENSOR(noheater,	TT_INTERCOM,		0,		0)
+// DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	1,		0)
 
 
 
