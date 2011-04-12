@@ -255,9 +255,11 @@
 #endif
 
 //                 name       type          pin			additional
-DEFINE_TEMP_SENSOR(noheater,	TT_INTERCOM,		0,		0)
-// DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	1,		0)
+DEFINE_TEMP_SENSOR(noheater,	TT_INTERCOM,	0,		0)
+DEFINE_TEMP_SENSOR(bed,			TT_INTERCOM,	1,		0)
 
+// bed has no heater attached
+#define HEATER_bed HEATER_noheater
 
 
 /***************************************************************************\
@@ -316,7 +318,9 @@ DEFINE_TEMP_SENSOR(noheater,	TT_INTERCOM,		0,		0)
 */
 
 // #define	HEATER_EXTRUDER HEATER_extruder
-// #define HEATER_BED HEATER_bed
+
+// workaround for heated bed over intercom. HEATER_BED is the intercom temp channel number.
+#define HEATER_BED 1
 // #define HEATER_FAN HEATER_fan
 
 
