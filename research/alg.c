@@ -3,7 +3,7 @@
 #include	<stdlib.h>
 #include	<math.h>
 
-#define	F_CPU 16000000UL
+#define	F_CPU 16000000L
 
 #define	X_STEPS_PER_MM	320.0
 #define	Y_STEPS_PER_MM	320.0
@@ -151,7 +151,7 @@ void move(int32_t dx, int32_t dy, int32_t dz, int32_t de, uint32_t f) {
 	uint32_t x_speed, y_speed, z_speed, e_speed;
 	uint32_t x_accel_distance, y_accel_distance, z_accel_distance, e_accel_distance;
 	uint32_t x_c, y_c, z_c, e_c;
-	int32_t x_n, y_n, z_n, e_n;
+	uint32_t x_n, y_n, z_n, e_n;
 	uint32_t x_cr, y_cr, z_cr, e_cr;
 	uint32_t x_minc, y_minc, z_minc, e_minc;
 	uint32_t x_accel = X_ACCEL_MM_S_S * 1000.0, y_accel = Y_ACCEL_MM_S_S * 1000.0, z_accel = Z_ACCEL_MM_S_S * 1000.0, e_accel = E_ACCEL_MM_S_S * 1000.0;
@@ -174,9 +174,9 @@ void move(int32_t dx, int32_t dy, int32_t dz, int32_t de, uint32_t f) {
 	printf("distance: %dum\n", distance);
 
 	// duration is microseconds
-	duration = distance * 3UL * (F_CPU / 50UL / f);
+	duration = distance * 3L * (F_CPU / 50L / f);
 
-	printf("duration: %d ticks (%ldms)\n", duration, duration / (F_CPU / 1000UL));
+	printf("duration: %d ticks (%ldms)\n", duration, duration / (F_CPU / 1000L));
 
 	// deltas are in steps
 	x_delta = labs(dx);
@@ -210,22 +210,22 @@ void move(int32_t dx, int32_t dy, int32_t dz, int32_t de, uint32_t f) {
 // x_accel_distance = x_accel_steps * X_UM_PER_STEP;
 	#warning This calculation is susceptible to overflow!
 	if (x_delta) {
-		x_accel_distance = (x_delta * f / distance / 3UL) * (x_delta * f / distance / 3UL)  * 1250UL / X_STEPS_PER_MM / X_ACCEL_MM_S_S * 1000UL / X_STEPS_PER_MM;
+		x_accel_distance = (x_delta * f / distance / 3L) * (x_delta * f / distance / 3L)  * 1250L / X_STEPS_PER_MM / X_ACCEL_MM_S_S * 1000L / X_STEPS_PER_MM;
 		if (x_accel_distance > accel_distance)
 			accel_distance = x_accel_distance;
 	}
 	if (y_delta) {
-		y_accel_distance = (y_delta * f / distance / 3UL) * (y_delta * f / distance / 3UL)  * 1250UL / Y_STEPS_PER_MM / Y_ACCEL_MM_S_S * 1000UL / Y_STEPS_PER_MM;
+		y_accel_distance = (y_delta * f / distance / 3L) * (y_delta * f / distance / 3L)  * 1250L / Y_STEPS_PER_MM / Y_ACCEL_MM_S_S * 1000L / Y_STEPS_PER_MM;
 		if (y_accel_distance > accel_distance)
 			accel_distance = y_accel_distance;
 	}
 	if (z_delta) {
-		z_accel_distance = (z_delta * f / distance / 3UL) * (z_delta * f / distance / 3UL)  * 1250UL / Z_STEPS_PER_MM / Z_ACCEL_MM_S_S * 1000UL / Z_STEPS_PER_MM;
+		z_accel_distance = (z_delta * f / distance / 3L) * (z_delta * f / distance / 3L)  * 1250L / Z_STEPS_PER_MM / Z_ACCEL_MM_S_S * 1000L / Z_STEPS_PER_MM;
 		if (z_accel_distance > accel_distance)
 			accel_distance = z_accel_distance;
 	}
 	if (e_delta) {
-		e_accel_distance = (e_delta * f / distance / 3UL) * (e_delta * f / distance / 3UL)  * 1250UL / E_STEPS_PER_MM / E_ACCEL_MM_S_S * 1000UL / E_STEPS_PER_MM;
+		e_accel_distance = (e_delta * f / distance / 3L) * (e_delta * f / distance / 3L)  * 1250L / E_STEPS_PER_MM / E_ACCEL_MM_S_S * 1000L / E_STEPS_PER_MM;
 		if (e_accel_distance > accel_distance)
 			accel_distance = e_accel_distance;
 	}
@@ -240,13 +240,13 @@ void move(int32_t dx, int32_t dy, int32_t dz, int32_t de, uint32_t f) {
 	// let's store in um/s2 instead of mm/s2 for precision
 	#warning This calculation is susceptible to overflow!
 	if (x_accel_distance < accel_distance)
-		x_accel = x_speed * x_speed / accel_distance / 2UL;
+		x_accel = x_speed * x_speed / accel_distance / 2L;
 	if (y_accel_distance < accel_distance)
-		y_accel = y_speed * y_speed / accel_distance / 2UL;
+		y_accel = y_speed * y_speed / accel_distance / 2L;
 	if (z_accel_distance < accel_distance)
-		z_accel = z_speed * z_speed / accel_distance / 2UL;
+		z_accel = z_speed * z_speed / accel_distance / 2L;
 	if (e_accel_distance < accel_distance)
-		e_accel = e_speed * e_speed / accel_distance / 2UL;
+		e_accel = e_speed * e_speed / accel_distance / 2L;
 
 	printf("X accel: %dum/s2, Y accel: %dum/s2\n", x_accel, y_accel);
 
@@ -260,87 +260,83 @@ void move(int32_t dx, int32_t dy, int32_t dz, int32_t de, uint32_t f) {
 	//     = F_CPU / int_sqrt(accel * steps_per_mm) * 313 / 7
 	//     2**32 / 313 is about 13MHz, so we can't start with F_CPU * 313 if F_CPU is above 13MHz
 	if (x_delta) {
-// 		printf("x_accel(%u) * X_STEPS_PER_MM(%u) = %u, sqrt() = %u\n", x_accel, ((uint32_t) X_STEPS_PER_MM), x_accel * ((uint32_t) X_STEPS_PER_MM), int_sqrt(x_accel * ((uint32_t) X_STEPS_PER_MM)));
-		x_c = ((F_CPU * 256UL) / int_sqrt(x_accel * X_STEPS_PER_MM)) * 313UL / 7UL;
+		printf("x_accel(%u) * X_STEPS_PER_MM(%u) = %u, sqrt() = %u\n", x_accel, ((uint32_t) X_STEPS_PER_MM), x_accel * ((uint32_t) X_STEPS_PER_MM), int_sqrt(x_accel * ((uint32_t) X_STEPS_PER_MM)));
+		x_c = (F_CPU / int_sqrt(x_accel * ((uint32_t) X_STEPS_PER_MM))) * 313L / 7L;
+		printf("Xc: %u\n", (F_CPU / int_sqrt(x_accel * ((uint32_t) X_STEPS_PER_MM))) * 313L / 7L);
 // 		x_c = F_CPU * sqrt(2.0 / x_accel * X_UM_PER_STEP);
-		x_minc = (F_CPU * 256UL) / (x_speed * X_STEPS_PER_MM);
+		x_minc = (F_CPU * X_UM_PER_STEP) / x_speed;
 	}
 	if (y_delta) {
-		y_c = (F_CPU * 256UL / int_sqrt(y_accel * Y_STEPS_PER_MM)) * 313UL / 7UL;
+		y_c = (F_CPU / int_sqrt(y_accel * Y_STEPS_PER_MM)) * 313L / 7L;
 // 		y_c = F_CPU * sqrt(Y_UM_PER_STEP / y_accel) * 1.414;
-		y_minc = (F_CPU * 256UL) / (y_speed * Y_STEPS_PER_MM);
+		y_minc = (F_CPU * Y_UM_PER_STEP) / y_speed;
 	}
 	if (z_delta) {
-		z_c = (F_CPU * 256UL / int_sqrt(z_accel * Z_STEPS_PER_MM)) * 313UL / 7UL;
-		z_minc = (F_CPU * 256UL) / (z_speed * Z_STEPS_PER_MM);
+		z_c = (F_CPU / int_sqrt(z_accel * Z_STEPS_PER_MM)) * 313L / 7L;
+		z_minc = (F_CPU * Z_UM_PER_STEP) / z_speed;
 	}
 	if (e_delta) {
-		e_c = (F_CPU * 256UL / int_sqrt(e_accel * E_STEPS_PER_MM)) * 313UL / 7UL;
-		e_minc = (F_CPU * 256UL) / (e_speed * E_STEPS_PER_MM);
+		e_c = (F_CPU / int_sqrt(e_accel * E_STEPS_PER_MM)) * 313L / 7L;
+		e_minc = (F_CPU * E_UM_PER_STEP) / e_speed;
 	}
 
-	printf("Xc: %d, Yc: %d\n", x_c >> 8, y_c >> 8);
-	printf("Xminc: %d, Yminc: %d\n", x_minc >> 8, y_minc >> 8);
+	printf("Xc: %d, Yc: %d\n", x_c, y_c);
+	printf("Xminc: %d, Yminc: %d\n", x_minc, y_minc);
 
 	x_n = y_n = z_n = e_n = 1;
 
-	x_cr = x_c >> 8;
-	y_cr = y_c >> 8;
-	z_cr = z_c >> 8;
-	e_cr = e_c >> 8;
+	x_cr = x_c; y_cr = y_c; z_cr = z_c; e_cr = e_c;
 
 	total_ticks = 0;
 
 	while (x_delta > 0 || y_delta > 0 || z_delta > 0 || e_delta > 0) {
 		if (x_cr <= 0 && x_delta > 0) {
 			x_delta--;
-// 			printf("x_c(%d) = %u", x_n, x_c >> 8);
 			if (x_n == 1)
-				x_c = x_c * 0.4056;
+				x_c = 0.4056 * x_c;
 			else
 				x_c = x_c - ((2 * x_c) / ((4 * x_n) + 1));
-// 			printf(" -> %u\n", x_c >> 8);
 			if (x_c < x_minc)
 				x_c = x_minc;
-			x_cr = x_c >> 8;
+			x_cr = x_c;
 			x_n++;
 		}
 		if (y_cr <= 0 && y_delta > 0) {
 			y_delta--;
 			if (y_n == 1)
-				y_c = y_c * 0.4056;
+				y_c = 0.4056 * y_c;
 			else
 				y_c = y_c - ((2 * y_c) / ((4 * y_n) + 1));
 			if (y_c < y_minc)
 				y_c = y_minc;
-			y_cr = y_c >> 8;
+			y_cr = y_c;
 			y_n++;
 		}
 		if (z_cr <= 0 && z_delta > 0) {
 			z_delta--;
 			if (z_n == 1)
-				z_c = z_c * 0.4056;
+				z_c = 0.4056 * z_c;
 			else
 				z_c = z_c - ((2 * z_c) / ((4 * z_n) + 1));
 			if (z_c < z_minc)
 				z_c = z_minc;
-			z_cr = z_c >> 8;
+			z_cr = z_c;
 			z_n++;
 		}
 		if (e_cr <= 0 && e_delta > 0) {
 			e_delta--;
 			if (e_n == 1)
-				e_c = e_c * 0.4056;
+				e_c = 0.4056 * e_c;
 			else
 				e_c = e_c - ((2 * e_c) / ((4 * e_n) + 1));
 			if (e_c < e_minc)
 				e_c = e_minc;
-			e_cr = e_c >> 8;
+			e_cr = e_c;
 			e_n++;
 		}
 
 // 		printf("[xc: %d, xd: %d, yc: %d, yd: %d, ", x_cr, x_delta, y_cr, y_delta);
-		fprintf(stderr, "%u %.3f %.3f %u(%u) %u %u(%u) %u ", total_ticks, x_delta * X_UM_PER_STEP, y_delta * Y_UM_PER_STEP, x_c, x_c >> 8, x_n, y_c, y_c >> 8, y_n);
+		fprintf(stderr, "%u %.3f %.3f\n", total_ticks, x_delta * X_UM_PER_STEP, y_delta * Y_UM_PER_STEP);
 
 		elapsed_ticks = 0x7FFFFFFF;
 		if ((x_delta > 0) && (x_cr < elapsed_ticks))
@@ -352,8 +348,7 @@ void move(int32_t dx, int32_t dy, int32_t dz, int32_t de, uint32_t f) {
 		if ((e_delta > 0) && (e_cr < elapsed_ticks))
 			elapsed_ticks = e_cr;
 
-		fprintf(stderr, "+%u", elapsed_ticks);
-		// 		printf("e: %u]\n", elapsed_ticks);
+// 		printf("e: %u]\n", elapsed_ticks);
 
 		x_cr -= elapsed_ticks;
 		y_cr -= elapsed_ticks;
@@ -361,8 +356,6 @@ void move(int32_t dx, int32_t dy, int32_t dz, int32_t de, uint32_t f) {
 		e_cr -= elapsed_ticks;
 
 		total_ticks += elapsed_ticks;
-
-		fprintf(stderr, "\n");
 	}
 }
 
@@ -370,10 +363,8 @@ int main(int argc, char **argv) {
 	float x = 40,
 			y = 34,
 			z = 0,
-			e = 0,
+			e = 55,
 			f = 1500;
 
 	move(x * X_STEPS_PER_MM, y * Y_STEPS_PER_MM, z * Z_STEPS_PER_MM, e * E_STEPS_PER_MM, f);
-
-	return 0;
 }

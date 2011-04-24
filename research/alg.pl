@@ -120,12 +120,12 @@ printf "new Xds: %d, Yds: %d\n", $x_steps_to_decel, $y_steps_to_decel;
 if (($x_steps_to_accel + $x_steps_to_decel) > $x_delta) {
 	# we will never reach full speed, however this doesn't affect our accel trimming so we can do this last
 	# n = (m.w'2) / (w'1 + w'2)
-	$x_steps_to_decel = int($x_delta * $x_decel_mm_s_s / ($x_accel_mm_s_s + $x_decel_mm_s_s));
+	$x_steps_to_decel = $x_delta * $x_decel_mm_s_s / ($x_accel_mm_s_s + $x_decel_mm_s_s);
 }
 if (($y_steps_to_accel + $y_steps_to_decel) > $y_delta) {
 	# we will never reach full speed, however this doesn't affect our accel trimming so we can do this last
 	# n = (m.w'2) / (w'1 + w'2)
-	$y_steps_to_decel = int($y_delta * $y_decel_mm_s_s / ($y_accel_mm_s_s + $y_decel_mm_s_s));
+	$y_steps_to_decel = $y_delta * $y_decel_mm_s_s / ($y_accel_mm_s_s + $y_decel_mm_s_s);
 }
 
 printf "new Xds: %d, Yds: %d\n", $x_steps_to_decel, $y_steps_to_decel;
@@ -133,8 +133,8 @@ printf "new Xds: %d, Yds: %d\n", $x_steps_to_decel, $y_steps_to_decel;
 # now we work out initial delays (C0)
 
 # = F_CPU * sqrt(2 / accel / steps_per_mm)
-my $x_c = int($f_cpu * sqrt(2 / $x_accel_mm_s_s / $x_steps_per_mm));
-my $y_c = int($f_cpu * sqrt(2 / $y_accel_mm_s_s / $y_steps_per_mm));
+my $x_c = $f_cpu * sqrt(2 / $x_accel_mm_s_s / $x_steps_per_mm);
+my $y_c = $f_cpu * sqrt(2 / $y_accel_mm_s_s / $y_steps_per_mm);
 
 # now we work out speed limits so we know when to stop accelerating
 
@@ -142,8 +142,8 @@ my $y_c = int($f_cpu * sqrt(2 / $y_accel_mm_s_s / $y_steps_per_mm));
 # mm/sec * steps/mm = steps/sec
 # 1 / (mm/sec * steps/sec) = secs/step
 # f_cpu / (mm/sec * steps/sec) = ticks/step
-my $x_min_c = int($f_cpu / ($x_speed * $x_steps_per_mm));
-my $y_min_c = int($f_cpu / ($y_speed * $y_steps_per_mm));
+my $x_min_c = $f_cpu / ($x_speed * $x_steps_per_mm);
+my $y_min_c = $f_cpu / ($y_speed * $y_steps_per_mm);
 
 printf "XminC: %dt/s, YminC: %dt/s\n", $x_min_c, $y_min_c;
 
@@ -173,10 +173,10 @@ while ($x_delta > 0 || $y_delta > 0) {
 		}
 		printf "[X: %ds:%gmm, %dc, %dn] ", $x_delta, $x_delta / $x_steps_per_mm, $x_c, $x_n;
 		if ($x_n == 1) {
-			$x_c = int(0.4056 * $x_c * 256) / 256;
+			$x_c = 0.4056 * $x_c;
 		}
 		else {
-			$x_c = int(($x_c - ((2 * $x_c) / ((4 * $x_n) + 1))) * 256) / 256;
+			$x_c = $x_c - ((2 * $x_c) / ((4 * $x_n) + 1));
 		}
 		$x_cd = $x_c;
 		$x_n++;
@@ -190,10 +190,10 @@ while ($x_delta > 0 || $y_delta > 0) {
 		}
 		printf "[Y: %ds:%gmm, %dc, %dn] ", $y_delta, $y_delta / $y_steps_per_mm, $y_c, $y_n;
 		if ($y_n == 1) {
-			$y_c = int(0.4056 * $y_c * 256) / 256;
+			$y_c = 0.4056 * $y_c;
 		}
 		else {
-			$y_c = int(($y_c - ((2 * $y_c) / ((4 * $y_n) + 1))) * 256) / 256;
+			$y_c = $y_c - ((2 * $y_c) / ((4 * $y_n) + 1));
 		}
 		$y_cd = $y_c;
 		$y_n++;
