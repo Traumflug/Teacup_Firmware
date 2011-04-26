@@ -5,6 +5,16 @@
 
 #include	"config.h"
 
+// Used in distance calculation during DDA setup
+/// micrometers per step X
+#define	UM_PER_STEP_X		1000L / ((uint32_t) STEPS_PER_MM_X)
+/// micrometers per step Y
+#define	UM_PER_STEP_Y		1000L / ((uint32_t) STEPS_PER_MM_Y)
+/// micrometers per step Z
+#define	UM_PER_STEP_Z		1000L / ((uint32_t) STEPS_PER_MM_Z)
+/// micrometers per step E
+#define	UM_PER_STEP_E		1000L / ((uint32_t) STEPS_PER_MM_E)
+
 #ifdef ACCELERATION_REPRAP
 	#ifdef ACCELERATION_RAMPING
 		#error Cant use ACCELERATION_REPRAP and ACCELERATION_RAMPING together.

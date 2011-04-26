@@ -392,7 +392,7 @@ void process_gcode_command() {
 				// M113- extruder PWM
 			// M114- report XYZEF to host
 			case 114:
-				sersendf_P(PSTR("X:%ld,Y:%ld,Z:%ld,E:%ld,F:%ld"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
+				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%ld"), current_position.X * UM_PER_STEP_X, current_position.Y * UM_PER_STEP_Y, current_position.Z * UM_PER_STEP_Z, current_position.E * UM_PER_STEP_E, current_position.F);
 				// newline is sent from gcode_parse after we return
 				break;
 			// M115- capabilities string

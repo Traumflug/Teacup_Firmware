@@ -141,6 +141,10 @@ void sersendf_P(PGM_P format, ...) {
 					break;
 /*				case 'p':
 					serwrite_hex16(va_arg(args, uint16_t));*/
+				case 'q':
+					serwrite_int32_vf(va_arg(args, int32_t), 3);
+					j = 0;
+					break;
 				default:
 					serial_writechar(c);
 					j = 0;

@@ -74,3 +74,39 @@ void serwrite_int32(int32_t v) {
 
 	serwrite_uint32(v);
 }
+
+/** write decimal digits from a long unsigned int
+\param v number to send
+*/
+void serwrite_uint32_vf(uint32_t v, uint8_t fp) {
+	uint8_t e, t;
+
+	for (e = 9; e > 0; e--) {
+		if (v >= powers[e])
+			break;
+	}
+
+	if (e < fp)
+		e = fp;
+
+	do
+	{
+		for (t = 0; v >= powers[e]; v -= powers[e], t++);
+		serial_writechar(t + '0');
+		if (e == fp)
+			serial_writechar('.');
+	}
+	while (e--);
+}
+
+/** write decimal digits from a long signed int
+\param v number to send
+*/
+void serwrite_int32_vf(int32_t v, uint8_t fp) {
+	if (v < 0) {
+		serial_writechar('-');
+		v = -v;
+	}
+
+	serwrite_uint32_vf(v, fp);
+}
