@@ -577,6 +577,9 @@ void dda_step(DDA *dda) {
 void update_position() {
 	DDA *dda = &movebuffer[mb_tail];
 
+	if (dda->live == 0)
+		return;
+
 	if (dda->x_direction)
 		current_position.X = dda->endpoint.X - dda->x_steps;
 	else
