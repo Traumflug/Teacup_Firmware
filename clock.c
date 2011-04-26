@@ -64,5 +64,7 @@ void clock_10ms() {
 	ifclock(CLOCK_FLAG_250MS) {
 		clock_250ms();
 	}
+
+	update_position();
 }
 

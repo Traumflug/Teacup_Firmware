@@ -88,6 +88,12 @@ typedef struct {
 	int32_t						z_counter; ///< counter for total_steps vs this axis, used for bresenham calculations.
 	int32_t						e_counter; ///< counter for total_steps vs this axis, used for bresenham calculations.
 
+	// step counters
+	uint32_t					x_steps; ///< number of steps on X axis
+	uint32_t					y_steps; ///< number of steps on Y axis
+	uint32_t					z_steps; ///< number of steps on Z axis
+	uint32_t					e_steps; ///< number of steps on E axis
+
 	/// total number of steps: set to \f$\max(\Delta x, \Delta y, \Delta z, \Delta e)\f$
 	uint32_t					total_steps;
 
@@ -108,16 +114,6 @@ typedef struct {
 	int32_t						n;
 	/// keep track of whether we're ramping up, down, or plateauing
 	ramp_state_t			ramp_state;
-	#endif
-	#ifdef ACCELERATION_TEMPORAL
-	/// time between steps on X axis
-	uint32_t					x_step_interval;
-	/// time between steps on Y axis
-	uint32_t					y_step_interval;
-	/// time between steps on Z axis
-	uint32_t					z_step_interval;
-	/// time between steps on E axis
-	uint32_t					e_step_interval;
 	#endif
 } DDA;
 
@@ -152,5 +148,8 @@ void dda_start(DDA *dda)																						__attribute__ ((hot));
 
 // DDA takes one step (called from timer interrupt)
 void dda_step(DDA *dda)																							__attribute__ ((hot));
+
+// update current_position
+void update_position(void);
 
 #endif	/* _DDA_H */
