@@ -362,7 +362,8 @@ void process_gcode_command() {
 
 			// M109- set temp and wait
 			case 109:
-				temp_set(next_target.P, next_target.S);
+				if (next_target.seen_S)
+					temp_set(next_target.P, next_target.S);
 				if (next_target.S) {
 					power_on();
 					enable_heater();
