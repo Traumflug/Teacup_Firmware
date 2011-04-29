@@ -22,8 +22,18 @@ static uint8_t sd_buffer_ptr = SD_BUFFER_SIZE;
 /** Initialize SPI for SD card reading.
 */
 void sd_init(void) {
+  sdflags = 0;
+
   WRITE(SD_CARD_SELECT_PIN, 1);
   SET_OUTPUT(SD_CARD_SELECT_PIN);
+
+  /**
+    This mounts an SD card, which is already inserted at startup, immediately.
+    Not sure wether this is actually useful. It might be more useful to try
+    this every second in clock.c to detect inserted cards immediately.
+  */
+  if (pf_mount(&sdfile) == FR_OK)
+    sdflags = SDFLAG_MOUNTED;
 }
 
 /** Mount the SD card.
