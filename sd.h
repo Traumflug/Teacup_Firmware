@@ -23,6 +23,8 @@ void sd_unmount(void);
 
 void sd_list(const char* path);
 
+void sd_open(const char* filename);
+
 #endif /* SD_CARD_SELECT_PIN */
 
 #endif /* _SD_H */

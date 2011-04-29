@@ -398,6 +398,14 @@ void process_gcode_command() {
         //? inserted.
         sd_unmount();
         break;
+
+      case 23:
+        //? --- M23: select file. ---
+        //?
+        //? This opens a file for reading. This file is valid up to M22 or up
+        //? to the next M23.
+        sd_open(gcode_str_buf);
+        break;
       #endif /* SD */
 
 			case 82:

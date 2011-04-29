@@ -69,4 +69,23 @@ void sd_list(const char* path) {
   }
 }
 
+/** Open a file for reading.
+
+  \param filename Name of the file to open and to read G-code from.
+
+  Before too long this will cause the printer to read G-code from this file
+  until done or until stopped by G-code coming in over the serial line.
+*/
+void sd_open(const char* filename) {
+  result = pf_open(filename);
+  if (result == FR_OK) {
+    // To demonstrate this works, open the file and show its size.
+    // Actually, the file name isn't stored, so we can't read it back :-)
+    sersendf_P(PSTR("Successfully opened file with %lu bytes."), sdfile.fsize);
+  }
+  else {
+    sersendf_P(PSTR("E: failed to open file. (%su)"), result);
+  }
+}
+
 #endif /* SD */
