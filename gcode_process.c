@@ -26,6 +26,8 @@
 #include	"clock.h"
 #include	"config_wrapper.h"
 #include	"home.h"
+#include "sd.h"
+
 
 /// the current tool
 uint8_t tool;
@@ -373,6 +375,30 @@ void process_gcode_command() {
 				//? Undocumented.
 				tool = next_tool;
 				break;
+
+      #ifdef SD
+      case 20:
+        //? --- M20: list SD card. ---
+        sd_list("/");
+        break;
+
+      case 21:
+        //? --- M21: initialise SD card. ---
+        //?
+        //? Has to be done before doing any other operation, including M20.
+        sd_mount();
+        break;
+
+      case 22:
+        //? --- M22: release SD card. ---
+        //?
+        //? Not mandatory. Just removing the card is fine, but results in
+        //? odd behaviour when trying to read from the card anyways. M22
+        //? makes also sure SD card printing is disabled, even with the card
+        //? inserted.
+        sd_unmount();
+        break;
+      #endif /* SD */
 
 			case 82:
 				//? --- M82 - Set E codes absolute ---

@@ -17,6 +17,12 @@
 
 void sd_init(void);
 
+void sd_mount(void);
+
+void sd_unmount(void);
+
+void sd_list(const char* path);
+
 #endif /* SD_CARD_SELECT_PIN */
 
 #endif /* _SD_H */
