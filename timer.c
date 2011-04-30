@@ -108,11 +108,11 @@ void timer_init()
 	// no outputs
 	TCCR1A = 0;
 	// Normal Mode
-	TCCR1B |= MASK(CS10);
+	TCCR1B = MASK(CS10);
 	// set up "clock" comparator for first tick
 	OCR1B = TICK_TIME & 0xFFFF;
 	// enable interrupt
-	TIMSK1 |= MASK(OCIE1B);
+	TIMSK1 = MASK(OCIE1B);
 }
 
 #ifdef	HOST
