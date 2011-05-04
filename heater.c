@@ -95,9 +95,6 @@ void heater_init() {
 	heater_t i;
 	// setup pins
 	for (i = 0; i < NUM_HEATERS; i++) {
-		*(heaters[i].heater_port) &= ~MASK(heaters[i].heater_pin);
-		// DDR is always 1 address below PORT. ugly code but saves ram and an extra field in heaters[] which will never be used anywhere but here
-		*(heaters[i].heater_port - 1) |= MASK(heaters[i].heater_pin);
 		if (heaters[i].heater_pwm) {
 			*heaters[i].heater_pwm = 0;
 			// this is somewhat ugly too, but switch() won't accept pointers for reasons unknown

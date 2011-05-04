@@ -457,451 +457,539 @@ pins
 
 
 
+#undef PA0
 #define PA0_PIN			PINA0
 #define PA0_RPORT		PINA
 #define PA0_WPORT		PORTA
 #define PA0_DDR			DDRA
 #define PA0_PWM			NULL
+#undef PA1
 #define PA1_PIN			PINA1
 #define PA1_RPORT		PINA
 #define PA1_WPORT		PORTA
 #define PA1_DDR			DDRA
 #define PA1_PWM			NULL
+#undef PA2
 #define PA2_PIN			PINA2
 #define PA2_RPORT		PINA
 #define PA2_WPORT		PORTA
 #define PA2_DDR			DDRA
 #define PA2_PWM			NULL
+#undef PA3
 #define PA3_PIN			PINA3
 #define PA3_RPORT		PINA
 #define PA3_WPORT		PORTA
 #define PA3_DDR			DDRA
 #define PA3_PWM			NULL
+#undef PA4
 #define PA4_PIN			PINA4
 #define PA4_RPORT		PINA
 #define PA4_WPORT		PORTA
 #define PA4_DDR			DDRA
 #define PA4_PWM			NULL
+#undef PA5
 #define PA5_PIN			PINA5
 #define PA5_RPORT		PINA
 #define PA5_WPORT		PORTA
 #define PA5_DDR			DDRA
 #define PA5_PWM			NULL
+#undef PA6
 #define PA6_PIN			PINA6
 #define PA6_RPORT		PINA
 #define PA6_WPORT		PORTA
 #define PA6_DDR			DDRA
 #define PA6_PWM			NULL
+#undef PA7
 #define PA7_PIN			PINA7
 #define PA7_RPORT		PINA
 #define PA7_WPORT		PORTA
 #define PA7_DDR			DDRA
 #define PA7_PWM			NULL
 
+#undef PB0
 #define PB0_PIN			PINB0
 #define PB0_RPORT		PINB
 #define PB0_WPORT		PORTB
 #define PB0_DDR			DDRB
 #define PB0_PWM			NULL
+#undef PB1
 #define PB1_PIN			PINB1
 #define PB1_RPORT		PINB
 #define PB1_WPORT		PORTB
 #define PB1_DDR			DDRB
 #define PB1_PWM			NULL
+#undef PB2
 #define PB2_PIN			PINB2
 #define PB2_RPORT		PINB
 #define PB2_WPORT		PORTB
 #define PB2_DDR			DDRB
 #define PB2_PWM			NULL
+#undef PB3
 #define PB3_PIN			PINB3
 #define PB3_RPORT		PINB
 #define PB3_WPORT		PORTB
 #define PB3_DDR			DDRB
 #define PB3_PWM			NULL
+#undef PB4
 #define PB4_PIN			PINB4
 #define PB4_RPORT		PINB
 #define PB4_WPORT		PORTB
 #define PB4_DDR			DDRB
 #define PB4_PWM			&OCR2A
+#undef PB5
 #define PB5_PIN			PINB5
 #define PB5_RPORT		PINB
 #define PB5_WPORT		PORTB
 #define PB5_DDR			DDRB
 #define PB5_PWM			NULL
+#undef PB6
 #define PB6_PIN			PINB6
 #define PB6_RPORT		PINB
 #define PB6_WPORT		PORTB
 #define PB6_DDR			DDRB
 #define PB6_PWM			NULL
+#undef PB7
 #define PB7_PIN			PINB7
 #define PB7_RPORT		PINB
 #define PB7_WPORT		PORTB
 #define PB7_DDR			DDRB
 #define PB7_PWM			&OCR0A
 
+#undef PC0
 #define PC0_PIN			PINC0
 #define PC0_RPORT		PINC
 #define PC0_WPORT		PORTC
 #define PC0_DDR			DDRC
 #define PC0_PWM			NULL
+#undef PC1
 #define PC1_PIN			PINC1
 #define PC1_RPORT		PINC
 #define PC1_WPORT		PORTC
 #define PC1_DDR			DDRC
 #define PC1_PWM			NULL
+#undef PC2
 #define PC2_PIN			PINC2
 #define PC2_RPORT		PINC
 #define PC2_WPORT		PORTC
 #define PC2_DDR			DDRC
 #define PC2_PWM			NULL
+#undef PC3
 #define PC3_PIN			PINC3
 #define PC3_RPORT		PINC
 #define PC3_WPORT		PORTC
 #define PC3_DDR			DDRC
 #define PC3_PWM			NULL
+#undef PC4
 #define PC4_PIN			PINC4
 #define PC4_RPORT		PINC
 #define PC4_WPORT		PORTC
 #define PC4_DDR			DDRC
 #define PC4_PWM			NULL
+#undef PC5
 #define PC5_PIN			PINC5
 #define PC5_RPORT		PINC
 #define PC5_WPORT		PORTC
 #define PC5_DDR			DDRC
 #define PC5_PWM			NULL
+#undef PC6
 #define PC6_PIN			PINC6
 #define PC6_RPORT		PINC
 #define PC6_WPORT		PORTC
 #define PC6_DDR			DDRC
 #define PC6_PWM			NULL
+#undef PC7
 #define PC7_PIN			PINC7
 #define PC7_RPORT		PINC
 #define PC7_WPORT		PORTC
 #define PC7_DDR			DDRC
 #define PC7_PWM			NULL
 
+#undef PD0
 #define PD0_PIN			PIND0
 #define PD0_RPORT		PIND
 #define PD0_WPORT		PORTD
 #define PD0_DDR			DDRD
 #define PD0_PWM			NULL
+#undef PD1
 #define PD1_PIN			PIND1
 #define PD1_RPORT		PIND
 #define PD1_WPORT		PORTD
 #define PD1_DDR			DDRD
 #define PD1_PWM			NULL
+#undef PD2
 #define PD2_PIN			PIND2
 #define PD2_RPORT		PIND
 #define PD2_WPORT		PORTD
 #define PD2_DDR			DDRD
 #define PD2_PWM			NULL
+#undef PD3
 #define PD3_PIN			PIND3
 #define PD3_RPORT		PIND
 #define PD3_WPORT		PORTD
 #define PD3_DDR			DDRD
 #define PD3_PWM			NULL
+#undef PD4
 #define PD4_PIN			PIND4
 #define PD4_RPORT		PIND
 #define PD4_WPORT		PORTD
 #define PD4_DDR			DDRD
 #define PD4_PWM			NULL
+#undef PD5
 #define PD5_PIN			PIND5
 #define PD5_RPORT		PIND
 #define PD5_WPORT		PORTD
 #define PD5_DDR			DDRD
 #define PD5_PWM			NULL
+#undef PD6
 #define PD6_PIN			PIND6
 #define PD6_RPORT		PIND
 #define PD6_WPORT		PORTD
 #define PD6_DDR			DDRD
 #define PD6_PWM			NULL
+#undef PD7
 #define PD7_PIN			PIND7
 #define PD7_RPORT		PIND
 #define PD7_WPORT		PORTD
 #define PD7_DDR			DDRD
 #define PD7_PWM			NULL
 
+#undef PE0
 #define PE0_PIN			PINE0
 #define PE0_RPORT		PINE
 #define PE0_WPORT		PORTE
 #define PE0_DDR			DDRE
 #define PE0_PWM			NULL
+#undef PE1
 #define PE1_PIN			PINE1
 #define PE1_RPORT		PINE
 #define PE1_WPORT		PORTE
 #define PE1_DDR			DDRE
 #define PE1_PWM			NULL
+#undef PE2
 #define PE2_PIN			PINE2
 #define PE2_RPORT		PINE
 #define PE2_WPORT		PORTE
 #define PE2_DDR			DDRE
 #define PE2_PWM			NULL
+#undef PE3
 #define PE3_PIN			PINE3
 #define PE3_RPORT		PINE
 #define PE3_WPORT		PORTE
 #define PE3_DDR			DDRE
 #define PE3_PWM			&OCR3AL
+#undef PE4
 #define PE4_PIN			PINE4
 #define PE4_RPORT		PINE
 #define PE4_WPORT		PORTE
 #define PE4_DDR			DDRE
 #define PE4_PWM			&OCR3BL
+#undef PE5
 #define PE5_PIN			PINE5
 #define PE5_RPORT		PINE
 #define PE5_WPORT		PORTE
 #define PE5_DDR			DDRE
 #define PE5_PWM			&OCR3CL
+#undef PE6
 #define PE6_PIN			PINE6
 #define PE6_RPORT		PINE
 #define PE6_WPORT		PORTE
 #define PE6_DDR			DDRE
 #define PE6_PWM			NULL
+#undef PE7
 #define PE7_PIN			PINE7
 #define PE7_RPORT		PINE
 #define PE7_WPORT		PORTE
 #define PE7_DDR			DDRE
 #define PE7_PWM			NULL
 
+#undef PF0
 #define PF0_PIN			PINF0
 #define PF0_RPORT		PINF
 #define PF0_WPORT		PORTF
 #define PF0_DDR			DDRF
 #define PF0_PWM			NULL
+#undef PF1
 #define PF1_PIN			PINF1
 #define PF1_RPORT		PINF
 #define PF1_WPORT		PORTF
 #define PF1_DDR			DDRF
 #define PF1_PWM			NULL
+#undef PF2
 #define PF2_PIN			PINF2
 #define PF2_RPORT		PINF
 #define PF2_WPORT		PORTF
 #define PF2_DDR			DDRF
 #define PF2_PWM			NULL
+#undef PF3
 #define PF3_PIN			PINF3
 #define PF3_RPORT		PINF
 #define PF3_WPORT		PORTF
 #define PF3_DDR			DDRF
 #define PF3_PWM			NULL
+#undef PF4
 #define PF4_PIN			PINF4
 #define PF4_RPORT		PINF
 #define PF4_WPORT		PORTF
 #define PF4_DDR			DDRF
 #define PF4_PWM			NULL
+#undef PF5
 #define PF5_PIN			PINF5
 #define PF5_RPORT		PINF
 #define PF5_WPORT		PORTF
 #define PF5_DDR			DDRF
 #define PF5_PWM			NULL
+#undef PF6
 #define PF6_PIN			PINF6
 #define PF6_RPORT		PINF
 #define PF6_WPORT		PORTF
 #define PF6_DDR			DDRF
 #define PF6_PWM			NULL
+#undef PF7
 #define PF7_PIN			PINF7
 #define PF7_RPORT		PINF
 #define PF7_WPORT		PORTF
 #define PF7_DDR			DDRF
 #define PF7_PWM			NULL
 
+#undef PG0
 #define PG0_PIN			PING0
 #define PG0_RPORT		PING
 #define PG0_WPORT		PORTG
 #define PG0_DDR			DDRG
 #define PG0_PWM			NULL
+#undef PG1
 #define PG1_PIN			PING1
 #define PG1_RPORT		PING
 #define PG1_WPORT		PORTG
 #define PG1_DDR			DDRG
 #define PG1_PWM			NULL
+#undef PG2
 #define PG2_PIN			PING2
 #define PG2_RPORT		PING
 #define PG2_WPORT		PORTG
 #define PG2_DDR			DDRG
 #define PG2_PWM			NULL
+#undef PG3
 #define PG3_PIN			PING3
 #define PG3_RPORT		PING
 #define PG3_WPORT		PORTG
 #define PG3_DDR			DDRG
 #define PG3_PWM			NULL
+#undef PG4
 #define PG4_PIN			PING4
 #define PG4_RPORT		PING
 #define PG4_WPORT		PORTG
 #define PG4_DDR			DDRG
 #define PG4_PWM			NULL
+#undef PG5
 #define PG5_PIN			PING5
 #define PG5_RPORT		PING
 #define PG5_WPORT		PORTG
 #define PG5_DDR			DDRG
 #define PG5_PWM			&OCR0B
+#undef PG6
 #define PG6_PIN			PING6
 #define PG6_RPORT		PING
 #define PG6_WPORT		PORTG
 #define PG6_DDR			DDRG
 #define PG6_PWM			NULL
+#undef PG7
 #define PG7_PIN			PING7
 #define PG7_RPORT		PING
 #define PG7_WPORT		PORTG
 #define PG7_DDR			DDRG
 #define PG7_PWM			NULL
 
+#undef PH0
 #define PH0_PIN			PINH0
 #define PH0_RPORT		PINH
 #define PH0_WPORT		PORTH
 #define PH0_DDR			DDRH
 #define PH0_PWM			NULL
+#undef PH1
 #define PH1_PIN			PINH1
 #define PH1_RPORT		PINH
 #define PH1_WPORT		PORTH
 #define PH1_DDR			DDRH
 #define PH1_PWM			NULL
+#undef PH2
 #define PH2_PIN			PINH2
 #define PH2_RPORT		PINH
 #define PH2_WPORT		PORTH
 #define PH2_DDR			DDRH
 #define PH2_PWM			NULL
+#undef PH3
 #define PH3_PIN			PINH3
 #define PH3_RPORT		PINH
 #define PH3_WPORT		PORTH
 #define PH3_DDR			DDRH
 #define PH3_PWM			&OCR4AL
+#undef PH4
 #define PH4_PIN			PINH4
 #define PH4_RPORT		PINH
 #define PH4_WPORT		PORTH
 #define PH4_DDR			DDRH
 #define PH4_PWM			&OCR4BL
+#undef PH5
 #define PH5_PIN			PINH5
 #define PH5_RPORT		PINH
 #define PH5_WPORT		PORTH
 #define PH5_DDR			DDRH
 #define PH5_PWM			&OCR4CL
+#undef PH6
 #define PH6_PIN			PINH6
 #define PH6_RPORT		PINH
 #define PH6_WPORT		PORTH
 #define PH6_DDR			DDRH
 #define PH6_PWM			&OCR2B
+#undef PH7
 #define PH7_PIN			PINH7
 #define PH7_RPORT		PINH
 #define PH7_WPORT		PORTH
 #define PH7_DDR			DDRH
 #define PH7_PWM			NULL
 
+#undef PJ0
 #define PJ0_PIN			PINJ0
 #define PJ0_RPORT		PINJ
 #define PJ0_WPORT		PORTJ
 #define PJ0_DDR			DDRJ
 #define PJ0_PWM			NULL
+#undef PJ1
 #define PJ1_PIN			PINJ1
 #define PJ1_RPORT		PINJ
 #define PJ1_WPORT		PORTJ
 #define PJ1_DDR			DDRJ
 #define PJ1_PWM			NULL
+#undef PJ2
 #define PJ2_PIN			PINJ2
 #define PJ2_RPORT		PINJ
 #define PJ2_WPORT		PORTJ
 #define PJ2_DDR			DDRJ
 #define PJ2_PWM			NULL
+#undef PJ3
 #define PJ3_PIN			PINJ3
 #define PJ3_RPORT		PINJ
 #define PJ3_WPORT		PORTJ
 #define PJ3_DDR			DDRJ
 #define PJ3_PWM			NULL
+#undef PJ4
 #define PJ4_PIN			PINJ4
 #define PJ4_RPORT		PINJ
 #define PJ4_WPORT		PORTJ
 #define PJ4_DDR			DDRJ
 #define PJ4_PWM			NULL
+#undef PJ5
 #define PJ5_PIN			PINJ5
 #define PJ5_RPORT		PINJ
 #define PJ5_WPORT		PORTJ
 #define PJ5_DDR			DDRJ
 #define PJ5_PWM			NULL
+#undef PJ6
 #define PJ6_PIN			PINJ6
 #define PJ6_RPORT		PINJ
 #define PJ6_WPORT		PORTJ
 #define PJ6_DDR			DDRJ
 #define PJ6_PWM			NULL
+#undef PJ7
 #define PJ7_PIN			PINJ7
 #define PJ7_RPORT		PINJ
 #define PJ7_WPORT		PORTJ
 #define PJ7_DDR			DDRJ
 #define PJ7_PWM			NULL
 
+#undef PK0
 #define PK0_PIN			PINK0
 #define PK0_RPORT		PINK
 #define PK0_WPORT		PORTK
 #define PK0_DDR			DDRK
 #define PK0_PWM			NULL
+#undef PK1
 #define PK1_PIN			PINK1
 #define PK1_RPORT		PINK
 #define PK1_WPORT		PORTK
 #define PK1_DDR			DDRK
 #define PK1_PWM			NULL
+#undef PK2
 #define PK2_PIN			PINK2
 #define PK2_RPORT		PINK
 #define PK2_WPORT		PORTK
 #define PK2_DDR			DDRK
 #define PK2_PWM			NULL
+#undef PK3
 #define PK3_PIN			PINK3
 #define PK3_RPORT		PINK
 #define PK3_WPORT		PORTK
 #define PK3_DDR			DDRK
 #define PK3_PWM			NULL
+#undef PK4
 #define PK4_PIN			PINK4
 #define PK4_RPORT		PINK
 #define PK4_WPORT		PORTK
 #define PK4_DDR			DDRK
 #define PK4_PWM			NULL
+#undef PK5
 #define PK5_PIN			PINK5
 #define PK5_RPORT		PINK
 #define PK5_WPORT		PORTK
 #define PK5_DDR			DDRK
 #define PK5_PWM			NULL
+#undef PK6
 #define PK6_PIN			PINK6
 #define PK6_RPORT		PINK
 #define PK6_WPORT		PORTK
 #define PK6_DDR			DDRK
 #define PK6_PWM			NULL
+#undef PK7
 #define PK7_PIN			PINK7
 #define PK7_RPORT		PINK
 #define PK7_WPORT		PORTK
 #define PK7_DDR			DDRK
 #define PK7_PWM			NULL
 
+#undef PL0
 #define PL0_PIN			PINL0
 #define PL0_RPORT		PINL
 #define PL0_WPORT		PORTL
 #define PL0_DDR			DDRL
 #define PL0_PWM			NULL
+#undef PL1
 #define PL1_PIN			PINL1
 #define PL1_RPORT		PINL
 #define PL1_WPORT		PORTL
 #define PL1_DDR			DDRL
 #define PL1_PWM			NULL
+#undef PL2
 #define PL2_PIN			PINL2
 #define PL2_RPORT		PINL
 #define PL2_WPORT		PORTL
 #define PL2_DDR			DDRL
 #define PL2_PWM			NULL
+#undef PL3
 #define PL3_PIN			PINL3
 #define PL3_RPORT		PINL
 #define PL3_WPORT		PORTL
 #define PL3_DDR			DDRL
 #define PL3_PWM			&OCR5AL
+#undef PL4
 #define PL4_PIN			PINL4
 #define PL4_RPORT		PINL
 #define PL4_WPORT		PORTL
 #define PL4_DDR			DDRL
 #define PL4_PWM			&OCR5BL
+#undef PL5
 #define PL5_PIN			PINL5
 #define PL5_RPORT		PINL
 #define PL5_WPORT		PORTL
 #define PL5_DDR			DDRL
 #define PL5_PWM			&OCR5CL
+#undef PL6
 #define PL6_PIN			PINL6
 #define PL6_RPORT		PINL
 #define PL6_WPORT		PORTL
 #define PL6_DDR			DDRL
 #define PL6_PWM			NULL
+#undef PL7
 #define PL7_PIN			PINL7
 #define PL7_RPORT		PINL
 #define PL7_WPORT		PORTL

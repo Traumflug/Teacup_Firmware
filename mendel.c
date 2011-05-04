@@ -183,6 +183,14 @@ void io_init(void) {
 		power_off();
 	#endif
 
+	// set all heater pins to output
+	do {
+		#undef	DEFINE_HEATER
+		#define	DEFINE_HEATER(name, pin) WRITE(pin, 0); SET_OUTPUT(pin);
+			#include "config.h"
+		#undef DEFINE_HEATER
+	} while (0);
+
 	#ifdef	TEMP_MAX6675
 		// setup SPI
 		WRITE(SCK, 0);				SET_OUTPUT(SCK);
