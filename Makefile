@@ -80,7 +80,7 @@ PROGID = arduino
 
 PROGRAM = mendel
 
-SOURCES = $(PROGRAM).c dda.c gcode_parse.c gcode_process.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c delay.c intercom.c pinio.c clock.c home.c crc.c
+SOURCES = $(PROGRAM).c dda.c gcode_parse.c gcode_process.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c intercom.c pinio.c clock.c home.c crc.c
 
 ARCH = avr-
 CC = $(ARCH)gcc
@@ -111,7 +111,7 @@ OBJ = $(patsubst %.c,%.o,${SOURCES})
 
 all: config.h subdirs $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
 
-$(PROGRAM).elf: $(LIBDEPS)
+$(PROGRAM).elf: $(LIBDEPS) delay.h
 
 subdirs:
 	@for dir in $(SUBDIRS); do \
