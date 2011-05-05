@@ -111,7 +111,7 @@ OBJ = $(patsubst %.c,%.o,${SOURCES})
 
 all: config.h subdirs $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
 
-$(PROGRAM).elf: $(LIBDEPS) delay.h
+$(PROGRAM).elf: $(LIBDEPS)
 
 subdirs:
 	@for dir in $(SUBDIRS); do \
