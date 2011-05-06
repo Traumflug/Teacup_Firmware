@@ -6,6 +6,7 @@
 
 #include	<string.h>
 #include	<stdlib.h>
+#include	<math.h>
 #include	<avr/interrupt.h>
 
 #include	"timer.h"
@@ -335,8 +336,13 @@ void dda_create(DDA *dda, TARGET *target) {
 		// add the last bit of dda->total_steps to always round up
 			dda->ramp_steps = dda->total_steps / 2 + (dda->total_steps & 1);
 			dda->step_no = 0;
-			// c is initial step time in IOclk ticks
-			dda->c = ACCELERATION_STEEPNESS << 8;
+// remove this when people have swallowed the new config item
+#ifdef ACCELERATION_STEEPNESS
+#error ACCELERATION_STEEPNESS is gone, review your config.h and use ACCELERATION
+#endif
+			// c is initial step time in IOclk ticks (currently, IOclk ticks = F_CPU)
+			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
+			dda->c = ((uint32_t)((double)F_CPU / sqrt((double)(STEPS_PER_MM_X * ACCELERATION)))) << 8;
 			dda->c_min = (move_duration / target->F) << 8;
 			if (dda->c_min < c_limit)
 				dda->c_min = c_limit;
