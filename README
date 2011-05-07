@@ -176,7 +176,7 @@ The queue of moves received from the host.
 *** debug.[ch]
 Debugging aids
 
-*** delay.[ch]
+*** delay.h
 Delay functions
 
 *** Teacup.pde
