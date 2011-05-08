@@ -43,7 +43,8 @@ void delay_us(uint16_t us)
 void delay(uint32_t us)
 {
     wd_reset();
-    for( int i = 0; i < us/65536; i++ )
+    int i;
+    for( i = 0; i < us/65536; i++ )
     {
         delay_us(65535);
         delay_us(1);
@@ -69,7 +70,8 @@ void delay(uint32_t us)
 void delay_ms( uint16_t ms )
 {
     wd_reset();
-    for( uint16_t i = 0; i < ms/65; i++ )
+    uint16_t i;
+    for( i = 0; i < ms/65; i++ )
     {
         delay_us(65000);
         wd_reset();
