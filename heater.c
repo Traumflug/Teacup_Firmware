@@ -240,7 +240,7 @@ void heater_tick(heater_t h, temp_sensor_t t, uint16_t current_temp, uint16_t ta
 			pid_output = pid_output_intermed & 0xFF;
 
 		#ifdef	DEBUG
-		if (debug_flags & DEBUG_PID)
+		if (DEBUG_PID && (debug_flags & DEBUG_PID))
 			sersendf_P(PSTR("T{E:%d, P:%d * %ld = %ld / I:%d * %ld = %ld / D:%d * %ld = %ld # O: %ld = %u}\n"), t_error, heater_p, heaters_pid[h].p_factor, (int32_t) heater_p * heaters_pid[h].p_factor / PID_SCALE, heaters_runtime[h].heater_i, heaters_pid[h].i_factor, (int32_t) heaters_runtime[h].heater_i * heaters_pid[h].i_factor / PID_SCALE, heater_d, heaters_pid[h].d_factor, (int32_t) heater_d * heaters_pid[h].d_factor / PID_SCALE, pid_output_intermed, pid_output);
 		#endif
 	#else
@@ -324,7 +324,7 @@ void heater_set(heater_t index, uint8_t value) {
 	if (heaters[index].heater_pwm) {
 		*(heaters[index].heater_pwm) = value;
 		#ifdef	DEBUG
-		if (debug_flags & DEBUG_PID)
+		if (DEBUG_PID && (debug_flags & DEBUG_PID))
 			sersendf_P(PSTR("PWM{%u = %u}\n"), index, OCR0A);
 		#endif
 	}

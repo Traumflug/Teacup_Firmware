@@ -177,7 +177,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	// initialise DDA to a known state
 	dda->allflags = 0;
 
-	if (debug_flags & DEBUG_DDA)
+	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 		serial_writestr_P(PSTR("\n{DDA_CREATE: ["));
 
 	// we end at the passed target
@@ -193,7 +193,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	dda->z_direction = (target->Z >= startpoint.Z)?1:0;
 	dda->e_direction = (target->E >= startpoint.E)?1:0;
 
-	if (debug_flags & DEBUG_DDA)
+	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 		sersendf_P(PSTR("%ld,%ld,%ld,%ld] ["), target->X - startpoint.X, target->Y - startpoint.Y, target->Z - startpoint.Z, target->E - startpoint.E);
 
 	dda->total_steps = dda->x_delta;
@@ -204,7 +204,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	if (dda->e_delta > dda->total_steps)
 		dda->total_steps = dda->e_delta;
 
-	if (debug_flags & DEBUG_DDA)
+	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 		sersendf_P(PSTR("ts:%lu"), dda->total_steps);
 
 	if (dda->total_steps == 0) {
@@ -230,7 +230,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (distance < 2)
 			distance = dda->e_delta * UM_PER_STEP_E;
 
-		if (debug_flags & DEBUG_DDA)
+		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",ds:%lu"), distance);
 
 		#ifdef	ACCELERATION_TEMPORAL
@@ -287,7 +287,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (dda->end_c < c_limit)
 			dda->end_c = c_limit;
 
-		if (debug_flags & DEBUG_DDA)
+		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",md:%lu,c:%lu"), move_duration, dda->c >> 8);
 
 		if (dda->c != dda->end_c) {
@@ -307,24 +307,24 @@ void dda_create(DDA *dda, TARGET *target) {
 			// we'll have to do it a few different ways depending on the msb locations of each
 			if ((msb_tot + msb_ssq) <= 30) {
 				// we have room to do all the multiplies first
-				if (debug_flags & DEBUG_DDA)
+				if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 					serial_writechar('A');
 				dda->n = ((int32_t) (dda->total_steps * ssq) / dsq) + 1;
 			}
 			else if (msb_tot >= msb_ssq) {
 				// total steps has more precision
-				if (debug_flags & DEBUG_DDA)
+				if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 					serial_writechar('B');
 				dda->n = (((int32_t) dda->total_steps / dsq) * (int32_t) ssq) + 1;
 			}
 			else {
 				// otherwise
-				if (debug_flags & DEBUG_DDA)
+				if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 					serial_writechar('C');
 				dda->n = (((int32_t) ssq / dsq) * (int32_t) dda->total_steps) + 1;
 			}
 
-			if (debug_flags & DEBUG_DDA)
+			if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 				sersendf_P(PSTR("\n{DDA:CA end_c:%lu, n:%ld, md:%lu, ssq:%lu, esq:%lu, dsq:%lu, msbssq:%u, msbtot:%u}\n"), dda->end_c >> 8, dda->n, move_duration, ssq, esq, dsq, msb_ssq, msb_tot);
 
 			dda->accel = 1;
@@ -349,7 +349,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		#endif
 	}
 
-	if (debug_flags & DEBUG_DDA)
+	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 		serial_writestr_P(PSTR("] }\n"));
 
 	// next dda starts where we finish

@@ -273,7 +273,7 @@ void process_gcode_command() {
 					return;
 		}
 		#ifdef	DEBUG
-			if (debug_flags & DEBUG_POSITION)
+			if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION))
 				print_queue();
 		#endif
 	}
