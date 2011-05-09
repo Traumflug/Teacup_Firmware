@@ -15,4 +15,17 @@
 
 #define MEMORY_BARRIER() __asm volatile( "" ::: "memory" )
 
+// There is a bug in the CLI/SEI functions in older versions of
+// avr-libc - they should be defined to include a memory barrier.
+// This macro is used to define the barrier in the code so that 
+// it will be easy to remove once the bug has become ancient history.
+// At the moment the bug is included in most of the distributed
+// compilers.
+
+#if __AVR_LIBC_VERSION__ < 10700UL
+	#define CLI_SEI_BUG_MEMORY_BARRIER() MEMORY_BARRIER()
+#else
+	#define CLI_SEI_BUG_MEMORY_BARRIER()
+#endif
+
 #endif
