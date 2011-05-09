@@ -11,12 +11,13 @@
 /*
 clock stuff
 */
-extern volatile uint8_t	clock_flag;
+extern volatile uint8_t	clock_flag_10ms;
+extern volatile uint8_t	clock_flag_250ms;
+extern volatile uint8_t	clock_flag_1s;
 
-#define	CLOCK_FLAG_10MS								1
-#define	CLOCK_FLAG_250MS							2
-#define	CLOCK_FLAG_1S									4
-#define	ifclock(F)	for (;clock_flag & (F);clock_flag &= ~(F))
+// If the specific bit is set, execute the following block exactly once
+// and then clear the flag.
+#define	ifclock(F)	for (;F;F=0 )
 
 /*
 timer stuff

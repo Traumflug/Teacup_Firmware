@@ -33,8 +33,11 @@ uint8_t						clock_counter_10ms = 0;
 uint8_t						clock_counter_250ms = 0;
 /// keep track of when 1s has elapsed
 uint8_t						clock_counter_1s = 0;
+
 /// flags to tell main loop when above have elapsed
-volatile uint8_t	clock_flag = 0;
+volatile uint8_t	clock_flag_10ms = 0;
+volatile uint8_t	clock_flag_250ms = 0;
+volatile uint8_t	clock_flag_1s = 0;
 
 /// comparator B is the system clock, happens every TICK_TIME
 ISR(TIMER1_COMPB_vect) {
@@ -47,17 +50,17 @@ ISR(TIMER1_COMPB_vect) {
 	clock_counter_10ms += TICK_TIME_MS;
 	if (clock_counter_10ms >= 10) {
 		clock_counter_10ms -= 10;
-		clock_flag |= CLOCK_FLAG_10MS;
+		clock_flag_10ms = 1;
 
 		clock_counter_250ms += 1;
 		if (clock_counter_250ms >= 25) {
 			clock_counter_250ms -= 25;
-			clock_flag |= CLOCK_FLAG_250MS;
+			clock_flag_250ms = 1;
 
 			clock_counter_1s += 1;
 			if (clock_counter_1s >= 4) {
 				clock_counter_1s -= 4;
-				clock_flag |= CLOCK_FLAG_1S;
+				clock_flag_1s = 1;
 			}
 		}
 	}
