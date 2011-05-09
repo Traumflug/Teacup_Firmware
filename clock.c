@@ -16,6 +16,7 @@
 #ifdef	TEMP_INTERCOM
 	#include	"intercom.h"
 #endif
+#include	"memory_barrier.h"
 
 /*!	do stuff every 1/4 second
 
@@ -25,8 +26,14 @@ void clock_250ms() {
 	if (steptimeout > (30 * 4)) {
 		power_off();
 	}
-	else if (heaters_all_off())
+	else if (heaters_all_off())	{
+		uint8_t save_reg = SREG;
+		cli();
+		CLI_SEI_BUG_MEMORY_BARRIER();
 		steptimeout++;
+		MEMORY_BARRIER();
+		SREG = save_reg;
+	}
 
 	ifclock(CLOCK_FLAG_1S) {
 		if (debug_flags & DEBUG_POSITION) {

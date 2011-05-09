@@ -122,7 +122,8 @@ typedef struct {
 */
 
 /// steptimeout is set to zero when we step, and increases over time so we can turn the motors off when they've been idle for a while
-extern uint8_t steptimeout;
+/// It is also used inside and outside of interrupts, which is why it has been made volatile
+extern volatile uint8_t steptimeout;
 
 /// startpoint holds the endpoint of the most recently created DDA, so we know where the next one created starts. could also be called last_endpoint
 extern TARGET startpoint;
