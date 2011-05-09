@@ -124,6 +124,12 @@ void timer_init()
 /// specify how long until the step timer should fire
 void setTimer(uint32_t delay)
 {
+	// if the delay is too small use a minimum delay so that there is time
+	// to set everything up before the timer expires.
+
+	if (delay < 17 )
+		delay = 17;
+		
 	// save interrupt flag
 	uint8_t sreg = SREG;
 	uint16_t step_start = 0;
@@ -136,40 +142,34 @@ void setTimer(uint32_t delay)
 	TIMSK1 |= MASK(OCIE1B);
 
 	if (delay > 0) {
-		if (delay <= 16) {
-			// unfortunately, force registers don't trigger an interrupt, so we do the following
-			// "fire" ISR- maybe it sets a new timeout
-			timer1_compa_isr();
+
+		// Assume all steps belong to one move. Within one move the delay is
+		// from one step to the next one, which should be more or less the same
+		// as from one step interrupt to the next one. The last step interrupt happend
+		// at OCR1A, so start delay from there.
+		step_start = OCR1A;
+		if (next_step_time == 0) {
+			// new move, take current time as start value
+			step_start = TCNT1;
+		}
+
+		next_step_time = delay;
+		if (next_step_time < 65536) {
+			// set the comparator directly to the next real step
+			OCR1A = (next_step_time + step_start) & 0xFFFF;
+		}
+		else if (next_step_time < 75536) {
+			// Next comparator interrupt would have to trigger another
+			// interrupt within a short time (possibly within 1 cycle).
+			// Avoid the impossible by firing the interrupt earlier.
+			OCR1A = (step_start - 10000) & 0xFFFF;
+			next_step_time += 10000;
 		}
 		else {
-			// Assume all steps belong to one move. Within one move the delay is
-			// from one step to the next one, which should be more or less the same
-			// as from one step interrupt to the next one. The last step interrupt happend
-			// at OCR1A, so start delay from there.
-			step_start = OCR1A;
-			if (next_step_time == 0) {
-				// new move, take current time as start value
-				step_start = TCNT1;
-			}
-
-			next_step_time = delay;
-			if (next_step_time < 65536) {
-				// set the comparator directly to the next real step
-				OCR1A = (next_step_time + step_start) & 0xFFFF;
-			}
-			else if (next_step_time < 75536) {
-				// Next comparator interrupt would have to trigger another
-				// interrupt within a short time (possibly within 1 cycle).
-				// Avoid the impossible by firing the interrupt earlier.
-				OCR1A = (step_start - 10000) & 0xFFFF;
-				next_step_time += 10000;
-			}
-			else {
-				OCR1A = step_start;
-			}
-
-			TIMSK1 |= MASK(OCIE1A);
+			OCR1A = step_start;
 		}
+
+		TIMSK1 |= MASK(OCIE1A);
 	} else {
 		// flag: move has ended
 		next_step_time = 0;
