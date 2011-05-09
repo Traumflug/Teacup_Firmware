@@ -23,7 +23,7 @@
 #endif
 
 /// step timeout
-uint8_t	steptimeout = 0;
+volatile uint8_t	steptimeout = 0;
 
 /*
 	position tracking
