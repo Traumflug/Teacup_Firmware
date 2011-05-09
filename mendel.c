@@ -262,7 +262,7 @@ int main (void)
 			gcode_parse_char(c);
 		}
 
-		ifclock(CLOCK_FLAG_10MS) {
+		ifclock(clock_flag_10ms) {
 			clock_10ms();
 		}
 	}

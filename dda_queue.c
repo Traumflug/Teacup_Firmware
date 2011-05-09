@@ -168,7 +168,7 @@ void queue_flush() {
 /// waits for a space in the queue to become available
 void queue_wait() {
 	for (;queue_empty() == 0;) {
-		ifclock(CLOCK_FLAG_10MS) {
+		ifclock(clock_flag_10ms) {
 			clock_10ms();
 		}
 	}
