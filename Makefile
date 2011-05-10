@@ -80,7 +80,7 @@ PROGID = arduino
 
 PROGRAM = mendel
 
-SOURCES = $(PROGRAM).c dda.c gcode_parse.c gcode_process.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c intercom.c pinio.c clock.c home.c crc.c
+SOURCES = $(PROGRAM).c dda.c gcode_parse.c gcode_process.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c intercom.c pinio.c clock.c home.c crc.c delay.c
 
 ARCH = avr-
 CC = $(ARCH)gcc
