@@ -28,12 +28,20 @@ DDA movebuffer[MOVEBUFFER_SIZE] __attribute__ ((__section__ (".bss")));
 
 /// check if the queue is completely full
 uint8_t queue_full() {
-	return (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) == 0)?255:0;
+	uint8_t sreg = SREG, r;
+	cli();
+	r = (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) == 0)?255:0;
+	SREG = sreg;
+	return r;
 }
 
 /// check if the queue is completely empty
 uint8_t queue_empty() {
-	return ((mb_tail == mb_head) && (movebuffer[mb_tail].live == 0))?255:0;
+	uint8_t sreg = SREG, r;
+	cli();
+	r = ((mb_tail == mb_head) && (movebuffer[mb_tail].live == 0))?255:0;
+	SREG = sreg;
+	return r;
 }
 
 // -------------------------------------------------------
@@ -95,9 +103,15 @@ void enqueue(TARGET *t) {
 
 	mb_head = h;
 
+	uint8_t sreg = SREG;
+	cli();
 	// fire up in case we're not running yet
-	if (movebuffer[mb_tail].live == 0)
+	if (movebuffer[mb_tail].live == 0) {
+		SREG = sreg;
 		next_move();
+	}
+	else
+		SREG = sreg;
 }
 
 /// go to the next move.
@@ -143,6 +157,9 @@ void queue_flush() {
 	// flush queue
 	mb_tail = mb_head;
 	movebuffer[mb_head].live = 0;
+
+	// disable timer
+	setTimer(0);
 
 	// restore interrupt flag
 	SREG = sreg;

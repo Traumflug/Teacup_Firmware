@@ -432,11 +432,6 @@ void dda_step(DDA *dda) {
 			x_step();
 			did_step = 1;
 			dda->x_steps--;
-	// 				if (dda->x_direction)
-	// 					current_position.X++;
-	// 				else
-	// 					current_position.X--;
-
 			dda->x_counter += dda->total_steps;
 		}
 	}
@@ -448,11 +443,6 @@ void dda_step(DDA *dda) {
 			y_step();
 			did_step = 1;
 			dda->y_steps--;
-	// 				if (dda->y_direction)
-	// 					current_position.Y++;
-	// 				else
-	// 					current_position.Y--;
-
 			dda->y_counter += dda->total_steps;
 		}
 	}
@@ -464,11 +454,6 @@ void dda_step(DDA *dda) {
 			z_step();
 			did_step = 1;
 			dda->z_steps--;
-	// 				if (dda->z_direction)
-	// 					current_position.Z++;
-	// 				else
-	// 					current_position.Z--;
-
 			dda->z_counter += dda->total_steps;
 		}
 	}
@@ -479,11 +464,6 @@ void dda_step(DDA *dda) {
 			e_step();
 			did_step = 1;
 			dda->e_steps--;
-	// 				if (dda->e_direction)
-	// 					current_position.E++;
-	// 				else
-	// 					current_position.E--;
-
 			dda->e_counter += dda->total_steps;
 		}
 	}
@@ -564,6 +544,8 @@ void dda_step(DDA *dda) {
 		// z stepper is only enabled while moving
 		z_disable();
 	}
+
+	cli();
 
 	setTimer(dda->c >> 8);
 
