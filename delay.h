@@ -4,7 +4,7 @@
 #include	<stdint.h>
 #include	<util/delay_basic.h>
 
-#define		WAITING_DELAY		10000
+#define		WAITING_DELAY		100
 
 void delay_us(uint16_t delay);
 
