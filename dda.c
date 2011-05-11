@@ -368,6 +368,8 @@ void dda_create(DDA *dda, TARGET *target) {
 	We set direction and enable outputs, and set the timer for the first step from the precalculated value.
 
 	We also mark this DDA as running, so other parts of the firmware know that something is happening
+
+	Called both inside and outside of interrupts.
 */
 void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!

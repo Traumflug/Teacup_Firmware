@@ -130,9 +130,20 @@ void enqueue(TARGET *t) {
 	MEMORY_BARRIER();
 	SREG = save_reg;
 	
-	if (isdead)
+	if (isdead) {
+		timer1_compa_deferred_enable = 0;
 		next_move();
-	}
+		if (timer1_compa_deferred_enable) {
+			uint8_t save_reg = SREG;
+			cli();
+			CLI_SEI_BUG_MEMORY_BARRIER();
+			
+			TIMSK1 |= MASK(OCIE1A);
+			
+			MEMORY_BARRIER();
+			SREG = save_reg;
+		}
+	}	
 }
 
 /// go to the next move.
@@ -163,10 +174,10 @@ void next_move() {
 		else {
 			dda_start(current_movebuffer);
 		}
-		
 	} 
 	if (queue_empty())
 		setTimer(0);
+		
 }
 
 /// DEBUG - print queue.
