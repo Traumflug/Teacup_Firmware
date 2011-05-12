@@ -346,6 +346,13 @@ void dda_create(DDA *dda, TARGET *target) {
 			dda->c_min = (move_duration / target->F) << 8;
 			if (dda->c_min < c_limit)
 				dda->c_min = c_limit;
+			// overflows at target->F > 65535; factor 16. found by try-and-error
+			dda->rampup_steps = target->F * target->F / (uint32_t)(STEPS_PER_MM_X * ACCELERATION / 16.);
+			if (dda->rampup_steps > dda->total_steps / 2)
+				dda->rampup_steps = dda->total_steps / 2;
+			dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
+			if (dda->rampup_steps == 0)
+				dda->rampup_steps = 1;
 			dda->n = 1;
 			dda->ramp_state = RAMP_UP;
 		#else
@@ -534,7 +541,9 @@ void dda_step(DDA *dda) {
 					// maximum speed reached
 					dda->c = dda->c_min;
 					dda->ramp_state = RAMP_MAX;
+//sersendf_P(PSTR("real:%lu up:%lu "), dda->step_no, dda->rampup_steps);
 					dda->ramp_steps = dda->total_steps - dda->step_no;
+//sersendf_P(PSTR("real:%lu down:%lu\n"), dda->ramp_steps, dda->rampdown_steps);
 				}
 				break;
 		}

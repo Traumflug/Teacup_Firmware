@@ -106,6 +106,10 @@ typedef struct {
 	#ifdef ACCELERATION_RAMPING
 	/// start of down-ramp, intitalized with total_steps / 2
 	uint32_t					ramp_steps;
+	/// number of steps accelerating
+	uint32_t					rampup_steps;
+	/// number of last step before decelerating
+	uint32_t					rampdown_steps;
 	/// counts actual steps done
 	uint32_t					step_no;
 	/// 24.8 fixed point timer value, maximum speed
