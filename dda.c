@@ -479,12 +479,23 @@ void dda_step(DDA *dda) {
 	#ifdef ACCELERATION_REPRAP
 		// linear acceleration magic, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
 		if (dda->accel) {
-			if (
-					((dda->n > 0) && (dda->c > dda->end_c)) ||
-					((dda->n < 0) && (dda->c < dda->end_c))
-				) {
-				dda->c = (int32_t) dda->c - ((int32_t) (dda->c * 2) / dda->n);
-				dda->n += 4;
+			if ((dda->c > dda->end_c) && (dda->n > 0)) {
+				uint32_t new_c = dda->c - (dda->c * 2) / dda->n;
+				if (new_c <= dda->c && new_c > dda->end_c) {
+					dda->c = new_c;
+					dda->n += 4;
+				}
+				else
+					dda->c = dda->end_c;
+			}
+			else if ((dda->c < dda->end_c) && (dda->n < 0)) {
+				uint32_t new_c = dda->c + ((dda->c * 2) / -dda->n);
+				if (new_c >= dda->c && new_c < dda->end_c) {
+					dda->c = new_c;
+					dda->n += 4;
+				}
+				else
+					dda->c = dda->end_c;
 			}
 			else if (dda->c != dda->end_c) {
 				dda->c = dda->end_c;
