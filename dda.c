@@ -333,8 +333,6 @@ void dda_create(DDA *dda, TARGET *target) {
 		else
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
-		// add the last bit of dda->total_steps to always round up
-			dda->ramp_steps = dda->total_steps / 2 + (dda->total_steps & 1);
 			dda->step_no = 0;
 // remove this when people have swallowed the new config item
 #ifdef ACCELERATION_STEEPNESS
@@ -356,7 +354,6 @@ void dda_create(DDA *dda, TARGET *target) {
 				dda->rampup_steps = 1;
 			dda->n = 1; // TODO: this ends exactly where the next move starts,
 			            // so it should go out of dda->... into some state variable
-			dda->ramp_state = RAMP_UP;
 		#else
 			dda->c = (move_duration / target->F) << 8;
 			if (dda->c < c_limit)
@@ -525,23 +522,10 @@ void dda_step(DDA *dda) {
 		// - precalculate ramp lengths instead of counting them, see AVR446 tech note
 		uint8_t recalc_speed;
 
-		// for intermediate time, calculate ramping steps on the fly as well as with precalculated step numbers
-
-		// save state for the original calculation method
-		static uint32_t alternate_c;
-		static int32_t alternate_n;
-		uint32_t save_c;
-		int32_t save_n;
-		save_c = dda->c;
-		save_n = dda->n;
-		// restore state for the new method
-		if (dda->step_no == 0) {
-			alternate_c = dda->c;
-			alternate_n = dda->n;
-			sersendf_P(PSTR("\r\noc %lu  nc %lu    on %ld  nn %ld"), dda->c, alternate_c, dda->n, alternate_n);
-		}
-		dda->c = alternate_c;
-		dda->n = alternate_n;
+		// debug ramping algorithm
+		//if (dda->step_no == 0) {
+		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %ld"), dda->c, dda->c_min, dda->n);
+		//}
 
 		recalc_speed = 0;
 		if (dda->step_no <= dda->rampup_steps) {
@@ -561,42 +545,10 @@ void dda_step(DDA *dda) {
 		}
 		dda->step_no++;
 
-		// restore the previous state to do the competing calculation again
-		alternate_c = dda->c;
-		alternate_n = dda->n;
-		dda->step_no--;
-		dda->c = save_c;
-		dda->n = save_n;
-
-		switch (dda->ramp_state) {
-			case RAMP_UP:
-			case RAMP_MAX:
-				if (dda->step_no >= dda->ramp_steps) {
-					// RAMP_UP: time to decelerate before reaching maximum speed
-					// RAMP_MAX: time to decelerate
-					dda->ramp_state = RAMP_DOWN;
-					dda->n = -((int32_t)2) - dda->n;
-				}
-				if (dda->ramp_state == RAMP_MAX)
-					break;
-			case RAMP_DOWN:
-				dda->n += 4;
-				// be careful of signedness!
-				dda->c = (int32_t)dda->c - ((int32_t)(dda->c * 2) / dda->n);
-				if (dda->c <= dda->c_min) {
-					// maximum speed reached
-					dda->c = dda->c_min;
-					dda->ramp_state = RAMP_MAX;
-					dda->ramp_steps = dda->total_steps - dda->step_no;
-				}
-				break;
-		}
-		dda->step_no++;
-
-		// now compare both calculations
+		// debug ramping algorithm
 		// for very low speeds like 10 mm/min, only
-		if (dda->step_no % 10 /* 10, 100, ...*/ == 0)
-			sersendf_P(PSTR("\r\noc %lu  nc %lu    on %ld  nn %ld"), dda->c, alternate_c, dda->n, alternate_n);
+		//if (dda->step_no % 10 /* 10, 100, ...*/ == 0)
+		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %ld"), dda->c, dda->c_min, dda->n);
 	#endif
 
 	// TODO: did_step is obsolete ...
@@ -627,13 +579,12 @@ void dda_step(DDA *dda) {
 
 	#ifdef ACCELERATION_RAMPING
 		// we don't hit maximum speed exactly with acceleration calculation, so limit it here
-		// the nice thing about not setting dda->c to dda->c_min is, the move stops at the exact same c as it started, so we have to calculate it only once for the time being
+		// the nice thing about _not_ setting dda->c to dda->c_min is, the move stops at the exact same c as it started, so we have to calculate c only once for the time being
 		// TODO: set timer only if dda->c has changed
 		if (dda->c_min > dda->c)
 			setTimer(dda->c_min >> 8);
 		else
-			setTimer(alternate_c >> 8); // new code
-			//setTimer(dda->c >> 8); // old code
+			setTimer(dda->c >> 8);
 	#else
 		setTimer(dda->c >> 8);
 	#endif

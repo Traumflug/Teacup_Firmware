@@ -22,16 +22,6 @@
 #endif
 
 /*
-	enums
-*/
-// wether we accelerate, run at full speed, break down, etc.
-typedef enum {
-	RAMP_UP,
-	RAMP_MAX,
-	RAMP_DOWN
-} ramp_state_t;
-
-/*
 	types
 */
 
@@ -104,8 +94,6 @@ typedef struct {
 	int32_t						n; ///< precalculated step time offset variable. At every step we calculate \f$c = c - (2 c / n)\f$; \f$n+=4\f$. See http://www.embedded.com/columns/technicalinsights/56800129?printable=true for full description
 	#endif
 	#ifdef ACCELERATION_RAMPING
-	/// start of down-ramp, intitalized with total_steps / 2
-	uint32_t					ramp_steps;
 	/// number of steps accelerating
 	uint32_t					rampup_steps;
 	/// number of last step before decelerating
@@ -116,8 +104,6 @@ typedef struct {
 	uint32_t					c_min;
 	/// tracking variable
 	int32_t						n;
-	/// keep track of whether we're ramping up, down, or plateauing
-	ramp_state_t			ramp_state;
 	#endif
 } DDA;
 
