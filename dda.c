@@ -342,18 +342,20 @@ void dda_create(DDA *dda, TARGET *target) {
 #endif
 			// c is initial step time in IOclk ticks (currently, IOclk ticks = F_CPU)
 			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
+			// TODO: as this number ends exactly where it starts, move it out into a state variable
 			dda->c = ((uint32_t)((double)F_CPU / sqrt((double)(STEPS_PER_MM_X * ACCELERATION)))) << 8;
 			dda->c_min = (move_duration / target->F) << 8;
 			if (dda->c_min < c_limit)
 				dda->c_min = c_limit;
-			// overflows at target->F > 65535; factor 16. found by try-and-error
+			// overflows at target->F > 65535; factor 16. found by try-and-error; will overshoot target speed a bit
 			dda->rampup_steps = target->F * target->F / (uint32_t)(STEPS_PER_MM_X * ACCELERATION / 16.);
 			if (dda->rampup_steps > dda->total_steps / 2)
 				dda->rampup_steps = dda->total_steps / 2;
 			dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
 			if (dda->rampup_steps == 0)
 				dda->rampup_steps = 1;
-			dda->n = 1;
+			dda->n = 1; // TODO: this ends exactly where the next move starts,
+			            // so it should go out of dda->... into some state variable
 			dda->ramp_state = RAMP_UP;
 		#else
 			dda->c = (move_duration / target->F) << 8;
@@ -520,8 +522,52 @@ void dda_step(DDA *dda) {
 	#endif
 	#ifdef ACCELERATION_RAMPING
 		// - algorithm courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
-		// - for simplicity, taking even/uneven number of steps into account dropped
-		// - number of steps moved is always accurate, speed might be one step off
+		// - precalculate ramp lengths instead of counting them, see AVR446 tech note
+		uint8_t recalc_speed;
+
+		// for intermediate time, calculate ramping steps on the fly as well as with precalculated step numbers
+
+		// save state for the original calculation method
+		static uint32_t alternate_c;
+		static int32_t alternate_n;
+		uint32_t save_c;
+		int32_t save_n;
+		save_c = dda->c;
+		save_n = dda->n;
+		// restore state for the new method
+		if (dda->step_no == 0) {
+			alternate_c = dda->c;
+			alternate_n = dda->n;
+			sersendf_P(PSTR("\r\noc %lu  nc %lu    on %ld  nn %ld"), dda->c, alternate_c, dda->n, alternate_n);
+		}
+		dda->c = alternate_c;
+		dda->n = alternate_n;
+
+		recalc_speed = 0;
+		if (dda->step_no <= dda->rampup_steps) {
+			if (dda->n < 0) // wrong ramp direction
+				dda->n = -((int32_t)2) - dda->n;
+			recalc_speed = 1;
+		}
+		else if (dda->step_no >= dda->rampdown_steps) {
+			if (dda->n > 0) // wrong ramp direction
+				dda->n = -((int32_t)2) - dda->n;
+			recalc_speed = 1;
+		}
+		if (recalc_speed) {
+			dda->n += 4;
+			// be careful of signedness!
+			dda->c = (int32_t)dda->c - ((int32_t)(dda->c * 2) / dda->n);
+		}
+		dda->step_no++;
+
+		// restore the previous state to do the competing calculation again
+		alternate_c = dda->c;
+		alternate_n = dda->n;
+		dda->step_no--;
+		dda->c = save_c;
+		dda->n = save_n;
+
 		switch (dda->ramp_state) {
 			case RAMP_UP:
 			case RAMP_MAX:
@@ -541,15 +587,19 @@ void dda_step(DDA *dda) {
 					// maximum speed reached
 					dda->c = dda->c_min;
 					dda->ramp_state = RAMP_MAX;
-//sersendf_P(PSTR("real:%lu up:%lu "), dda->step_no, dda->rampup_steps);
 					dda->ramp_steps = dda->total_steps - dda->step_no;
-//sersendf_P(PSTR("real:%lu down:%lu\n"), dda->ramp_steps, dda->rampdown_steps);
 				}
 				break;
 		}
 		dda->step_no++;
+
+		// now compare both calculations
+		// for very low speeds like 10 mm/min, only
+		if (dda->step_no % 10 /* 10, 100, ...*/ == 0)
+			sersendf_P(PSTR("\r\noc %lu  nc %lu    on %ld  nn %ld"), dda->c, alternate_c, dda->n, alternate_n);
 	#endif
 
+	// TODO: did_step is obsolete ...
 	if (did_step) {
 		// we stepped, reset timeout
 		steptimeout = 0;
@@ -575,7 +625,18 @@ void dda_step(DDA *dda) {
 
 	cli();
 
-	setTimer(dda->c >> 8);
+	#ifdef ACCELERATION_RAMPING
+		// we don't hit maximum speed exactly with acceleration calculation, so limit it here
+		// the nice thing about not setting dda->c to dda->c_min is, the move stops at the exact same c as it started, so we have to calculate it only once for the time being
+		// TODO: set timer only if dda->c has changed
+		if (dda->c_min > dda->c)
+			setTimer(dda->c_min >> 8);
+		else
+			setTimer(alternate_c >> 8); // new code
+			//setTimer(dda->c >> 8); // old code
+	#else
+		setTimer(dda->c >> 8);
+	#endif
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something.
