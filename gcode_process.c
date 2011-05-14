@@ -158,7 +158,7 @@ void process_gcode_command() {
 				queue_wait();
 				// delay
 				for (;next_target.P > 0;next_target.P--) {
-					ifclock(CLOCK_FLAG_10MS) {
+					ifclock(clock_flag_10ms) {
 						clock_10ms();
 					}
 					delay_ms(1);
@@ -273,7 +273,7 @@ void process_gcode_command() {
 					return;
 		}
 		#ifdef	DEBUG
-			if (debug_flags & DEBUG_POSITION)
+			if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION))
 				print_queue();
 		#endif
 	}

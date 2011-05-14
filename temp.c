@@ -177,7 +177,7 @@ void temp_sensor_tick() {
 							if (pgm_read_word(&(temptable[table_num][j][0])) > temp) {
 								// Thermistor table is already in 14.2 fixed point
 								#ifndef	EXTRUDER
-								if (debug_flags & DEBUG_PID)
+								if (DEBUG_PID && (debug_flags & DEBUG_PID))
 									sersendf_P(PSTR("pin:%d Raw ADC:%d table entry: %d"),temp_sensors[i].temp_pin,temp,j);
 								#endif
 								// Linear interpolating temperature value
@@ -204,14 +204,14 @@ void temp_sensor_tick() {
 								//                                (x₁ - x₀)
 									(pgm_read_word(&(temptable[table_num][j][0])) - pgm_read_word(&(temptable[table_num][j-1][0])));
 								#ifndef	EXTRUDER
-								if (debug_flags & DEBUG_PID)
+								if (DEBUG_PID && (debug_flags & DEBUG_PID))
 									sersendf_P(PSTR(" temp:%d.%d"),temp/4,(temp%4)*25);
 								#endif
 								break;
 							}
 						}
 						#ifndef	EXTRUDER
-						if (debug_flags & DEBUG_PID)
+						if (DEBUG_PID && (debug_flags & DEBUG_PID))
 							sersendf_P(PSTR(" Sensor:%d\n"),i);
 						#endif
 
