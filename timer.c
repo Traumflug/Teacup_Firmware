@@ -135,12 +135,6 @@ void timer_init()
 /// specify how long until the step timer should fire
 void setTimer(uint32_t delay)
 {
-	// if the delay is too small use a minimum delay so that there is time
-	// to set everything up before the timer expires.
-
-	if (delay < 17 )
-		delay = 17;
-		
 	// save interrupt flag
 	uint8_t sreg = SREG;
 	uint16_t step_start = 0;
@@ -154,6 +148,12 @@ void setTimer(uint32_t delay)
 
 	if (delay > 0) {
 
+		// if the delay is too small use a minimum delay so that there is time
+		// to set everything up before the timer expires.
+
+		if (delay < 17 )
+			delay = 17;
+		
 		// Assume all steps belong to one move. Within one move the delay is
 		// from one step to the next one, which should be more or less the same
 		// as from one step interrupt to the next one. The last step interrupt happend
