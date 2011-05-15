@@ -173,6 +173,7 @@ void dda_init(void) {
 
 	#ifdef ACCELERATION_RAMPING
 		move_state.n = 1;
+		move_state.c = ((uint32_t)((double)F_CPU / sqrt((double)(STEPS_PER_MM_X * ACCELERATION)))) << 8;
 	#endif
 }
 
@@ -356,8 +357,6 @@ void dda_create(DDA *dda, TARGET *target) {
 #endif
 			// c is initial step time in IOclk ticks (currently, IOclk ticks = F_CPU)
 			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
-			// TODO: as this number ends exactly where it starts, move it out into a state variable
-			dda->c = ((uint32_t)((double)F_CPU / sqrt((double)(STEPS_PER_MM_X * ACCELERATION)))) << 8;
 			dda->c_min = (move_duration / target->F) << 8;
 			if (dda->c_min < c_limit)
 				dda->c_min = c_limit;
@@ -431,7 +430,14 @@ void dda_start(DDA *dda) {
 		dda->live = 1;
 
 		// set timeout for first step
+		#ifdef ACCELERATION_RAMPING
+		if (dda->c_min > move_state.c) // can be true when look-ahead removed all deceleration steps
+			setTimer(dda->c_min >> 8);
+		else
+			setTimer(move_state.c >> 8);
+		#else
 		setTimer(dda->c >> 8);
+		#endif
 	}
 }
 
@@ -553,7 +559,7 @@ void dda_step(DDA *dda) {
 		if (recalc_speed) {
 			move_state.n += 4;
 			// be careful of signedness!
-			dda->c = (int32_t)dda->c - ((int32_t)(dda->c * 2) / move_state.n);
+			move_state.c = (int32_t)move_state.c - ((int32_t)(move_state.c * 2) / move_state.n);
 		}
 		dda->step_no++;
 
@@ -593,10 +599,10 @@ void dda_step(DDA *dda) {
 		// we don't hit maximum speed exactly with acceleration calculation, so limit it here
 		// the nice thing about _not_ setting dda->c to dda->c_min is, the move stops at the exact same c as it started, so we have to calculate c only once for the time being
 		// TODO: set timer only if dda->c has changed
-		if (dda->c_min > dda->c)
+		if (dda->c_min > move_state.c)
 			setTimer(dda->c_min >> 8);
 		else
-			setTimer(dda->c >> 8);
+			setTimer(move_state.c >> 8);
 	#else
 		setTimer(dda->c >> 8);
 	#endif

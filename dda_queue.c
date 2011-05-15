@@ -64,7 +64,7 @@ void queue_step() {
 	DDA* current_movebuffer = &movebuffer[mb_tail];
 	if (current_movebuffer->live) {
 		if (current_movebuffer->waitfor_temp) {
-			setTimer(current_movebuffer->c >> 8);
+			setTimer(HEATER_WAIT_TIMEOUT);
 			if (temp_achieved()) {
 				current_movebuffer->live = current_movebuffer->waitfor_temp = 0;
 				serial_writestr_P(PSTR("Temp achieved\n"));
@@ -106,13 +106,6 @@ void enqueue(TARGET *t) {
 		// it's a wait for temp
 		new_movebuffer->waitfor_temp = 1;
 		new_movebuffer->nullmove = 0;
-		#if (F_CPU & 0xFF000000) == 0
-			// set "step" timeout to 1 second
-			new_movebuffer->c = F_CPU << 8;
-		#else
-			// set "step" timeout to maximum
-			new_movebuffer->c = 0xFFFFFF00;
-		#endif
 	}
 
 	// make certain all writes to global memory
@@ -163,13 +156,13 @@ void next_move() {
 		// tail must be set before setTimer call as setTimer
 		// reenables the timer interrupt, potentially exposing
 		// mb_tail to the timer interrupt routine. 
-		mb_tail = t;	
+		mb_tail = t;
 		if (current_movebuffer->waitfor_temp) {
 			#ifndef	REPRAP_HOST_COMPATIBILITY
 				serial_writestr_P(PSTR("Waiting for target temp\n"));
 			#endif
 			current_movebuffer->live = 1;
-			setTimer(current_movebuffer->c >> 8);
+			setTimer(HEATER_WAIT_TIMEOUT);
 		}
 		else {
 			dda_start(current_movebuffer);
@@ -177,7 +170,7 @@ void next_move() {
 	} 
 	if (queue_empty())
 		setTimer(0);
-		
+
 }
 
 /// DEBUG - print queue.

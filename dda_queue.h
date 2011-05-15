@@ -3,6 +3,14 @@
 
 #include	"dda.h"
 
+#if (F_CPU & 0xFF000000) == 0
+	// set timeout to 1 second
+	#define HEATER_WAIT_TIMEOUT (F_CPU << 8)
+#else
+	// set timeout to maximum
+	#define HEATER_WAIT_TIMEOUT 0xFFFFFF00
+#endif
+
 /*
 	variables
 */
