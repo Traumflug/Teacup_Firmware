@@ -355,7 +355,6 @@ void dda_create(DDA *dda, TARGET *target) {
 #ifdef ACCELERATION_STEEPNESS
 #error ACCELERATION_STEEPNESS is gone, review your config.h and use ACCELERATION
 #endif
-			// c is initial step time in IOclk ticks (currently, IOclk ticks = F_CPU)
 			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
 			dda->c_min = (move_duration / target->F) << 8;
 			if (dda->c_min < c_limit)
@@ -402,12 +401,6 @@ void dda_start(DDA *dda) {
 		// keep dda->live = 0
 	}
 	else {
-/*		if (dda->waitfor_temp) {
-			#ifndef	REPRAP_HOST_COMPATIBILITY
-				serial_writestr_P(PSTR("Waiting for target temp\n"));
-			#endif
-		}
-		else {*/
 		// get ready to go
 		steptimeout = 0;
 		if (dda->z_delta)
@@ -423,8 +416,6 @@ void dda_start(DDA *dda) {
 		if (dda->e_delta)
 			heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
 		#endif
-
-// 		}
 
 		// ensure this dda starts
 		dda->live = 1;
@@ -444,7 +435,7 @@ void dda_start(DDA *dda) {
 /*! STEP
 	\param *dda the current move
 
-	This is called from our timer interrupt every time a step needs to occur.
+	This is called from our timer interrupt every time a step needs to occur. Keep it as simple as possible!
 	We first work out which axes need to step, and generate step pulses for them
 	Then we re-enable global interrupts so serial data reception and other important things can occur while we do some math.
 	Next, we work out how long until our next step using the selected acceleration algorithm and set the timer.
@@ -454,7 +445,6 @@ void dda_start(DDA *dda) {
 	\todo take into account the time that interrupt takes to run
 */
 void dda_step(DDA *dda) {
-	// called from interrupt context! keep it as simple as possible
 	uint8_t	did_step = 0;
 
 	if ((dda->x_steps) /* &&
