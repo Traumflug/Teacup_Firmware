@@ -350,7 +350,6 @@ void dda_create(DDA *dda, TARGET *target) {
 		else
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
-			dda->step_no = 0;
 // remove this when people have swallowed the new config item
 #ifdef ACCELERATION_STEEPNESS
 #error ACCELERATION_STEEPNESS is gone, review your config.h and use ACCELERATION
@@ -415,6 +414,11 @@ void dda_start(DDA *dda) {
 		#ifdef	DC_EXTRUDER
 		if (dda->e_delta)
 			heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
+		#endif
+
+		// initialise state variable
+		#ifdef ACCELERATION_RAMPING
+			move_state.step_no = 0;
 		#endif
 
 		// ensure this dda starts
@@ -531,17 +535,17 @@ void dda_step(DDA *dda) {
 		uint8_t recalc_speed;
 
 		// debug ramping algorithm
-		//if (dda->step_no == 0) {
+		//if (move_state.step_no == 0) {
 		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %d"), dda->c, dda->c_min, move_state.n);
 		//}
 
 		recalc_speed = 0;
-		if (dda->step_no < dda->rampup_steps) {
+		if (move_state.step_no < dda->rampup_steps) {
 			if (move_state.n < 0) // wrong ramp direction
 				move_state.n = -((int32_t)2) - move_state.n;
 			recalc_speed = 1;
 		}
-		else if (dda->step_no > dda->rampdown_steps) {
+		else if (move_state.step_no > dda->rampdown_steps) {
 			if (move_state.n > 0) // wrong ramp direction
 				move_state.n = -((int32_t)2) - move_state.n;
 			recalc_speed = 1;
@@ -551,11 +555,11 @@ void dda_step(DDA *dda) {
 			// be careful of signedness!
 			move_state.c = (int32_t)move_state.c - ((int32_t)(move_state.c * 2) / (int32_t)move_state.n);
 		}
-		dda->step_no++;
+		move_state.step_no++;
 
 		// debug ramping algorithm
 		// for very low speeds like 10 mm/min, only
-		//if (dda->step_no % 10 /* 10, 100, ...*/ == 0)
+		//if (move_state.step_no % 10 /* 10, 100, ...*/ == 0)
 		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %d"), dda->c, dda->c_min, move_state.n);
 	#endif
 

@@ -54,8 +54,8 @@ typedef struct {
 //	uint32_t					e_steps; ///< number of steps on E axis
 
 	#ifdef ACCELERATION_RAMPING
-//	/// counts actual steps done
-//	uint32_t					step_no;
+	/// counts actual steps done
+	uint32_t					step_no;
 	/// time until next step
 	uint32_t					c;
 	/// tracking variable
@@ -129,8 +129,6 @@ typedef struct {
 	uint32_t					rampup_steps;
 	/// number of last step before decelerating
 	uint32_t					rampdown_steps;
-	/// counts actual steps done
-	uint32_t					step_no;
 	/// 24.8 fixed point timer value, maximum speed
 	uint32_t					c_min;
 	#endif
