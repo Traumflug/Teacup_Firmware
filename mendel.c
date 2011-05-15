@@ -225,8 +225,8 @@ void init(void) {
 	// read PID settings from EEPROM
 	heater_init();
 
-	// set up default feedrate
-	current_position.F = startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
+	// set up dda
+	dda_init();
 
 	// start up analog read interrupt loop,
 	// if any of the temp sensors in your config.h use analog interface

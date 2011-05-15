@@ -35,6 +35,35 @@ typedef struct {
 } TARGET;
 
 /**
+	\struct MOVE_STATE
+	\brief this struct is made for tracking the current state of the movement
+
+	Parts of this struct are initialised only once per reboot, so make sure dda_step() leaves them with a value compatible to begin a new movement at the end of the movement. Other parts are filled in by dda_start().
+*/
+typedef struct {
+//	// bresenham counters
+//	int32_t						x_counter; ///< counter for total_steps vs this axis
+//	int32_t						y_counter; ///< counter for total_steps vs this axis
+//	int32_t						z_counter; ///< counter for total_steps vs this axis
+//	int32_t						e_counter; ///< counter for total_steps vs this axis
+
+//	// step counters
+//	uint32_t					x_steps; ///< number of steps on X axis
+//	uint32_t					y_steps; ///< number of steps on Y axis
+//	uint32_t					z_steps; ///< number of steps on Z axis
+//	uint32_t					e_steps; ///< number of steps on E axis
+
+	#ifdef ACCELERATION_RAMPING
+//	/// time until next step
+//	uint32_t					c;
+//	/// counts actual steps done
+//	uint32_t					step_no;
+	/// tracking variable
+	int32_t						n;
+	#endif
+} MOVE_STATE;
+
+/**
 	\struct DDA
 	\brief this is a digital differential analyser data struct
 
@@ -102,8 +131,6 @@ typedef struct {
 	uint32_t					step_no;
 	/// 24.8 fixed point timer value, maximum speed
 	uint32_t					c_min;
-	/// tracking variable
-	int32_t						n;
 	#endif
 } DDA;
 
@@ -130,6 +157,9 @@ uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz )	__attribute_
 
 // const because return value is always the same given the same v
 const uint8_t	msbloc (uint32_t v)																		__attribute__ ((const));
+
+// initialize dda structures
+void dda_init(void);
 
 // create a DDA
 void dda_create(DDA *dda, TARGET *target);

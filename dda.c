@@ -12,6 +12,7 @@
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"
+#include	"gcode_parse.h"
 #include	"dda_queue.h"
 #include	"debug.h"
 #include	"sersendf.h"
@@ -38,6 +39,10 @@ TARGET startpoint __attribute__ ((__section__ (".bss")));
 /// \brief actual position of extruder head
 /// \todo make current_position = real_position (from endstops) + offset from G28 and friends
 TARGET current_position __attribute__ ((__section__ (".bss")));
+
+/// \var move_state
+/// \brief numbers for tracking the current state of movement
+MOVE_STATE move_state __attribute__ ((__section__ (".bss")));
 
 /*
 	utility functions
@@ -158,6 +163,17 @@ const uint8_t	msbloc (uint32_t v) {
 		c >>= 1;
 	}
 	return 0;
+}
+
+/*! Inititalise DDA movement structures
+*/
+void dda_init(void) {
+	// set up default feedrate
+	current_position.F = startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
+
+	#ifdef ACCELERATION_RAMPING
+		move_state.n = 1;
+	#endif
 }
 
 /*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
@@ -350,10 +366,6 @@ void dda_create(DDA *dda, TARGET *target) {
 			if (dda->rampup_steps > dda->total_steps / 2)
 				dda->rampup_steps = dda->total_steps / 2;
 			dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
-			if (dda->rampup_steps == 0)
-				dda->rampup_steps = 1;
-			dda->n = 1; // TODO: this ends exactly where the next move starts,
-			            // so it should go out of dda->... into some state variable
 		#else
 			dda->c = (move_duration / target->F) << 8;
 			if (dda->c < c_limit)
@@ -524,31 +536,31 @@ void dda_step(DDA *dda) {
 
 		// debug ramping algorithm
 		//if (dda->step_no == 0) {
-		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %ld"), dda->c, dda->c_min, dda->n);
+		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %ld"), dda->c, dda->c_min, move_state.n);
 		//}
 
 		recalc_speed = 0;
-		if (dda->step_no <= dda->rampup_steps) {
-			if (dda->n < 0) // wrong ramp direction
-				dda->n = -((int32_t)2) - dda->n;
+		if (dda->step_no < dda->rampup_steps) {
+			if (move_state.n < 0) // wrong ramp direction
+				move_state.n = -((int32_t)2) - move_state.n;
 			recalc_speed = 1;
 		}
-		else if (dda->step_no >= dda->rampdown_steps) {
-			if (dda->n > 0) // wrong ramp direction
-				dda->n = -((int32_t)2) - dda->n;
+		else if (dda->step_no > dda->rampdown_steps) {
+			if (move_state.n > 0) // wrong ramp direction
+				move_state.n = -((int32_t)2) - move_state.n;
 			recalc_speed = 1;
 		}
 		if (recalc_speed) {
-			dda->n += 4;
+			move_state.n += 4;
 			// be careful of signedness!
-			dda->c = (int32_t)dda->c - ((int32_t)(dda->c * 2) / dda->n);
+			dda->c = (int32_t)dda->c - ((int32_t)(dda->c * 2) / move_state.n);
 		}
 		dda->step_no++;
 
 		// debug ramping algorithm
 		// for very low speeds like 10 mm/min, only
 		//if (dda->step_no % 10 /* 10, 100, ...*/ == 0)
-		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %ld"), dda->c, dda->c_min, dda->n);
+		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %ld"), dda->c, dda->c_min, move_state.n);
 	#endif
 
 	// TODO: did_step is obsolete ...
