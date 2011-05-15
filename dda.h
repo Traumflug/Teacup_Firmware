@@ -59,7 +59,7 @@ typedef struct {
 	/// time until next step
 	uint32_t					c;
 	/// tracking variable
-	int32_t						n;
+	int16_t						n;
 	#endif
 } MOVE_STATE;
 

@@ -532,7 +532,7 @@ void dda_step(DDA *dda) {
 
 		// debug ramping algorithm
 		//if (dda->step_no == 0) {
-		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %ld"), dda->c, dda->c_min, move_state.n);
+		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %d"), dda->c, dda->c_min, move_state.n);
 		//}
 
 		recalc_speed = 0;
@@ -549,14 +549,14 @@ void dda_step(DDA *dda) {
 		if (recalc_speed) {
 			move_state.n += 4;
 			// be careful of signedness!
-			move_state.c = (int32_t)move_state.c - ((int32_t)(move_state.c * 2) / move_state.n);
+			move_state.c = (int32_t)move_state.c - ((int32_t)(move_state.c * 2) / (int32_t)move_state.n);
 		}
 		dda->step_no++;
 
 		// debug ramping algorithm
 		// for very low speeds like 10 mm/min, only
 		//if (dda->step_no % 10 /* 10, 100, ...*/ == 0)
-		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %ld"), dda->c, dda->c_min, move_state.n);
+		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %d"), dda->c, dda->c_min, move_state.n);
 	#endif
 
 	// TODO: did_step is obsolete ...
