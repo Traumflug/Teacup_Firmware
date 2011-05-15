@@ -41,17 +41,17 @@ typedef struct {
 	Parts of this struct are initialised only once per reboot, so make sure dda_step() leaves them with a value compatible to begin a new movement at the end of the movement. Other parts are filled in by dda_start().
 */
 typedef struct {
-//	// bresenham counters
-//	int32_t						x_counter; ///< counter for total_steps vs this axis
-//	int32_t						y_counter; ///< counter for total_steps vs this axis
-//	int32_t						z_counter; ///< counter for total_steps vs this axis
-//	int32_t						e_counter; ///< counter for total_steps vs this axis
+	// bresenham counters
+	int32_t						x_counter; ///< counter for total_steps vs this axis
+	int32_t						y_counter; ///< counter for total_steps vs this axis
+	int32_t						z_counter; ///< counter for total_steps vs this axis
+	int32_t						e_counter; ///< counter for total_steps vs this axis
 
-//	// step counters
-//	uint32_t					x_steps; ///< number of steps on X axis
-//	uint32_t					y_steps; ///< number of steps on Y axis
-//	uint32_t					z_steps; ///< number of steps on Z axis
-//	uint32_t					e_steps; ///< number of steps on E axis
+	// step counters
+	uint32_t					x_steps; ///< number of steps on X axis
+	uint32_t					y_steps; ///< number of steps on Y axis
+	uint32_t					z_steps; ///< number of steps on Z axis
+	uint32_t					e_steps; ///< number of steps on E axis
 
 	#ifdef ACCELERATION_RAMPING
 	/// counts actual steps done
@@ -100,18 +100,6 @@ typedef struct {
 	uint32_t					y_delta; ///< number of steps on Y axis
 	uint32_t					z_delta; ///< number of steps on Z axis
 	uint32_t					e_delta; ///< number of steps on E axis
-
-	// bresenham counters
-	int32_t						x_counter; ///< counter for total_steps vs this axis, used for bresenham calculations.
-	int32_t						y_counter; ///< counter for total_steps vs this axis, used for bresenham calculations.
-	int32_t						z_counter; ///< counter for total_steps vs this axis, used for bresenham calculations.
-	int32_t						e_counter; ///< counter for total_steps vs this axis, used for bresenham calculations.
-
-	// step counters
-	uint32_t					x_steps; ///< number of steps on X axis
-	uint32_t					y_steps; ///< number of steps on Y axis
-	uint32_t					z_steps; ///< number of steps on Z axis
-	uint32_t					e_steps; ///< number of steps on E axis
 
 	/// total number of steps: set to \f$\max(\Delta x, \Delta y, \Delta z, \Delta e)\f$
 	uint32_t					total_steps;

@@ -201,10 +201,10 @@ void dda_create(DDA *dda, TARGET *target) {
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
-	dda->x_steps = dda->x_delta = labs(target->X - startpoint.X);
-	dda->y_steps = dda->y_delta = labs(target->Y - startpoint.Y);
-	dda->z_steps = dda->z_delta = labs(target->Z - startpoint.Z);
-	dda->e_steps = dda->e_delta = labs(target->E - startpoint.E);
+	dda->x_delta = labs(target->X - startpoint.X);
+	dda->y_delta = labs(target->Y - startpoint.Y);
+	dda->z_delta = labs(target->Z - startpoint.Z);
+	dda->e_delta = labs(target->E - startpoint.E);
 
 	dda->x_direction = (target->X >= startpoint.X)?1:0;
 	dda->y_direction = (target->Y >= startpoint.Y)?1:0;
@@ -255,9 +255,6 @@ void dda_create(DDA *dda, TARGET *target) {
 			// bracket part of this equation in an attempt to avoid overflow: 60 * 16MHz * 5mm is >32 bits
 			uint32_t move_duration = distance * (60 * F_CPU / startpoint.F);
 		#else
-			dda->x_counter = dda->y_counter = dda->z_counter = dda->e_counter =
-				-(dda->total_steps >> 1);
-
 			// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 			// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
 			//   note: um (distance) * 60000 == mm * 60000000
@@ -417,6 +414,9 @@ void dda_start(DDA *dda) {
 		#endif
 
 		// initialise state variable
+		move_state.x_counter = move_state.y_counter = move_state.z_counter = \
+			move_state.e_counter = -(dda->total_steps >> 1);
+		memcpy(&move_state.x_steps, &dda->x_delta, sizeof(uint32_t) * 4);
 		#ifdef ACCELERATION_RAMPING
 			move_state.step_no = 0;
 		#endif
@@ -451,46 +451,46 @@ void dda_start(DDA *dda) {
 void dda_step(DDA *dda) {
 	uint8_t	did_step = 0;
 
-	if ((dda->x_steps) /* &&
+	if ((move_state.x_steps) /* &&
 			(x_max() != dda->x_direction) && (x_min() == dda->x_direction) */) {
-		dda->x_counter -= dda->x_delta;
-		if (dda->x_counter < 0) {
+		move_state.x_counter -= dda->x_delta;
+		if (move_state.x_counter < 0) {
 			x_step();
 			did_step = 1;
-			dda->x_steps--;
-			dda->x_counter += dda->total_steps;
+			move_state.x_steps--;
+			move_state.x_counter += dda->total_steps;
 		}
 	}
 
-	if ((dda->y_steps) /* &&
+	if ((move_state.y_steps) /* &&
 			(y_max() != dda->y_direction) && (y_min() == dda->y_direction) */) {
-		dda->y_counter -= dda->y_delta;
-		if (dda->y_counter < 0) {
+		move_state.y_counter -= dda->y_delta;
+		if (move_state.y_counter < 0) {
 			y_step();
 			did_step = 1;
-			dda->y_steps--;
-			dda->y_counter += dda->total_steps;
+			move_state.y_steps--;
+			move_state.y_counter += dda->total_steps;
 		}
 	}
 
-	if ((dda->z_steps) /* &&
+	if ((move_state.z_steps) /* &&
 			(z_max() != dda->z_direction) && (z_min() == dda->z_direction) */) {
-		dda->z_counter -= dda->z_delta;
-		if (dda->z_counter < 0) {
+		move_state.z_counter -= dda->z_delta;
+		if (move_state.z_counter < 0) {
 			z_step();
 			did_step = 1;
-			dda->z_steps--;
-			dda->z_counter += dda->total_steps;
+			move_state.z_steps--;
+			move_state.z_counter += dda->total_steps;
 		}
 	}
 
-	if (dda->e_steps) {
-		dda->e_counter -= dda->e_delta;
-		if (dda->e_counter < 0) {
+	if (move_state.e_steps) {
+		move_state.e_counter -= dda->e_delta;
+		if (move_state.e_counter < 0) {
 			e_step();
 			did_step = 1;
-			dda->e_steps--;
-			dda->e_counter += dda->total_steps;
+			move_state.e_steps--;
+			move_state.e_counter += dda->total_steps;
 		}
 	}
 
@@ -571,7 +571,7 @@ void dda_step(DDA *dda) {
 		// if we could do anything at all, we're still running
 		// otherwise, must have finished
 	}
-	else if (dda->x_steps == 0 && dda->y_steps == 0 && dda->z_steps == 0 && dda->e_steps == 0) {
+	else if (move_state.x_steps == 0 && move_state.y_steps == 0 && move_state.z_steps == 0 && move_state.e_steps == 0) {
 		dda->live = 0;
 		// if E is relative reset it
 		#ifndef E_ABSOLUTE
@@ -615,26 +615,26 @@ void update_position() {
 		return;
 
 	if (dda->x_direction)
-		current_position.X = dda->endpoint.X - dda->x_steps;
+		current_position.X = dda->endpoint.X - move_state.x_steps;
 	else
-		current_position.X = dda->endpoint.X + dda->x_steps;
+		current_position.X = dda->endpoint.X + move_state.x_steps;
 
 	if (dda->y_direction)
-		current_position.Y = dda->endpoint.Y - dda->y_steps;
+		current_position.Y = dda->endpoint.Y - move_state.y_steps;
 	else
-		current_position.Y = dda->endpoint.Y + dda->y_steps;
+		current_position.Y = dda->endpoint.Y + move_state.y_steps;
 
 	if (dda->z_direction)
-		current_position.Z = dda->endpoint.Z - dda->z_steps;
+		current_position.Z = dda->endpoint.Z - move_state.z_steps;
 	else
-		current_position.Z = dda->endpoint.Z + dda->z_steps;
+		current_position.Z = dda->endpoint.Z + move_state.z_steps;
 
 	#ifndef E_ABSOLUTE
-		current_position.E = dda->e_steps;
+		current_position.E = move_state.e_steps;
 	#else
 		if (dda->e_direction)
-			current_position.E = dda->endpoint.E - dda->e_steps;
+			current_position.E = dda->endpoint.E - move_state.e_steps;
 		else
-			current_position.E = dda->endpoint.E + dda->e_steps;
+			current_position.E = dda->endpoint.E + move_state.e_steps;
 	#endif
 }
