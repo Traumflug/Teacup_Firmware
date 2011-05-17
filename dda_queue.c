@@ -147,7 +147,7 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 			MEMORY_BARRIER();
 			SREG = save_reg;
 		}
-	}	
+	}
 }
 
 /// go to the next move.

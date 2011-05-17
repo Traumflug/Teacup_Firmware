@@ -29,7 +29,6 @@
 	which is about the worst case we have. All other machines have a bigger build volume.
 */
 
-#define	STEPS_PER_M_X			((uint32_t) ((STEPS_PER_MM_X * 1000.0) + 0.5))
 #define	STEPS_PER_M_Y			((uint32_t) ((STEPS_PER_MM_Y * 1000.0) + 0.5))
 #define	STEPS_PER_M_Z			((uint32_t) ((STEPS_PER_MM_Z * 1000.0) + 0.5))
 #define	STEPS_PER_M_E			((uint32_t) ((STEPS_PER_MM_E * 1000.0) + 0.5))
@@ -38,7 +37,6 @@
 	mm -> inch conversion
 */
 
-#define	STEPS_PER_IN_X		((uint32_t) ((25.4 * STEPS_PER_MM_X) + 0.5))
 #define	STEPS_PER_IN_Y		((uint32_t) ((25.4 * STEPS_PER_MM_Y) + 0.5))
 #define	STEPS_PER_IN_Z		((uint32_t) ((25.4 * STEPS_PER_MM_Z) + 0.5))
 #define	STEPS_PER_IN_E		((uint32_t) ((25.4 * STEPS_PER_MM_E) + 0.5))
@@ -81,6 +79,8 @@ GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
 */
 extern const uint32_t powers[];  // defined in sermsg.c
 
+// TODO: When the new approach to pass distances in micrometers instead of step
+//       numbers stays, this should be replaced by a simplified version.
 /// convert a floating point input value into an integer with appropriate scaling.
 /// \param *df pointer to floating point structure that holds fp value to convert
 /// \param multiplicand multiply by this amount during conversion to integer
@@ -137,9 +137,9 @@ void gcode_parse_char(uint8_t c) {
 					break;
 				case 'X':
 					if (next_target.option_inches)
-						next_target.target.X = decfloat_to_int(&read_digit, STEPS_PER_IN_X, 0);
+						next_target.target.X = decfloat_to_int(&read_digit, 25400, 1);
 					else
-						next_target.target.X = decfloat_to_int(&read_digit, STEPS_PER_M_X, 1);
+						next_target.target.X = decfloat_to_int(&read_digit, 1000, 0);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
 						serwrite_int32(next_target.target.X);
 					break;

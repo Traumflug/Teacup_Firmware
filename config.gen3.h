@@ -45,16 +45,22 @@
 */
 #define	HOST
 
-/*
-	Values reflecting the gearing of your machine.
-		All numbers are fixed point integers, so no more than 3 digits to the right of the decimal point, please :-)
+/** \def STEPS_PER_M
+	steps per meter ( = steps per mm * 1000 )
 
 	calculate these values appropriate for your machine
-	for threaded rods, this is (steps motor per turn) / (pitch of the thread)
-	for belts, this is (steps per motor turn) / (number of gear teeth) / (belt module)
+
+	for threaded rods, this is
+		(steps motor per turn) / (pitch of the thread) * 1000
+
+	for belts, this is
+		(steps per motor turn) / (number of gear teeth) / (belt module) * 1000
+
 	half-stepping doubles the number, quarter stepping requires * 4, etc.
+
+	valid range = 20 to 4'0960'000 (0.02 to 40960 steps/mm)
 */
-#define	STEPS_PER_MM_X				320.000
+#define	STEPS_PER_M_X					320000
 #define	STEPS_PER_MM_Y				320.000
 #define	STEPS_PER_MM_Z				200.000
 

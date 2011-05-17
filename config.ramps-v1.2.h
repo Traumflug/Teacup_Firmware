@@ -50,16 +50,27 @@
 		All numbers are fixed point integers, so no more than 3 digits to the right of the decimal point, please :-)
 */
 
-// calculate these values appropriate for your machine
-// for threaded rods, this is (steps motor per turn) / (pitch of the thread)
-// for belts, this is (steps per motor turn) / (number of gear teeth) / (belt module)
-// half-stepping doubles the number, quarter stepping requires * 4, etc.
+/** \def STEPS_PER_M
+	steps per meter ( = steps per mm * 1000 )
+
+	calculate these values appropriate for your machine
+
+	for threaded rods, this is
+		(steps motor per turn) / (pitch of the thread) * 1000
+
+	for belts, this is
+		(steps per motor turn) / (number of gear teeth) / (belt module) * 1000
+
+	half-stepping doubles the number, quarter stepping requires * 4, etc.
+
+	valid range = 20 to 4'0960'000 (0.02 to 40960 steps/mm)
+*/
 #define MICROSTEPPING_X				16.0
 #define MICROSTEPPING_Y				16.0
 #define MICROSTEPPING_Z				16.0
 #define MICROSTEPPING_E				4.0
 
-#define	STEPS_PER_MM_X				(5.023*MICROSTEPPING_X)
+#define	STEPS_PER_M_X					(5023*MICROSTEPPING_X)
 #define	STEPS_PER_MM_Y				(5.023*MICROSTEPPING_Y)
 #define	STEPS_PER_MM_Z				(416.699*MICROSTEPPING_Z)
 
