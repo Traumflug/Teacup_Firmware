@@ -23,17 +23,21 @@
 	called from clock_10ms(), do not call directly
 */
 void clock_250ms() {
-	if (steptimeout > (30 * 4)) {
-		power_off();
+	#ifndef	NO_AUTO_IDLE
+	if (temp_all_zero())	{
+		if (steptimeout > (30 * 4)) {
+			power_off();
+		}
+		else {
+			uint8_t save_reg = SREG;
+			cli();
+			CLI_SEI_BUG_MEMORY_BARRIER();
+			steptimeout++;
+			MEMORY_BARRIER();
+			SREG = save_reg;
+		}
 	}
-	else if (heaters_all_off())	{
-		uint8_t save_reg = SREG;
-		cli();
-		CLI_SEI_BUG_MEMORY_BARRIER();
-		steptimeout++;
-		MEMORY_BARRIER();
-		SREG = save_reg;
-	}
+	#endif
 
 	ifclock(clock_flag_1s) {
 		if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {

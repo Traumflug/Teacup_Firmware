@@ -326,6 +326,17 @@ uint16_t temp_get(temp_sensor_t index) {
 	return temp_sensors_runtime[index].last_read_temp;
 }
 
+uint8_t temp_all_zero() {
+	uint8_t i;
+	for (i = 0; i < NUM_TEMP_SENSORS; i++) {
+		if (temp_sensors[i].heater < NUM_HEATERS) {
+			if (temp_sensors_runtime[i].target_temp)
+				return 0;
+		}
+	}
+	return 255;
+}
+
 // extruder doesn't have sersendf_P
 #ifndef	EXTRUDER
 /// send temperatures to host
