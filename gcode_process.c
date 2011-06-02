@@ -162,37 +162,6 @@ void process_gcode_command() {
 				//? Example: G1 X90.6 Y13.8 E22.4
 				//?
 				//? Go in a straight line from the current (X, Y) point to the point (90.6, 13.8), extruding material as the move happens from the current extruded length to a length of 22.4 mm.
-				//?
-				//? RepRap does subtle things with feedrates.  Thus:
-				//?
-				//? <pre>
-				//? G1 F1500
-				//? G1 X90.6 Y13.8 E22.4
-				//? </pre>
-				//?
-				//? Will set a feedrate of 1500 mm/minute, then do the move described above at that feedrate.  But
-				//?
-				//? <pre>
-				//? G1 F1500
-				//? G1 X90.6 Y13.8 E22.4 F3000
-				//? </pre>
-				//?
-				//? Will set a feedrate of 1500 mm/minute, then do the move described above accelerating to a feedrate of 3000 mm/minute as it does so.  The extrusion will accelerate along with the X, Y movement so everything stays synchronized.
-				//?
-				//? RepRap thus treats feedrate as simply another variable (like X, Y, Z, and E) to be linearly interpolated.  This gives complete control over accelerations and decelerations in a way that ensures that everything moves together and the right volume of material is extruded at all points.
-				//?
-				//? The first example shows how to get a constant-speed movement.  The second how to accelerate or decelerate.  Thus
-				//?
-				//? <pre>
-				//? G1 F1500
-				//? G1 X90.6 Y13.8 E22.4 F3000
-				//? G1 X80 Y20 E36 F1500
-				//? </pre>
-				//?
-				//? Will do the first movement accelerating as before, and the second decelerating from 3000 mm/minute back to 1500 mm/minute.
-				//?
-				//? To reverse the extruder by a given amount (for example to reduce its internal pressure while it does an in-air movement so that it doesn't dribble) simply use G1 to send an E value that is less than the currently extruded length.
-
 				enqueue(&next_target.target);
 				break;
 
@@ -364,7 +333,7 @@ void process_gcode_command() {
 				break;
 			// G162 - Home positive
 			case 162:
-				//? ==== G161: Home positive ====
+				//? ==== G162: Home positive ====
 				//?
 				//? Find the maximum limit of the specified axes by searching for the limit switch.
 				if (next_target.seen_X)
@@ -461,6 +430,7 @@ void process_gcode_command() {
 				//? Example: M104 S190
 				//?
 				//? Set the temperature of the current extruder to 190<sup>o</sup>C and return control to the host immediately (''i.e.'' before that temperature has been reached by the extruder).  See also M109.
+				//? Teacup supports an optional P parameter as a sensor index to address (eg M104 P1 S100 will set the bed temperature rather than the extruder temperature).
 				temp_set(next_target.P, next_target.S);
 				if (next_target.S)
 					power_on();
@@ -476,6 +446,7 @@ void process_gcode_command() {
 				//?
 				//? <tt>ok T:201 B:117</tt>
 				//?
+				//? Teacup supports an optional P parameter as a sensor index to address.
 				temp_print(next_target.P);
 				break;
 
@@ -513,6 +484,8 @@ void process_gcode_command() {
 				//? Example: M109 S190
 				//?
 				//? Set the temperature of the current extruder to 190<sup>o</sup>C and wait for it to reach that value before sending an acknowledgment to the host.  In fact the RepRap firmware waits a while after the temperature has been reached for the extruder to stabilise - typically about 40 seconds.  This can be changed by a parameter in the firmware configuration file when the firmware is compiled.  See also M104 and M116.
+				//?
+				//? Teacup supports an optional P parameter as a sensor index to address.
 				if (next_target.seen_S)
 					temp_set(next_target.P, next_target.S);
 				if (next_target.S) {
@@ -544,12 +517,11 @@ void process_gcode_command() {
 				//? Set the level of debugging information transmitted back to the host to level 6.  The level is the OR of three bits:
 				//?
 				//? <Pre>
-				//? #define DEBUG_ECHO (1<<0)
-				//? #define DEBUG_INFO (1<<1)
-				//? #define DEBUG_ERRORS (1<<2)
+				//? #define         DEBUG_PID       1
+				//? #define         DEBUG_DDA       2
+				//? #define         DEBUG_POSITION  4
 				//? </pre>
 				//?
-				//? Thus 6 means send information and errors, but don't echo commands.  (This is the RepRap default.)
 				//? This command is only available in DEBUG builds of Teacup.
 
 				debug_flags = next_target.S;
@@ -593,7 +565,7 @@ void process_gcode_command() {
 				//? The details are returned to the host computer as key:value pairs separated by spaces and terminated with a linefeed.
 				//?
 				//? sample data from firmware:
-				//?  ok PROTOCOL_VERSION:0.1 FIRMWARE_NAME:FiveD FIRMWARE_URL:http%3A//? reprap.org MACHINE_TYPE:Mendel EXTRUDER_COUNT:1
+				//?  FIRMWARE_NAME:Teacup FIRMWARE_URL:http%%3A//github.com/triffid/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:1 TEMP_SENSOR_COUNT:1 HEATER_COUNT:1
 
 				sersendf_P(PSTR("FIRMWARE_NAME:Teacup FIRMWARE_URL:http%%3A//github.com/triffid/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d"), 1, NUM_TEMP_SENSORS, NUM_HEATERS);
 				// newline is sent from gcode_parse after we return
@@ -693,8 +665,8 @@ void process_gcode_command() {
 				power_off();
 				break;
 
-                        // M200 - report endstop status
-                        case 200:
+			// M200 - report endstop status
+			case 200:
 				//? ==== M200: report endstop status ====
 				//? Report the current status of the endstops configured in the firmware to the host.
                                 #if defined(X_MIN_PIN)
