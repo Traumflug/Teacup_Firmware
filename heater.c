@@ -202,6 +202,11 @@ void heater_tick(heater_t h, temp_sensor_t t, uint16_t current_temp, uint16_t ta
 	if (h >= NUM_HEATERS || t >= NUM_TEMP_SENSORS)
 		return;
 
+	if (target_temp == 0) {
+		heater_set(h, 0);
+		return;
+	}
+
 	#ifndef	BANG_BANG
 		heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer++] = current_temp;
 		heaters_runtime[h].temp_history_pointer &= (TH_COUNT - 1);
