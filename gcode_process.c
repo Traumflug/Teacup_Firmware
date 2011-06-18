@@ -447,6 +447,10 @@ void process_gcode_command() {
 				//? <tt>ok T:201 B:117</tt>
 				//?
 				//? Teacup supports an optional P parameter as a sensor index to address.
+				#ifdef ENFORCE_ORDER
+					// wait for all moves to complete
+					queue_wait();
+				#endif
 				temp_print(next_target.P);
 				break;
 
@@ -459,6 +463,10 @@ void process_gcode_command() {
 				//?
 				//? Turn on the cooling fan (if any).
 
+				#ifdef ENFORCE_ORDER
+					// wait for all moves to complete
+					queue_wait();
+				#endif
 				#ifdef HEATER_FAN
 					heater_set(HEATER_FAN, 255);
 				#endif
@@ -472,6 +480,10 @@ void process_gcode_command() {
 				//?
 				//? Turn off the cooling fan (if any).
 
+				#ifdef ENFORCE_ORDER
+					// wait for all moves to complete
+					queue_wait();
+				#endif
 				#ifdef HEATER_FAN
 					heater_set(HEATER_FAN, 0);
 				#endif
@@ -552,6 +564,10 @@ void process_gcode_command() {
 				//? For example, the machine returns a string such as:
 				//?
 				//? <tt>ok C: X:0.00 Y:0.00 Z:0.00 E:0.00</tt>
+				#ifdef ENFORCE_ORDER
+					// wait for all moves to complete
+					queue_wait();
+				#endif
 				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%ld"), current_position.X * ((int32_t) UM_PER_STEP_X), current_position.Y * ((int32_t) UM_PER_STEP_Y), current_position.Z * ((int32_t) UM_PER_STEP_Z), current_position.E * ((int32_t) UM_PER_STEP_E), current_position.F);
 				// newline is sent from gcode_parse after we return
 				break;
@@ -658,6 +674,10 @@ void process_gcode_command() {
 			case 191:
 				//? ==== M191: Power Off ====
 				//? Undocumented.
+				#ifdef ENFORCE_ORDER
+					// wait for all moves to complete
+					queue_wait();
+				#endif
 				x_disable();
 				y_disable();
 				z_disable();
