@@ -5,6 +5,7 @@
 */
 
 #include	<string.h>
+#include	<avr/interrupt.h>
 
 #include	"gcode_parse.h"
 
@@ -136,6 +137,16 @@ void process_gcode_command() {
 
 	    next_tool = next_target.T;
 	}
+
+	// if we didn't see an axis word, set it to startpoint. this fixes incorrect moves after homing
+	if (next_target.seen_X == 0)
+		next_target.target.X = startpoint.X;
+	if (next_target.seen_Y == 0)
+		next_target.target.Y = startpoint.Y;
+	if (next_target.seen_Z == 0)
+		next_target.target.Z = startpoint.Z;
+	if (next_target.seen_E == 0)
+		next_target.target.E = startpoint.E;
 
 	if (next_target.seen_G) {
 		uint8_t axisSelected = 0;
@@ -357,11 +368,24 @@ void process_gcode_command() {
 	}
 	else if (next_target.seen_M) {
 		switch (next_target.M) {
+			// M0- machine stop
+			case 0:
 			// M2- program end
 			case 2:
 				//? ==== M2: program end ====
 				//?
 				//? Undocumented.
+				queue_wait();
+				// no break- we fall through to M112 below
+			// M112- immediate stop
+			case 112:
+				//? ==== M112: Emergency Stop ====
+				//?
+				//? Example: M112
+				//?
+				//? Any moves in progress are immediately terminated, then RepRap shuts down.  All motors and heaters are turned off.
+				//? It can be started again by pressing the reset button on the master microcontroller.  See also M0.
+
 				timer_stop();
 				queue_flush();
 				x_disable();
@@ -369,6 +393,7 @@ void process_gcode_command() {
 				z_disable();
 				e_disable();
 				power_off();
+				cli();
 				for (;;)
 					wd_reset();
 				break;
@@ -379,6 +404,13 @@ void process_gcode_command() {
 				//?
 				//? Undocumented.
 				tool = next_tool;
+				break;
+			// M84- stop idle hold
+			case 84:
+				x_disable();
+				y_disable();
+				z_disable();
+				e_disable();
 				break;
 			// M3/M101- extruder on
 			case 3:
@@ -539,20 +571,7 @@ void process_gcode_command() {
 				debug_flags = next_target.S;
 				break;
 			#endif
-			// M112- immediate stop
-			case 112:
-				//? ==== M112: Emergency Stop ====
-				//?
-				//? Example: M112
-				//?
-				//? Any moves in progress are immediately terminated, then RepRap shuts down.  All motors and heaters are turned off.
-				//? It can be started again by pressing the reset button on the master microcontroller.  See also M0.
-
-				timer_stop();
-				queue_flush();
-				power_off();
-				break;
-				// M113- extruder PWM
+			// M113- extruder PWM
 			// M114- report XYZEF to host
 			case 114:
 				//? ==== M114: Get Current Position ====
