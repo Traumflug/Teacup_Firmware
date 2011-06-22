@@ -32,7 +32,9 @@ void home() {
 
 /// find X MIN endstop
 void home_x_negative() {
+	power_on();
 	queue_wait();
+	x_enable();
 
 	#if defined X_MIN_PIN
 		uint8_t	denoise_count = 0;
@@ -68,13 +70,19 @@ void home_x_negative() {
 		}
 
 		// set X home
-		startpoint.X = current_position.X = 0;
+		#ifdef X_MIN
+			startpoint.X = current_position.X = (int32_t) (X_MIN * STEPS_PER_MM_X);
+		#else
+			startpoint.X = current_position.X = 0;
+		#endif
 	#endif
 }
 
 /// find X_MAX endstop
 void home_x_positive() {
+	power_on();
 	queue_wait();
+	x_enable();
 
 	#if defined X_MAX_PIN
 		uint8_t	denoise_count = 0;
@@ -110,18 +118,19 @@ void home_x_positive() {
 		}
 
 		// set X home
-		TARGET t = {0, 0, 0, 0, 0};
 		// set position to MAX
 		startpoint.X = current_position.X = (int32_t) (X_MAX * STEPS_PER_MM_X);
 		// go to zero
-		t.F = MAXIMUM_FEEDRATE_X;
+		TARGET t = {0, 0, 0, 0, MAXIMUM_FEEDRATE_X};
 		enqueue(&t);
 	#endif
 }
 
 /// fund Y MIN endstop
 void home_y_negative() {
+	power_on();
 	queue_wait();
+	y_enable();
 
 	#if defined Y_MIN_PIN
 		uint8_t	denoise_count = 0;
@@ -157,13 +166,19 @@ void home_y_negative() {
 		}
 
 		// set Y home
-		startpoint.Y = current_position.Y = 0;
+		#ifdef	Y_MIN
+			startpoint.Y = current_position.Y = (int32_t) (Y_MIN * STEPS_PER_MM_Y);
+		#else
+			startpoint.Y = current_position.Y = 0;
+		#endif
 	#endif
 }
 
 /// find Y MAX endstop
 void home_y_positive() {
+	power_on();
 	queue_wait();
+	y_enable();
 
 	#if defined Y_MAX_PIN
 		uint8_t	denoise_count = 0;
@@ -199,18 +214,19 @@ void home_y_positive() {
 		}
 
 		// set Y home
-		TARGET t = {0, 0, 0, 0, 0};
 		// set position to MAX
 		startpoint.Y = current_position.Y = (int32_t) (Y_MAX * STEPS_PER_MM_Y);
 		// go to zero
-		t.F = MAXIMUM_FEEDRATE_Y;
+		TARGET t = {0, 0, 0, 0, MAXIMUM_FEEDRATE_Y};
 		enqueue(&t);
 	#endif
 }
 
 /// find Z MIN endstop
 void home_z_negative() {
+	power_on();
 	queue_wait();
+	z_enable();
 
 	#if defined Z_MIN_PIN
 		uint8_t	denoise_count = 0;
@@ -246,14 +262,20 @@ void home_z_negative() {
 		}
 
 		// set Z home
-		startpoint.Z = current_position.Z = 0;
+		#ifdef Z_MIN
+			startpoint.Z = current_position.Z = (int32_t) (Z_MIN * STEPS_PER_MM_Z);
+		#else
+			startpoint.Z = current_position.Z = 0;
+		#endif
 		z_disable();
 	#endif
 }
 
 /// find Z MAX endstop
 void home_z_positive() {
+	power_on();
 	queue_wait();
+	z_enable();
 
 	#if defined Z_MAX_PIN
 		uint8_t	denoise_count = 0;
@@ -288,12 +310,12 @@ void home_z_positive() {
 			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Z / ((float) SEARCH_FEEDRATE_Z)));
 		}
 
-		// set Z home
-		TARGET t = {0, 0, 0, 0, 0};
+		// set Z home:
 		// set position to MAX
 		startpoint.Z = current_position.Z = (int32_t) (Z_MAX * STEPS_PER_MM_Z);
+
 		// go to zero
-		t.F = MAXIMUM_FEEDRATE_Z;
-		enqueue(&t);
+		// TARGET t = {0, 0, 0, 0, MAXIMUM_FEEDRATE_Z};
+		// enqueue(&t);
 	#endif
 }
