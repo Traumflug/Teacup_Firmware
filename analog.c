@@ -49,7 +49,9 @@ void analog_init() {
 
 		// ADC frequency must be less than 200khz or we lose precision. At 16MHz system clock, we must use the full prescale value of 128 to get an ADC clock of 125khz.
 		ADCSRA = MASK(ADEN) | MASK(ADPS2) | MASK(ADPS1) | MASK(ADPS0);
-		ADCSRB = 0;
+		#ifdef	ADCSRB
+			ADCSRB = 0;
+		#endif
 
 		adc_counter = 0;
 
@@ -81,10 +83,12 @@ ISR(ADC_vect, ISR_NOBLOCK) {
 
 		// start next conversion
 		ADMUX = (adc_counter & 0x07) | REFERENCE;
-		if (adc_counter & 0x08)
-			ADCSRB |= MASK(MUX5);
-		else
-			ADCSRB &= ~MASK(MUX5);
+		#ifdef	MUX5
+			if (adc_counter & 0x08)
+				ADCSRB |= MASK(MUX5);
+			else
+				ADCSRB &= ~MASK(MUX5);
+		#endif
 
 		ADCSRA |= MASK(ADSC);
 	}
