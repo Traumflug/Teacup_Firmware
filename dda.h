@@ -104,10 +104,8 @@ typedef struct {
 	/// total number of steps: set to \f$\max(\Delta x, \Delta y, \Delta z, \Delta e)\f$
 	uint32_t					total_steps;
 
-	// linear acceleration variables: c and end_c are 24.8 fixed point timer values, n is the tracking variable
-	#ifndef ACCELERATION_RAMPING
-	uint32_t					c; ///< time until next step
-	#endif
+	uint32_t					c; ///< time until next step, 24.8 fixed point
+
 	#ifdef ACCELERATION_REPRAP
 	uint32_t					end_c; ///< time between 2nd last step and last step
 	int32_t						n; ///< precalculated step time offset variable. At every step we calculate \f$c = c - (2 c / n)\f$; \f$n+=4\f$. See http://www.embedded.com/columns/technicalinsights/56800129?printable=true for full description
