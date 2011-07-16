@@ -37,30 +37,6 @@ uint8_t next_tool;
 	this is where we construct a move without a gcode command, useful for gcodes which require multiple moves eg; homing
 */
 
-/// move to X = 0
-static void zero_x(void) {
-	TARGET t = startpoint;
-	t.X = 0;
-	t.F = SEARCH_FEEDRATE_X;
-	enqueue(&t);
-}
-
-/// move to Y = 0
-static void zero_y(void) {
-	TARGET t = startpoint;
-	t.Y = 0;
-	t.F = SEARCH_FEEDRATE_Y;
-	enqueue(&t);
-}
-
-/// move to Z = 0
-static void zero_z(void) {
-	TARGET t = startpoint;
-	t.Z = 0;
-	t.F = SEARCH_FEEDRATE_Z;
-	enqueue(&t);
-}
-
 #if E_STARTSTOP_STEPS > 0
 /// move E by a certain amount at a certain speed
 static void SpecialMoveE(int32_t e, uint32_t f) {
@@ -236,6 +212,16 @@ void process_gcode_command() {
 			case 28:
 				//? ==== G28: Home ====
 				//?
+				//? Example: G28
+				//?
+				//? This causes the RepRap machine to move back to its X, Y and Z zero endstops.  It does so accelerating, so as to get there fast.  But when it arrives it backs off by 1 mm in each direction slowly, then moves back slowly to the stop.  This ensures more accurate positioning.
+				//?
+				//? If you add coordinates, then just the axes with coordinates specified will be zeroed.  Thus
+				//?
+				//? G28 X0 Y72.3
+				//?
+				//? will zero the X and Y axes, but not Z.  The actual coordinate values are ignored.
+				//?
 
 				queue_wait();
 
@@ -268,7 +254,6 @@ void process_gcode_command() {
 				if (!axisSelected) {
 					home();
 				}
-
 				break;
 
 			//	G90 - absolute positioning
@@ -328,7 +313,7 @@ void process_gcode_command() {
 				}
 				break;
 
-			// G161 - Home negative
+				// G161 - Home negative
 			case 161:
 				//? ==== G161: Home negative ====
 				//?
@@ -340,6 +325,7 @@ void process_gcode_command() {
 				if (next_target.seen_Z)
 					home_z_negative();
 				break;
+
 			// G162 - Home positive
 			case 162:
 				//? ==== G162: Home positive ====
