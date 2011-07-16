@@ -234,41 +234,39 @@ void process_gcode_command() {
 
 				//	G28 - go home
 			case 28:
-				//? ==== G28: Move to Origin ====
-				//?
-				//? Example: G28
-				//?
-				//? This causes the RepRap machine to move back to its X, Y and Z zero endstops.  It does so
-				//? accelerating, so as to get there fast.  But when it arrives it backs off by 1 mm in each
-				//? direction slowly, then moves back slowly to the stop.  This ensures more accurate positioning.
-				//?
-				//? If you add coordinates, then just the axes with coordinates specified will be zeroed.  Thus
-				//?
-				//? G28 X0 Y72.3
-				//?
-				//? will zero the X and Y axes, but not Z.  The actual coordinate values are ignored.
+				//? ==== G28: Home ====
 				//?
 
 				queue_wait();
 
 				if (next_target.seen_X) {
-					zero_x();
+					#if defined	X_MIN_PIN
+						home_x_negative();
+					#elif defined X_MAX_PIN
+						home_x_positive();
+					#endif
 					axisSelected = 1;
 				}
 				if (next_target.seen_Y) {
-					zero_y();
+					#if defined	Y_MIN_PIN
+						home_y_negative();
+					#elif defined Y_MAX_PIN
+						home_y_positive();
+					#endif
 					axisSelected = 1;
 				}
 				if (next_target.seen_Z) {
-					zero_z();
+					#if defined Z_MAX_PIN
+						home_z_positive();
+					#elif defined	Z_MIN_PIN
+						home_z_negative();
+					#endif
 					axisSelected = 1;
 				}
 				// there's no point in moving E, as E has no endstops
 
 				if (!axisSelected) {
-					zero_x();
-					zero_y();
-					zero_z();
+					home();
 				}
 
 				break;
