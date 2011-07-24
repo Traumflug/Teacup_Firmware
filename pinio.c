@@ -14,6 +14,7 @@ void power_off() {
 	x_disable();
 	y_disable();
 	z_disable();
+	e_disable();
 
 	#ifdef	PS_ON_PIN
 		SET_INPUT(PS_ON_PIN);

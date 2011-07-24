@@ -40,8 +40,6 @@ void home_x_negative() {
 	#if defined X_MIN_PIN
 		uint8_t	debounce_count = 0;
 
-		// home X
-		x_enable();
 		// hit home hard
 		x_direction(0);
 		while (debounce_count < 8) {
@@ -89,8 +87,6 @@ void home_x_positive() {
 	#if defined X_MAX_PIN
 		uint8_t	debounce_count = 0;
 
-		// home X
-		x_enable();
 		// hit home hard
 		x_direction(1);
 		while (debounce_count < 8) {
@@ -138,8 +134,6 @@ void home_y_negative() {
 	#if defined Y_MIN_PIN
 		uint8_t	debounce_count = 0;
 
-		// home Y
-		y_enable();
 		// hit home hard
 		y_direction(0);
 		while (debounce_count < 8) {
@@ -187,8 +181,6 @@ void home_y_positive() {
 	#if defined Y_MAX_PIN
 		uint8_t	debounce_count = 0;
 
-		// home Y
-		y_enable();
 		// hit home hard
 		y_direction(1);
 		while (debounce_count < 8) {
@@ -236,8 +228,6 @@ void home_z_negative() {
 	#if defined Z_MIN_PIN
 		uint8_t	debounce_count = 0;
 
-		// home Z
-		z_enable();
 		// hit home hard
 		z_direction(0);
 		while (debounce_count < 8) {
@@ -286,8 +276,6 @@ void home_z_positive() {
 	#if defined Z_MAX_PIN
 		uint8_t	debounce_count = 0;
 
-		// home Z
-		z_enable();
 		// hit home hard
 		z_direction(1);
 		while (debounce_count < 8) {
