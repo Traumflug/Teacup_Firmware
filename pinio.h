@@ -155,6 +155,19 @@ End Step - All Steppers
 Stepper Enable Pins
 */
 
+#ifdef	STEPPER_ENABLE_PIN
+	#ifdef	STEPPER_ENABLE_INVERT
+		#define stepper_enable()	do { WRITE(STEPPER_ENABLE_PIN, 0); } while (0)
+		#define stepper_disable()	do { WRITE(STEPPER_ENABLE_PIN, 1); } while (0)
+	#else
+		#define stepper_enable()	do { WRITE(STEPPER_ENABLE_PIN, 1); } while (0)
+		#define stepper_disable()	do { WRITE(STEPPER_ENABLE_PIN, 0); } while (0)
+	#endif
+#else
+	#define	stepper_enable()		do { } while (0)
+	#define	stepper_disable()		do { } while (0)
+#endif
+
 #ifdef	X_ENABLE_PIN
 	#define	x_enable()					do { WRITE(X_ENABLE_PIN, X_INVERT_ENABLE); SET_OUTPUT(X_ENABLE_PIN); } while (0)
 	#define	x_disable()					do { WRITE(X_ENABLE_PIN, X_INVERT_ENABLE ^ 1); SET_OUTPUT(X_ENABLE_PIN); } while (0)

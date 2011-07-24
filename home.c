@@ -34,6 +34,7 @@ void home() {
 void home_x_negative() {
 	power_on();
 	queue_wait();
+	stepper_enable();
 	x_enable();
 
 	#if defined X_MIN_PIN
@@ -82,6 +83,7 @@ void home_x_negative() {
 void home_x_positive() {
 	power_on();
 	queue_wait();
+	stepper_enable();
 	x_enable();
 
 	#if defined X_MAX_PIN
@@ -130,6 +132,7 @@ void home_x_positive() {
 void home_y_negative() {
 	power_on();
 	queue_wait();
+	stepper_enable();
 	y_enable();
 
 	#if defined Y_MIN_PIN
@@ -178,6 +181,7 @@ void home_y_negative() {
 void home_y_positive() {
 	power_on();
 	queue_wait();
+	stepper_enable();
 	y_enable();
 
 	#if defined Y_MAX_PIN
@@ -226,6 +230,7 @@ void home_y_positive() {
 void home_z_negative() {
 	power_on();
 	queue_wait();
+	stepper_enable();
 	z_enable();
 
 	#if defined Z_MIN_PIN
@@ -275,6 +280,7 @@ void home_z_negative() {
 void home_z_positive() {
 	power_on();
 	queue_wait();
+	stepper_enable();
 	z_enable();
 
 	#if defined Z_MAX_PIN

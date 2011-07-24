@@ -232,6 +232,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		// get steppers ready to go
 		steptimeout = 0;
 		power_on();
+		stepper_enable();
 		x_enable();
 		y_enable();
 		// Z is enabled in dda_start()
