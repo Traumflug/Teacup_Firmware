@@ -207,6 +207,10 @@
 #define E_ENABLE_PIN					DIO3
 //#define	E_INVERT_DIR
 
+//#define	PS_ON_PIN							xxxx
+//#define	STEPPER_ENABLE_PIN		xxxx
+//#define	STEPPER_ENABLE_INVERT
+
 
 
 /***************************************************************************\

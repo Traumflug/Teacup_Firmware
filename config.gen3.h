@@ -214,6 +214,8 @@
 #define	SD_WRITE_PROTECT			DIO3
 
 #define	PS_ON_PIN							DIO14
+//#define	STEPPER_ENABLE_PIN		xxxx
+//#define	STEPPER_ENABLE_INVERT
 
 
 

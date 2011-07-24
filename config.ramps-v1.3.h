@@ -215,6 +215,10 @@
 //#define	E_ENABLE_PIN					DIO24
 //#define	E_INVERT_DIR
 
+//#define	PS_ON_PIN							xxxx
+//#define	STEPPER_ENABLE_PIN		xxxx
+//#define	STEPPER_ENABLE_INVERT
+
 // TODO: 20110813 SJL - the following two are not yet used&verified for RAMPS1.3
 //#define	SD_CARD_DETECT				DIO2
 //#define	SD_WRITE_PROTECT			DIO3
