@@ -7,22 +7,6 @@
 
 #include	"config.h"
 
-#ifndef	X_INVERT_ENABLE
-	#define	X_INVERT_ENABLE 0
-#endif
-
-#ifndef	Y_INVERT_ENABLE
-	#define	Y_INVERT_ENABLE 0
-#endif
-
-#ifndef	Z_INVERT_ENABLE
-	#define	Z_INVERT_ENABLE 0
-#endif
-
-#ifndef	E_INVERT_ENABLE
-	#define	E_INVERT_ENABLE 0
-#endif
-
 /*
 Power
 */
@@ -169,32 +153,52 @@ Stepper Enable Pins
 #endif
 
 #ifdef	X_ENABLE_PIN
-	#define	x_enable()					do { WRITE(X_ENABLE_PIN, X_INVERT_ENABLE); SET_OUTPUT(X_ENABLE_PIN); } while (0)
-	#define	x_disable()					do { WRITE(X_ENABLE_PIN, X_INVERT_ENABLE ^ 1); SET_OUTPUT(X_ENABLE_PIN); } while (0)
+	#ifdef	X_INVERT_ENABLE
+		#define	x_enable()				do { WRITE(X_ENABLE_PIN, 0); } while (0)
+		#define	x_disable()				do { WRITE(X_ENABLE_PIN, 1); } while (0)
+	#else
+		#define	x_enable()				do { WRITE(X_ENABLE_PIN, 1); } while (0)
+		#define	x_disable()				do { WRITE(X_ENABLE_PIN, 0); } while (0)
+	#endif
 #else
 	#define	x_enable()					do { } while (0)
 	#define	x_disable()					do { } while (0)
 #endif
 
 #ifdef	Y_ENABLE_PIN
-	#define	y_enable()					do { WRITE(Y_ENABLE_PIN, Y_INVERT_ENABLE); SET_OUTPUT(Y_ENABLE_PIN); } while (0)
-	#define	y_disable()					do { WRITE(Y_ENABLE_PIN, Y_INVERT_ENABLE ^ 1); SET_OUTPUT(Y_ENABLE_PIN); } while (0)
+	#ifdef	Y_INVERT_ENABLE
+		#define	y_enable()				do { WRITE(Y_ENABLE_PIN, 0); } while (0)
+		#define	y_disable()				do { WRITE(Y_ENABLE_PIN, 1); } while (0)
+	#else
+		#define	y_enable()				do { WRITE(Y_ENABLE_PIN, 1); } while (0)
+		#define	y_disable()				do { WRITE(Y_ENABLE_PIN, 0); } while (0)
+	#endif
 #else
 	#define	y_enable()					do { } while (0)
 	#define	y_disable()					do { } while (0)
 #endif
 
 #ifdef	Z_ENABLE_PIN
-	#define	z_enable()					do { WRITE(Z_ENABLE_PIN, Z_INVERT_ENABLE); SET_OUTPUT(Z_ENABLE_PIN); } while (0)
-	#define	z_disable()					do { WRITE(Z_ENABLE_PIN, Z_INVERT_ENABLE ^ 1); SET_OUTPUT(Z_ENABLE_PIN); } while (0)
+	#ifdef	Z_INVERT_ENABLE
+		#define	z_enable()				do { WRITE(Z_ENABLE_PIN, 0); } while (0)
+		#define	z_disable()				do { WRITE(Z_ENABLE_PIN, 1); } while (0)
+	#else
+		#define	z_enable()				do { WRITE(Z_ENABLE_PIN, 1); } while (0)
+		#define	z_disable()				do { WRITE(Z_ENABLE_PIN, 0); } while (0)
+	#endif
 #else
 	#define	z_enable()					do { } while (0)
 	#define	z_disable()					do { } while (0)
 #endif
 
 #ifdef	E_ENABLE_PIN
-	#define	e_enable()					do { WRITE(E_ENABLE_PIN, E_INVERT_ENABLE); SET_OUTPUT(E_ENABLE_PIN); } while (0)
-	#define	e_disable()					do { WRITE(E_ENABLE_PIN, E_INVERT_ENABLE ^ 1); SET_OUTPUT(E_ENABLE_PIN); } while (0)
+	#ifdef	E_INVERT_ENABLE
+		#define	e_enable()				do { WRITE(E_ENABLE_PIN, 0); } while (0)
+		#define	e_disable()				do { WRITE(E_ENABLE_PIN, 1); } while (0)
+	#else
+		#define	e_enable()				do { WRITE(E_ENABLE_PIN, 1); } while (0)
+		#define	e_disable()				do { WRITE(E_ENABLE_PIN, 0); } while (0)
+	#endif
 #else
 	#define	e_enable()					do { } while (0)
 	#define	e_disable()					do { } while (0)

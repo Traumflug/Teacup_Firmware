@@ -67,16 +67,6 @@ void io_init(void) {
 
 	// setup I/O pins
 
-	// Common Stepper Enable
-	#ifdef STEPPER_ENABLE_PIN
-		#ifdef STEPPER_ENABLE_INVERT
-			WRITE(STEPPER_ENABLE_PIN, 0);
-		#else
-			WRITE(STEPPER_ENABLE_PIN, 1);
-		#endif
-		SET_OUTPUT(STEPPER_ENABLE_PIN);
-	#endif
-
 	// X Stepper
 	WRITE(X_STEP_PIN, 0);	SET_OUTPUT(X_STEP_PIN);
 	WRITE(X_DIR_PIN,  0);	SET_OUTPUT(X_DIR_PIN);
@@ -95,9 +85,6 @@ void io_init(void) {
 		#else
 			WRITE(X_MAX_PIN, 0);
 		#endif
-	#endif
-	#ifdef X_ENABLE_PIN
-		WRITE(X_ENABLE_PIN, 1); SET_OUTPUT(X_ENABLE_PIN);
 	#endif
 
 	// Y Stepper
@@ -118,9 +105,6 @@ void io_init(void) {
 		#else
 			WRITE(Y_MAX_PIN, 0);
 		#endif
-	#endif
-	#ifdef Y_ENABLE_PIN
-		WRITE(Y_ENABLE_PIN, 1); SET_OUTPUT(Y_ENABLE_PIN);
 	#endif
 
 	// Z Stepper
@@ -144,16 +128,60 @@ void io_init(void) {
 			WRITE(Z_MAX_PIN, 0);
 		#endif
 	#endif
-	#ifdef Z_ENABLE_PIN
-		WRITE(Z_ENABLE_PIN, 1); SET_OUTPUT(Z_ENABLE_PIN);
-	#endif
 
 	#if defined E_STEP_PIN && defined E_DIR_PIN
 		WRITE(E_STEP_PIN, 0);	SET_OUTPUT(E_STEP_PIN);
 		WRITE(E_DIR_PIN,  0);	SET_OUTPUT(E_DIR_PIN);
 	#endif
+
+	// Common Stepper Enable
+	#ifdef STEPPER_ENABLE_PIN
+		#ifdef STEPPER_ENABLE_INVERT
+			WRITE(STEPPER_ENABLE_PIN, 0);
+		#else
+			WRITE(STEPPER_ENABLE_PIN, 1);
+		#endif
+		SET_OUTPUT(STEPPER_ENABLE_PIN);
+	#endif
+
+	// X Stepper Enable
+	#ifdef X_ENABLE_PIN
+		#ifdef X_INVERT_ENABLE
+			WRITE(X_ENABLE_PIN, 0);
+		#else
+			WRITE(X_ENABLE_PIN, 1);
+		#endif
+		SET_OUTPUT(X_ENABLE_PIN);
+	#endif
+
+	// Y Stepper Enable
+	#ifdef Y_ENABLE_PIN
+		#ifdef Y_INVERT_ENABLE
+			WRITE(Y_ENABLE_PIN, 0);
+		#else
+			WRITE(Y_ENABLE_PIN, 1);
+		#endif
+		SET_OUTPUT(Y_ENABLE_PIN);
+	#endif
+
+	// Z Stepper Enable
+	#ifdef Z_ENABLE_PIN
+		#ifdef Z_INVERT_ENABLE
+			WRITE(Z_ENABLE_PIN, 0);
+		#else
+			WRITE(Z_ENABLE_PIN, 1);
+		#endif
+		SET_OUTPUT(Z_ENABLE_PIN);
+	#endif
+
+	// E Stepper Enable
 	#ifdef E_ENABLE_PIN
-		WRITE(E_ENABLE_PIN, 1); SET_OUTPUT(E_ENABLE_PIN);
+		#ifdef E_INVERT_ENABLE
+			WRITE(E_ENABLE_PIN, 0);
+		#else
+			WRITE(E_ENABLE_PIN, 1);
+		#endif
+		SET_OUTPUT(E_ENABLE_PIN);
 	#endif
 
 	// setup PWM timers: fast PWM, no prescaler
