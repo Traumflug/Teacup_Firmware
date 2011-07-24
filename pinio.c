@@ -1,11 +1,18 @@
 #include	"pinio.h"
+#include	"delay.h"
+
+static char ps_is_on = 0;
 
 void power_on() {
 
-	#ifdef	PS_ON_PIN
-		WRITE(PS_ON_PIN, 0);
-		SET_OUTPUT(PS_ON_PIN);
-	#endif
+	if (ps_is_on == 0) {
+		#ifdef	PS_ON_PIN
+			WRITE(PS_ON_PIN, 0);
+			SET_OUTPUT(PS_ON_PIN);
+			_delay_ms(500);
+		#endif
+		ps_is_on = 1;
+	}
 }
 
 void power_off() {
@@ -19,4 +26,6 @@ void power_off() {
 	#ifdef	PS_ON_PIN
 		SET_INPUT(PS_ON_PIN);
 	#endif
+
+	ps_is_on = 0;
 }
