@@ -140,7 +140,7 @@ Stepper Enable Pins
 */
 
 #ifdef	STEPPER_ENABLE_PIN
-	#ifdef	STEPPER_ENABLE_INVERT
+	#ifdef	STEPPER_INVERT_ENABLE
 		#define stepper_enable()	do { WRITE(STEPPER_ENABLE_PIN, 0); } while (0)
 		#define stepper_disable()	do { WRITE(STEPPER_ENABLE_PIN, 1); } while (0)
 	#else

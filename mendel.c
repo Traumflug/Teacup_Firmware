@@ -136,7 +136,7 @@ void io_init(void) {
 
 	// Common Stepper Enable
 	#ifdef STEPPER_ENABLE_PIN
-		#ifdef STEPPER_ENABLE_INVERT
+		#ifdef STEPPER_INVERT_ENABLE
 			WRITE(STEPPER_ENABLE_PIN, 0);
 		#else
 			WRITE(STEPPER_ENABLE_PIN, 1);
