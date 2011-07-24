@@ -23,22 +23,11 @@
 	#define	E_INVERT_ENABLE 0
 #endif
 
-#ifndef	STEPPER_ENABLE_INVERT
-	#define	STEPPER_ENABLE_INVERT 0
-#endif
-
 /*
 Power
 */
 
-#ifdef	STEPPER_ENABLE_PIN
-	#define	power_on()					do { WRITE(STEPPER_ENABLE_PIN, STEPPER_ENABLE_INVERT); SET_OUTPUT(STEPPER_ENABLE_PIN); } while (0)
-#elif defined PS_ON_PIN
-	#define	power_on()					do { WRITE(PS_ON_PIN, 0); SET_OUTPUT(PS_ON_PIN); } while (0)
-#else
-	#define	power_on()					do { } while (0)
-#endif
-
+void power_on(void);
 void power_off(void);
 
 /*

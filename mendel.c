@@ -66,6 +66,18 @@ void io_init(void) {
 	ACSR = MASK(ACD);
 
 	// setup I/O pins
+
+	// Common Stepper Enable
+	#ifdef STEPPER_ENABLE_PIN
+		#ifdef STEPPER_ENABLE_INVERT
+			WRITE(STEPPER_ENABLE_PIN, 0);
+		#else
+			WRITE(STEPPER_ENABLE_PIN, 1);
+		#endif
+		SET_OUTPUT(STEPPER_ENABLE_PIN);
+	#endif
+
+	// X Stepper
 	WRITE(X_STEP_PIN, 0);	SET_OUTPUT(X_STEP_PIN);
 	WRITE(X_DIR_PIN,  0);	SET_OUTPUT(X_DIR_PIN);
 	#ifdef X_MIN_PIN
@@ -88,6 +100,7 @@ void io_init(void) {
 		WRITE(X_ENABLE_PIN, 1); SET_OUTPUT(X_ENABLE_PIN);
 	#endif
 
+	// Y Stepper
 	WRITE(Y_STEP_PIN, 0);	SET_OUTPUT(Y_STEP_PIN);
 	WRITE(Y_DIR_PIN,  0);	SET_OUTPUT(Y_DIR_PIN);
 	#ifdef Y_MIN_PIN
@@ -110,6 +123,7 @@ void io_init(void) {
 		WRITE(Y_ENABLE_PIN, 1); SET_OUTPUT(Y_ENABLE_PIN);
 	#endif
 
+	// Z Stepper
 	#if defined Z_STEP_PIN && defined Z_DIR_PIN
 		WRITE(Z_STEP_PIN, 0);	SET_OUTPUT(Z_STEP_PIN);
 		WRITE(Z_DIR_PIN,  0);	SET_OUTPUT(Z_DIR_PIN);
