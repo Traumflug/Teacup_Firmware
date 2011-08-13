@@ -1,7 +1,7 @@
 /* Notice to developers: this file is intentionally included twice. */
 
 /** \file
- \brief RAMPS Sample Configuration
+ \brief RAMPS v1.3 Sample Configuration
  http://reprap.org/wiki/Arduino_Mega_Pololu_Shield
 */
 
@@ -174,47 +174,48 @@
 //#define USE_INTERNAL_PULLUPS
 
 /*
-	this is the ramps motherboard pinout
+	This is for the RAMPS v1.3 shield
 */
-
+// TODO: 20110813 SJL - the following two are not yet used&verified for RAMPS1.3
 //#define TX_ENABLE_PIN					DIO12
 //#define	RX_ENABLE_PIN					DIO13
 
-#define	X_STEP_PIN						DIO26
-#define	X_DIR_PIN							DIO28
-#define	X_MIN_PIN							DIO3
-#define	X_MAX_PIN							DIO2
-#define	X_ENABLE_PIN					DIO24
+#define	X_STEP_PIN  					AIO0
+#define	X_DIR_PIN   					AIO1
+#define	X_MIN_PIN   					DIO3
+//#define	X_MAX_PIN   					DIO2
+//#define	X_ENABLE_PIN					DIO38
 //#define	X_INVERT_DIR
 //#define	X_INVERT_MIN
 //#define	X_INVERT_MAX
 //#define	X_INVERT_ENABLE
 
-#define	Y_STEP_PIN						DIO38
-#define	Y_DIR_PIN							DIO40
-#define	Y_MIN_PIN							DIO16
-#define	Y_MAX_PIN							DIO17
-#define	Y_ENABLE_PIN					DIO36
-//#define	Y_INVERT_DIR
+#define	Y_STEP_PIN  					AIO6
+#define	Y_DIR_PIN   					AIO7
+#define	Y_MIN_PIN   					DIO14
+//#define	Y_MAX_PIN   					DIO15
+//#define	Y_ENABLE_PIN					AIO2
+#define	Y_INVERT_DIR
 //#define	Y_INVERT_MIN
 //#define	Y_INVERT_MAX
 //#define	Y_INVERT_ENABLE
 
-#define	Z_STEP_PIN						DIO44
-#define	Z_DIR_PIN							DIO46
-#define	Z_MIN_PIN							DIO18
-#define	Z_MAX_PIN							DIO19
-#define	Z_ENABLE_PIN					DIO42
-//#define	Z_INVERT_DIR
+#define	Z_STEP_PIN  					DIO46
+#define	Z_DIR_PIN   					DIO48
+#define	Z_INVERT_DIR
+#define	Z_MIN_PIN   					DIO18
+//#define	Z_MAX_PIN   					DIO19
+//#define	Z_ENABLE_PIN					AIO8
 //#define	Z_INVERT_MIN
 //#define	Z_INVERT_MAX
 //#define	Z_INVERT_ENABLE
 
-#define	E_STEP_PIN						DIO32
-#define	E_DIR_PIN							DIO34
-#define E_ENABLE_PIN					DIO30
+#define	E_STEP_PIN  					DIO26
+#define	E_DIR_PIN   					DIO28
+//#define	E_ENABLE_PIN					DIO24
 //#define	E_INVERT_DIR
 
+// TODO: 20110813 SJL - the following two are not yet used&verified for RAMPS1.3
 //#define	SD_CARD_DETECT				DIO2
 //#define	SD_WRITE_PROTECT			DIO3
 
@@ -260,9 +261,9 @@ temperature is "achieved" for purposes of M109 and friends when actual temperatu
 	#define DEFINE_TEMP_SENSOR(...)
 #endif
 
-//                 name       type          pin		additional
-DEFINE_TEMP_SENSOR(extruder,	TT_THERMISTOR,	AIO2_PIN,	THERMISTOR_EXTRUDER)
-DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	AIO1_PIN,	THERMISTOR_EXTRUDER)
+//                  name    	type          	pin       	additional
+DEFINE_TEMP_SENSOR( extruder,	TT_THERMISTOR,	AIO13_PIN,	THERMISTOR_EXTRUDER)
+//DEFINE_TEMP_SENSOR( bed,     	TT_THERMISTOR,	AIO14_PIN,	THERMISTOR_EXTRUDER)
 
 
 
@@ -303,9 +304,9 @@ DEFINE_TEMP_SENSOR(bed,				TT_THERMISTOR,	AIO1_PIN,	THERMISTOR_EXTRUDER)
 
 // NOTE: these pins are for RAMPS V1.1 and newer. V1.0 is different
 //               name      port   pin    pwm
-DEFINE_HEATER(extruder,	PB4)
-DEFINE_HEATER(bed,			PH5)
-DEFINE_HEATER(fan,			PH6)
+DEFINE_HEATER( extruder,	PB4)
+//DEFINE_HEATER( bed,     	PH5)
+//DEFINE_HEATER( fan,     	PH6)
 // DEFINE_HEATER(chamber,	PORTD, PIND7, OCR2A)
 // DEFINE_HEATER(motor,		PORTD, PIND6, OCR2B)
 
@@ -316,7 +317,7 @@ DEFINE_HEATER(fan,			PH6)
 /// I have searched high and low for a way to make the preprocessor do this for us, but so far I have not found a way.
 
 #define	HEATER_EXTRUDER HEATER_extruder
-#define HEATER_BED HEATER_bed
+//#define HEATER_BED HEATER_bed
 // #define HEATER_FAN HEATER_fan
 
 
@@ -407,9 +408,10 @@ PWM value for 'off'
 */
 #define	REFERENCE			REFERENCE_AVCC
 
-/**
+/** \def STEP_INTERRUPT_INTERRUPTIBLE
 	this option makes the step interrupt interruptible (nested).
 	this should help immensely with dropped serial characters, but may also make debugging infuriating due to the complexities arising from nested interrupts
+	\note disable this option if you're using a '168 or for some reason your ram usage is above 90%. This option hugely increases likelihood of stack smashing.
 */
 #define		STEP_INTERRUPT_INTERRUPTIBLE	1
 
