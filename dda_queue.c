@@ -32,12 +32,17 @@ uint8_t	mb_tail = 0;
 /// once writing starts in interrupts on a specific slot, the
 /// slot will only be modified in interrupts until the slot is
 /// is no longer live.
+/// The size does not need to be a power of 2 anymore!
 DDA movebuffer[MOVEBUFFER_SIZE] __attribute__ ((__section__ (".bss")));
 
 /// check if the queue is completely full
 uint8_t queue_full() {
 	MEMORY_BARRIER();
-	return (((mb_tail - mb_head - 1) & (MOVEBUFFER_SIZE - 1)) == 0)?255:0;
+	if (mb_tail > mb_head) {
+		return ((mb_tail - mb_head - 1) == 0) ? 255 : 0;
+	} else {
+		return ((mb_tail + MOVEBUFFER_SIZE - mb_head - 1) == 0) ? 255 : 0;
+	}
 }
 
 /// check if the queue is completely empty
