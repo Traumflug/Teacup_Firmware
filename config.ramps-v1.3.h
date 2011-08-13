@@ -273,7 +273,9 @@
 	- comment out pins not in use, as this drops the corresponding code and makes operations faster
 */
 
+#ifndef		SKIP_ARDUINO_INC
 #include	"arduino.h"
+#endif
 
 /** \def USE_INTERNAL_PULLUPS
 	internal pullup resistors

@@ -109,10 +109,14 @@ OBJ = $(patsubst %.c,%.o,${SOURCES})
 .PHONY: all program clean size subdirs program-fuses doc functionsbysize
 .PRECIOUS: %.o %.elf
 
-all: config.h subdirs $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
+all: config.h subdirs $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size showconfig
+	./showconfig
 
 $(PROGRAM).elf: $(LIBDEPS)
 
+showconfig:	config.h showconfig.c
+	gcc showconfig.c -o showconfig
+	
 subdirs:
 	@for dir in $(SUBDIRS); do \
 	  $(MAKE) -C $$dir; \
