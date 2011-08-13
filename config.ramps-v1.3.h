@@ -261,9 +261,19 @@ temperature is "achieved" for purposes of M109 and friends when actual temperatu
 	#define DEFINE_TEMP_SENSOR(...)
 #endif
 
-//                  name    	type          	pin       	additional
-DEFINE_TEMP_SENSOR( extruder,	TT_THERMISTOR,	AIO13_PIN,	THERMISTOR_EXTRUDER)
-//DEFINE_TEMP_SENSOR( bed,     	TT_THERMISTOR,	AIO14_PIN,	THERMISTOR_EXTRUDER)
+/*
+ * TODO: 20110810 SJL - Fix this workaround for using the high inputs of a 16 input mux!
+ *
+ * NOTE: For the highest 8 inputs of a 16 channel mux, the correct 'pin' definition
+ *       gives a wrong result because only the bit position in the (byte) port is
+ *       defined and the port information isn't used. A workaround for this is to
+ *       manually add 8 to the AIO pin setting starting with AIO8_PIN and up.
+ *       E.g. AIO13_PIN should be written as (AIO13_PIN + 8).
+ */
+
+//                  name    	type          	pin             	additional
+DEFINE_TEMP_SENSOR( extruder,	TT_THERMISTOR,	(AIO13_PIN + 8),	THERMISTOR_EXTRUDER)
+//DEFINE_TEMP_SENSOR( bed,     	TT_THERMISTOR,	(AIO14_PIN + 8),	THERMISTOR_EXTRUDER)
 
 
 
