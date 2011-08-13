@@ -45,46 +45,154 @@
 */
 #define	HOST
 
+/**********  B E G I N   O F   D R I V E  T R A I N   C O N F I G U R A T I O N  *********/
 /*
 	Values reflecting the gearing of your machine.
 		All numbers are fixed point integers, so no more than 3 digits to the right of the decimal point, please :-)
 */
 
-// calculate these values appropriate for your machine
-// for threaded rods, this is (steps motor per turn) / (pitch of the thread)
-// for belts, this is (steps per motor turn) / (number of gear teeth) / (belt module)
-// half-stepping doubles the number, quarter stepping requires * 4, etc.
-#define MICROSTEPPING_X				16.0
-#define MICROSTEPPING_Y				16.0
-#define MICROSTEPPING_Z				16.0
-#define MICROSTEPPING_E				4.0
 
-#define	STEPS_PER_MM_X				(5.023*MICROSTEPPING_X)
-#define	STEPS_PER_MM_Y				(5.023*MICROSTEPPING_Y)
-#define	STEPS_PER_MM_Z				(416.699*MICROSTEPPING_Z)
+/**********************************************************
+ *  Edit the defines in the following section to reflect  *
+ *  your hardware.                                        *
+ *********************************************************/
 
+/// Filament diameters for a rough estimate of extruder output feed [mm].
+#define FILAMENT_DIAM_IN			2.9
+#define FILAMENT_DIAM_OUT			0.6
+
+/// Physical motor characteristic: (full) steps per revolution for each axis [steps / rev].
+#define MOTOR_S_P_R_X				200
+#define MOTOR_S_P_R_Y				200
+#define MOTOR_S_P_R_Z				200
+#define MOTOR_S_P_R_E				200
+
+/// Maximum obtainable motor speed [rev / sec].
+#define MAX_REV_SPEED_X				3.5
+#define MAX_REV_SPEED_Y				3.5
+#define MAX_REV_SPEED_Z				4.0
+#define MAX_REV_SPEED_E				4.0
+
+/// Stepper controller characteristic: Microstep multiplier for each axis [pulses / step].
+#define MICROSTEPPING_X				8
+#define MICROSTEPPING_Y				8
+#define MICROSTEPPING_Z				2
+#define MICROSTEPPING_E				8
+
+/// Fraction of the maximum feed that is to be used for low-speed moves [-].
+#define SEARCH_FEED_FRACTION_X		0.10
+#define SEARCH_FEED_FRACTION_Y		0.10
+#define SEARCH_FEED_FRACTION_Z		0.25
+
+/**********************************************************
+ *  Select your printer model and extruder used from the  *
+ *  ones below. If your model is missing, add it yourself *
+ *  or ask some help to do so.                            *
+ *********************************************************/
+
+//#define MODEL_MENDEL
+#define MODEL_PRUSA
+//#define MODEL_HUXLEY
+//#define MODEL_DARWIN
+
+//#define EXTRUDER_MENDEL
+#define EXTRUDER_WADE
+//#define EXTRUDER_ADRIAN
+
+/**********************************************************
+ *  Select your printer and extruder from the ones below. *
+ *  If your model is missing, add it yourself or ask      *
+ *  help to do so.                                        *
+ *********************************************************/
+
+#define EXTRUSION_GAIN				((FILAMENT_DIAM_IN * FILAMENT_DIAM_IN) \
+									 / (FILAMENT_DIAM_OUT * FILAMENT_DIAM_OUT))
+// good old HP35 had no PI, so I'll never forget these numbers :-)
+#define PI               			((float) 355 / 113)
+
+///////////////////////////////////////////////////////////
+// The printers:
+
+#if defined MODEL_PRUSA
+
+/// Drive train characteristics for PRUSA:
+#define TEETH_ON_PULLEY_X			8
+#define TEETH_ON_PULLEY_Y			8
+#define TIMING_BELT_PITCH			5.0   		/* distance between two teeth */
+#define THREAD_PITCH_Z   			1.25  		/* pitch of M8 thread on threaded rod */
+
+/// The feed for one motor axis revolution [mm / rev].
+#define FEED_PER_REV_X				(double)(TEETH_ON_PULLEY_X * TIMING_BELT_PITCH)
+#define FEED_PER_REV_Y				(double)(TEETH_ON_PULLEY_Y * TIMING_BELT_PITCH)
+#define FEED_PER_REV_Z				(double)(THREAD_PITCH_Z)
+
+#elif defined MODEL_MENDEL
+#	error "Please add your printer hardware characteristics here"
+#elif defined MODEL_DARWIN
+#	error "Please add your printer hardware characteristics here"
+#else
+#   error "Please select a printer model !"
+#endif
+
+///////////////////////////////////////////////////////////
+// The Extruders:
+
+#if defined EXTRUDER_WADE
+
+/// Drive train characteristics for Wade's extruder:
+#define EXTRUDER_FEED_AXIS_DIAM		7.9   		/* effective diameter of hobbed axis (nom.) */
+#define EXTRUDER_REDUCTION			((double)39 / 11)  	/* for geared Wade extruder */
+
+/// The feed for one motor axis revolution [mm / rev].
 /// http://blog.arcol.hu/?p=157 may help with this one
-#define	STEPS_PER_MM_E				(2.759*MICROSTEPPING_E)
+#define FEED_PER_REV_E				(double)(PI * EXTRUDER_FEED_AXIS_DIAM \
+										* EXTRUSION_GAIN / EXTRUDER_REDUCTION)
+
+#elif defined EXTRUDER_MENDEL
+#	error "Please add your extruder hardware characteristics here"
+#elif defined EXTRUDER_ADRIAN
+#	error "Please add your extruder hardware characteristics here"
+#else
+#	error "Please select an extruder model !"
+#endif
 
 
-/*
-	Values depending on the capabilities of your stepper motors and other mechanics.
-		All numbers are integers, no decimals allowed.
+/********************************************************
+ *  Do not change the defines in the following section  *
+ *******************************************************/
 
-		Units are mm/min
-*/
+/// The number of step pulses needed for one complete motor axis revolution [pulses / rev].
+#define STEPS_PER_REV_X				(MOTOR_S_P_R_X * MICROSTEPPING_X)
+#define STEPS_PER_REV_Y				(MOTOR_S_P_R_Y * MICROSTEPPING_Y)
+#define STEPS_PER_REV_Z				(MOTOR_S_P_R_Z * MICROSTEPPING_Z)
+#define STEPS_PER_REV_E				(MOTOR_S_P_R_E * MICROSTEPPING_E)
 
-/// used for G0 rapid moves and as a cap for all other feedrates
-#define	MAXIMUM_FEEDRATE_X		200
-#define	MAXIMUM_FEEDRATE_Y		200
-#define	MAXIMUM_FEEDRATE_Z		100
-#define	MAXIMUM_FEEDRATE_E		600
+/// determine the number of step pulses needed for each mm feed [pulses / mm].
+#define STEPS_PER_MM_X				((double)STEPS_PER_REV_X / FEED_PER_REV_X)
+#define STEPS_PER_MM_Y				((double)STEPS_PER_REV_Y / FEED_PER_REV_Y)
+#define STEPS_PER_MM_Z				((double)STEPS_PER_REV_Z / FEED_PER_REV_Z)
+#define STEPS_PER_MM_E				((double)STEPS_PER_REV_E / FEED_PER_REV_E)
 
-/// used when searching endstops and as default feedrate
-#define	SEARCH_FEEDRATE_X			50
-#define	SEARCH_FEEDRATE_Y			50
-#define	SEARCH_FEEDRATE_Z			1
+/// Upper limit of step frequency [pulses / sec]
+#define MAX_STEP_FREQ_X				(uint32_t)(MAX_REV_SPEED_X * STEPS_PER_REV_X)
+#define MAX_STEP_FREQ_Y				(uint32_t)(MAX_REV_SPEED_Y * STEPS_PER_REV_Y)
+#define MAX_STEP_FREQ_Z				(uint32_t)(MAX_REV_SPEED_Z * STEPS_PER_REV_Z)
+#define MAX_STEP_FREQ_E				(uint32_t)(MAX_REV_SPEED_E * STEPS_PER_REV_E)
+
+/// used for G0 rapid moves and as a cap for all other feedrates [mm / min].
+#define MAXIMUM_FEEDRATE_X			(uint32_t)(60 * MAX_REV_SPEED_X * FEED_PER_REV_X)
+#define MAXIMUM_FEEDRATE_Y			(uint32_t)(60 * MAX_REV_SPEED_Y * FEED_PER_REV_Y)
+#define MAXIMUM_FEEDRATE_Z			(uint32_t)(60 * MAX_REV_SPEED_Z * FEED_PER_REV_Z)
+#define MAXIMUM_FEEDRATE_E			(uint32_t)(60 * MAX_REV_SPEED_E * FEED_PER_REV_E)
+
+/// used when searching endstops and as default feedrate [mm / min].
+#define SEARCH_FEEDRATE_X			(uint32_t)((SEARCH_FEED_FRACTION_X) * MAXIMUM_FEEDRATE_X)
+#define SEARCH_FEEDRATE_Y			(uint32_t)((SEARCH_FEED_FRACTION_Y) * MAXIMUM_FEEDRATE_Y)
+#define SEARCH_FEEDRATE_Z			(uint32_t)((SEARCH_FEED_FRACTION_X) * MAXIMUM_FEEDRATE_Z)
 // no SEARCH_FEEDRATE_E, as E can't be searched
+
+/***********  E N D   O F   D R I V E  T R A I N   C O N F I G U R A T I O N  ************/
+
 
 /// this is how many steps to suck back the filament by when we stop. set to zero to disable
 #define	E_STARTSTOP_STEPS			0
