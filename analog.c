@@ -56,6 +56,10 @@ void analog_init() {
 		adc_counter = 0;
 
 		AIO0_DDR &= ~analog_mask;
+		#ifdef	AIO8_DDR
+			AIO8_DDR &= ~(analog_mask >> 8);
+		#endif
+
 		DIDR0 = analog_mask & 0xFF;
 		#ifdef	DIDR2
 			DIDR2 = (analog_mask >> 8) & 0xFF;
