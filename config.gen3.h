@@ -84,20 +84,19 @@
 /// this is how many steps to suck back the filament by when we stop. set to zero to disable
 #define	E_STARTSTOP_STEPS			20
 
-
 /**
-	Soft axis limits, in mm
-	undefine if you don't want to use them
+	Soft axis limits, in mm.
+	Define them to your machine's size relative to what your host considers to be the origin.
 */
 
-#define	X_MIN			0.0
-#define	X_MAX			200.0
+//#define	X_MIN			0.0
+//#define	X_MAX			200.0
 
-#define	Y_MIN			0.0
-#define	Y_MAX			200.0
+//#define	Y_MIN			0.0
+//#define	Y_MAX			200.0
 
-#define	Z_MIN			0.0
-#define	Z_MAX			140.0
+//#define	Z_MIN			0.0
+//#define	Z_MAX			140.0
 
 /**	\def E_ABSOLUTE
 	Some G-Code creators produce relative length commands for the extruder, others absolute ones. G-Code using absolute lengths can be recognized when there are G92 E0 commands from time to time. If you have G92 E0 in your G-Code, define this flag.

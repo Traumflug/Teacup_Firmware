@@ -89,20 +89,17 @@
 #define	E_STARTSTOP_STEPS			289
 
 /**
-	Soft axis limits, in mm
-	undefine if you don't want to use them
+	Soft axis limits, in mm.
+	Define them to your machine's size relative to what your host considers to be the origin.
 */
 
-#define	X_MIN			0.0
-#define	X_MAX			170.0
+//#define	X_MIN			0.0
 //#define	X_MAX			200.0
 
-#define	Y_MIN			0.0
-#define	Y_MAX			150.0
+//#define	Y_MIN			0.0
 //#define	Y_MAX			200.0
 
-#define	Z_MIN			0.0
-#define	Z_MAX			100.0
+//#define	Z_MIN			0.0
 //#define	Z_MAX			140.0
 
 /**	\def E_ABSOLUTE
