@@ -50,7 +50,7 @@ X Stepper
 #ifndef	X_INVERT_DIR
 	#define	x_direction(dir)		WRITE(X_DIR_PIN, dir)
 #else
-	#define	x_direction(dir)		WRITE(X_DIR_PIN, dir^1)
+	#define	x_direction(dir)		WRITE(X_DIR_PIN, (dir)^1)
 #endif
 #ifdef	X_MIN_PIN
 	#ifndef X_INVERT_MIN
@@ -80,7 +80,7 @@ Y Stepper
 #ifndef	Y_INVERT_DIR
 	#define	y_direction(dir)		WRITE(Y_DIR_PIN, dir)
 #else
-	#define	y_direction(dir)		WRITE(Y_DIR_PIN, dir^1)
+	#define	y_direction(dir)		WRITE(Y_DIR_PIN, (dir)^1)
 #endif
 #ifdef	Y_MIN_PIN
 	#ifndef Y_INVERT_MIN
@@ -111,7 +111,7 @@ Z Stepper
 	#ifndef	Z_INVERT_DIR
 		#define	z_direction(dir)	WRITE(Z_DIR_PIN, dir)
 	#else
-		#define	z_direction(dir)	WRITE(Z_DIR_PIN, dir^1)
+		#define	z_direction(dir)	WRITE(Z_DIR_PIN, (dir)^1)
 	#endif
 #else
 	#define	_z_step(x)					do { } while (0)
@@ -147,7 +147,7 @@ Extruder
 	#ifndef	E_INVERT_DIR
 		#define	e_direction(dir)	WRITE(E_DIR_PIN, dir)
 	#else
-		#define	e_direction(dir)	WRITE(E_DIR_PIN, dir^1)
+		#define	e_direction(dir)	WRITE(E_DIR_PIN, (dir)^1)
 	#endif
 #else
 	#define	_e_step(st)					do { } while (0)
