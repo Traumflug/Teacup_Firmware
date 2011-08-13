@@ -59,6 +59,9 @@ void analog_init() {
 
 		// clear analog inputs in the data direction register(s)
 		AIO0_DDR &= ~analog_mask;
+		#ifdef	AIO8_DDR
+			AIO8_DDR &= ~(analog_mask >> 8);
+		#endif
 
 		// disable the analog inputs for digital use.
 		DIDR0 = analog_mask & 0xFF;
