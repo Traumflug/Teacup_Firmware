@@ -39,12 +39,14 @@ static volatile uint16_t adc_result[AINDEX_MAX + 1] __attribute__ ((__section__ 
 //! Configure all registers, start interrupt loop
 void analog_init() {
 	if (analog_mask > 0) {
+		// clear ADC bit in power reduction register because of ADC use.
 		#ifdef	PRR
 			PRR &= ~MASK(PRADC);
 		#elif defined PRR0
 			PRR0 &= ~MASK(PRADC);
 		#endif
 
+		// select reference signal to use, set right adjusted results and select ADC input 0
 		ADMUX = REFERENCE;
 
 		// ADC frequency must be less than 200khz or we lose precision. At 16MHz system clock, we must use the full prescale value of 128 to get an ADC clock of 125khz.
@@ -55,11 +57,15 @@ void analog_init() {
 
 		adc_counter = 0;
 
+		// clear analog inputs in the data direction register(s)
 		AIO0_DDR &= ~analog_mask;
+
+		// disable the analog inputs for digital use.
 		DIDR0 = analog_mask & 0xFF;
 		#ifdef	DIDR2
 			DIDR2 = (analog_mask >> 8) & 0xFF;
 		#endif
+
 		// now we start the first conversion and leave the rest to the interrupt
 		ADCSRA |= MASK(ADIE) | MASK(ADSC);
 	} /* analog_mask > 0 */
@@ -90,6 +96,7 @@ ISR(ADC_vect, ISR_NOBLOCK) {
 				ADCSRB &= ~MASK(MUX5);
 		#endif
 
+		// After the mux has been set, start a new conversion 
 		ADCSRA |= MASK(ADSC);
 	}
 }
