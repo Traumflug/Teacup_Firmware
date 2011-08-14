@@ -261,22 +261,20 @@ static void run_home_one_axis( uint8_t axis)
 	uint8_t		limit_switch_state 		=   0;	// init to keep compiler happy
 
 	if (axis == home_x_min || axis == home_x_max) {
-//		fast_step_period 		= (uint32_t) (1000000 / (0.25 * MAX_STEP_FREQ_X));
-		fast_step_period 		= (uint32_t) FEED_STEP_IN_US( X, HOME_FEED);
-		slow_step_period 		= (uint32_t) FEED_STEP_IN_US( X, RELEASE_FEED);
+		fast_step_period 		= (uint32_t) HOME_FAST_STEP_PERIOD_X;
+		slow_step_period 		= (uint32_t) HOME_SLOW_STEP_PERIOD_X;
 		limit_switch_state 		= (axis & home_x_max) ? x_max() : x_min();
 		max_pulses_on_axis 		= (uint32_t)((X_MAX - X_MIN) * STEPS_PER_MM_X);
 		max_pulses_for_release 	= (uint32_t)(RELEASE_DISTANCE * STEPS_PER_MM_X);
 	} else if (axis == home_y_min || axis == home_y_max) {
-//		fast_step_period 		= (uint32_t) (1000000 / (0.25 * MAX_STEP_FREQ_Y));
-		fast_step_period 		= (uint32_t) FEED_STEP_IN_US( Y, HOME_FEED);
-		slow_step_period 		= (uint32_t) FEED_STEP_IN_US( Y, RELEASE_FEED);
+		fast_step_period 		= (uint32_t) HOME_FAST_STEP_PERIOD_Y;
+		slow_step_period 		= (uint32_t) HOME_SLOW_STEP_PERIOD_Y;
 		limit_switch_state 		= (axis & home_y_max) ? y_max() : y_min();
 		max_pulses_on_axis 		= (uint32_t)((Y_MAX - Y_MIN) * STEPS_PER_MM_Y);
 		max_pulses_for_release 	= (uint32_t)(RELEASE_DISTANCE * STEPS_PER_MM_Y);
 	} else if (axis == home_z_min || axis == home_z_max) {
-		fast_step_period 		= (uint32_t) (1000000 / (0.75 * MAX_STEP_FREQ_Z));
-		slow_step_period 		= (uint32_t) FEED_STEP_IN_US( Z, RELEASE_FEED);
+		fast_step_period 		= (uint32_t) HOME_FAST_STEP_PERIOD_Z;
+		slow_step_period 		= (uint32_t) HOME_SLOW_STEP_PERIOD_Z;
 		limit_switch_state 		= (axis & home_z_max) ? z_max() : z_min();
 		max_pulses_on_axis 		= (uint32_t)((Z_MAX - Z_MIN) * STEPS_PER_MM_Z);
 		max_pulses_for_release 	= (uint32_t)(RELEASE_DISTANCE * STEPS_PER_MM_Z);
