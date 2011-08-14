@@ -188,7 +188,7 @@
 /// used when searching endstops and as default feedrate [mm / min].
 #define SEARCH_FEEDRATE_X			(uint32_t)((SEARCH_FEED_FRACTION_X) * MAXIMUM_FEEDRATE_X)
 #define SEARCH_FEEDRATE_Y			(uint32_t)((SEARCH_FEED_FRACTION_Y) * MAXIMUM_FEEDRATE_Y)
-#define SEARCH_FEEDRATE_Z			(uint32_t)((SEARCH_FEED_FRACTION_X) * MAXIMUM_FEEDRATE_Z)
+#define SEARCH_FEEDRATE_Z			(uint32_t)((SEARCH_FEED_FRACTION_Z) * MAXIMUM_FEEDRATE_Z)
 // no SEARCH_FEEDRATE_E, as E can't be searched
 
 /***********  E N D   O F   D R I V E  T R A I N   C O N F I G U R A T I O N  ************/
