@@ -114,7 +114,7 @@ all: config.h subdirs $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size showconf
 
 $(PROGRAM).elf: $(LIBDEPS)
 
-showconfig:	config.h showconfig.c
+showconfig:	showconfig.c config.h config_macros.h dda.h home.h
 	gcc showconfig.c -o showconfig
 	
 subdirs:
@@ -138,7 +138,7 @@ program-fuses:
 	$(AVRDUDE) -c$(PROGID) -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U efuse:w:efuse
 
 clean: clean-subdirs
-	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~ *fuse
+	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~ *fuse showconfig
 
 clean-subdirs:
 	@for dir in $(SUBDIRS); do \
