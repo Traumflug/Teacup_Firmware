@@ -6,27 +6,34 @@
 #define	SKIP_ARDUINO_INC	1
 
 #include "config.h"
+#include "dda.h"
 
-typedef int uint32_t;
+#define PRINT_INT_XYZ( macro, units) printf( "   %-25s  %10d     %10d     %10d            n/a          %s\n", \
+		# macro, macro ## X, macro ## Y, macro ## Z, units);
+#define PRINT_INT_XYZE( macro, units) printf( "   %-25s  %10d     %10d     %10d     %10d          %s\n", \
+		# macro, macro ## X, macro ## Y, macro ## Z, macro ## E, units);
+#define PRINT_LONG_XYZE( macro, units) printf( "   %-25s  %10ld     %10ld     %10ld     %10ld          %s\n", \
+		# macro, macro ## X, macro ## Y, macro ## Z, macro ## E, units);
+#define PRINT_FLOAT_XYZE( macro, units) printf( "   %-25s      %10.3f     %10.3f     %10.3f     %10.3f      %s\n", \
+		# macro, macro ## X, macro ## Y, macro ## Z, macro ## E, units);
 
 void main( void)
 {
-	printf( "\nThese are the actual values as defined in config.h:\n\n");
-	printf( "                       X-axis              Y-axis              Z-axis              E-axis            units\n");
-	printf( "STEPS_PER_REV_    %10d          %10d          %10d          %10d           [steps/rev]\n",
-		STEPS_PER_REV_X, STEPS_PER_REV_Y, STEPS_PER_REV_Z, STEPS_PER_REV_E);
-	printf( "FEED_PER_REV_         %10.3f          %10.3f          %10.3f          %10.3f       [mm/rev]\n",
-		FEED_PER_REV_X, FEED_PER_REV_Y, FEED_PER_REV_Z, FEED_PER_REV_E);
-	printf( "STEPS_PER_MM_         %10.3f          %10.3f          %10.3f          %10.3f       [steps/mm]\n",
-		STEPS_PER_MM_X, STEPS_PER_MM_Y, STEPS_PER_MM_Z, STEPS_PER_MM_E);
-	printf( "MAX_REV_SPEED_        %10.3f          %10.3f          %10.3f          %10.3f       [rev/sec]\n",
-		MAX_REV_SPEED_X, MAX_REV_SPEED_Y, MAX_REV_SPEED_Z, MAX_REV_SPEED_E);
-	printf( "MAX_STEP_FREQ_    %10d          %10d          %10d          %10d           [steps/sec]\n",
-		(int)MAX_STEP_FREQ_X, (int)MAX_STEP_FREQ_Y, (int)MAX_STEP_FREQ_Z, (int)MAX_STEP_FREQ_E);
-	printf( "MAXIMUM_FEEDRATE_ %10d          %10d          %10d          %10d           [mm/min]\n",
-		MAXIMUM_FEEDRATE_X, MAXIMUM_FEEDRATE_Y, MAXIMUM_FEEDRATE_Z, MAXIMUM_FEEDRATE_E);
-	printf( "SEARCH_FEEDRATE_  %10d          %10d          %10d                 N/A           [mm/min]\n\n",
-		SEARCH_FEEDRATE_X, SEARCH_FEEDRATE_Y, SEARCH_FEEDRATE_Z);
+	printf( "\nThese are the actual values as defined in config.h and other header files:\n\n");
+	printf( "                                   X-axis         Y-axis         Z-axis         E-axis           units\n");
+	printf( "config.h:\n");
+	PRINT_INT_XYZE( STEPS_PER_REV_, "[steps/rev]");
+	PRINT_FLOAT_XYZE( FEED_PER_REV_, "[mm/dev]");
+	PRINT_FLOAT_XYZE( STEPS_PER_MM_, "[steps/mm]");
+	PRINT_FLOAT_XYZE( MAX_REV_SPEED_, "[rev/sec]");
+	PRINT_INT_XYZE( MAX_STEP_FREQ_, "[steps/sec]");
+	PRINT_INT_XYZE( MAXIMUM_FEEDRATE_, "[mm/min]");
+	PRINT_INT_XYZ( SEARCH_FEEDRATE_, "[mm/min]");
+
+	printf( "dda.h:\n");
+	PRINT_LONG_XYZE( UM_PER_STEP_, "[um/step]");
+
+	printf( "\n");
 	exit( 0);
 }
 
