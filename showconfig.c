@@ -40,7 +40,9 @@ void main( void)
 	printf( "dda.h:\n");
 	PRINT_LONG_XYZE( UM_PER_STEP_, "[um/step]");
 
-	printf( "home.h:\n");
+	printf( "homing speeds:\n");
+	PRINT_INT_XYZ( HOME_FEED_FAST_, "[mm/min]");
+	PRINT_INT_XYZ( HOME_FEED_SLOW_, "[mm/min]");
 	PRINT_INT_XYZ( HOME_FAST_STEP_PERIOD_, "[us]");
 	PRINT_INT_XYZ( HOME_SLOW_STEP_PERIOD_, "[us]");
 
