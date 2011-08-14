@@ -152,6 +152,10 @@ static void step_axis_until_switch( uint8_t axis, uint16_t step_period, uint8_t 
 	uint8_t		prescaler_mask	= 0;
 
 	if (min_prescale >= 256) {
+		if (min_prescale >= 1024) {
+			// can't step this slow, clip!
+			step_period = (uint16_t) ((1000000.0 * 255 * 1024) / F_CPU);
+		}
 		// use clk/1024
 		prescaler_shift	= 10;
 		prescaler_mask 	= MASK( CS00) |               MASK( CS02);
