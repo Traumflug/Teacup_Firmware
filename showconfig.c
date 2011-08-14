@@ -5,6 +5,9 @@
 #define __AVR_ATmega1280__	1
 #define	SKIP_ARDUINO_INC	1
 
+// Prevent inclusion of "arduino.h" contents in config.h
+#define _ARDUINO_H
+
 #include "config.h"
 #include "dda.h"
 
