@@ -45,6 +45,8 @@
 */
 #define	HOST
 
+#include "config_macros.h"
+
 /**********  B E G I N   O F   D R I V E  T R A I N   C O N F I G U R A T I O N  *********/
 /*
 	Values reflecting the gearing of your machine.
@@ -157,40 +159,6 @@
 #endif
 
 
-/********************************************************
- *  Do not change the defines in the following section  *
- *******************************************************/
-
-/// The number of step pulses needed for one complete motor axis revolution [pulses / rev].
-#define STEPS_PER_REV_X				(MOTOR_S_P_R_X * MICROSTEPPING_X)
-#define STEPS_PER_REV_Y				(MOTOR_S_P_R_Y * MICROSTEPPING_Y)
-#define STEPS_PER_REV_Z				(MOTOR_S_P_R_Z * MICROSTEPPING_Z)
-#define STEPS_PER_REV_E				(MOTOR_S_P_R_E * MICROSTEPPING_E)
-
-/// determine the number of step pulses needed for each mm feed [pulses / mm].
-#define STEPS_PER_MM_X				((double)STEPS_PER_REV_X / FEED_PER_REV_X)
-#define STEPS_PER_MM_Y				((double)STEPS_PER_REV_Y / FEED_PER_REV_Y)
-#define STEPS_PER_MM_Z				((double)STEPS_PER_REV_Z / FEED_PER_REV_Z)
-#define STEPS_PER_MM_E				((double)STEPS_PER_REV_E / FEED_PER_REV_E)
-
-/// Upper limit of step frequency [pulses / sec]
-#define MAX_STEP_FREQ_X				(uint32_t)(MAX_REV_SPEED_X * STEPS_PER_REV_X)
-#define MAX_STEP_FREQ_Y				(uint32_t)(MAX_REV_SPEED_Y * STEPS_PER_REV_Y)
-#define MAX_STEP_FREQ_Z				(uint32_t)(MAX_REV_SPEED_Z * STEPS_PER_REV_Z)
-#define MAX_STEP_FREQ_E				(uint32_t)(MAX_REV_SPEED_E * STEPS_PER_REV_E)
-
-/// used for G0 rapid moves and as a cap for all other feedrates [mm / min].
-#define MAXIMUM_FEEDRATE_X			(uint32_t)(60 * MAX_REV_SPEED_X * FEED_PER_REV_X)
-#define MAXIMUM_FEEDRATE_Y			(uint32_t)(60 * MAX_REV_SPEED_Y * FEED_PER_REV_Y)
-#define MAXIMUM_FEEDRATE_Z			(uint32_t)(60 * MAX_REV_SPEED_Z * FEED_PER_REV_Z)
-#define MAXIMUM_FEEDRATE_E			(uint32_t)(60 * MAX_REV_SPEED_E * FEED_PER_REV_E)
-
-/// used when searching endstops and as default feedrate [mm / min].
-#define SEARCH_FEEDRATE_X			(uint32_t)((SEARCH_FEED_FRACTION_X) * MAXIMUM_FEEDRATE_X)
-#define SEARCH_FEEDRATE_Y			(uint32_t)((SEARCH_FEED_FRACTION_Y) * MAXIMUM_FEEDRATE_Y)
-#define SEARCH_FEEDRATE_Z			(uint32_t)((SEARCH_FEED_FRACTION_Z) * MAXIMUM_FEEDRATE_Z)
-// no SEARCH_FEEDRATE_E, as E can't be searched
-
 /***********  E N D   O F   D R I V E  T R A I N   C O N F I G U R A T I O N  ************/
 
 
@@ -243,7 +211,7 @@
 
 /// how fast to accelerate when using ACCELERATION_RAMPING, given in mm/s^2
 /// decimal allowed, useful range 1. to 10'000, typical range 10. to 100.
-#define ACCELERATION 10.
+#define ACCELERATION 400.
 
 /** \def ACCELERATION_TEMPORAL
 	temporal step algorithm
@@ -279,7 +247,7 @@
 	internal pullup resistors
 		the ATmega has internal pullup resistors on it's input pins which are counterproductive with the commonly used eletronic endstops, so they should be switched off. For other endstops, like mechanical ones, you may want to uncomment this.
 */
-//#define USE_INTERNAL_PULLUPS
+#define USE_INTERNAL_PULLUPS
 
 /*
 	This is for the RAMPS v1.3 shield
@@ -466,7 +434,7 @@ DEFINE_HEATER( extruder,	PB4)
 		Redundant when using RepRap Host for sending GCode, but mandatory when sending GCode files with a plain terminal emulator, like GtkTerm (Linux), CoolTerm (Mac) or HyperTerminal (Windows).
 		Can also be set in Makefile
 */
-// #define	XONXOFF
+#define	XONXOFF
 
 
 
@@ -482,7 +450,7 @@ DEFINE_HEATER( extruder,	PB4)
 		WARNING: this WILL break most host-side talkers that expect particular responses from firmware such as reprap host and replicatorG
 		use with serial terminal or other suitable talker only.
 */
-// #define	DEBUG
+#define	DEBUG
 
 /** \def BANG_BANG
 BANG_BANG
