@@ -37,6 +37,15 @@
 // no SEARCH_FEEDRATE_E, as E can't be searched
 
 /// Step period definitions for homing code
+
+// beware to use only partial axis speed when approaching the switch because
+// we've got no acceleration implemented here!
+#define HOME_FEED			600		/*[mm/min]*/
+// use fixed feed of 120 [mm/min] to run from the switch (assume any
+// axis can run at this speed)
+#define RELEASE_FEED		120		/*[mm/min]*/
+#define RELEASE_DISTANCE	5.0 	/*[mm]*/
+
 #define HOME_FAST_STEP_PERIOD_X			(uint32_t) FEED_STEP_IN_US( X, HOME_FEED)
 #define HOME_SLOW_STEP_PERIOD_X			(uint32_t) FEED_STEP_IN_US( X, RELEASE_FEED)
 #define HOME_FAST_STEP_PERIOD_Y			(uint32_t) FEED_STEP_IN_US( Y, HOME_FEED)
