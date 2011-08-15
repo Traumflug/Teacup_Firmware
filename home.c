@@ -37,18 +37,18 @@ void home_x_negative() {
 	x_enable();
 
 	#if defined X_MIN_PIN
-		uint8_t	denoise_count = 0;
+		uint8_t	debounce_count = 0;
 
 		// home X
 		x_enable();
 		// hit home hard
 		x_direction(0);
-		while (denoise_count < 8) {
-			// denoise
+		while (debounce_count < 8) {
+			// debounce
 			if (x_min())
-				denoise_count++;
+				debounce_count++;
 			else
-				denoise_count = 0;
+				debounce_count = 0;
 			// step
 			x_step();
 			delay(5);
@@ -56,7 +56,7 @@ void home_x_negative() {
 			// wait until next step time
 			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_X / ((float) MAXIMUM_FEEDRATE_X)));
 		}
-		denoise_count = 0;
+		debounce_count = 0;
 
 		// back off slowly
 		x_direction(1);
@@ -85,18 +85,18 @@ void home_x_positive() {
 	x_enable();
 
 	#if defined X_MAX_PIN
-		uint8_t	denoise_count = 0;
+		uint8_t	debounce_count = 0;
 
 		// home X
 		x_enable();
 		// hit home hard
 		x_direction(1);
-		while (denoise_count < 8) {
-			// denoise
+		while (debounce_count < 8) {
+			// debounce
 			if (x_max())
-				denoise_count++;
+				debounce_count++;
 			else
-				denoise_count = 0;
+				debounce_count = 0;
 			// step
 			x_step();
 			delay(5);
@@ -104,7 +104,7 @@ void home_x_positive() {
 			// wait until next step time
 			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_X / ((float) MAXIMUM_FEEDRATE_X)));
 		}
-		denoise_count = 0;
+		debounce_count = 0;
 
 		// back off slowly
 		x_direction(0);
@@ -133,18 +133,18 @@ void home_y_negative() {
 	y_enable();
 
 	#if defined Y_MIN_PIN
-		uint8_t	denoise_count = 0;
+		uint8_t	debounce_count = 0;
 
 		// home Y
 		y_enable();
 		// hit home hard
 		y_direction(0);
-		while (denoise_count < 8) {
-			// denoise
+		while (debounce_count < 8) {
+			// debounce
 			if (y_min())
-				denoise_count++;
+				debounce_count++;
 			else
-				denoise_count = 0;
+				debounce_count = 0;
 			// step
 			y_step();
 			delay(5);
@@ -152,7 +152,7 @@ void home_y_negative() {
 			// wait until neyt step time
 			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Y / ((float) MAXIMUM_FEEDRATE_Y)));
 		}
-		denoise_count = 0;
+		debounce_count = 0;
 
 		// back off slowly
 		y_direction(1);
@@ -181,18 +181,18 @@ void home_y_positive() {
 	y_enable();
 
 	#if defined Y_MAX_PIN
-		uint8_t	denoise_count = 0;
+		uint8_t	debounce_count = 0;
 
 		// home Y
 		y_enable();
 		// hit home hard
 		y_direction(1);
-		while (denoise_count < 8) {
-			// denoise
+		while (debounce_count < 8) {
+			// debounce
 			if (y_max())
-				denoise_count++;
+				debounce_count++;
 			else
-				denoise_count = 0;
+				debounce_count = 0;
 			// step
 			y_step();
 			delay(5);
@@ -200,7 +200,7 @@ void home_y_positive() {
 			// wait until neyt step time
 			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Y / ((float) MAXIMUM_FEEDRATE_Y)));
 		}
-		denoise_count = 0;
+		debounce_count = 0;
 
 		// back off slowly
 		y_direction(0);
@@ -229,18 +229,18 @@ void home_z_negative() {
 	z_enable();
 
 	#if defined Z_MIN_PIN
-		uint8_t	denoise_count = 0;
+		uint8_t	debounce_count = 0;
 
 		// home Z
 		z_enable();
 		// hit home hard
 		z_direction(0);
-		while (denoise_count < 8) {
-			// denoise
+		while (debounce_count < 8) {
+			// debounce
 			if (z_min())
-				denoise_count++;
+				debounce_count++;
 			else
-				denoise_count = 0;
+				debounce_count = 0;
 			// step
 			z_step();
 			delay(5);
@@ -248,7 +248,7 @@ void home_z_negative() {
 			// wait until next step time
 			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Z / ((float) MAXIMUM_FEEDRATE_Z)));
 		}
-		denoise_count = 0;
+		debounce_count = 0;
 
 		// back off slowly
 		z_direction(1);
@@ -278,18 +278,18 @@ void home_z_positive() {
 	z_enable();
 
 	#if defined Z_MAX_PIN
-		uint8_t	denoise_count = 0;
+		uint8_t	debounce_count = 0;
 
 		// home Z
 		z_enable();
 		// hit home hard
 		z_direction(1);
-		while (denoise_count < 8) {
-			// denoise
+		while (debounce_count < 8) {
+			// debounce
 			if (z_max())
-				denoise_count++;
+				debounce_count++;
 			else
-				denoise_count = 0;
+				debounce_count = 0;
 			// step
 			z_step();
 			delay(5);
@@ -297,7 +297,7 @@ void home_z_positive() {
 			// wait until next step time
 			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Z / ((float) MAXIMUM_FEEDRATE_Z)));
 		}
-		denoise_count = 0;
+		debounce_count = 0;
 
 		// back off slowly
 		z_direction(0);

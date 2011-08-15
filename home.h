@@ -1,4 +1,5 @@
 #ifndef	_HOME_H
+#define _HOME_H
 
 void home(void);
 

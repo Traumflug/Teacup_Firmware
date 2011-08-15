@@ -24,27 +24,22 @@
 #undef DEFINE_TEMP_SENSOR
 
 #ifdef AIO8_PIN
-	#define	AINDEX_MASK	0x1F
-	#define	AINDEX_MAX 15
-	#define	AINDEX_CURRENT ((ADMUX & 0x07) | ((ADCSRB & MASK(MUX5))?0x08:0))
+static volatile uint16_t adc_result[ 16] __attribute__ ((__section__ (".bss")));
 #else
-	#define	AINDEX_MASK	0x0F
-	#define	AINDEX_MAX 7
-	#define	AINDEX_CURRENT (ADMUX & 0x07)
+static volatile uint16_t adc_result[ 8] __attribute__ ((__section__ (".bss")));
 #endif
-
-static uint8_t adc_counter;
-static volatile uint16_t adc_result[AINDEX_MAX + 1] __attribute__ ((__section__ (".bss")));
 
 //! Configure all registers, start interrupt loop
 void analog_init() {
 	if (analog_mask > 0) {
+		// clear ADC bit in power reduction register because of ADC use.
 		#ifdef	PRR
 			PRR &= ~MASK(PRADC);
 		#elif defined PRR0
 			PRR0 &= ~MASK(PRADC);
 		#endif
 
+		// select reference signal to use, set right adjusted results and select ADC input 0
 		ADMUX = REFERENCE;
 
 		// ADC frequency must be less than 200khz or we lose precision. At 16MHz system clock, we must use the full prescale value of 128 to get an ADC clock of 125khz.
@@ -53,13 +48,18 @@ void analog_init() {
 			ADCSRB = 0;
 		#endif
 
-		adc_counter = 0;
-
+		// clear analog inputs in the data direction register(s)
 		AIO0_DDR &= ~analog_mask;
+		#ifdef	AIO8_DDR
+			AIO8_DDR &= ~(analog_mask >> 8);
+		#endif
+
+		// disable the analog inputs for digital use.
 		DIDR0 = analog_mask & 0xFF;
 		#ifdef	DIDR2
 			DIDR2 = (analog_mask >> 8) & 0xFF;
 		#endif
+
 		// now we start the first conversion and leave the rest to the interrupt
 		ADCSRA |= MASK(ADIE) | MASK(ADSC);
 	} /* analog_mask > 0 */
@@ -70,28 +70,40 @@ void analog_init() {
 	This is where we read our analog value and store it in an array for later retrieval
 */
 ISR(ADC_vect, ISR_NOBLOCK) {
-	// emulate free-running mode but be more deterministic about exactly which result we have, since this project has long-running interrupts
-	if (analog_mask > 0) {
-		// store next result
-		adc_result[AINDEX_CURRENT] = ADC;
 
-		// find next channel
-		do {
-			adc_counter++;
-			adc_counter &= AINDEX_MAX;
-		} while ((analog_mask & (1 << adc_counter)) == 0);
+	static uint8_t 	adc_counter = 0;
+#ifdef	AIO8_PIN
+	int16_t adc_channel_mask = (1 << adc_counter);
+#else
+	int8_t	adc_channel_mask = (1 << adc_counter);
+#endif
 
-		// start next conversion
-		ADMUX = (adc_counter & 0x07) | REFERENCE;
-		#ifdef	MUX5
-			if (adc_counter & 0x08)
-				ADCSRB |= MASK(MUX5);
-			else
-				ADCSRB &= ~MASK(MUX5);
-		#endif
+	// Store the latest result in the array
+	adc_result[ adc_counter] = ADC;
 
-		ADCSRA |= MASK(ADSC);
-	}
+	// Determine the next active channel for selection, use the sign of the
+	// register to detect the last channel.
+	do {
+		if (adc_channel_mask < 0) {
+			// wrap around from msb to lsb
+			adc_channel_mask = 1;
+			adc_counter = 0;
+		} else {
+			adc_channel_mask <<= 1;
+			adc_counter	+= 1;
+		}
+	} while ((analog_mask & adc_channel_mask) == 0);
+
+	// Set the input multiplexer to the next input. In case of a 16 channel mux, the most
+	// significant selection bit is in the ADCSRB register and all orther bits in that
+	// register can be cleared.
+	ADMUX = (adc_counter & 0x07) | REFERENCE;
+	#ifdef	MUX5
+		ADCSRB = adc_counter & 0x08;
+	#endif
+
+	// After the mux has been set, start a new conversion 
+	ADCSRA |= MASK(ADSC);
 }
 
 /*! Read analog value from saved result array
