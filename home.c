@@ -57,15 +57,11 @@ typedef enum {
 	home_z_max = (1 << 5)
 } homing_t;
 
-// These values are read-only for the ISR and write only for the application.
-// Don't change these while the timer is in use!
+// These values are used by the ISR and write only for the application.
+// Don't change these while the timer is generating interrupts!
 static uint8_t 	timer_interval;
 static uint8_t 	running_axis;
-#if 0
 static uint16_t pulse_limit;
-#else
-static uint16_t pulse_limit __attribute__ ((__section__ (".bss")));
-#endif
 static uint8_t 	limit_switch_state;  // set to 1 to run to switch, 0 to run from the switch
 
 /// timer0 comparator B is used to generate the step pulse active period
@@ -201,6 +197,13 @@ static void step_axis_until_switch( uint8_t axis, uint16_t step_period, uint8_t 
 	TCNT0 = 0;
 	OCR0A = timer_interval;
 	TIFR0 = MASK( OCF0A) | MASK( OCF0B);	// clear any pending interrupt(s)
+	// Several variables used by the ISR aren't declared volatile to allow the compiler to
+	// optimize the code. As a result of this, a variable may be kept in a processor register
+	// until the need arises (if ever) to write it to memory.
+	// With the barrier we enforce the compiler to update the memory image, so that
+	// the ISR has access to these variables.
+	// We do this just before the ISR will access them.
+	MEMORY_BARRIER();
 	TIMSK0 = MASK( OCIE0A);					// enable compare mask A interrupt
 	
 	do {
@@ -298,16 +301,12 @@ static void run_home_one_axis( uint8_t axis)
 		// limit number of pulses to physical range with a small
 		// offset for truncation and prescaler implementation.
 		pulse_limit = 2 + (max_pulses_on_axis >> 8);
-		MEMORY_BARRIER();	// prevent data corruption because of compiler bug(s)
 		// hit home hard
 		step_axis_until_switch( axis, fast_step_period, 1 /* until switch is activated */);
 	}
 	axis_direction( axis, 1 	/* move away from switch */);
 	// limit number of pulses
 	pulse_limit = 2 + (max_pulses_for_release >> 8);
-	// 20110814 SJL - Without this barrier, homing doesn't work correctly: It looks like
-	// pulse_limit gets corrupted (not written or cleared).
-	MEMORY_BARRIER();
 	// back off slowly
 	step_axis_until_switch( axis, slow_step_period, 0 /* until switch is released */);
 }
