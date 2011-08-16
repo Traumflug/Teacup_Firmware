@@ -30,7 +30,7 @@ void main( void)
 	printf( "                                   X-axis         Y-axis         Z-axis         E-axis           units\n");
 	printf( "config.h:\n");
 	PRINT_INT_XYZE( STEPS_PER_REV_, "[steps/rev]");
-	PRINT_FLOAT_XYZE( FEED_PER_REV_, "[mm/dev]");
+	PRINT_FLOAT_XYZE( FEED_PER_REV_, "[mm/rev]");
 	PRINT_FLOAT_XYZE( STEPS_PER_MM_, "[steps/mm]");
 	PRINT_FLOAT_XYZE( MAX_REV_SPEED_, "[rev/sec]");
 	PRINT_INT_XYZE( MAX_STEP_FREQ_, "[steps/sec]");
