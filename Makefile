@@ -149,8 +149,7 @@ size: $(PROGRAM).elf
 
 config.h: config.h.dist
 	@echo "Please review config.h, as config.h.dist is more recent."
-	@echo
-	@diff -bBEuF '^. [[:digit:]]. [[:upper:]]' config.h config.h.dist
+	@echo "To view the differences, run: diff -bBEu config.h config.h.dist
 	@false
 
 doc: Doxyfile *.c *.h
