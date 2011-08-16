@@ -37,16 +37,35 @@
 // no SEARCH_FEEDRATE_E, as E can't be searched
 
 /// Step period definitions for homing code
-#define HOME_FAST_STEP_PERIOD_X			(uint32_t) FEED_STEP_IN_US( X, HOME_FEED)
-#define HOME_SLOW_STEP_PERIOD_X			(uint32_t) FEED_STEP_IN_US( X, RELEASE_FEED)
-#define HOME_FAST_STEP_PERIOD_Y			(uint32_t) FEED_STEP_IN_US( Y, HOME_FEED)
-#define HOME_SLOW_STEP_PERIOD_Y			(uint32_t) FEED_STEP_IN_US( Y, RELEASE_FEED)
-#define HOME_FAST_STEP_PERIOD_Z			(uint32_t) FEED_STEP_IN_US( Z, HOME_FEED)
-#define HOME_SLOW_STEP_PERIOD_Z			(uint32_t) FEED_STEP_IN_US( Z, RELEASE_FEED)
+
+// beware to use only partial axis speed when approaching the switch because
+// we've got no acceleration implemented here!
+#define HOME_FEED			600		/*[mm/min]*/
+// use fixed feed of 120 [mm/min] to run from the switch (assume any
+// axis can run at this speed)
+#define RELEASE_FEED		120		/*[mm/min]*/
+#define RELEASE_DISTANCE	5.0 	/*[mm]*/
+
+#define LIMIT_FEED( feed, limit)	( ((feed) < (limit)) ? (feed) : (limit) )
+
+#define HOME_FEED_FAST_X			LIMIT_FEED( (HOME_FEED), SEARCH_FEEDRATE_X)
+#define HOME_FEED_FAST_Y			LIMIT_FEED( (HOME_FEED), SEARCH_FEEDRATE_Y)
+#define HOME_FEED_FAST_Z			LIMIT_FEED( (HOME_FEED), SEARCH_FEEDRATE_Z)
+
+#define HOME_FEED_SLOW_X			LIMIT_FEED( (RELEASE_FEED), SEARCH_FEEDRATE_X)
+#define HOME_FEED_SLOW_Y			LIMIT_FEED( (RELEASE_FEED), SEARCH_FEEDRATE_Y)
+#define HOME_FEED_SLOW_Z			LIMIT_FEED( (RELEASE_FEED), SEARCH_FEEDRATE_Z)
+
+#define HOME_FAST_STEP_PERIOD_X		FEED_TO_US_STEP( X, HOME_FEED_FAST_X)
+#define HOME_SLOW_STEP_PERIOD_X		FEED_TO_US_STEP( X, HOME_FEED_SLOW_X)
+#define HOME_FAST_STEP_PERIOD_Y		FEED_TO_US_STEP( Y, HOME_FEED_FAST_Y)
+#define HOME_SLOW_STEP_PERIOD_Y		FEED_TO_US_STEP( Y, HOME_FEED_SLOW_Y)
+#define HOME_FAST_STEP_PERIOD_Z		FEED_TO_US_STEP( Z, HOME_FEED_FAST_Z)
+#define HOME_SLOW_STEP_PERIOD_Z		FEED_TO_US_STEP( Z, HOME_FEED_SLOW_Z)
 
 // G.P. conversion macros
-#define FEED_TO_US_STEP( axis, feed)	(60000000 / ((feed) * STEPS_PER_MM_ ## axis))
-#define FEED_STEP_IN_US( axis, feed)	FEED_TO_US_STEP( axis, (feed < SEARCH_FEEDRATE_ ## axis) ? feed : SEARCH_FEEDRATE_ ## axis)
+#define FEED_TO_US_STEP( axis, feed)	(uint32_t)(60000000 / ((feed) * (STEPS_PER_MM_ ## axis)))
+#define US_STEP_TO_FEED( axis, period)	(uint32_t)(60000000 / ((period) * (STEPS_PER_MM_ ## axis)))
 
 // good old HP35 had no PI, so I'll never forget these numbers :-)
 #define PI               			((float) 355 / 113)

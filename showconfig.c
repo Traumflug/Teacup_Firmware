@@ -10,11 +10,15 @@
 
 #include "config.h"
 #include "dda.h"
+#include "home.h"
+
 
 #define PRINT_INT_XYZ( macro, units) printf( "   %-25s  %10d     %10d     %10d            n/a          %s\n", \
 		# macro, macro ## X, macro ## Y, macro ## Z, units);
 #define PRINT_INT_XYZE( macro, units) printf( "   %-25s  %10d     %10d     %10d     %10d          %s\n", \
 		# macro, macro ## X, macro ## Y, macro ## Z, macro ## E, units);
+#define PRINT_LONG_XYZ( macro, units) printf( "   %-25s  %10ld     %10ld     %10ld            n/a          %s\n", \
+		# macro, macro ## X, macro ## Y, macro ## Z, units);
 #define PRINT_LONG_XYZE( macro, units) printf( "   %-25s  %10ld     %10ld     %10ld     %10ld          %s\n", \
 		# macro, macro ## X, macro ## Y, macro ## Z, macro ## E, units);
 #define PRINT_FLOAT_XYZE( macro, units) printf( "   %-25s      %10.3f     %10.3f     %10.3f     %10.3f      %s\n", \
@@ -35,6 +39,12 @@ void main( void)
 
 	printf( "dda.h:\n");
 	PRINT_LONG_XYZE( UM_PER_STEP_, "[um/step]");
+
+	printf( "homing speeds:\n");
+	PRINT_INT_XYZ( HOME_FEED_FAST_, "[mm/min]");
+	PRINT_INT_XYZ( HOME_FEED_SLOW_, "[mm/min]");
+	PRINT_INT_XYZ( HOME_FAST_STEP_PERIOD_, "[us]");
+	PRINT_INT_XYZ( HOME_SLOW_STEP_PERIOD_, "[us]");
 
 	printf( "\n");
 	exit( 0);
