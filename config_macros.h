@@ -48,8 +48,6 @@
 #define FEED_TO_US_STEP( axis, feed)	(60000000 / ((feed) * STEPS_PER_MM_ ## axis))
 #define FEED_STEP_IN_US( axis, feed)	FEED_TO_US_STEP( axis, (feed < SEARCH_FEEDRATE_ ## axis) ? feed : SEARCH_FEEDRATE_ ## axis)
 
-#define EXTRUSION_GAIN				((FILAMENT_DIAM_IN * FILAMENT_DIAM_IN) \
-									 / (FILAMENT_DIAM_OUT * FILAMENT_DIAM_OUT))
 // good old HP35 had no PI, so I'll never forget these numbers :-)
 #define PI               			((float) 355 / 113)
 

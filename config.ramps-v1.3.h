@@ -147,8 +147,7 @@
 
 /// The feed for one motor axis revolution [mm / rev].
 /// http://blog.arcol.hu/?p=157 may help with this one
-#define FEED_PER_REV_E				(double)(PI * EXTRUDER_FEED_AXIS_DIAM \
-										* EXTRUSION_GAIN / EXTRUDER_REDUCTION)
+#define FEED_PER_REV_E				(double)(PI * EXTRUDER_FEED_AXIS_DIAM / EXTRUDER_REDUCTION)
 
 #elif defined EXTRUDER_MENDEL
 #	error "Please add your extruder hardware characteristics here"
