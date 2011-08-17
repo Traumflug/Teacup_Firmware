@@ -32,7 +32,7 @@
 #include	"pinio.h"
 #ifdef DEBUG
 #include	"sersendf.h"
-//#undef DEBUG
+#undef DEBUG
 #endif
 #include	"memory_barrier.h"
 
