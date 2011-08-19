@@ -1,4 +1,6 @@
-/* Notice to developers: this file is intentionally included twice. */
+/* Notice to developers: this file is intentionally included multiple times! */
+
+#include "config_macros.h"
 
 /** \file
  \brief RAMPS v1.3 Sample Configuration
@@ -45,8 +47,6 @@
 */
 #define	HOST
 
-#include "config_macros.h"
-
 /**********  B E G I N   O F   D R I V E  T R A I N   C O N F I G U R A T I O N  *********/
 /*
 	Values reflecting the gearing of your machine.
@@ -92,70 +92,18 @@
  *  or ask some help to do so.                            *
  *********************************************************/
 
-//#define MODEL_MENDEL
-#define MODEL_PRUSA
-//#define MODEL_HUXLEY
-//#define MODEL_DARWIN
+#include "prusa_mech.h"
 
-//#define EXTRUDER_MENDEL
-#define EXTRUDER_WADE
-//#define EXTRUDER_ADRIAN
+// Override some dimensions from prusa_mech.h
+#undef  X_AXIS_TRAVEL
+#define	X_AXIS_TRAVEL				220.0
+#undef  Z_AXIS_TRAVEL
+#define	Z_AXIS_TRAVEL				95.0
 
-/**********************************************************
- *  Select your printer and extruder from the ones below. *
- *  If your model is missing, add it yourself or ask      *
- *  help to do so.                                        *
- *********************************************************/
+// Override hobbed bolt diameter from wades_extruder.h
+#define EXTRUDER_FEED_AXIS_DIAM		7.9
 
-#define EXTRUSION_GAIN				((FILAMENT_DIAM_IN * FILAMENT_DIAM_IN) \
-									 / (FILAMENT_DIAM_OUT * FILAMENT_DIAM_OUT))
-// good old HP35 had no PI, so I'll never forget these numbers :-)
-#define PI               			((float) 355 / 113)
-
-///////////////////////////////////////////////////////////
-// The printers:
-
-#if defined MODEL_PRUSA
-
-/// Drive train characteristics for PRUSA:
-#define TEETH_ON_PULLEY_X			8
-#define TEETH_ON_PULLEY_Y			8
-#define TIMING_BELT_PITCH			5.0   		/* distance between two teeth */
-#define THREAD_PITCH_Z   			1.25  		/* pitch of M8 thread on threaded rod */
-
-/// The feed for one motor axis revolution [mm / rev].
-#define FEED_PER_REV_X				(double)(TEETH_ON_PULLEY_X * TIMING_BELT_PITCH)
-#define FEED_PER_REV_Y				(double)(TEETH_ON_PULLEY_Y * TIMING_BELT_PITCH)
-#define FEED_PER_REV_Z				(double)(THREAD_PITCH_Z)
-
-#elif defined MODEL_MENDEL
-#	error "Please add your printer hardware characteristics here"
-#elif defined MODEL_DARWIN
-#	error "Please add your printer hardware characteristics here"
-#else
-#   error "Please select a printer model !"
-#endif
-
-///////////////////////////////////////////////////////////
-// The Extruders:
-
-#if defined EXTRUDER_WADE
-
-/// Drive train characteristics for Wade's extruder:
-#define EXTRUDER_FEED_AXIS_DIAM		7.9   		/* effective diameter of hobbed axis (nom.) */
-#define EXTRUDER_REDUCTION			((double)39 / 11)  	/* for geared Wade extruder */
-
-/// The feed for one motor axis revolution [mm / rev].
-/// http://blog.arcol.hu/?p=157 may help with this one
-#define FEED_PER_REV_E				(double)(PI * EXTRUDER_FEED_AXIS_DIAM / EXTRUDER_REDUCTION)
-
-#elif defined EXTRUDER_MENDEL
-#	error "Please add your extruder hardware characteristics here"
-#elif defined EXTRUDER_ADRIAN
-#	error "Please add your extruder hardware characteristics here"
-#else
-#	error "Please select an extruder model !"
-#endif
+#include "wades_extruder.h"
 
 
 /***********  E N D   O F   D R I V E  T R A I N   C O N F I G U R A T I O N  ************/
@@ -171,13 +119,13 @@
 */
 
 #define	X_MIN			0.0
-#define	X_MAX			200.0
+#define	X_MAX			(X_MIN + X_AXIS_TRAVEL)
 
 #define	Y_MIN			0.0
-#define	Y_MAX			200.0
+#define	Y_MAX			(Y_MIN + Y_AXIS_TRAVEL)
 
 #define	Z_MIN			0.0
-#define	Z_MAX			140.0
+#define	Z_MAX			(Z_MIN + Y_AXIS_TRAVEL)
 
 /**	\def E_ABSOLUTE
 	Some G-Code creators produce relative length commands for the extruder, others absolute ones. G-Code using absolute lengths can be recognized when there are G92 E0 commands from time to time. If you have G92 E0 in your G-Code, define this flag.
@@ -474,13 +422,6 @@ PWM value for 'off'
 		however, a larger movebuffer will probably help with lots of short consecutive moves, as each move takes a bunch of math (hence time) to set up so a longer buffer allows more of the math to be done during preceding longer moves
 */
 #define	MOVEBUFFER_SIZE	8
-
-/** \def DC_EXTRUDER
-	DC extruder
-		If you have a DC motor extruder, configure it as a "heater" above and define this value as the index or name. You probably also want to comment out E_STEP_PIN and E_DIR_PIN in the Pinouts section above
-*/
-// #define	DC_EXTRUDER HEATER_motor
-// #define	DC_EXTRUDER_PWM	180
 
 /** \def USE_WATCHDOG
 	Teacup implements a watchdog, which has to be reset every 250ms or it will reboot the controller. As rebooting (and letting the GCode sending application trying to continue the build with a then different Home point) is probably even worse than just hanging, and there is no better restore code in place, this is disabled for now.
