@@ -43,8 +43,8 @@
 #define HOME_FEED			600		/*[mm/min]*/
 // use fixed feed of 120 [mm/min] to run from the switch (assume any
 // axis can run at this speed)
-#define RELEASE_FEED		120		/*[mm/min]*/
-#define RELEASE_DISTANCE	5.0 	/*[mm]*/
+#define RELEASE_FEED		 20		/*[mm/min]*/
+#define RELEASE_DISTANCE	2.0 	/*[mm]*/
 
 #define LIMIT_FEED( feed, limit)	( ((feed) < (limit)) ? (feed) : (limit) )
 
@@ -57,10 +57,11 @@
 #define HOME_FEED_SLOW_Z			LIMIT_FEED( (RELEASE_FEED), SEARCH_FEEDRATE_Z)
 
 #define HOME_FAST_STEP_PERIOD_X		FEED_TO_US_STEP( X, HOME_FEED_FAST_X)
-#define HOME_SLOW_STEP_PERIOD_X		FEED_TO_US_STEP( X, HOME_FEED_SLOW_X)
 #define HOME_FAST_STEP_PERIOD_Y		FEED_TO_US_STEP( Y, HOME_FEED_FAST_Y)
-#define HOME_SLOW_STEP_PERIOD_Y		FEED_TO_US_STEP( Y, HOME_FEED_SLOW_Y)
 #define HOME_FAST_STEP_PERIOD_Z		FEED_TO_US_STEP( Z, HOME_FEED_FAST_Z)
+
+#define HOME_SLOW_STEP_PERIOD_X		FEED_TO_US_STEP( X, HOME_FEED_SLOW_X)
+#define HOME_SLOW_STEP_PERIOD_Y		FEED_TO_US_STEP( Y, HOME_FEED_SLOW_Y)
 #define HOME_SLOW_STEP_PERIOD_Z		FEED_TO_US_STEP( Z, HOME_FEED_SLOW_Z)
 
 // G.P. conversion macros
