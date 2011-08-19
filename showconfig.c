@@ -36,6 +36,7 @@ void main( void)
 	PRINT_INT_XYZE( MAX_STEP_FREQ_, "[steps/sec]");
 	PRINT_INT_XYZE( MAXIMUM_FEEDRATE_, "[mm/min]");
 	PRINT_INT_XYZ( SEARCH_FEEDRATE_, "[mm/min]");
+	PRINT_INT_XYZE( MIN_CLOCKS_PER_STEP_, "[clocks/step]");
 
 	printf( "dda.h:\n");
 	PRINT_LONG_XYZE( UM_PER_STEP_, "[um/step]");

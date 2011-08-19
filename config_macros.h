@@ -67,10 +67,15 @@
 // G.P. conversion macros
 #define FEED_TO_US_STEP( axis, feed)	(uint32_t)(60000000 / ((feed) * (STEPS_PER_MM_ ## axis)))
 #define US_STEP_TO_FEED( axis, period)	(uint32_t)(60000000 / ((period) * (STEPS_PER_MM_ ## axis)))
+#define MIN_CLOCKS_PER_STEP( axis)	(uint32_t)(F_CPU / MAX_STEP_FREQ_ ## axis)
 
 // good old HP35 had no PI, so I'll never forget these numbers :-)
 #define PI               			((float) 355 / 113)
 
+#define MIN_CLOCKS_PER_STEP_X		MIN_CLOCKS_PER_STEP( X)
+#define MIN_CLOCKS_PER_STEP_Y		MIN_CLOCKS_PER_STEP( Y)
+#define MIN_CLOCKS_PER_STEP_Z		MIN_CLOCKS_PER_STEP( Z)
+#define MIN_CLOCKS_PER_STEP_E		MIN_CLOCKS_PER_STEP( E)
 
 #endif // _CONFIG_MACROS_H
 
