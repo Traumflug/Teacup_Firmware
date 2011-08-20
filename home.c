@@ -32,7 +32,7 @@
 #include	"pinio.h"
 #ifdef DEBUG
 #include	"sersendf.h"
-#undef DEBUG
+//#undef DEBUG
 #endif
 #include	"memory_barrier.h"
 
@@ -60,6 +60,7 @@ typedef enum {
 // These values are used by the ISR and write only for the application.
 // Don't change these while the timer is generating interrupts!
 static uint8_t 	timer_interval;
+static uint8_t 	end_timer_interval;
 static uint8_t 	running_axis;
 static uint16_t pulse_limit;
 static uint8_t 	limit_switch_state;  // set to 1 to run to switch, 0 to run from the switch
@@ -83,7 +84,7 @@ ISR(TIMER0_COMPB_vect)
 ISR(TIMER0_COMPA_vect)
 {
 	static uint8_t debounce_count = 0;
-	static uint8_t pulse_limit_prescaler = 0;
+	static uint8_t pulse_limit_prescaler = 0;	// 1:256 prescaler
 	uint8_t timestamp = OCR0A;
 	uint8_t switch_state = 255;	// init to illegal state (to keep compiler happy)
 	// determine applicable limit switch state
@@ -125,6 +126,9 @@ ISR(TIMER0_COMPA_vect)
 			_z_step( 1);
 		}
 		// set output compare A interrupt to start the next step pulse
+		if (timer_interval > end_timer_interval && (pulse_limit_prescaler & 31) == 0) {
+			timer_interval -= 1;
+		}
 		OCR0A = (timestamp + timer_interval) & 0xFF;
 		// set output compare B interrupt to end the current step pulse (approx. 50% D.C.)
 		OCR0B = (timestamp + (timer_interval / 2)) & 0xFF;
@@ -135,22 +139,25 @@ ISR(TIMER0_COMPA_vect)
 // Use timer0 to generate stepping pulses for homing operations.
 // Run until the appropriate limit switch gets activated or released, as selected
 // by switch_state.
-static void step_axis_until_switch( uint8_t axis, uint16_t step_period, uint8_t switch_state)
+static void step_axis_until_switch( uint8_t axis, uint16_t start_step_period, uint16_t end_step_period, uint8_t switch_state)
 {
 #ifdef DEBUG
-	sersendf_P( PSTR( "step_axis_until_switch( axis = %u, step_period = %u, switch_state = %u)\n"), axis, step_period, switch_state);
+	sersendf_P( PSTR( "step_axis_until_switch( axis = %u, step_period = [%u -> %u] switch_state = %u)\n"), axis, start_step_period, end_step_period, switch_state);
 #endif
 
 	// determine the minimum prescaler needed (to run with maximum resolution)
 	// take the prescaler on the safe side (larger than needed)
-	uint16_t 	min_prescale 	= 1 + step_period / (256 * 1000000 / F_CPU);
+	uint16_t 	min_prescale 	= 1 + start_step_period / (256 * 1000000 / F_CPU);
 	uint8_t		prescaler_shift	= 0;
 	uint8_t		prescaler_mask	= 0;
 
 	if (min_prescale >= 256) {
 		if (min_prescale >= 1024) {
-			// can't step this slow, clip!
-			step_period = (uint16_t) ((1000000.0 * 255 * 1024) / F_CPU);
+			// can't step this slow, clip values below threshold
+			start_step_period = (uint16_t) ((1000000.0 * 255 * 1024) / F_CPU);
+			if (end_step_period > start_step_period) {
+				end_step_period = start_step_period;
+			}
 		}
 		// use clk/1024
 		prescaler_shift	= 10;
@@ -178,13 +185,14 @@ static void step_axis_until_switch( uint8_t axis, uint16_t step_period, uint8_t 
 #endif
 
 //	original formula: timer_interval [-] = 1 + period [us] / (1000000 [us/s] * prescaler [-] / F_CPU [1/s]);
-	timer_interval = 1 + (((F_CPU / 1000000) * step_period) >> prescaler_shift);
+	timer_interval     = 1 + (((F_CPU / 1000000) * start_step_period) >> prescaler_shift);
+	end_timer_interval = 1 + (((F_CPU / 1000000) * end_step_period  ) >> prescaler_shift);
 
 	// set expected signal on home switch
 	limit_switch_state = switch_state;		// used by ISR
 
 #ifdef DEBUG
-	sersendf_P( PSTR( "timer_interval = %u, pulse_limit = %lu\n"), timer_interval, ((uint32_t)pulse_limit << 8));
+	sersendf_P( PSTR( "timer_interval = [%u -> %u], pulse_limit = %lu\n"), timer_interval, end_timer_interval, ((uint32_t)pulse_limit << 8));
 #endif
 
 	running_axis = axis;	// for the ISR to use
@@ -305,6 +313,8 @@ static void run_home_one_axis( uint8_t axis, uint32_t feed)
 		max_pulses_on_axis 		= (uint32_t)((Z_MAX - Z_MIN) * STEPS_PER_MM_Z);
 		max_pulses_for_release 	= (uint32_t)(RELEASE_DISTANCE * STEPS_PER_MM_Z);
 	}
+	// 12.5% extra for inaccurate _MAX and _MIN settings
+	max_pulses_on_axis 			= (9 * max_pulses_on_axis) / 8;
 	// prevent unpredictable behaviour caused by bit loss from too large values
 	// make the clipped values recognizable in the debug output
 	if (fast_step_period & 0xffff0000) {
@@ -325,13 +335,16 @@ static void run_home_one_axis( uint8_t axis, uint32_t feed)
 		// offset for truncation and prescaler implementation.
 		pulse_limit = 2 + (max_pulses_on_axis >> 8);
 		// hit home hard
-		step_axis_until_switch( axis, fast_step_period, 1 /* until switch is activated */);
+		step_axis_until_switch( axis, 2 * fast_step_period, fast_step_period, 1 /* until switch is activated */);
 	}
+	// Allow mechanics to stabilize
+	delay_ms( 500);
+	// Slowly move in opposite direction until the switch is released
 	axis_direction( axis, 1 	/* move away from switch */);
 	// limit number of pulses
 	pulse_limit = 2 + (max_pulses_for_release >> 8);
 	// back off slowly
-	step_axis_until_switch( axis, slow_step_period, 0 /* until switch is released */);
+	step_axis_until_switch( axis, slow_step_period, slow_step_period, 0 /* until switch is released */);
 }
 
 /// home the selected axis to the selected limit switch.
@@ -436,4 +449,5 @@ void home_z_positive( uint32_t feed) {
 			current_position.Z = 0;
 	#endif
 }
+
 
