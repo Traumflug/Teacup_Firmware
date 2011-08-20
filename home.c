@@ -255,7 +255,7 @@ static void axis_direction( uint8_t axis, uint8_t from_limit)
 
 // Execute the actual homing operation. The hardware selected with the 'axis'
 // variable must exist or we'll fail miserably, so filter before calling here!
-static void run_home_one_axis( uint8_t axis)
+static void run_home_one_axis( uint8_t axis, uint32_t feed)
 {
 	uint32_t 	fast_step_period 		=  75;	// init to keep compiler happy
 	uint32_t 	slow_step_period 		= 250;	// init to keep compiler happy
@@ -263,20 +263,43 @@ static void run_home_one_axis( uint8_t axis)
 	uint32_t	max_pulses_for_release 	=   0;	// init to keep compiler happy
 	uint8_t		limit_switch_state 		=   0;	// init to keep compiler happy
 
+	// TODO: handle undefined _MIN and _MAX values!
+
 	if (axis == home_x_min || axis == home_x_max) {
+#if 1
+		if (feed > MAXIMUM_FEEDRATE_X) {
+			feed = MAXIMUM_FEEDRATE_X;			
+		}
+		fast_step_period		= (uint32_t) 1 + (60000000L / STEPS_PER_MM_X) / feed;
+#else
 		fast_step_period 		= (uint32_t) HOME_FAST_STEP_PERIOD_X;
+#endif
 		slow_step_period 		= (uint32_t) HOME_SLOW_STEP_PERIOD_X;
 		limit_switch_state 		= (axis & home_x_max) ? x_max() : x_min();
 		max_pulses_on_axis 		= (uint32_t)((X_MAX - X_MIN) * STEPS_PER_MM_X);
 		max_pulses_for_release 	= (uint32_t)(RELEASE_DISTANCE * STEPS_PER_MM_X);
 	} else if (axis == home_y_min || axis == home_y_max) {
+#if 1
+		if (feed > MAXIMUM_FEEDRATE_Y) {
+			feed = MAXIMUM_FEEDRATE_Y;			
+		}
+		fast_step_period		= (uint32_t) 1 + (60000000L / STEPS_PER_MM_Y) / feed;
+#else
 		fast_step_period 		= (uint32_t) HOME_FAST_STEP_PERIOD_Y;
+#endif
 		slow_step_period 		= (uint32_t) HOME_SLOW_STEP_PERIOD_Y;
 		limit_switch_state 		= (axis & home_y_max) ? y_max() : y_min();
 		max_pulses_on_axis 		= (uint32_t)((Y_MAX - Y_MIN) * STEPS_PER_MM_Y);
 		max_pulses_for_release 	= (uint32_t)(RELEASE_DISTANCE * STEPS_PER_MM_Y);
 	} else if (axis == home_z_min || axis == home_z_max) {
+#if 1
+		if (feed > MAXIMUM_FEEDRATE_Z) {
+			feed = MAXIMUM_FEEDRATE_Z;			
+		}
+		fast_step_period		= (uint32_t) 1 + (60000000L / STEPS_PER_MM_Z) / feed;
+#else
 		fast_step_period 		= (uint32_t) HOME_FAST_STEP_PERIOD_Z;
+#endif
 		slow_step_period 		= (uint32_t) HOME_SLOW_STEP_PERIOD_Z;
 		limit_switch_state 		= (axis & home_z_max) ? z_max() : z_min();
 		max_pulses_on_axis 		= (uint32_t)((Z_MAX - Z_MIN) * STEPS_PER_MM_Z);
@@ -313,21 +336,21 @@ static void run_home_one_axis( uint8_t axis)
 
 /// home the selected axis to the selected limit switch.
 // keep all preprocessor configuration stuff at or below this level.
-static void home_one_axis( uint8_t axis) {
+static void home_one_axis( uint8_t axis, uint32_t feed) {
 
 	// get ready for the action
 	power_on();
 	queue_wait();
 
 	// move to a limit switch or sensor
-	run_home_one_axis( axis);
+	run_home_one_axis( axis, feed);
 
 }
 
 /// find X MIN endstop
-void home_x_negative() {
+void home_x_negative( uint32_t feed) {
 	#if defined X_MIN_PIN
-		home_one_axis( home_x_min);
+		home_one_axis( home_x_min, feed);
 	#endif
 	// reference 'home' position to current position
 	#ifdef X_MIN
@@ -340,9 +363,9 @@ void home_x_negative() {
 }
 
 /// find X_MAX endstop
-void home_x_positive() {
+void home_x_positive( uint32_t feed) {
 	#if defined X_MAX_PIN
-		home_one_axis( home_x_max);
+		home_one_axis( home_x_max, feed);
 	#endif
 	// reference 'home' position to current position
 	#ifdef X_MAX
@@ -355,9 +378,9 @@ void home_x_positive() {
 }
 
 /// find Y MIN endstop
-void home_y_negative() {
+void home_y_negative( uint32_t feed) {
 	#if defined Y_MIN_PIN
-		home_one_axis( home_y_min);
+		home_one_axis( home_y_min, feed);
 	#endif
 	// reference 'home' position to current position
 	#ifdef Y_MIN
@@ -370,9 +393,9 @@ void home_y_negative() {
 }
 
 /// find Y MAX endstop
-void home_y_positive() {
+void home_y_positive( uint32_t feed) {
 	#if defined Y_MAX_PIN
-		home_one_axis( home_y_max);
+		home_one_axis( home_y_max, feed);
 	#endif
 	// reference 'home' position to current position
 	#ifdef Y_MAX
@@ -385,9 +408,9 @@ void home_y_positive() {
 }
 
 /// find Z MIN endstop
-void home_z_negative() {
+void home_z_negative( uint32_t feed) {
 	#if defined Z_MIN_PIN
-		home_one_axis( home_z_min);
+		home_one_axis( home_z_min, feed);
 	#endif
 	// reference 'home' position to current position
 	#ifdef Z_MIN
@@ -400,9 +423,9 @@ void home_z_negative() {
 }
 
 /// find Z MAX endstop
-void home_z_positive() {
+void home_z_positive( uint32_t feed) {
 	#if defined Z_MAX_PIN
-		home_one_axis( home_z_max);
+		home_one_axis( home_z_max, feed);
 	#endif
 	// reference 'home' position to current position
 	#ifdef Z_MAX

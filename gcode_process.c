@@ -329,11 +329,11 @@ void process_gcode_command() {
 				//?
 				//? Find the minimum limit of the specified axes by searching for the limit switch.
 				if (next_target.seen_X)
-					home_x_negative();
+					home_x_negative( next_target.target.F);
 				if (next_target.seen_Y)
-					home_y_negative();
+					home_y_negative( next_target.target.F);
 				if (next_target.seen_Z)
-					home_z_negative();
+					home_z_negative( next_target.target.F);
 				break;
 			// G162 - Home positive
 			case 162:
@@ -341,11 +341,11 @@ void process_gcode_command() {
 				//?
 				//? Find the maximum limit of the specified axes by searching for the limit switch.
 				if (next_target.seen_X)
-					home_x_positive();
+					home_x_positive( next_target.target.F);
 				if (next_target.seen_Y)
-					home_y_positive();
+					home_y_positive( next_target.target.F);
 				if (next_target.seen_Z)
-					home_z_positive();
+					home_z_positive( next_target.target.F);
 				break;
 
 				// unknown gcode: spit an error
