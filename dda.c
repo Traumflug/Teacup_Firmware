@@ -213,7 +213,8 @@ void dda_create(DDA *dda, TARGET *target) {
 	dda->e_direction = (target->E >= startpoint.E)?1:0;
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-		sersendf_P(PSTR("%ld,%ld,%ld,%ld] ["), target->X - startpoint.X, target->Y - startpoint.Y, target->Z - startpoint.Z, target->E - startpoint.E);
+		sersendf_P(PSTR("%c%ld,%c%ld,%c%ld,%c%ld] ["), (dda->x_direction)? '+' : '-', dda->x_delta, (dda->y_direction)? '+' : '-', dda->y_delta,
+												 (dda->z_direction)? '+' : '-', dda->z_delta, (dda->e_direction)? '+' : '-', dda->e_delta);
 
 	// Determine the largest stepcount from all the axes.
 	dda->total_steps = dda->x_delta;
