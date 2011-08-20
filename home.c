@@ -295,7 +295,7 @@ static void run_home_one_axis( uint8_t axis)
 	}
 	// enable stepper and set proper direction
 	axis_enable( axis);
-	// Move to the switch, but skip this action if the limit switch is already activated.
+	// Fast move towards the switch, but skip this action if the switch is already activated.
 	if (limit_switch_state == 0) {
 		axis_direction( axis, 0 /* move towards the switch */);
 		// limit number of pulses to physical range with a small
@@ -314,7 +314,6 @@ static void run_home_one_axis( uint8_t axis)
 /// home the selected axis to the selected limit switch.
 // keep all preprocessor configuration stuff at or below this level.
 static void home_one_axis( uint8_t axis) {
-	TARGET t = { 0};		// keep the compiler happy
 
 	// get ready for the action
 	power_on();
@@ -323,113 +322,20 @@ static void home_one_axis( uint8_t axis) {
 	// move to a limit switch or sensor
 	run_home_one_axis( axis);
 
-	// determine home coordinates
-	switch (axis) {
-#if defined X_MIN_PIN
-	case home_x_min:
-		// set home
-		#ifdef X_MIN
-			startpoint.X =
-				current_position.X = (int32_t) (X_MIN * STEPS_PER_MM_X);
-		#else
-			startpoint.X =
-				current_position.X = 0;
-		#endif
-		// prepare a home move
-		t 	= startpoint;
-		t.X = 0;
-		t.F = MAXIMUM_FEEDRATE_X;
-		break;
-#endif
-#if defined Y_MIN_PIN
-	case home_y_min:
-		// set home
-		#ifdef Y_MIN
-			startpoint.Y =
-				current_position.Y = (int32_t) (Y_MIN * STEPS_PER_MM_Y);
-		#else
-			startpoint.Y =
-				current_position.Y = 0;
-		#endif
-		// prepare a home move
-		t 	= startpoint;
-		t.Y = 0;
-		t.F = MAXIMUM_FEEDRATE_Y;
-		break;
-#endif
-#if defined Z_MIN_PIN
-	case home_z_min:
-		// set home
-		#ifdef Z_MIN
-			startpoint.Z =
-				current_position.Z = (int32_t) (Z_MIN * STEPS_PER_MM_Z);
-		#else
-			startpoint.Z =
-				current_position.Z = 0;
-		#endif
-		// prepare a home move
-		t 	= startpoint;
-		t.Z = 0;
-		t.F = MAXIMUM_FEEDRATE_Z;
-		break;
-#endif
-#if defined X_MAX_PIN
-	case home_x_max:
-		// set home
-		#ifdef X_MAX
-			startpoint.X =
-				current_position.X = (int32_t) (X_MAX * STEPS_PER_MM_X);
-		#else
-			startpoint.X =
-				current_position.X = 0;
-		#endif
-		// prepare a home move
-		t 	= startpoint;
-		t.X = 0;
-		t.F = MAXIMUM_FEEDRATE_X;
-		break;
-#endif
-#if defined Y_MAX_PIN
-	case home_y_max:
-		// set home
-		#ifdef Y_MAX
-			startpoint.Y =
-				current_position.Y = (int32_t) (Y_MAX * STEPS_PER_MM_Y);
-		#else
-			startpoint.Y =
-				current_position.Y = 0;
-		#endif
-		// prepare a home move
-		t 	= startpoint;
-		t.Y = 0;
-		t.F = MAXIMUM_FEEDRATE_Y;
-		break;
-#endif
-#if defined Z_MAX_PIN
-	case home_z_max:
-		// set home
-		#ifdef Z_MAX
-			startpoint.Z =
-				current_position.Z = (int32_t) (Z_MAX * STEPS_PER_MM_Z);
-		#else
-			startpoint.Z =
-				current_position.Z = 0;
-		#endif
-		// prepare a home move
-		t 	= startpoint;
-		t.Z = 0;
-		t.F = MAXIMUM_FEEDRATE_Z;
-		break;
-#endif
-	}
-	// move to home coordinate
-	enqueue( &t);
 }
 
 /// find X MIN endstop
 void home_x_negative() {
 	#if defined X_MIN_PIN
 		home_one_axis( home_x_min);
+	#endif
+	// reference 'home' position to current position
+	#ifdef X_MIN
+		startpoint.X =
+			current_position.X = (int32_t) (X_MIN * STEPS_PER_MM_X);
+	#else
+		startpoint.X =
+			current_position.X = 0;
 	#endif
 }
 
@@ -438,12 +344,28 @@ void home_x_positive() {
 	#if defined X_MAX_PIN
 		home_one_axis( home_x_max);
 	#endif
+	// reference 'home' position to current position
+	#ifdef X_MAX
+		startpoint.X =
+			current_position.X = (int32_t) (X_MAX * STEPS_PER_MM_X);
+	#else
+		startpoint.X =
+			current_position.X = 0;
+	#endif
 }
 
 /// find Y MIN endstop
 void home_y_negative() {
 	#if defined Y_MIN_PIN
 		home_one_axis( home_y_min);
+	#endif
+	// reference 'home' position to current position
+	#ifdef Y_MIN
+		startpoint.Y =
+			current_position.Y = (int32_t) (Y_MIN * STEPS_PER_MM_Y);
+	#else
+		startpoint.Y =
+			current_position.Y = 0;
 	#endif
 }
 
@@ -452,12 +374,28 @@ void home_y_positive() {
 	#if defined Y_MAX_PIN
 		home_one_axis( home_y_max);
 	#endif
+	// reference 'home' position to current position
+	#ifdef Y_MAX
+		startpoint.Y =
+			current_position.Y = (int32_t) (Y_MAX * STEPS_PER_MM_Y);
+	#else
+		startpoint.Y =
+			current_position.Y = 0;
+	#endif
 }
 
 /// find Z MIN endstop
 void home_z_negative() {
 	#if defined Z_MIN_PIN
 		home_one_axis( home_z_min);
+	#endif
+	// reference 'home' position to current position
+	#ifdef Z_MIN
+		startpoint.Z =
+			current_position.Z = (int32_t) (Z_MIN * STEPS_PER_MM_Z);
+	#else
+		startpoint.Z =
+			current_position.Z = 0;
 	#endif
 }
 
@@ -466,26 +404,13 @@ void home_z_positive() {
 	#if defined Z_MAX_PIN
 		home_one_axis( home_z_max);
 	#endif
-}
-
-/// home all 3 axes
-void home() {
-	#if defined	X_MIN_PIN
-		home_x_negative();
-	#elif defined X_MAX_PIN
-		home_x_positive();
-	#endif
-
-	#if defined	Y_MIN_PIN
-		home_y_negative();
-	#elif defined Y_MAX_PIN
-		home_y_positive();
-	#endif
-
-	#if defined Z_MAX_PIN
-		home_z_positive();
-	#elif defined	Z_MIN_PIN
-		home_z_negative();
+	// reference 'home' position to current position
+	#ifdef Z_MAX
+		startpoint.Z =
+			current_position.Z = (int32_t) (Z_MAX * STEPS_PER_MM_Z);
+	#else
+		startpoint.Z =
+			current_position.Z = 0;
 	#endif
 }
 
