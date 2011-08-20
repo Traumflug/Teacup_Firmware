@@ -240,9 +240,15 @@ void dda_create(DDA *dda, TARGET *target) {
 		e_enable();
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
-		if (dda->z_delta == 0)
-			distance = approx_distance_2d(dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y);
-		else if (dda->x_delta == 0 && dda->y_delta == 0)
+		if (dda->z_delta == 0) {
+			if (dda->x_delta == 0) {
+				distance = dda->y_delta * UM_PER_STEP_Y;
+			} else if (dda->y_delta == 0) {
+				distance = dda->x_delta * UM_PER_STEP_X;
+			} else {
+				distance = approx_distance_2d( dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y);
+			}
+		} else if (dda->x_delta == 0 && dda->y_delta == 0)
 			distance = dda->z_delta * UM_PER_STEP_Z;
 		else
 			distance = approx_distance_3d( dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y, dda->z_delta * UM_PER_STEP_Z);
