@@ -50,13 +50,13 @@ MOVE_STATE move_state __attribute__ ((__section__ (".bss")));
 
 // courtesy of http://www.flipcode.com/archives/Fast_Approximate_Distance_Functions.shtml
 /*! linear approximation 2d distance formula
-	\param dx distance in X plane
-	\param dy distance in Y plane
+	\param dx distance in X plane [um]
+	\param dy distance in Y plane [um]
 	\return 3-part linear approximation of \f$\sqrt{\Delta x^2 + \Delta y^2}\f$
 
 	see http://www.flipcode.com/archives/Fast_Approximate_Distance_Functions.shtml
 */
-uint32_t approx_distance( uint32_t dx, uint32_t dy )
+uint32_t approx_distance_2d( uint32_t dx, uint32_t dy )
 {
 	uint32_t min, max, approx;
 
@@ -86,7 +86,7 @@ uint32_t approx_distance( uint32_t dx, uint32_t dy )
 
 	see http://www.oroboro.com/rafael/docserv.php/index/programming/article/distance
 */
-uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz )
+uint32_t approx_distance_3d( uint32_t dx, uint32_t dy, uint32_t dz )
 {
 	uint32_t min, med, max, approx;
 
@@ -173,6 +173,7 @@ void dda_init(void) {
 
 	#ifdef ACCELERATION_RAMPING
 		move_state.n = 1;
+		// TODO: where does this formula come from? The units don't match!
 		move_state.c = ((uint32_t)((double)F_CPU / sqrt((double)(STEPS_PER_MM_X * ACCELERATION)))) << 8;
 	#endif
 }
@@ -214,6 +215,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 		sersendf_P(PSTR("%ld,%ld,%ld,%ld] ["), target->X - startpoint.X, target->Y - startpoint.Y, target->Z - startpoint.Z, target->E - startpoint.E);
 
+	// Determine the largest stepcount from all the axes.
 	dda->total_steps = dda->x_delta;
 	if (dda->y_delta > dda->total_steps)
 		dda->total_steps = dda->y_delta;
@@ -239,11 +241,11 @@ void dda_create(DDA *dda, TARGET *target) {
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
 		if (dda->z_delta == 0)
-			distance = approx_distance(dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y);
+			distance = approx_distance_2d(dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y);
 		else if (dda->x_delta == 0 && dda->y_delta == 0)
 			distance = dda->z_delta * UM_PER_STEP_Z;
 		else
-			distance = approx_distance_3(dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y, dda->z_delta * UM_PER_STEP_Z);
+			distance = approx_distance_3d( dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y, dda->z_delta * UM_PER_STEP_Z);
 
 		if (distance < 2)
 			distance = dda->e_delta * UM_PER_STEP_E;
