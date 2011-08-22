@@ -345,7 +345,7 @@ void process_gcode_command() {
 			case 0:
 				//? --- M0: machine stop ---
 				//?
-				//? Example: M112
+				//? Example: M0
 				//?
 				//? http://linuxcnc.org/handbook/RS274NGC_3/RS274NGC_33a.html#1002379
 				//? Unimplemented, especially the restart after the stop. Fall trough to M2.
@@ -353,6 +353,8 @@ void process_gcode_command() {
 
 			case 2:
 				//? --- M2: program end ---
+				//?
+				//? Example: M2
 				//?
 				//? http://linuxcnc.org/handbook/RS274NGC_3/RS274NGC_33a.html#1002379
 				//?
