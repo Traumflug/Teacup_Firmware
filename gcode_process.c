@@ -354,13 +354,21 @@ void process_gcode_command() {
 		switch (next_target.M) {
 			// M0- machine stop
 			case 0:
+				//? ==== M0: machine stop ====
+				//?
+				//? Example: M112
+				//?
+				//? http://linuxcnc.org/handbook/RS274NGC_3/RS274NGC_33a.html#1002379
+				//? Unimplemented, especially the restart after the stop. Fall trough to M2.
+
 			// M2- program end
 			case 2:
 				//? ==== M2: program end ====
 				//?
-				//? Undocumented.
+				//? http://linuxcnc.org/handbook/RS274NGC_3/RS274NGC_33a.html#1002379
 				queue_wait();
-				// no break- we fall through to M112 below
+				power_off();
+				break;
 			// M112- immediate stop
 			case 112:
 				//? ==== M112: Emergency Stop ====
