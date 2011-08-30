@@ -327,7 +327,8 @@ DEFINE_HEATER(bed,			PB4)
 	Undefine it for best human readability, set it to an old date for compatibility with hosts before August 2010
 */
 // #define REPRAP_HOST_COMPATIBILITY 19750101
-#define REPRAP_HOST_COMPATIBILITY 20100806
+// #define REPRAP_HOST_COMPATIBILITY 20100806
+// #define REPRAP_HOST_COMPATIBILITY 20110509
 // #define REPRAP_HOST_COMPATIBILITY <date of next RepRap Host compatibility break>
 
 /**
