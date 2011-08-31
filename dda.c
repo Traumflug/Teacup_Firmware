@@ -247,19 +247,19 @@ void dda_create(DDA *dda, TARGET *target) {
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
 		if (dda->z_delta == 0) {
 			if (dda->x_delta == 0) {
-				distance = dda->y_delta * UM_PER_STEP_Y;
+				distance = STEPS_TO_UM( Y, dda->y_delta);
 			} else if (dda->y_delta == 0) {
-				distance = dda->x_delta * UM_PER_STEP_X;
+				distance = STEPS_TO_UM( X, dda->x_delta);
 			} else {
-				distance = approx_distance_2d( dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y);
+				distance = approx_distance_2d( STEPS_TO_UM( X, dda->x_delta), STEPS_TO_UM( Y, dda->y_delta));
 			}
 		} else if (dda->x_delta == 0 && dda->y_delta == 0)
-			distance = dda->z_delta * UM_PER_STEP_Z;
+			distance = STEPS_TO_UM( Z, dda->z_delta);
 		else
-			distance = approx_distance_3d( dda->x_delta * UM_PER_STEP_X, dda->y_delta * UM_PER_STEP_Y, dda->z_delta * UM_PER_STEP_Z);
+			distance = approx_distance_3d( STEPS_TO_UM( X, dda->x_delta), STEPS_TO_UM( Y, dda->y_delta), STEPS_TO_UM( Z, dda->z_delta));
 
 		if (distance < 2)
-			distance = dda->e_delta * UM_PER_STEP_E;
+			distance = STEPS_TO_UM( E, dda->e_delta);
 
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",ds:%lu"), distance);

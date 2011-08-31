@@ -23,11 +23,16 @@
 		# macro, macro ## X, macro ## Y, macro ## Z, macro ## E, units);
 #define PRINT_FLOAT_XYZE( macro, units) printf( "   %-25s      %10.3f     %10.3f     %10.3f     %10.3f      %s\n", \
 		# macro, macro ## X, macro ## Y, macro ## Z, macro ## E, units);
+#define PRINT_FLOAT_XYZ( macro, units) printf( "   %-25s      %10.3f     %10.3f     %10.3f                     %s\n", \
+		# macro, macro ## X, macro ## Y, macro ## Z, units);
 
 void main( void)
 {
 	printf( "\nThese are the actual values as defined in config.h and other header files:\n\n");
 	printf( "                                   X-axis         Y-axis         Z-axis         E-axis           units\n");
+	printf( "mechanical:\n");
+	PRINT_FLOAT_XYZ( AXIS_TRAVEL_, "[mm]");
+	
 	printf( "config.h:\n");
 	PRINT_INT_XYZE( STEPS_PER_REV_, "[steps/rev]");
 	PRINT_FLOAT_XYZE( FEED_PER_REV_, "[mm/rev]");

@@ -121,13 +121,13 @@
 */
 
 #define	X_MIN			0.0
-#define	X_MAX			(X_MIN + X_AXIS_TRAVEL)
+#define	X_MAX			(X_MIN + AXIS_TRAVEL_X)
 
 #define	Y_MIN			0.0
-#define	Y_MAX			(Y_MIN + Y_AXIS_TRAVEL)
+#define	Y_MAX			(Y_MIN + AXIS_TRAVEL_Y)
 
 #define	Z_MIN			0.0
-#define	Z_MAX			(Z_MIN + Y_AXIS_TRAVEL)
+#define	Z_MAX			(Z_MIN + AXIS_TRAVEL_Z)
 
 /**	\def E_ABSOLUTE
 	Some G-Code creators produce relative length commands for the extruder, others absolute ones. G-Code using absolute lengths can be recognized when there are G92 E0 commands from time to time. If you have G92 E0 in your G-Code, define this flag.
