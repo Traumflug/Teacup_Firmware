@@ -286,9 +286,12 @@ void dda_create(DDA *dda, TARGET *target) {
 #ifndef NEW_DDA_CALCULATIONS
 			uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
 #else
-			#define TIME_SCALING	16000		// -> IOclocks / ms
+			#define TIME_SCALING	(F_CPU / 1000)		// -> IOclocks / ms
 			// The compiler won't optimize this correctly, so do it manually:
-			// uint32_t move_duration = (uint32_t) ((double) distance * 60.0 * 1000.0 * ((double) F_CPU / 1000000.0) / 16000.0);
+
+
+			// move_duration = (uint32_t) (distance * 60 * 1000 * (F_CPU / 1000000.0) / TIME_SCALING)
+
 			uint32_t move_duration = distance * 60;
 #endif
 
