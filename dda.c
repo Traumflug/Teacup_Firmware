@@ -208,9 +208,9 @@ void dda_create(DDA *dda, TARGET *target) {
 	// initialise DDA to a known state
 	dda->allflags = 0;
 
-	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+	if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
 		serial_writestr_P(PSTR("\n{DDA_CREATE: ["));
-
+	}
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
@@ -225,8 +225,11 @@ void dda_create(DDA *dda, TARGET *target) {
 	dda->e_direction = (target->E >= startpoint.E)?1:0;
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-		sersendf_P(PSTR("%c%ld,%c%ld,%c%ld,%c%ld] ["), (dda->x_direction)? '+' : '-', dda->x_delta, (dda->y_direction)? '+' : '-', dda->y_delta,
-												 (dda->z_direction)? '+' : '-', dda->z_delta, (dda->e_direction)? '+' : '-', dda->e_delta);
+		sersendf_P(PSTR("%c%ld,%c%ld,%c%ld,%c%ld] ["),
+			(dda->x_direction)? '+' : '-', dda->x_delta,
+			(dda->y_direction)? '+' : '-', dda->y_delta,
+			(dda->z_direction)? '+' : '-', dda->z_delta,
+			(dda->e_direction)? '+' : '-', dda->e_delta );
 
 	// Determine the largest stepcount from all the axes.
 	dda->total_steps = dda->x_delta;
@@ -300,6 +303,9 @@ void dda_create(DDA *dda, TARGET *target) {
 			uint32_t move_duration = distance * 60;
 #endif
 		#endif
+
+		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+			sersendf_P(PSTR(",md:%lu"), move_duration);
 
 		// similarly, find out how fast we can run our axes.
 		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
@@ -445,6 +451,9 @@ void dda_create(DDA *dda, TARGET *target) {
 			// TODO: (remove later) The new code started with the move_duration, that's why we're done here!
 			dda->c_min = c_limit << 8;
 #endif
+			if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+				sersendf_P(PSTR(",c-:%lu"), dda->c_min);
+			}
 			// overflows at target->F > 65535; factor 16. found by try-and-error; will overshoot target speed a bit
 			dda->rampup_steps = target->F * target->F / (uint32_t)(STEPS_PER_MM_X * ACCELERATION / 16.);
 			// If move is too short for full ramp-up and ramp-down, clip ramping.
