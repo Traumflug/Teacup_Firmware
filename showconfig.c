@@ -23,7 +23,7 @@
 		# macro, macro ## X, macro ## Y, macro ## Z, macro ## E, units);
 #define PRINT_FLOAT_XYZE( macro, units) printf( "   %-25s      %10.3f     %10.3f     %10.3f     %10.3f      %s\n", \
 		# macro, macro ## X, macro ## Y, macro ## Z, macro ## E, units);
-#define PRINT_FLOAT_XYZ( macro, units) printf( "   %-25s      %10.3f     %10.3f     %10.3f                     %s\n", \
+#define PRINT_FLOAT_XYZ( macro, units) printf( "   %-25s      %10.3f     %10.3f     %10.3f        n/a          %s\n", \
 		# macro, macro ## X, macro ## Y, macro ## Z, units);
 
 void main( void)
@@ -32,6 +32,7 @@ void main( void)
 	printf( "                                   X-axis         Y-axis         Z-axis         E-axis           units\n");
 	printf( "mechanical:\n");
 	PRINT_FLOAT_XYZ( AXIS_TRAVEL_, "[mm]");
+	PRINT_INT_XYZE( MICROSTEPPING_, "[-]");
 	
 	printf( "config.h:\n");
 	PRINT_INT_XYZE( STEPS_PER_REV_, "[steps/rev]");
