@@ -27,6 +27,7 @@ typedef enum {
 	TT_AD595,
 	TT_PT100,
 	TT_INTERCOM,
+	TT_NONE,
 	TT_DUMMY,
 } temp_type_t;
 

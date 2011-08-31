@@ -239,12 +239,13 @@ temperature is "achieved" for purposes of M109 and friends when actual temperatu
 */
 #define	TEMP_RESIDENCY_TIME		60
 
-/// which temperature sensors are you using? (intercom is the gen3-style separate extruder board)
+/// which temperature sensors are you using? List every type of sensor you use here once, to enable the appropriate code. Intercom is the gen3-style separate extruder board.
 // #define	TEMP_MAX6675
 #define	TEMP_THERMISTOR
 // #define	TEMP_AD595
 // #define	TEMP_PT100
 // #define	TEMP_INTERCOM
+// #define	TEMP_NONE
 
 /***************************************************************************\
 *                                                                           *
@@ -253,7 +254,7 @@ temperature is "achieved" for purposes of M109 and friends when actual temperatu
 * for GEN3 set temp_type to TT_INTERCOM and temp_pin to 0                   *
 *                                                                           *
 * Types are same as TEMP_ list above- TT_MAX6675, TT_THERMISTOR, TT_AD595,  *
-*   TT_PT100, TT_INTERCOM. See list in temp.c.                              *
+*   TT_PT100, TT_INTERCOM, TT_NONE. See list in temp.c.                     *
 *                                                                           *
 \***************************************************************************/
 
@@ -295,6 +296,10 @@ DEFINE_TEMP_SENSOR( extruder,	TT_THERMISTOR,	AIO13_PIN,	THERMISTOR_EXTRUDER)
 *   name - copy+paste is your friend                                        *
 *                                                                           *
 * Some common names are 'extruder', 'bed', 'fan', 'motor'                   *
+*                                                                           *
+* A milling spindle can also be defined as a heater. Attach it to a         *
+* temperature sensor of TT_NONE, then you can control the spindle's rpm     *
+* via temperature commands. M104 S1..255 for spindle on, M104 S0 for off.   *
 *                                                                           *
 \***************************************************************************/
 
@@ -393,7 +398,7 @@ PWM value for 'off'
 
 /** \def DC_EXTRUDER
 	DC extruder
-		If you have a DC motor extruder, configure it as a "heater" above and define this value as the index or name. You probably also want to comment out E_STEP_PIN and E_DIR_PIN in the Pinouts section above
+		If you have a DC motor extruder, configure it as a "heater" above and define this value as the index or name. You probably also want to comment out E_STEP_PIN and E_DIR_PIN in the Pinouts section above.
 */
 // #define	DC_EXTRUDER HEATER_motor
 // #define	DC_EXTRUDER_PWM	180

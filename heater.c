@@ -190,7 +190,7 @@ void heater_save_settings() {
 	\param current_temp the temperature that the associated temp sensor is reporting
 	\param target_temp the temperature we're trying to achieve
 */
-void heater_tick(heater_t h, temp_sensor_t t, uint16_t current_temp, uint16_t target_temp) {
+void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t target_temp) {
 	uint8_t		pid_output;
 
 	#ifndef	BANG_BANG
@@ -199,13 +199,21 @@ void heater_tick(heater_t h, temp_sensor_t t, uint16_t current_temp, uint16_t ta
 		int16_t		t_error = target_temp - current_temp;
 	#endif	/* BANG_BANG */
 
-	if (h >= NUM_HEATERS || t >= NUM_TEMP_SENSORS)
+	if (h >= NUM_HEATERS)
 		return;
 
 	if (target_temp == 0) {
 		heater_set(h, 0);
 		return;
 	}
+
+	#ifdef TEMP_NONE
+		if (type == TT_NONE) {
+			// it's something like a milling spindle
+			heater_set(h, target_temp >> 2);
+			return;
+		}
+	#endif /* TEMP_NONE */
 
 	#ifndef	BANG_BANG
 		heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer++] = current_temp;
