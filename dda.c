@@ -454,13 +454,49 @@ void dda_create(DDA *dda, TARGET *target) {
 			if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
 				sersendf_P(PSTR(",c-:%lu"), dda->c_min);
 			}
-			// overflows at target->F > 65535; factor 16. found by try-and-error; will overshoot target speed a bit
-			dda->rampup_steps = target->F * target->F / (uint32_t)(STEPS_PER_MM_X * ACCELERATION / 16.);
+			// 20110819 modmaker - Calculation of the length of the ramps.
+			// 
+			// The profile is always symetrical (i.e. ramp up and ramp down have
+			// the same slope, defined by ACCELERATION).
+			//
+			// This is a very tricky calculation to do in 32 bits as all precision is
+			// needed to get the correct number of steps. If bits are lost and the
+			// number is small, the reached feed will be too low.
+			// 
+			// Do this calculation in several steps so it's easy to detect overflow
+			// when debug is on.
+			uint32_t x = (F_CPU / c_limit);						// (24 - 11..12) -> 12..13 bits
+			if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+				sersendf_P(PSTR(",(x:%lu"), x);
+			}
+			x *= x;												// + (24 - 11..12) -> 24..26 bits
+			if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+				sersendf_P(PSTR("->%lu"), x);
+			}
+			x >>= 12;	/* scale down but keep precision! */	// - 12 -> 12..14 bits
+			if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+				sersendf_P(PSTR("->%lu"), x);
+			}
+			x *= distance;										// + 5..18 -> 17..32 bits
+			if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+				sersendf_P(PSTR("->%lu"), x);
+			}
+			// total_steps has a fixed relation to distance (um/step) !
+			x /= (((uint32_t)(2000 * ACCELERATION) >> 6) * dda->total_steps) >> 6; //    -> 0..14 bits
+			if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+				sersendf_P(PSTR("->%lu"), x);
+			}
+			dda->rampup_steps = x;
 			// If move is too short for full ramp-up and ramp-down, clip ramping.
-			if (dda->rampup_steps > dda->total_steps / 2) {
+			if (2 * dda->rampup_steps > dda->total_steps) {
 				dda->rampup_steps = dda->total_steps / 2;
 			}
+			// rampdown_steps is not actually the number of rampdown steps, but the
+			// step number at which the rampdown starts!
 			dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
+			if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+				sersendf_P(PSTR(",ru:%lu,rd:%lu"), dda->rampup_steps, dda->rampdown_steps);
+			}
 		#else
 #ifndef NEW_DDA_CALCULATIONS
 			dda->c = (move_duration / target->F) << 8;
