@@ -13,9 +13,9 @@
 #define FEED_PER_REV_Z				(double)(THREAD_PITCH_Z)
 
 /// Mechanical dimenstions [mm]
-#define	X_AXIS_TRAVEL				200.0
-#define	Y_AXIS_TRAVEL				200.0
-#define	Z_AXIS_TRAVEL				140.0
+#define	AXIS_TRAVEL_X				200.0
+#define	AXIS_TRAVEL_Y				200.0
+#define	AXIS_TRAVEL_Z				140.0
 
 #endif //  _PRUSA_MECH_H
 
