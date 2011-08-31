@@ -142,12 +142,6 @@ extern TARGET current_position;
 	methods
 */
 
-uint32_t approx_distance_2d( uint32_t dx, uint32_t dy )					__attribute__ ((hot));
-uint32_t approx_distance_3d( uint32_t dx, uint32_t dy, uint32_t dz )	__attribute__ ((hot));
-
-// const because return value is always the same given the same v
-const uint8_t	msbloc (uint32_t v)																		__attribute__ ((const));
-
 // initialize dda structures
 void dda_init(void);
 
