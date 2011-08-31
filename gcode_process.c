@@ -580,9 +580,12 @@ void process_gcode_command() {
 					// wait for all moves to complete
 					queue_wait();
 				#endif
-				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%ld"), current_position.X * ((int32_t) UM_PER_STEP_X), 
-					current_position.Y * ((int32_t) UM_PER_STEP_Y), current_position.Z * ((int32_t) UM_PER_STEP_Z),
-					current_position.E * ((int32_t) UM_PER_STEP_E), current_position.F);
+				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%ld"),
+					STEPS_TO_UM( X, current_position.X), 
+					STEPS_TO_UM( Y, current_position.Y), 
+					STEPS_TO_UM( Z, current_position.Z), 
+					STEPS_TO_UM( E, current_position.E), 
+					current_position.F);
 				// newline is sent from gcode_parse after we return
 				break;
 			// M115- capabilities string
