@@ -191,7 +191,11 @@ void dda_init(void) {
 	This algorithm is probably the main limiting factor to print speed in terms of firmware limitations
 */
 void dda_create(DDA *dda, TARGET *target) {
+#ifndef NEW_DDA_CALCULATIONS
 	uint32_t	distance, c_limit, c_limit_calc;
+#else
+	uint32_t	distance, c_limit;
+#endif
 
 	// initialise DDA to a known state
 	dda->allflags = 0;
@@ -279,11 +283,21 @@ void dda_create(DDA *dda, TARGET *target) {
 
 			// changed distance * 6000 .. * F_CPU / 100000 to
 			//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
+#ifndef NEW_DDA_CALCULATIONS
 			uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
+#else
+			#define TIME_SCALING	16000		// -> IOclocks / ms
+			// The compiler won't optimize this correctly, so do it manually:
+			// uint32_t move_duration = (uint32_t) ((double) distance * 60.0 * 1000.0 * ((double) F_CPU / 1000000.0) / 16000.0);
+			uint32_t move_duration = distance * 60;
+#endif
+
 		#endif
 
 		// similarly, find out how fast we can run our axes.
 		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
+
+#ifndef NEW_DDA_CALCULATIONS
 		c_limit = 0;
 		// check X axis
 		c_limit_calc = ( (dda->x_delta * (UM_PER_STEP_X * 2400L)) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_X) << 8;
@@ -302,12 +316,51 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
 
+#else
+
+		// Calculate the duration of the complete move as run at the specified speed.
+		// Adjust that duration for any one of the axes running above it's rated speed.
+		// This will scale all axes simultanously, resulting in the same move at reduced feed.
+
+		// Start with (an estimate of) the duration of the vectored move at the new feed.
+		// Scale back to IOclock ticks after the division by the feed.
+		uint32_t limiting_total_clock_ticks = TIME_SCALING * (move_duration / target->F);		// [IOclocks]
+		uint32_t min_total_clock_ticks;
+
+		// For each axis, determine the minimum number of IOclocks needed to run at the maximum
+		// speed. Take into account that the axis runs at a fraction of the speed of the vectored move.
+		// The maximum of these numbers and the time it takes to make the vectored move at the
+		// specified speed, determines the (limiting) speed we'll run at.
+		//
+		min_total_clock_ticks			= dda->x_delta * MIN_CLOCKS_PER_STEP_X;
+		if (min_total_clock_ticks > limiting_total_clock_ticks) {
+			limiting_total_clock_ticks	= min_total_clock_ticks;
+		}
+		min_total_clock_ticks			= dda->y_delta * MIN_CLOCKS_PER_STEP_Y;
+		if (min_total_clock_ticks > limiting_total_clock_ticks) {
+			limiting_total_clock_ticks	= min_total_clock_ticks;
+		}
+		min_total_clock_ticks			= dda->z_delta * MIN_CLOCKS_PER_STEP_Z;
+		if (min_total_clock_ticks > limiting_total_clock_ticks) {
+			limiting_total_clock_ticks	= min_total_clock_ticks;
+		}
+		min_total_clock_ticks			= dda->e_delta * MIN_CLOCKS_PER_STEP_E;
+		if (min_total_clock_ticks > limiting_total_clock_ticks) {
+			limiting_total_clock_ticks	= min_total_clock_ticks;
+		}
+		c_limit = limiting_total_clock_ticks / dda->total_steps;
+
+		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+			sersendf_P(PSTR(",c_lim:%lu"), c_limit);
+
+#endif
+
 		#ifdef ACCELERATION_REPRAP
 		// c is initial step time in IOclk ticks
-		dda->c = (move_duration / startpoint.F) << 8;
+		dda->c = (TIME_SCALING * (move_duration / startpoint.F)) << 8;
 		if (dda->c < c_limit)
 			dda->c = c_limit;
-		dda->end_c = (move_duration / target->F) << 8;
+		dda->end_c = (TIME_SCALING * (move_duration / target->F)) << 8;
 		if (dda->end_c < c_limit)
 			dda->end_c = c_limit;
 
@@ -361,18 +414,29 @@ void dda_create(DDA *dda, TARGET *target) {
 #error ACCELERATION_STEEPNESS is gone, review your config.h and use ACCELERATION
 #endif
 			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
+#ifndef NEW_DDA_CALCULATIONS
 			dda->c_min = (move_duration / target->F) << 8;
-			if (dda->c_min < c_limit)
-				dda->c_min = c_limit;
+			if (dda->c_min < c_limit << 8)
+				dda->c_min = c_limit << 8;
+#else
+			// TODO: (remove later) The new code started with the move_duration, that's why we're done here!
+			dda->c_min = c_limit << 8;
+#endif
 			// overflows at target->F > 65535; factor 16. found by try-and-error; will overshoot target speed a bit
 			dda->rampup_steps = target->F * target->F / (uint32_t)(STEPS_PER_MM_X * ACCELERATION / 16.);
-			if (dda->rampup_steps > dda->total_steps / 2)
+			// If move is too short for full ramp-up and ramp-down, clip ramping.
+			if (dda->rampup_steps > dda->total_steps / 2) {
 				dda->rampup_steps = dda->total_steps / 2;
+			}
 			dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
 		#else
+#ifndef NEW_DDA_CALCULATIONS
 			dda->c = (move_duration / target->F) << 8;
 			if (dda->c < c_limit)
 				dda->c = c_limit;
+#else
+			dda->c = c_limit << 8;
+#endif
 		#endif
 	}
 

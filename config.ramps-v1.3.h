@@ -7,6 +7,8 @@
  http://reprap.org/wiki/Arduino_Mega_Pololu_Shield
 */
 
+#define NEW_DDA_CALCULATIONS
+
 /*
 	CONTENTS
 
@@ -78,7 +80,7 @@
 /// Stepper controller characteristic: Microstep multiplier for each axis [pulses / step].
 #define MICROSTEPPING_X				8
 #define MICROSTEPPING_Y				8
-#define MICROSTEPPING_Z				2
+#define MICROSTEPPING_Z				8
 #define MICROSTEPPING_E				8
 
 /// Fraction of the maximum feed that is to be used for low-speed moves [-].
@@ -227,7 +229,7 @@
 #define	Z_DIR_PIN   					DIO48
 #define	Z_INVERT_DIR
 #define	Z_MIN_PIN   					DIO18
-//#define	Z_MAX_PIN   					DIO19
+#define	Z_MAX_PIN   					DIO19
 //#define	Z_ENABLE_PIN					AIO8
 //#define	Z_INVERT_MIN
 //#define	Z_INVERT_MAX
