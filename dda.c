@@ -288,13 +288,9 @@ void dda_create(DDA *dda, TARGET *target) {
 #else
 			#define TIME_SCALING	(F_CPU / 1000)		// -> IOclocks / ms
 			// The compiler won't optimize this correctly, so do it manually:
-
-
-			// move_duration = (uint32_t) (distance * 60 * 1000 * (F_CPU / 1000000.0) / TIME_SCALING)
-
+			//    move_duration = (uint32_t) (distance * 60 * 1000 * (F_CPU / 1000000.0) / TIME_SCALING)
 			uint32_t move_duration = distance * 60;
 #endif
-
 		#endif
 
 		// similarly, find out how fast we can run our axes.
@@ -321,6 +317,7 @@ void dda_create(DDA *dda, TARGET *target) {
 
 #else
 
+#ifndef ACCELERATION_REPRAP
 		// Calculate the duration of the complete move as run at the specified speed.
 		// Adjust that duration for any one of the axes running above it's rated speed.
 		// This will scale all axes simultanously, resulting in the same move at reduced feed.
@@ -329,7 +326,12 @@ void dda_create(DDA *dda, TARGET *target) {
 		// Scale back to IOclock ticks after the division by the feed.
 		uint32_t limiting_total_clock_ticks = TIME_SCALING * (move_duration / target->F);		// [IOclocks]
 		uint32_t min_total_clock_ticks;
-
+#else
+		// Less optimized, allows use with ACCELERATION_REPRAP
+		// In this case move_duration is not used in the calculation of c_limit.
+		uint32_t limiting_total_clock_ticks = 0;
+		uint32_t min_total_clock_ticks;
+#endif
 		// For each axis, determine the minimum number of IOclocks needed to run at the maximum
 		// speed. Take into account that the axis runs at a fraction of the speed of the vectored move.
 		// The maximum of these numbers and the time it takes to make the vectored move at the
@@ -354,7 +356,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		c_limit = limiting_total_clock_ticks / dda->total_steps;
 
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-			sersendf_P(PSTR(",c_lim:%lu"), c_limit);
+			sersendf_P(PSTR(",cl:%lu"), c_limit);
 
 #endif
 
