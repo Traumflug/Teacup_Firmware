@@ -173,8 +173,16 @@ void dda_init(void) {
 
 	#ifdef ACCELERATION_RAMPING
 		move_state.n = 1;
-		// TODO: where does this formula come from? The units don't match!
+#ifdef NEW_DDA_CALCULATIONS
+		move_state.c = 2500;	// recognizable value for debugging, actual value will be set later on!
+#else
+		// Calculate the initial step period, corrected by a factor 1/sqrt(2)
+		// to overcome the error in the first step. (See Austin)
 		move_state.c = ((uint32_t)((double)F_CPU / sqrt((double)(STEPS_PER_MM_X * ACCELERATION)))) << 8;
+		if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+			sersendf_P(PSTR("\n{DDA_INIT: [c:%ld]\n"), move_state.c >> 8);
+		}
+#endif
 	#endif
 }
 
@@ -355,6 +363,16 @@ void dda_create(DDA *dda, TARGET *target) {
 		}
 		c_limit = limiting_total_clock_ticks / dda->total_steps;
 
+		// THIS SOLVES THE BIGGEST PROBLEM: LOW SPEED
+		// 20110821 modmaker - Finally found the cause of the too low speeds:
+		//                     The single timer start value (c0) calculated in dda_init
+		// is not sufficient as it's only valid for a single axis move along the x (and y by accident).
+		// We need to calculate c0 for each move, and that implies a division and a square root operation.
+
+		dda->c0 = (F_CPU / int_sqrt( (1000 * ACCELERATION * dda->total_steps) / distance)) << 8;
+		if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+			sersendf_P(PSTR(",c0:%lu"), dda->c0 >> 8);
+		}
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",cl:%lu"), c_limit);
 
@@ -498,6 +516,10 @@ void dda_start(DDA *dda) {
 		#ifdef ACCELERATION_RAMPING
 			move_state.step_no = 0;
 		#endif
+
+		# ifdef NEW_DDA_CALCULATIONS
+			move_state.c = dda->c0;
+		# endif
 
 		// ensure this dda starts
 		dda->live = 1;

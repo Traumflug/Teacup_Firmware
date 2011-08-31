@@ -117,6 +117,10 @@ typedef struct {
 	uint32_t					rampdown_steps;
 	/// 24.8 fixed point timer value, maximum speed
 	uint32_t					c_min;
+	# ifdef NEW_DDA_CALCULATIONS
+	/// 24.8 fixed point timer value, initial counter value
+	uint32_t					c0;
+	# endif
 	#endif
 } DDA;
 
