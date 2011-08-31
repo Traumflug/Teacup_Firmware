@@ -264,16 +264,22 @@ void dda_create(DDA *dda, TARGET *target) {
 			} else {
 				distance = approx_distance_2d( STEPS_TO_UM( X, dda->x_delta), STEPS_TO_UM( Y, dda->y_delta));
 			}
-		} else if (dda->x_delta == 0 && dda->y_delta == 0)
+		} else if (dda->x_delta == 0 && dda->y_delta == 0) {
 			distance = STEPS_TO_UM( Z, dda->z_delta);
-		else
+		} else {
 			distance = approx_distance_3d( STEPS_TO_UM( X, dda->x_delta), STEPS_TO_UM( Y, dda->y_delta), STEPS_TO_UM( Z, dda->z_delta));
-
-		if (distance < 2)
-			distance = STEPS_TO_UM( E, dda->e_delta);
-
-		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-			sersendf_P(PSTR(",ds:%lu"), distance);
+		}
+		// Handle E feed if specified.
+		// Most of the times, E is very smal. In that case ignore it completely,
+		// if E is significant correct distance to include E.
+		uint32_t e_feed = STEPS_TO_UM( E, dda->e_delta);
+		// if e_feed is more than 1.5% (1/64) of distance, don't ignore it.
+		if (distance < (e_feed << 3)) {
+			distance = approx_distance_2d( distance, e_feed);
+		}
+		if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+			sersendf_P(PSTR(",ef:%lu,ds:%lu"), e_feed, distance);
+		}
 
 		#ifdef	ACCELERATION_TEMPORAL
 			// bracket part of this equation in an attempt to avoid overflow: 60 * 16MHz * 5mm is >32 bits
