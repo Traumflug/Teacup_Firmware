@@ -341,6 +341,8 @@ void process_gcode_command() {
 		#endif
 	}
 	else if (next_target.seen_M) {
+		uint8_t i;
+
 		switch (next_target.M) {
 			case 0:
 				//? --- M0: machine stop ---
@@ -359,6 +361,8 @@ void process_gcode_command() {
 				//? http://linuxcnc.org/handbook/RS274NGC_3/RS274NGC_33a.html#1002379
 				//?
 				queue_wait();
+				for (i = 0; i < NUM_HEATERS; i++)
+					temp_set(i, 0);
 				power_off();
 				break;
 
