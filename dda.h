@@ -61,6 +61,10 @@ typedef struct {
 	/// tracking variable
 	int16_t						n;
 	#endif
+
+	/// Endstop debouncing
+	uint8_t debounce_count_xmin, debounce_count_ymin, debounce_count_zmin;
+	uint8_t debounce_count_xmax, debounce_count_ymax, debounce_count_zmax;
 } MOVE_STATE;
 
 /**
@@ -118,6 +122,10 @@ typedef struct {
 	/// 24.8 fixed point timer value, maximum speed
 	uint32_t					c_min;
 	#endif
+
+	/// Endstop homing
+	uint8_t endstop_check; ///< Do we need to check endstops? 0x1=Check X, 0x2=Check Y, 0x4=Check Z
+	uint8_t endstop_stop_cond; ///< Endstop condition on which to stop motion: 0=Stop on detrigger, 1=Stop on trigger
 } DDA;
 
 /*

@@ -451,9 +451,33 @@ void dda_start(DDA *dda) {
 */
 void dda_step(DDA *dda) {
 	uint8_t	did_step = 0;
+	uint8_t endstop_stop; ///< Stop due to endstop trigger
+	uint8_t endstop_not_done = 0; ///< Which axes haven't finished homing
 
-	if ((move_state.x_steps) /* &&
-			(x_max() != dda->x_direction) && (x_min() == dda->x_direction) */) {
+#if defined X_MIN_PIN || defined X_MAX_PIN
+	if (dda->endstop_check & 0x1) {
+#if defined X_MIN_PIN
+		if (x_min() == dda->endstop_stop_cond)
+			move_state.debounce_count_xmin++;
+		else
+			move_state.debounce_count_xmin = 0;
+#endif
+
+#if defined X_MAX_PIN
+		if (x_max() == dda->endstop_stop_cond)
+			move_state.debounce_count_xmax++;
+		else
+			move_state.debounce_count_xmax = 0;
+#endif
+
+		endstop_stop = move_state.debounce_count_xmin >= 8 || move_state.debounce_count_xmax >= 8;
+		if (!endstop_stop)
+			endstop_not_done |= 0x1;
+	} else
+#endif
+		endstop_stop = 0;
+
+	if ((move_state.x_steps) && !endstop_stop) {
 		move_state.x_counter -= dda->x_delta;
 		if (move_state.x_counter < 0) {
 			x_step();
@@ -463,8 +487,30 @@ void dda_step(DDA *dda) {
 		}
 	}
 
-	if ((move_state.y_steps) /* &&
-			(y_max() != dda->y_direction) && (y_min() == dda->y_direction) */) {
+#if defined Y_MIN_PIN || defined Y_MAX_PIN
+	if (dda->endstop_check & 0x2) {
+#if defined Y_MIN_PIN
+		if (y_min() == dda->endstop_stop_cond)
+			move_state.debounce_count_ymin++;
+		else
+			move_state.debounce_count_ymin = 0;
+#endif
+
+#if defined Y_MAX_PIN
+		if (y_max() == dda->endstop_stop_cond)
+			move_state.debounce_count_ymax++;
+		else
+			move_state.debounce_count_ymax = 0;
+#endif
+
+		endstop_stop = move_state.debounce_count_ymin >= 8 || move_state.debounce_count_ymax >= 8;
+		if (!endstop_stop)
+			endstop_not_done |= 0x2;
+	} else
+#endif
+		endstop_stop = 0;
+
+	if ((move_state.y_steps) && !endstop_stop) {
 		move_state.y_counter -= dda->y_delta;
 		if (move_state.y_counter < 0) {
 			y_step();
@@ -474,8 +520,30 @@ void dda_step(DDA *dda) {
 		}
 	}
 
-	if ((move_state.z_steps) /* &&
-			(z_max() != dda->z_direction) && (z_min() == dda->z_direction) */) {
+#if defined Z_MIN_PIN || defined Z_MAX_PIN
+	if (dda->endstop_check & 0x4) {
+#if defined Z_MIN_PIN
+		if (z_min() == dda->endstop_stop_cond)
+			move_state.debounce_count_zmin++;
+		else
+			move_state.debounce_count_zmin = 0;
+#endif
+
+#if defined Z_MAX_PIN
+		if (z_max() == dda->endstop_stop_cond)
+			move_state.debounce_count_zmax++;
+		else
+			move_state.debounce_count_zmax = 0;
+#endif
+
+		endstop_stop = move_state.debounce_count_zmin >= 8 || move_state.debounce_count_zmax >= 8;
+		if (!endstop_stop)
+			endstop_not_done |= 0x4;
+	} else 
+#endif
+		endstop_stop = 0;
+
+	if ((move_state.z_steps) && !endstop_stop) {
 		move_state.z_counter -= dda->z_delta;
 		if (move_state.z_counter < 0) {
 			z_step();
@@ -563,6 +631,9 @@ void dda_step(DDA *dda) {
 		//if (move_state.step_no % 10 /* 10, 100, ...*/ == 0)
 		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %d"), dda->c, dda->c_min, move_state.n);
 	#endif
+
+	if (dda->endstop_check != 0x0 && endstop_not_done == 0x0)
+		move_state.x_steps = move_state.y_steps = move_state.z_steps = move_state.e_steps = 0;
 
 	// TODO: did_step is obsolete ...
 	if (did_step) {

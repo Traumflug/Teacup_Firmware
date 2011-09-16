@@ -29,6 +29,7 @@ void queue_step(void);
 // add a new target to the queue
 // t == NULL means add a wait for target temp to the queue
 void enqueue(TARGET *t);
+void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond);
 
 // called from step timer when current move is complete
 void next_move(void) __attribute__ ((hot));

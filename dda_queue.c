@@ -95,6 +95,10 @@ void queue_step() {
 /// \note this function waits for space to be available if necessary, check queue_full() first if waiting is a problem
 /// This is the only function that modifies mb_head and it always called from outside an interrupt.
 void enqueue(TARGET *t) {
+	enqueue_home(t, 0, 0);
+}
+
+void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 	// don't call this function when the queue is full, but just in case, wait for a move to complete and free up the space for the passed target
 	while (queue_full())
 		delay(WAITING_DELAY);
@@ -106,6 +110,8 @@ void enqueue(TARGET *t) {
 	
 	if (t != NULL) {
 		dda_create(new_movebuffer, t);
+		new_movebuffer->endstop_check = endstop_check;
+		new_movebuffer->endstop_stop_cond = endstop_stop_cond;
 	}
 	else {
 		// it's a wait for temp

@@ -32,41 +32,22 @@ void home() {
 
 /// find X MIN endstop
 void home_x_negative() {
+	TARGET t = {0, current_position.Y, current_position.Z};
 	power_on();
 	queue_wait();
 	stepper_enable();
 	x_enable();
 
 	#if defined X_MIN_PIN
-		uint8_t	debounce_count = 0;
-
 		// hit home hard
-		x_direction(0);
-		while (debounce_count < 8) {
-			// debounce
-			if (x_min())
-				debounce_count++;
-			else
-				debounce_count = 0;
-			// step
-			x_step();
-			delay(5);
-			unstep();
-			// wait until next step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_X / ((float) MAXIMUM_FEEDRATE_X)));
-		}
-		debounce_count = 0;
+		t.X = -1000*STEPS_PER_MM_X;
+		t.F = MAXIMUM_FEEDRATE_X;
+		enqueue_home(&t, 0x1, 1);
 
 		// back off slowly
-		x_direction(1);
-		while (x_min() != 0) {
-			// step
-			x_step();
-			delay(5);
-			unstep();
-			// wait until next step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_X / ((float) SEARCH_FEEDRATE_X)));
-		}
+		t.X = +1000*STEPS_PER_MM_X;
+		t.F = SEARCH_FEEDRATE_X;
+		enqueue_home(&t, 0x1, 0);
 
 		// set X home
 		#ifdef X_MIN
@@ -79,88 +60,51 @@ void home_x_negative() {
 
 /// find X_MAX endstop
 void home_x_positive() {
+	TARGET t = {0, current_position.Y, current_position.Z};
 	power_on();
 	queue_wait();
 	stepper_enable();
 	x_enable();
 
 	#if defined X_MAX_PIN
-		uint8_t	debounce_count = 0;
-
 		// hit home hard
-		x_direction(1);
-		while (debounce_count < 8) {
-			// debounce
-			if (x_max())
-				debounce_count++;
-			else
-				debounce_count = 0;
-			// step
-			x_step();
-			delay(5);
-			unstep();
-			// wait until next step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_X / ((float) MAXIMUM_FEEDRATE_X)));
-		}
-		debounce_count = 0;
+		t.X = +1000*STEPS_PER_MM_X;
+		t.F = MAXIMUM_FEEDRATE_X;
+		enqueue_home(t, 0x1, 1);
 
 		// back off slowly
-		x_direction(0);
-		while (x_max() != 0) {
-			// step
-			x_step();
-			delay(5);
-			unstep();
-			// wait until next step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_X / ((float) SEARCH_FEEDRATE_X)));
-		}
+		t.X = -1000*STEPS_PER_MM_X;
+		t.F = SEARCH_FEEDRATE_X;
+		enqueue_home(t, 0x1, 0);
 
 		// set X home
 		// set position to MAX
 		startpoint.X = current_position.X = (int32_t) (X_MAX * STEPS_PER_MM_X);
 		// go to zero
-		TARGET t = {0, 0, 0, 0, MAXIMUM_FEEDRATE_X};
+		t.X = 0;
+		t.F = MAXIMUM_FEEDRATE_X;
 		enqueue(&t);
 	#endif
 }
 
 /// fund Y MIN endstop
 void home_y_negative() {
+	TARGET t = {0, current_position.Y, current_position.Z};
 	power_on();
 	queue_wait();
 	stepper_enable();
 	y_enable();
 
 	#if defined Y_MIN_PIN
-		uint8_t	debounce_count = 0;
-
 		// hit home hard
-		y_direction(0);
-		while (debounce_count < 8) {
-			// debounce
-			if (y_min())
-				debounce_count++;
-			else
-				debounce_count = 0;
-			// step
-			y_step();
-			delay(5);
-			unstep();
-			// wait until neyt step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Y / ((float) MAXIMUM_FEEDRATE_Y)));
-		}
-		debounce_count = 0;
+		t.Y = -1000*STEPS_PER_MM_Y;
+		t.F = MAXIMUM_FEEDRATE_Y;
+		enqueue_home(&t, 0x2, 1);
 
 		// back off slowly
-		y_direction(1);
-		while (y_min() != 0) {
-			// step
-			y_step();
-			delay(5);
-			unstep();
-			// wait until next step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Y / ((float) SEARCH_FEEDRATE_Y)));
-		}
+		t.Y = +1000*STEPS_PER_MM_Y;
+		t.F = SEARCH_FEEDRATE_Y;
+		enqueue_home(&t, 0x2, 0);
 
 		// set Y home
 		#ifdef	Y_MIN
@@ -173,88 +117,51 @@ void home_y_negative() {
 
 /// find Y MAX endstop
 void home_y_positive() {
+	TARGET t = {0, current_position.Y, current_position.Z};
 	power_on();
 	queue_wait();
 	stepper_enable();
 	y_enable();
 
 	#if defined Y_MAX_PIN
-		uint8_t	debounce_count = 0;
-
 		// hit home hard
-		y_direction(1);
-		while (debounce_count < 8) {
-			// debounce
-			if (y_max())
-				debounce_count++;
-			else
-				debounce_count = 0;
-			// step
-			y_step();
-			delay(5);
-			unstep();
-			// wait until neyt step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Y / ((float) MAXIMUM_FEEDRATE_Y)));
-		}
-		debounce_count = 0;
+		t.Y = +1000*STEPS_PER_MM_Y;
+		t.F = MAXIMUM_FEEDRATE_Y;
+		enqueue_home(&t, 0x2, 1);
 
 		// back off slowly
-		y_direction(0);
-		while (y_max() != 0) {
-			// step
-			y_step();
-			delay(5);
-			unstep();
-			// wait until next step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Y / ((float) SEARCH_FEEDRATE_Y)));
-		}
+		t.X = -1000*STEPS_PER_MM_Y;
+		t.F = SEARCH_FEEDRATE_Y;
+		enqueue_home(&t, 0x2, 0);
 
 		// set Y home
 		// set position to MAX
 		startpoint.Y = current_position.Y = (int32_t) (Y_MAX * STEPS_PER_MM_Y);
 		// go to zero
-		TARGET t = {0, 0, 0, 0, MAXIMUM_FEEDRATE_Y};
+		t.Y = 0;
+		t.F = MAXIMUM_FEEDRATE_Y;
 		enqueue(&t);
 	#endif
 }
 
 /// find Z MIN endstop
 void home_z_negative() {
+	TARGET t = {current_position.X, current_position.Y, 0};
 	power_on();
 	queue_wait();
 	stepper_enable();
 	z_enable();
 
 	#if defined Z_MIN_PIN
-		uint8_t	debounce_count = 0;
-
 		// hit home hard
-		z_direction(0);
-		while (debounce_count < 8) {
-			// debounce
-			if (z_min())
-				debounce_count++;
-			else
-				debounce_count = 0;
-			// step
-			z_step();
-			delay(5);
-			unstep();
-			// wait until next step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Z / ((float) MAXIMUM_FEEDRATE_Z)));
-		}
-		debounce_count = 0;
+		t.Z = -1000*STEPS_PER_MM_Z;
+		t.F = MAXIMUM_FEEDRATE_Z;
+		enqueue_home(&t, 0x4, 1);
 
 		// back off slowly
-		z_direction(1);
-		while (z_min() != 0) {
-			// step
-			z_step();
-			delay(5);
-			unstep();
-			// wait until next step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Z / ((float) SEARCH_FEEDRATE_Z)));
-		}
+		t.Z = +1000*STEPS_PER_MM_Z;
+		t.F = SEARCH_FEEDRATE_Z;
+		enqueue_home(&t, 0x4, 0);
 
 		// set Z home
 		#ifdef Z_MIN
@@ -268,48 +175,29 @@ void home_z_negative() {
 
 /// find Z MAX endstop
 void home_z_positive() {
+	TARGET t = {current_position.X, current_position.Y, 0};
 	power_on();
 	queue_wait();
 	stepper_enable();
 	z_enable();
 
 	#if defined Z_MAX_PIN
-		uint8_t	debounce_count = 0;
-
 		// hit home hard
-		z_direction(1);
-		while (debounce_count < 8) {
-			// debounce
-			if (z_max())
-				debounce_count++;
-			else
-				debounce_count = 0;
-			// step
-			z_step();
-			delay(5);
-			unstep();
-			// wait until next step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Z / ((float) MAXIMUM_FEEDRATE_Z)));
-		}
-		debounce_count = 0;
+		t.Z = +1000*STEPS_PER_MM_Z;
+		t.F = MAXIMUM_FEEDRATE_Z;
+		enqueue_home(&t, 0x4, 1);
 
 		// back off slowly
-		z_direction(0);
-		while (z_max() != 0) {
-			// step
-			z_step();
-			delay(5);
-			unstep();
-			// wait until next step time
-			delay((uint32_t) (60.0 * 1000000.0 / STEPS_PER_MM_Z / ((float) SEARCH_FEEDRATE_Z)));
-		}
+		t.Z = -1000*STEPS_PER_MM_Z;
+		t.F = SEARCH_FEEDRATE_Z;
+		enqueue_home(&t, 0x4, 0);
 
-		// set Z home:
+		// set Z home
 		// set position to MAX
 		startpoint.Z = current_position.Z = (int32_t) (Z_MAX * STEPS_PER_MM_Z);
-
 		// go to zero
-		// TARGET t = {0, 0, 0, 0, MAXIMUM_FEEDRATE_Z};
-		// enqueue(&t);
+		t.Z = 0;
+		t.F = MAXIMUM_FEEDRATE_Z;
+		enqueue(&t);
 	#endif
 }
