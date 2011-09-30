@@ -102,12 +102,12 @@ else
       OK=""
       while true; do
         read OK MESSAGE
-        strip_text "$OK" && OK="$STRIP_TEXT"
-        strip_text "$MESSAGE" && MESSAGE="$STRIP_TEXT"
         if [ $? -ne 0 ]; then
           # probably a disconnection from screen
           exit
         fi
+        strip_text "$OK" && OK="$STRIP_TEXT"
+        strip_text "$MESSAGE" && MESSAGE="$STRIP_TEXT"
         echo "<$OK>" >&2
         if [ "$OK" = "ok" ]; then
           break
