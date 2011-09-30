@@ -54,6 +54,16 @@
 DEV=$(echo /dev/tty.usbserial*)
 BAUD=115200
 
+
+function strip_text {
+  STRIP_TEXT=$(echo $1 | tr -d '\r\n')
+  STRIP_TEXT="${STRIP_TEXT## }"
+  STRIP_TEXT="${STRIP_TEXT%% }"
+  STRIP_TEXT="${STRIP_TEXT##\t}"
+  STRIP_TEXT="${STRIP_TEXT%%\t}"
+}
+
+
 if [ "${STY}" = "" ]; then
   # we're not inside a screen session, so
   # create one and restart our selfs
@@ -86,11 +96,14 @@ else
     # send line by line and wait for "ok" each time
     exec 3<> "$1"
     while read <&3 LINE; do
+      strip_text "$LINE" && LINE="$STRIP_TEXT"
       echo -n "$LINE" >&2
       echo $LINE
       OK=""
       while true; do
         read OK MESSAGE
+        strip_text "$OK" && OK="$STRIP_TEXT"
+        strip_text "$MESSAGE" && MESSAGE="$STRIP_TEXT"
         if [ $? -ne 0 ]; then
           # probably a disconnection from screen
           exit
