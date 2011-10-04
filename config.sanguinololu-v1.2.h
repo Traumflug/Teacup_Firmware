@@ -189,7 +189,7 @@
 
 #define	Y_STEP_PIN						DIO22
 #define	Y_DIR_PIN							DIO23
-#define	Y_MIN_PIN							DIO16
+#define	Y_MIN_PIN							DIO19
 //#define	Y_MAX_PIN							xxxx
 //#define	Y_ENABLE_PIN					xxxx
 //#define	Y_INVERT_DIR
