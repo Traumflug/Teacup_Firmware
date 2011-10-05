@@ -426,6 +426,12 @@ PWM value for 'off'
 /// this is the scaling of internally stored PID values. 1024L is a good value
 #define	PID_SCALE						1024L
 
+/** \def ENDSTOP_STEPS
+	number of steps to run into the endstops intentionally
+		As Endstops trigger false alarm sometimes, Teacup debounces them by counting a number of consecutive positives. Valid range is 1...255. Use 4 or less for reliable endstops, 8 or even more for flaky ones.
+*/
+#define	ENDSTOP_STEPS	4
+
 
 
 /***************************************************************************\

@@ -470,7 +470,8 @@ void dda_step(DDA *dda) {
 			move_state.debounce_count_xmax = 0;
 #endif
 
-		endstop_stop = move_state.debounce_count_xmin >= 8 || move_state.debounce_count_xmax >= 8;
+		endstop_stop = move_state.debounce_count_xmin >= ENDSTOP_STEPS ||
+		               move_state.debounce_count_xmax >= ENDSTOP_STEPS;
 		if (!endstop_stop)
 			endstop_not_done |= 0x1;
 	} else
@@ -503,7 +504,8 @@ void dda_step(DDA *dda) {
 			move_state.debounce_count_ymax = 0;
 #endif
 
-		endstop_stop = move_state.debounce_count_ymin >= 8 || move_state.debounce_count_ymax >= 8;
+		endstop_stop = move_state.debounce_count_ymin >= ENDSTOP_STEPS ||
+		               move_state.debounce_count_ymax >= ENDSTOP_STEPS;
 		if (!endstop_stop)
 			endstop_not_done |= 0x2;
 	} else
@@ -536,7 +538,8 @@ void dda_step(DDA *dda) {
 			move_state.debounce_count_zmax = 0;
 #endif
 
-		endstop_stop = move_state.debounce_count_zmin >= 8 || move_state.debounce_count_zmax >= 8;
+		endstop_stop = move_state.debounce_count_zmin >= ENDSTOP_STEPS ||
+		               move_state.debounce_count_zmax >= ENDSTOP_STEPS;
 		if (!endstop_stop)
 			endstop_not_done |= 0x4;
 	} else 
