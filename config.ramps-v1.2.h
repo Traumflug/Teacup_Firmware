@@ -86,6 +86,12 @@
 #define	SEARCH_FEEDRATE_Z			1
 // no SEARCH_FEEDRATE_E, as E can't be searched
 
+/** \def SLOW_HOMING
+	wether to search the home point slowly
+		With some endstop configurations, like when probing for the surface of a PCB, you can't deal with overrunning the endstop. In such a case, uncomment this definition.
+*/
+// #define	SLOW_HOMING
+
 /// this is how many steps to suck back the filament by when we stop. set to zero to disable
 #define	E_STARTSTOP_STEPS			0
 

@@ -35,15 +35,22 @@ void home_x_negative() {
 	#if defined X_MIN_PIN
 		TARGET t = {0, current_position.Y, current_position.Z};
 
-		// hit home hard
 		t.X = -1000*STEPS_PER_MM_X;
-		t.F = MAXIMUM_FEEDRATE_X;
+		#ifdef SLOW_HOMING
+			// hit home soft
+			t.F = SEARCH_FEEDRATE_X;
+		#else
+			// hit home hard
+			t.F = MAXIMUM_FEEDRATE_X;
+		#endif
 		enqueue_home(&t, 0x1, 1);
 
-		// back off slowly
-		t.X = +1000*STEPS_PER_MM_X;
-		t.F = SEARCH_FEEDRATE_X;
-		enqueue_home(&t, 0x1, 0);
+		#ifndef SLOW_HOMING
+			// back off slowly
+			t.X = +1000*STEPS_PER_MM_X;
+			t.F = SEARCH_FEEDRATE_X;
+			enqueue_home(&t, 0x1, 0);
+		#endif
 
 		// set X home
 		#ifdef X_MIN
@@ -59,15 +66,22 @@ void home_x_positive() {
 	#if defined X_MAX_PIN
 		TARGET t = {0, current_position.Y, current_position.Z};
 
-		// hit home hard
 		t.X = +1000*STEPS_PER_MM_X;
-		t.F = MAXIMUM_FEEDRATE_X;
+		#ifdef SLOW_HOMING
+			// hit home soft
+			t.F = SEARCH_FEEDRATE_X;
+		#else
+			// hit home hard
+			t.F = MAXIMUM_FEEDRATE_X;
+		#endif
 		enqueue_home(t, 0x1, 1);
 
-		// back off slowly
-		t.X = -1000*STEPS_PER_MM_X;
-		t.F = SEARCH_FEEDRATE_X;
-		enqueue_home(t, 0x1, 0);
+		#ifndef SLOW_HOMING
+			// back off slowly
+			t.X = -1000*STEPS_PER_MM_X;
+			t.F = SEARCH_FEEDRATE_X;
+			enqueue_home(t, 0x1, 0);
+		#endif
 
 		// set X home
 		// set position to MAX
@@ -84,15 +98,22 @@ void home_y_negative() {
 	#if defined Y_MIN_PIN
 		TARGET t = {0, current_position.Y, current_position.Z};
 
-		// hit home hard
 		t.Y = -1000*STEPS_PER_MM_Y;
-		t.F = MAXIMUM_FEEDRATE_Y;
+		#ifdef SLOW_HOMING
+			// hit home soft
+			t.F = SEARCH_FEEDRATE_Y;
+		#else
+			// hit home hard
+			t.F = MAXIMUM_FEEDRATE_Y;
+		#endif
 		enqueue_home(&t, 0x2, 1);
 
-		// back off slowly
-		t.Y = +1000*STEPS_PER_MM_Y;
-		t.F = SEARCH_FEEDRATE_Y;
-		enqueue_home(&t, 0x2, 0);
+		#ifndef SLOW_HOMING
+			// back off slowly
+			t.Y = +1000*STEPS_PER_MM_Y;
+			t.F = SEARCH_FEEDRATE_Y;
+			enqueue_home(&t, 0x2, 0);
+		#endif
 
 		// set Y home
 		#ifdef	Y_MIN
@@ -108,15 +129,22 @@ void home_y_positive() {
 	#if defined Y_MAX_PIN
 		TARGET t = {0, current_position.Y, current_position.Z};
 
-		// hit home hard
 		t.Y = +1000*STEPS_PER_MM_Y;
-		t.F = MAXIMUM_FEEDRATE_Y;
+		#ifdef SLOW_HOMING
+			// hit home soft
+			t.F = SEARCH_FEEDRATE_Y;
+		#else
+			// hit home hard
+			t.F = MAXIMUM_FEEDRATE_Y;
+		#endif
 		enqueue_home(&t, 0x2, 1);
 
-		// back off slowly
-		t.X = -1000*STEPS_PER_MM_Y;
-		t.F = SEARCH_FEEDRATE_Y;
-		enqueue_home(&t, 0x2, 0);
+		#ifndef SLOW_HOMING
+			// back off slowly
+			t.X = -1000*STEPS_PER_MM_Y;
+			t.F = SEARCH_FEEDRATE_Y;
+			enqueue_home(&t, 0x2, 0);
+		#endif
 
 		// set Y home
 		// set position to MAX
@@ -133,15 +161,22 @@ void home_z_negative() {
 	#if defined Z_MIN_PIN
 		TARGET t = {current_position.X, current_position.Y, 0};
 
-		// hit home hard
 		t.Z = -1000*STEPS_PER_MM_Z;
-		t.F = MAXIMUM_FEEDRATE_Z;
+		#ifdef SLOW_HOMING
+			// hit home soft
+			t.F = SEARCH_FEEDRATE_Z;
+		#else
+			// hit home hard
+			t.F = MAXIMUM_FEEDRATE_Z;
+		#endif
 		enqueue_home(&t, 0x4, 1);
 
-		// back off slowly
-		t.Z = +1000*STEPS_PER_MM_Z;
-		t.F = SEARCH_FEEDRATE_Z;
-		enqueue_home(&t, 0x4, 0);
+		#ifndef SLOW_HOMING
+			// back off slowly
+			t.Z = +1000*STEPS_PER_MM_Z;
+			t.F = SEARCH_FEEDRATE_Z;
+			enqueue_home(&t, 0x4, 0);
+		#endif
 
 		// set Z home
 		#ifdef Z_MIN
@@ -158,15 +193,22 @@ void home_z_positive() {
 	#if defined Z_MAX_PIN
 		TARGET t = {current_position.X, current_position.Y, 0};
 
-		// hit home hard
 		t.Z = +1000*STEPS_PER_MM_Z;
-		t.F = MAXIMUM_FEEDRATE_Z;
+		#ifdef SLOW_HOMING
+			// hit home soft
+			t.F = SEARCH_FEEDRATE_Z;
+		#else
+			// hit home hard
+			t.F = MAXIMUM_FEEDRATE_Z;
+		#endif
 		enqueue_home(&t, 0x4, 1);
 
-		// back off slowly
-		t.Z = -1000*STEPS_PER_MM_Z;
-		t.F = SEARCH_FEEDRATE_Z;
-		enqueue_home(&t, 0x4, 0);
+		#ifndef SLOW_HOMING
+			// back off slowly
+			t.Z = -1000*STEPS_PER_MM_Z;
+			t.F = SEARCH_FEEDRATE_Z;
+			enqueue_home(&t, 0x4, 0);
+		#endif
 
 		// set Z home
 		// set position to MAX
