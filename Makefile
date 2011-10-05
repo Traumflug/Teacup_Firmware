@@ -147,9 +147,9 @@ size: $(PROGRAM).elf
 	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(data|bss)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    RAM   : %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (1 * 1024)), ceil($$a * 100 / (2 * 1024)),ceil($$a * 100 / (4 * 1024)), ceil($$a * 100 / (8 * 1024)) }'
 	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(eeprom)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    EEPROM: %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (1 * 1024)), ceil($$a * 100 / (2 * 1024)), ceil($$a * 100 / (2 * 1024)), ceil($$a * 100 / (4 * 1024)) }'
 
-config.h: config.h.dist
-	@echo "Please review config.h, as config.h.dist is more recent."
-	@echo "To view the differences, run: diff -bBEu config.h config.h.dist"
+config.h: config.default.h
+	@echo "Please review config.h, as config.default.h is more recent."
+	@echo "To view the differences, run: diff -bBEu config.h config.default.h"
 	@false
 
 doc: Doxyfile *.c *.h

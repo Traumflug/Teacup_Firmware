@@ -155,8 +155,8 @@ Pin mappings and helper functions for various atmegas
 *** clock.[ch]
 Regular functions that run in main loop rather than an interrupt
 
-*** config.h.dist, config.h, config.*.h
-Configuration for your electronics and hardware. Copy config.h.dist to config.h, edit config.h to suit
+*** config.h, config.*.h
+Configuration for your electronics and hardware and a bunch of templates to create your own. Copy the template closest to your hardware to config.h and edit it further
 
 *** copier.[ch]
 A totally untested and currently unused chunk of code for copying firmware to another identical chip
