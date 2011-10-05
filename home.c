@@ -32,13 +32,9 @@ void home() {
 
 /// find X MIN endstop
 void home_x_negative() {
-	TARGET t = {0, current_position.Y, current_position.Z};
-	power_on();
-	queue_wait();
-	stepper_enable();
-	x_enable();
-
 	#if defined X_MIN_PIN
+		TARGET t = {0, current_position.Y, current_position.Z};
+
 		// hit home hard
 		t.X = -1000*STEPS_PER_MM_X;
 		t.F = MAXIMUM_FEEDRATE_X;
@@ -60,13 +56,9 @@ void home_x_negative() {
 
 /// find X_MAX endstop
 void home_x_positive() {
-	TARGET t = {0, current_position.Y, current_position.Z};
-	power_on();
-	queue_wait();
-	stepper_enable();
-	x_enable();
-
 	#if defined X_MAX_PIN
+		TARGET t = {0, current_position.Y, current_position.Z};
+
 		// hit home hard
 		t.X = +1000*STEPS_PER_MM_X;
 		t.F = MAXIMUM_FEEDRATE_X;
@@ -89,13 +81,9 @@ void home_x_positive() {
 
 /// fund Y MIN endstop
 void home_y_negative() {
-	TARGET t = {0, current_position.Y, current_position.Z};
-	power_on();
-	queue_wait();
-	stepper_enable();
-	y_enable();
-
 	#if defined Y_MIN_PIN
+		TARGET t = {0, current_position.Y, current_position.Z};
+
 		// hit home hard
 		t.Y = -1000*STEPS_PER_MM_Y;
 		t.F = MAXIMUM_FEEDRATE_Y;
@@ -117,13 +105,9 @@ void home_y_negative() {
 
 /// find Y MAX endstop
 void home_y_positive() {
-	TARGET t = {0, current_position.Y, current_position.Z};
-	power_on();
-	queue_wait();
-	stepper_enable();
-	y_enable();
-
 	#if defined Y_MAX_PIN
+		TARGET t = {0, current_position.Y, current_position.Z};
+
 		// hit home hard
 		t.Y = +1000*STEPS_PER_MM_Y;
 		t.F = MAXIMUM_FEEDRATE_Y;
@@ -146,13 +130,9 @@ void home_y_positive() {
 
 /// find Z MIN endstop
 void home_z_negative() {
-	TARGET t = {current_position.X, current_position.Y, 0};
-	power_on();
-	queue_wait();
-	stepper_enable();
-	z_enable();
-
 	#if defined Z_MIN_PIN
+		TARGET t = {current_position.X, current_position.Y, 0};
+
 		// hit home hard
 		t.Z = -1000*STEPS_PER_MM_Z;
 		t.F = MAXIMUM_FEEDRATE_Z;
@@ -175,13 +155,9 @@ void home_z_negative() {
 
 /// find Z MAX endstop
 void home_z_positive() {
-	TARGET t = {current_position.X, current_position.Y, 0};
-	power_on();
-	queue_wait();
-	stepper_enable();
-	z_enable();
-
 	#if defined Z_MAX_PIN
+		TARGET t = {current_position.X, current_position.Y, 0};
+
 		// hit home hard
 		t.Z = +1000*STEPS_PER_MM_Z;
 		t.F = MAXIMUM_FEEDRATE_Z;
