@@ -8,6 +8,7 @@
 #include	"dda_queue.h"
 #include	"delay.h"
 #include	"pinio.h"
+#include	"gcode_parse.h"
 
 /// home all 3 axes
 void home() {
@@ -33,7 +34,7 @@ void home() {
 /// find X MIN endstop
 void home_x_negative() {
 	#if defined X_MIN_PIN
-		TARGET t = {0, current_position.Y, current_position.Z};
+		TARGET t = startpoint;
 
 		t.X = -1000*STEPS_PER_MM_X;
 		#ifdef SLOW_HOMING
@@ -53,10 +54,12 @@ void home_x_negative() {
 		#endif
 
 		// set X home
+		queue_wait(); // we have to wait here, see G92
 		#ifdef X_MIN
-			startpoint.X = current_position.X = (int32_t) (X_MIN * STEPS_PER_MM_X);
+			startpoint.X = current_position.X = next_target.target.X =
+			               (int32_t)(X_MIN * STEPS_PER_MM_X);
 		#else
-			startpoint.X = current_position.X = 0;
+			startpoint.X = current_position.X = next_target.target.X = 0;
 		#endif
 	#endif
 }
@@ -64,7 +67,7 @@ void home_x_negative() {
 /// find X_MAX endstop
 void home_x_positive() {
 	#if defined X_MAX_PIN
-		TARGET t = {0, current_position.Y, current_position.Z};
+		TARGET t = startpoint;
 
 		t.X = +1000*STEPS_PER_MM_X;
 		#ifdef SLOW_HOMING
@@ -84,8 +87,10 @@ void home_x_positive() {
 		#endif
 
 		// set X home
+		queue_wait();
 		// set position to MAX
-		startpoint.X = current_position.X = (int32_t) (X_MAX * STEPS_PER_MM_X);
+		startpoint.X = current_position.X = next_target.target.X =
+		               (int32_t)(X_MAX * STEPS_PER_MM_X);
 		// go to zero
 		t.X = 0;
 		t.F = MAXIMUM_FEEDRATE_X;
@@ -96,7 +101,7 @@ void home_x_positive() {
 /// fund Y MIN endstop
 void home_y_negative() {
 	#if defined Y_MIN_PIN
-		TARGET t = {0, current_position.Y, current_position.Z};
+		TARGET t = startpoint;
 
 		t.Y = -1000*STEPS_PER_MM_Y;
 		#ifdef SLOW_HOMING
@@ -116,10 +121,12 @@ void home_y_negative() {
 		#endif
 
 		// set Y home
+		queue_wait();
 		#ifdef	Y_MIN
-			startpoint.Y = current_position.Y = (int32_t) (Y_MIN * STEPS_PER_MM_Y);
+			startpoint.Y = current_position.Y = next_target.target.Y =
+			               (int32_t)(Y_MIN * STEPS_PER_MM_Y);
 		#else
-			startpoint.Y = current_position.Y = 0;
+			startpoint.Y = current_position.Y = next_target.target.Y = 0;
 		#endif
 	#endif
 }
@@ -127,7 +134,7 @@ void home_y_negative() {
 /// find Y MAX endstop
 void home_y_positive() {
 	#if defined Y_MAX_PIN
-		TARGET t = {0, current_position.Y, current_position.Z};
+		TARGET t = startpoint;
 
 		t.Y = +1000*STEPS_PER_MM_Y;
 		#ifdef SLOW_HOMING
@@ -147,8 +154,10 @@ void home_y_positive() {
 		#endif
 
 		// set Y home
+		queue_wait();
 		// set position to MAX
-		startpoint.Y = current_position.Y = (int32_t) (Y_MAX * STEPS_PER_MM_Y);
+		startpoint.Y = current_position.Y = next_target.target.Y =
+		               (int32_t)(Y_MAX * STEPS_PER_MM_Y);
 		// go to zero
 		t.Y = 0;
 		t.F = MAXIMUM_FEEDRATE_Y;
@@ -159,7 +168,7 @@ void home_y_positive() {
 /// find Z MIN endstop
 void home_z_negative() {
 	#if defined Z_MIN_PIN
-		TARGET t = {current_position.X, current_position.Y, 0};
+		TARGET t = startpoint;
 
 		t.Z = -1000*STEPS_PER_MM_Z;
 		#ifdef SLOW_HOMING
@@ -179,10 +188,12 @@ void home_z_negative() {
 		#endif
 
 		// set Z home
+		queue_wait();
 		#ifdef Z_MIN
-			startpoint.Z = current_position.Z = (int32_t) (Z_MIN * STEPS_PER_MM_Z);
+			startpoint.Z = current_position.Z = next_target.target.Z =
+			               (int32_t)(Z_MIN * STEPS_PER_MM_Z);
 		#else
-			startpoint.Z = current_position.Z = 0;
+			startpoint.Z = current_position.Z = next_target.target.Z = 0;
 		#endif
 		z_disable();
 	#endif
@@ -191,7 +202,7 @@ void home_z_negative() {
 /// find Z MAX endstop
 void home_z_positive() {
 	#if defined Z_MAX_PIN
-		TARGET t = {current_position.X, current_position.Y, 0};
+		TARGET t = startpoint;
 
 		t.Z = +1000*STEPS_PER_MM_Z;
 		#ifdef SLOW_HOMING
@@ -211,8 +222,10 @@ void home_z_positive() {
 		#endif
 
 		// set Z home
+		queue_wait();
 		// set position to MAX
-		startpoint.Z = current_position.Z = (int32_t) (Z_MAX * STEPS_PER_MM_Z);
+		startpoint.Z = current_position.Z = next_target.target.Z =
+		               (int32_t)(Z_MAX * STEPS_PER_MM_Z);
 		// go to zero
 		t.Z = 0;
 		t.F = MAXIMUM_FEEDRATE_Z;
