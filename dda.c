@@ -682,32 +682,37 @@ void dda_step(DDA *dda) {
 void update_current_position() {
 	DDA *dda = &movebuffer[mb_tail];
 
-	if (dda->live == 0)
-		return;
-
-	if (dda->x_direction)
-		current_position.X = dda->endpoint.X - move_state.x_steps;
-	else
-		current_position.X = dda->endpoint.X + move_state.x_steps;
-
-	if (dda->y_direction)
-		current_position.Y = dda->endpoint.Y - move_state.y_steps;
-	else
-		current_position.Y = dda->endpoint.Y + move_state.y_steps;
-
-	if (dda->z_direction)
-		current_position.Z = dda->endpoint.Z - move_state.z_steps;
-	else
-		current_position.Z = dda->endpoint.Z + move_state.z_steps;
-
-	#ifndef E_ABSOLUTE
-		current_position.E = move_state.e_steps;
-	#else
-		if (dda->e_direction)
-			current_position.E = dda->endpoint.E - move_state.e_steps;
+	if (queue_empty()) {
+		current_position.X = startpoint.X;
+		current_position.Y = startpoint.Y;
+		current_position.Z = startpoint.Z;
+		current_position.E = startpoint.E;
+	}
+	else if (dda->live) {
+		if (dda->x_direction)
+			current_position.X = dda->endpoint.X - move_state.x_steps;
 		else
-			current_position.E = dda->endpoint.E + move_state.e_steps;
-	#endif
+			current_position.X = dda->endpoint.X + move_state.x_steps;
 
-	// current_position.F is updated in dda_start()
+		if (dda->y_direction)
+			current_position.Y = dda->endpoint.Y - move_state.y_steps;
+		else
+			current_position.Y = dda->endpoint.Y + move_state.y_steps;
+
+		if (dda->z_direction)
+			current_position.Z = dda->endpoint.Z - move_state.z_steps;
+		else
+			current_position.Z = dda->endpoint.Z + move_state.z_steps;
+
+		#ifndef E_ABSOLUTE
+			current_position.E = move_state.e_steps;
+		#else
+			if (dda->e_direction)
+				current_position.E = dda->endpoint.E - move_state.e_steps;
+			else
+				current_position.E = dda->endpoint.E + move_state.e_steps;
+		#endif
+
+		// current_position.F is updated in dda_start()
+	}
 }
