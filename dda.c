@@ -169,7 +169,7 @@ const uint8_t	msbloc (uint32_t v) {
 */
 void dda_init(void) {
 	// set up default feedrate
-	current_position.F = startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
+	startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
 
 	#ifdef ACCELERATION_RAMPING
 		move_state.n = 1;
@@ -392,12 +392,7 @@ void dda_create(DDA *dda, TARGET *target) {
 */
 void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!
-	if (dda->nullmove) {
-		// just change speed?
-		current_position.F = dda->endpoint.F;
-		// keep dda->live = 0
-	}
-	else {
+	if ( ! dda->nullmove) {
 		// get ready to go
 		steptimeout = 0;
 		if (dda->z_delta)
@@ -435,6 +430,9 @@ void dda_start(DDA *dda) {
 		setTimer(dda->c >> 8);
 		#endif
 	}
+	// else just a speed change, keep dda->live = 0
+
+	current_position.F = dda->endpoint.F;
 }
 
 /*! STEP
@@ -648,13 +646,6 @@ void dda_step(DDA *dda) {
 	}
 	else if (move_state.x_steps == 0 && move_state.y_steps == 0 && move_state.z_steps == 0 && move_state.e_steps == 0) {
 		dda->live = 0;
-		// if E is relative reset it
-		#ifndef E_ABSOLUTE
-			current_position.E = 0;
-		#endif
-		// linear acceleration code doesn't alter F during a move, so we must update it here
-		// in theory, we *could* update F every step, but that would require a divide in interrupt context which should be avoided if at all possible
-		current_position.F = dda->endpoint.F;
 		#ifdef	DC_EXTRUDER
 			heater_set(DC_EXTRUDER, 0);
 		#endif
@@ -683,7 +674,7 @@ void dda_step(DDA *dda) {
 }
 
 /// update global current_position struct
-void update_position() {
+void update_current_position() {
 	DDA *dda = &movebuffer[mb_tail];
 
 	if (dda->live == 0)
@@ -712,4 +703,6 @@ void update_position() {
 		else
 			current_position.E = dda->endpoint.E + move_state.e_steps;
 	#endif
+
+	// current_position.F is updated in dda_start()
 }

@@ -56,10 +56,9 @@ void home_x_negative() {
 		// set X home
 		queue_wait(); // we have to wait here, see G92
 		#ifdef X_MIN
-			startpoint.X = current_position.X = next_target.target.X =
-			               (int32_t)(X_MIN * STEPS_PER_MM_X);
+			startpoint.X = next_target.target.X = (int32_t)(X_MIN * STEPS_PER_MM_X);
 		#else
-			startpoint.X = current_position.X = next_target.target.X = 0;
+			startpoint.X = next_target.target.X = 0;
 		#endif
 	#endif
 }
@@ -92,8 +91,7 @@ void home_x_positive() {
 		// set X home
 		queue_wait();
 		// set position to MAX
-		startpoint.X = current_position.X = next_target.target.X =
-		               (int32_t)(X_MAX * STEPS_PER_MM_X);
+		startpoint.X = next_target.target.X = (int32_t)(X_MAX * STEPS_PER_MM_X);
 		// go to zero
 		t.X = 0;
 		t.F = MAXIMUM_FEEDRATE_X;
@@ -126,10 +124,9 @@ void home_y_negative() {
 		// set Y home
 		queue_wait();
 		#ifdef	Y_MIN
-			startpoint.Y = current_position.Y = next_target.target.Y =
-			               (int32_t)(Y_MIN * STEPS_PER_MM_Y);
+			startpoint.Y = next_target.target.Y = (int32_t)(Y_MIN * STEPS_PER_MM_Y);
 		#else
-			startpoint.Y = current_position.Y = next_target.target.Y = 0;
+			startpoint.Y = next_target.target.Y = 0;
 		#endif
 	#endif
 }
@@ -162,8 +159,7 @@ void home_y_positive() {
 		// set Y home
 		queue_wait();
 		// set position to MAX
-		startpoint.Y = current_position.Y = next_target.target.Y =
-		               (int32_t)(Y_MAX * STEPS_PER_MM_Y);
+		startpoint.Y = next_target.target.Y = (int32_t)(Y_MAX * STEPS_PER_MM_Y);
 		// go to zero
 		t.Y = 0;
 		t.F = MAXIMUM_FEEDRATE_Y;
@@ -196,10 +192,9 @@ void home_z_negative() {
 		// set Z home
 		queue_wait();
 		#ifdef Z_MIN
-			startpoint.Z = current_position.Z = next_target.target.Z =
-			               (int32_t)(Z_MIN * STEPS_PER_MM_Z);
+			startpoint.Z = next_target.target.Z = (int32_t)(Z_MIN * STEPS_PER_MM_Z);
 		#else
-			startpoint.Z = current_position.Z = next_target.target.Z = 0;
+			startpoint.Z = next_target.target.Z = 0;
 		#endif
 		z_disable();
 	#endif
@@ -233,8 +228,7 @@ void home_z_positive() {
 		// set Z home
 		queue_wait();
 		// set position to MAX
-		startpoint.Z = current_position.Z = next_target.target.Z =
-		               (int32_t)(Z_MAX * STEPS_PER_MM_Z);
+		startpoint.Z = next_target.target.Z = (int32_t)(Z_MAX * STEPS_PER_MM_Z);
 		// go to zero
 		t.Z = 0;
 		t.F = MAXIMUM_FEEDRATE_Z;

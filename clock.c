@@ -42,6 +42,7 @@ void clock_250ms() {
 	ifclock(clock_flag_1s) {
 		if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
 			// current position
+			update_current_position();
 			sersendf_P(PSTR("Pos: %ld,%ld,%ld,%ld,%lu\n"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
 
 			// target position
@@ -75,7 +76,5 @@ void clock_10ms() {
 	ifclock(clock_flag_250ms) {
 		clock_250ms();
 	}
-
-	update_position();
 }
 

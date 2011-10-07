@@ -278,28 +278,28 @@ void process_gcode_command() {
 				queue_wait();
 
 				if (next_target.seen_X) {
-					startpoint.X = current_position.X = next_target.target.X;
+					startpoint.X = next_target.target.X;
 					axisSelected = 1;
 				}
 				if (next_target.seen_Y) {
-					startpoint.Y = current_position.Y = next_target.target.Y;
+					startpoint.Y = next_target.target.Y;
 					axisSelected = 1;
 				}
 				if (next_target.seen_Z) {
-					startpoint.Z = current_position.Z = next_target.target.Z;
+					startpoint.Z = next_target.target.Z;
 					axisSelected = 1;
 				}
 				if (next_target.seen_E) {
 					#ifdef	E_ABSOLUTE
-						startpoint.E = current_position.E = next_target.target.E;
+						startpoint.E = next_target.target.E;
 					#endif
 					axisSelected = 1;
 				}
 
 				if (axisSelected == 0) {
-					startpoint.X = current_position.X = next_target.target.X =
-					startpoint.Y = current_position.Y = next_target.target.Y =
-					startpoint.Z = current_position.Z = next_target.target.Z = 0;
+					startpoint.X = next_target.target.X =
+					startpoint.Y = next_target.target.Y =
+					startpoint.Z = next_target.target.Z = 0;
 				}
 				break;
 
@@ -574,6 +574,7 @@ void process_gcode_command() {
 					// wait for all moves to complete
 					queue_wait();
 				#endif
+				update_current_position();
 				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%ld"), current_position.X * ((int32_t) UM_PER_STEP_X), current_position.Y * ((int32_t) UM_PER_STEP_Y), current_position.Z * ((int32_t) UM_PER_STEP_Z), current_position.E * ((int32_t) UM_PER_STEP_E), current_position.F);
 				// newline is sent from gcode_parse after we return
 				break;
@@ -740,6 +741,7 @@ void process_gcode_command() {
 				//? --- M250: return current position, end position, queue ---
 				//? Undocumented
 				//? This command is only available in DEBUG builds.
+				update_current_position();
 				sersendf_P(PSTR("{X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\t{X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\t"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F, movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.X, movebuffer[mb_tail].endpoint.Y, movebuffer[mb_tail].endpoint.Z, movebuffer[mb_tail].endpoint.E, movebuffer[mb_tail].endpoint.F,
 					#ifdef ACCELERATION_REPRAP
 						movebuffer[mb_tail].end_c

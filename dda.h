@@ -165,6 +165,6 @@ void dda_start(DDA *dda)																						__attribute__ ((hot));
 void dda_step(DDA *dda)																							__attribute__ ((hot));
 
 // update current_position
-void update_position(void);
+void update_current_position(void);
 
 #endif	/* _DDA_H */

@@ -191,7 +191,7 @@ void print_queue() {
 }
 
 /// dump queue for emergency stop.
-/// \todo effect on startpoint/current_position is undefined!
+/// \todo effect on startpoint is undefined!
 void queue_flush() {
 	// Since the timer interrupt is disabled before this function
 	// is called it is not strictly necessary to write the variables
