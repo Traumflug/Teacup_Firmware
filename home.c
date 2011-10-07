@@ -66,7 +66,10 @@ void home_x_negative() {
 
 /// find X_MAX endstop
 void home_x_positive() {
-	#if defined X_MAX_PIN
+	#if defined X_MAX_PIN && ! defined X_MAX
+		#warning X_MAX_PIN defined, but not X_MAX. home_x_positive() disabled.
+	#endif
+	#if defined X_MAX_PIN && defined X_MAX
 		TARGET t = startpoint;
 
 		t.X = +1000*STEPS_PER_MM_X;
@@ -133,7 +136,10 @@ void home_y_negative() {
 
 /// find Y MAX endstop
 void home_y_positive() {
-	#if defined Y_MAX_PIN
+	#if defined Y_MAX_PIN && ! defined Y_MAX
+		#warning Y_MAX_PIN defined, but not Y_MAX. home_y_positive() disabled.
+	#endif
+	#if defined Y_MAX_PIN && defined Y_MAX
 		TARGET t = startpoint;
 
 		t.Y = +1000*STEPS_PER_MM_Y;
@@ -201,7 +207,10 @@ void home_z_negative() {
 
 /// find Z MAX endstop
 void home_z_positive() {
-	#if defined Z_MAX_PIN
+	#if defined Z_MAX_PIN && ! defined Z_MAX
+		#warning Z_MAX_PIN defined, but not Z_MAX. home_z_positive() disabled.
+	#endif
+	#if defined Z_MAX_PIN && defined Z_MAX
 		TARGET t = startpoint;
 
 		t.Z = +1000*STEPS_PER_MM_Z;
