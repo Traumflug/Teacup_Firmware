@@ -169,7 +169,8 @@ const uint8_t	msbloc (uint32_t v) {
 */
 void dda_init(void) {
 	// set up default feedrate
-	startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
+	if (startpoint.F == 0)
+		startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
 
 	#ifdef ACCELERATION_RAMPING
 		move_state.n = 1;
@@ -633,8 +634,12 @@ void dda_step(DDA *dda) {
 		//	sersendf_P(PSTR("\r\nc %lu  c_min %lu  n %d"), dda->c, dda->c_min, move_state.n);
 	#endif
 
-	if (dda->endstop_check != 0x0 && endstop_not_done == 0x0)
+	// TODO: If we stop axes individually, could we home two or more axes at the same time?
+	if (dda->endstop_check != 0x0 && endstop_not_done == 0x0) {
 		move_state.x_steps = move_state.y_steps = move_state.z_steps = move_state.e_steps = 0;
+		// as we stop without ramping down, we have to re-init our ramping here
+		dda_init();
+	}
 
 	// TODO: did_step is obsolete ...
 	if (did_step) {
