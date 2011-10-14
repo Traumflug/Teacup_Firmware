@@ -28,13 +28,57 @@
 		do { dest = (src * (STEPS_PER_M_X / 1L) + 500000L) / 1000000L; } while (0)
 #endif
 
-// Used in distance calculation during DDA setup
-/// micrometers per step Y
-#define	UM_PER_STEP_Y		1000L / ((uint32_t) STEPS_PER_MM_Y)
-/// micrometers per step Z
-#define	UM_PER_STEP_Z		1000L / ((uint32_t) STEPS_PER_MM_Z)
-/// micrometers per step E
-#define	UM_PER_STEP_E		1000L / ((uint32_t) STEPS_PER_MM_E)
+#if	STEPS_PER_M_Y >= 4096000
+	#define	um_to_steps_y(dest, src) \
+		do { dest = (src * (STEPS_PER_M_Y / 10000L) + 50L) / 100L; } while (0)
+#elif	STEPS_PER_M_Y >= 409600
+	#define	um_to_steps_y(dest, src) \
+		do { dest = (src * (STEPS_PER_M_Y / 1000L) + 500L) / 1000L; } while (0)
+#elif	STEPS_PER_M_Y >= 40960
+	#define	um_to_steps_y(dest, src) \
+		do { dest = (src * (STEPS_PER_M_Y / 100L) + 5000L) / 10000L; } while (0)
+#elif	STEPS_PER_M_Y >= 4096
+	#define	um_to_steps_y(dest, src) \
+		do { dest = (src * (STEPS_PER_M_Y / 10L) + 50000L) / 100000L; } while (0)
+#else
+	#define	um_to_steps_y(dest, src) \
+		do { dest = (src * (STEPS_PER_M_Y / 1L) + 500000L) / 1000000L; } while (0)
+#endif
+
+#if	STEPS_PER_M_Z >= 4096000
+	#define	um_to_steps_z(dest, src) \
+		do { dest = (src * (STEPS_PER_M_Z / 10000L) + 50L) / 100L; } while (0)
+#elif	STEPS_PER_M_Z >= 409600
+	#define	um_to_steps_z(dest, src) \
+		do { dest = (src * (STEPS_PER_M_Z / 1000L) + 500L) / 1000L; } while (0)
+#elif	STEPS_PER_M_Z >= 40960
+	#define	um_to_steps_z(dest, src) \
+		do { dest = (src * (STEPS_PER_M_Z / 100L) + 5000L) / 10000L; } while (0)
+#elif	STEPS_PER_M_Z >= 4096
+	#define	um_to_steps_z(dest, src) \
+		do { dest = (src * (STEPS_PER_M_Z / 10L) + 50000L) / 100000L; } while (0)
+#else
+	#define	um_to_steps_z(dest, src) \
+		do { dest = (src * (STEPS_PER_M_Z / 1L) + 500000L) / 1000000L; } while (0)
+#endif
+
+#if	STEPS_PER_M_E >= 4096000
+	#define	um_to_steps_e(dest, src) \
+		do { dest = (src * (STEPS_PER_M_E / 10000L) + 50L) / 100L; } while (0)
+#elif	STEPS_PER_M_E >= 409600
+	#define	um_to_steps_e(dest, src) \
+		do { dest = (src * (STEPS_PER_M_E / 1000L) + 500L) / 1000L; } while (0)
+#elif	STEPS_PER_M_E >= 40960
+	#define	um_to_steps_e(dest, src) \
+		do { dest = (src * (STEPS_PER_M_E / 100L) + 5000L) / 10000L; } while (0)
+#elif	STEPS_PER_M_E >= 4096
+	#define	um_to_steps_e(dest, src) \
+		do { dest = (src * (STEPS_PER_M_E / 10L) + 50000L) / 100000L; } while (0)
+#else
+	#define	um_to_steps_e(dest, src) \
+		do { dest = (src * (STEPS_PER_M_E / 1L) + 500000L) / 1000000L; } while (0)
+#endif
+
 
 #ifdef ACCELERATION_REPRAP
 	#ifdef ACCELERATION_RAMPING

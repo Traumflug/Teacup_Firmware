@@ -24,8 +24,8 @@
 	#include	"heater.h"
 #endif
 
-#ifdef STEPS_PER_MM_X
-#error STEPS_PER_MM_X is gone, review your config.h and use STEPS_PER_M_X
+#ifdef STEPS_PER_MM_Y
+#error STEPS_PER_MM_Y is gone, review your config.h and use STEPS_PER_M_Y
 #endif
 
 /// step timeout
@@ -192,6 +192,9 @@ void dda_init(void) {
 */
 void dda_new_startpoint(void) {
 	um_to_steps_x(startpoint_steps.X, startpoint.X);
+	um_to_steps_y(startpoint_steps.Y, startpoint.Y);
+	um_to_steps_z(startpoint_steps.Z, startpoint.Z);
+	um_to_steps_e(startpoint_steps.E, startpoint.E);
 }
 
 /*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
@@ -207,7 +210,7 @@ void dda_new_startpoint(void) {
 	This algorithm is probably the main limiting factor to print speed in terms of firmware limitations
 */
 void dda_create(DDA *dda, TARGET *target) {
-	uint32_t	steps, x_delta_um /*, y_delta_um, z_delta_um, e_delta_um */;
+	uint32_t	steps, x_delta_um, y_delta_um, z_delta_um, e_delta_um;
 	uint32_t	distance, c_limit, c_limit_calc;
 
 	// initialise DDA to a known state
@@ -220,14 +223,22 @@ void dda_create(DDA *dda, TARGET *target) {
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
 	x_delta_um = (uint32_t)labs(target->X - startpoint.X);
+	y_delta_um = (uint32_t)labs(target->Y - startpoint.Y);
+	z_delta_um = (uint32_t)labs(target->Z - startpoint.Z);
+	e_delta_um = (uint32_t)labs(target->E - startpoint.E);
 
 	um_to_steps_x(steps, target->X);
 	dda->x_delta = labs(steps - startpoint_steps.X);
 	startpoint_steps.X = steps;
-
-	dda->y_delta = labs(target->Y - startpoint.Y);
-	dda->z_delta = labs(target->Z - startpoint.Z);
-	dda->e_delta = labs(target->E - startpoint.E);
+	um_to_steps_y(steps, target->Y);
+	dda->y_delta = labs(steps - startpoint_steps.Y);
+	startpoint_steps.Y = steps;
+	um_to_steps_z(steps, target->Z);
+	dda->z_delta = labs(steps - startpoint_steps.Z);
+	startpoint_steps.Z = steps;
+	um_to_steps_e(steps, target->E);
+	dda->e_delta = labs(steps - startpoint_steps.E);
+	startpoint_steps.E = steps;
 
 	dda->x_direction = (target->X >= startpoint.X)?1:0;
 	dda->y_direction = (target->Y >= startpoint.Y)?1:0;
@@ -262,15 +273,15 @@ void dda_create(DDA *dda, TARGET *target) {
 		e_enable();
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
-		if (dda->z_delta == 0)
-			distance = approx_distance(x_delta_um, dda->y_delta * UM_PER_STEP_Y);
-		else if (dda->x_delta == 0 && dda->y_delta == 0)
-			distance = dda->z_delta * UM_PER_STEP_Z;
+		if (z_delta_um == 0)
+			distance = approx_distance(x_delta_um, y_delta_um);
+		else if (x_delta_um == 0 && y_delta_um == 0)
+			distance = z_delta_um;
 		else
-			distance = approx_distance_3(x_delta_um, dda->y_delta * UM_PER_STEP_Y, dda->z_delta * UM_PER_STEP_Z);
+			distance = approx_distance_3(x_delta_um, y_delta_um, z_delta_um);
 
 		if (distance < 2)
-			distance = dda->e_delta * UM_PER_STEP_E;
+			distance = e_delta_um;
 
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",ds:%lu"), distance);
@@ -305,15 +316,15 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
 		// check Y axis
-		c_limit_calc = ( (dda->y_delta * (UM_PER_STEP_Y * 2400L)) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Y) << 8;
+		c_limit_calc = ((y_delta_um * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Y) << 8;
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
 		// check Z axis
-		c_limit_calc = ( (dda->z_delta * (UM_PER_STEP_Z * 2400L)) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Z) << 8;
+		c_limit_calc = ((z_delta_um * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Z) << 8;
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
 		// check E axis
-		c_limit_calc = ( (dda->e_delta * (UM_PER_STEP_E * 2400L)) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_E) << 8;
+		c_limit_calc = ((e_delta_um * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_E) << 8;
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
 
@@ -735,22 +746,28 @@ void update_current_position() {
 			                     move_state.x_steps * 1000 / ((STEPS_PER_M_X + 500) / 1000);
 
 		if (dda->y_direction)
-			current_position.Y = dda->endpoint.Y - move_state.y_steps;
+			current_position.Y = dda->endpoint.Y -
+			                     move_state.y_steps * 1000 / ((STEPS_PER_M_Y + 500) / 1000);
 		else
-			current_position.Y = dda->endpoint.Y + move_state.y_steps;
+			current_position.Y = dda->endpoint.Y +
+			                     move_state.y_steps * 1000 / ((STEPS_PER_M_Y + 500) / 1000);
 
 		if (dda->z_direction)
-			current_position.Z = dda->endpoint.Z - move_state.z_steps;
+			current_position.Z = dda->endpoint.Z -
+			                     move_state.z_steps * 1000 / ((STEPS_PER_M_Z + 500) / 1000);
 		else
-			current_position.Z = dda->endpoint.Z + move_state.z_steps;
+			current_position.Z = dda->endpoint.Z +
+			                     move_state.z_steps * 1000 / ((STEPS_PER_M_Z + 500) / 1000);
 
 		#ifndef E_ABSOLUTE
-			current_position.E = move_state.e_steps;
+			current_position.E = move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
 		#else
-			if (dda->e_direction)
-				current_position.E = dda->endpoint.E - move_state.e_steps;
+			if (dda->z_direction)
+				current_position.E = dda->endpoint.E -
+				                     move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
 			else
-				current_position.E = dda->endpoint.E + move_state.e_steps;
+				current_position.E = dda->endpoint.E +
+				                     move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
 		#endif
 
 		// current_position.F is updated in dda_start()

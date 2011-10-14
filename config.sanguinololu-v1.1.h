@@ -70,11 +70,11 @@
 #define MICROSTEPPING_E				4.0
 
 #define	STEPS_PER_M_X					(5023*MICROSTEPPING_X)
-#define	STEPS_PER_MM_Y				(5.023*MICROSTEPPING_Y)
-#define	STEPS_PER_MM_Z				(416.699*MICROSTEPPING_Z)
+#define	STEPS_PER_M_Y					(5023*MICROSTEPPING_Y)
+#define	STEPS_PER_M_Z					(416699*MICROSTEPPING_Z)
 
 /// http://blog.arcol.hu/?p=157 may help with this one
-#define	STEPS_PER_MM_E				(2.759*MICROSTEPPING_E)
+#define	STEPS_PER_M_E					(2759*MICROSTEPPING_E)
 
 
 /*

@@ -82,24 +82,24 @@ void process_gcode_command() {
 			next_target.target.X = X_MIN * 1000.;
 	#endif
 	#ifdef	X_MAX
-		if (next_target.target.X > X_MAX * 1000.))
+		if (next_target.target.X > X_MAX * 1000.)
 			next_target.target.X = X_MAX * 1000.;
 	#endif
 	#ifdef	Y_MIN
-		if (next_target.target.Y < (Y_MIN * STEPS_PER_MM_Y))
-			next_target.target.Y = Y_MIN * STEPS_PER_MM_Y;
+		if (next_target.target.Y < Y_MIN * 1000.)
+			next_target.target.Y = Y_MIN * 1000.;
 	#endif
 	#ifdef	Y_MAX
-		if (next_target.target.Y > (Y_MAX * STEPS_PER_MM_Y))
-			next_target.target.Y = Y_MAX * STEPS_PER_MM_Y;
+		if (next_target.target.Y > Y_MAX * 1000.)
+			next_target.target.Y = Y_MAX * 1000.;
 	#endif
 	#ifdef	Z_MIN
-		if (next_target.target.Z < (Z_MIN * STEPS_PER_MM_Z))
-			next_target.target.Z = Z_MIN * STEPS_PER_MM_Z;
+		if (next_target.target.Z < Z_MIN * 1000.)
+			next_target.target.Z = Z_MIN * 1000.;
 	#endif
 	#ifdef	Z_MAX
-		if (next_target.target.Z > (Z_MAX * STEPS_PER_MM_Z))
-			next_target.target.Z = Z_MAX * STEPS_PER_MM_Z;
+		if (next_target.target.Z > Z_MAX * 1000.)
+			next_target.target.Z = Z_MAX * 1000.;
 	#endif
 
 
@@ -578,7 +578,7 @@ void process_gcode_command() {
 					queue_wait();
 				#endif
 				update_current_position();
-				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%ld"), current_position.X, current_position.Y * ((int32_t) UM_PER_STEP_Y), current_position.Z * ((int32_t) UM_PER_STEP_Z), current_position.E * ((int32_t) UM_PER_STEP_E), current_position.F);
+				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%ld"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
 				// newline is sent from gcode_parse after we return
 				break;
 

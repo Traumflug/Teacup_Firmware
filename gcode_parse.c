@@ -15,32 +15,6 @@
 
 #include	"gcode_process.h"
 
-/*
-	Switch user friendly values to coding friendly values
-
-	This also affects the possible build volume. We have +/- 2^31 numbers available and as we internally measure position in steps and use a precision factor of 1000, this translates into a possible range of
-
-		2^31 mm / STEPS_PER_MM_x / 1000
-
-	for each axis. For a M6 threaded rod driven machine and 1/16 microstepping this evaluates to
-
-		2^31 mm / 200 / 16 / 1000 = 671 mm,
-
-	which is about the worst case we have. All other machines have a bigger build volume.
-*/
-
-#define	STEPS_PER_M_Y			((uint32_t) ((STEPS_PER_MM_Y * 1000.0) + 0.5))
-#define	STEPS_PER_M_Z			((uint32_t) ((STEPS_PER_MM_Z * 1000.0) + 0.5))
-#define	STEPS_PER_M_E			((uint32_t) ((STEPS_PER_MM_E * 1000.0) + 0.5))
-
-/*
-	mm -> inch conversion
-*/
-
-#define	STEPS_PER_IN_Y		((uint32_t) ((25.4 * STEPS_PER_MM_Y) + 0.5))
-#define	STEPS_PER_IN_Z		((uint32_t) ((25.4 * STEPS_PER_MM_Z) + 0.5))
-#define	STEPS_PER_IN_E		((uint32_t) ((25.4 * STEPS_PER_MM_E) + 0.5))
-
 /// current or previous gcode word
 /// for working out what to do with data just received
 uint8_t last_field = 0;
@@ -145,25 +119,25 @@ void gcode_parse_char(uint8_t c) {
 					break;
 				case 'Y':
 					if (next_target.option_inches)
-						next_target.target.Y = decfloat_to_int(&read_digit, STEPS_PER_IN_Y, 0);
+						next_target.target.Y = decfloat_to_int(&read_digit, 25400, 1);
 					else
-						next_target.target.Y = decfloat_to_int(&read_digit, STEPS_PER_M_Y, 1);
+						next_target.target.Y = decfloat_to_int(&read_digit, 1000, 0);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
 						serwrite_int32(next_target.target.Y);
 					break;
 				case 'Z':
 					if (next_target.option_inches)
-						next_target.target.Z = decfloat_to_int(&read_digit, STEPS_PER_IN_Z, 0);
+						next_target.target.Z = decfloat_to_int(&read_digit, 25400, 1);
 					else
-						next_target.target.Z = decfloat_to_int(&read_digit, STEPS_PER_M_Z, 1);
+						next_target.target.Z = decfloat_to_int(&read_digit, 1000, 0);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
 						serwrite_int32(next_target.target.Z);
 					break;
 				case 'E':
 					if (next_target.option_inches)
-						next_target.target.E = decfloat_to_int(&read_digit, STEPS_PER_IN_E, 0);
+						next_target.target.E = decfloat_to_int(&read_digit, 25400, 1);
 					else
-						next_target.target.E = decfloat_to_int(&read_digit, STEPS_PER_M_E, 1);
+						next_target.target.E = decfloat_to_int(&read_digit, 1000, 0);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
 						serwrite_uint32(next_target.target.E);
 					break;
