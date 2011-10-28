@@ -79,13 +79,13 @@ void home_x_positive() {
 			// hit home hard
 			t.F = MAXIMUM_FEEDRATE_X;
 		#endif
-		enqueue_home(t, 0x1, 1);
+		enqueue_home(&t, 0x1, 1);
 
 		#ifndef SLOW_HOMING
 			// back off slowly
 			t.X = -1000*STEPS_PER_MM_X;
 			t.F = SEARCH_FEEDRATE_X;
-			enqueue_home(t, 0x1, 0);
+			enqueue_home(&t, 0x1, 0);
 		#endif
 
 		// set X home
