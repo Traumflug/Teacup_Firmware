@@ -222,6 +222,7 @@
 #define	E_DIR_PIN							DIO34
 #define E_ENABLE_PIN					DIO30
 //#define	E_INVERT_DIR
+#define	E_INVERT_ENABLE
 
 //#define	SD_CARD_DETECT				DIO2
 //#define	SD_WRITE_PROTECT			DIO3

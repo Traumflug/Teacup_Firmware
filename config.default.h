@@ -214,6 +214,7 @@
 #define	E_DIR_PIN							DIO8
 //#define E_ENABLE_PIN					xxxx
 //#define	E_INVERT_DIR
+//#define	E_INVERT_ENABLE
 
 #define	PS_ON_PIN							DIO9
 //#define	STEPPER_ENABLE_PIN		xxxx
