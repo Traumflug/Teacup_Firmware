@@ -413,7 +413,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	memcpy(&startpoint, target, sizeof(TARGET));
 	// if E is relative, reset it here
 	#ifndef E_ABSOLUTE
-		startpoint.E = 0;
+		startpoint.E = startpoint_steps.E = 0;
 	#endif
 }
 
