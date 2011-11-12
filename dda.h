@@ -131,6 +131,13 @@ typedef struct {
 	/// tracking variable
 	int32_t						n;
 	#endif
+	#ifdef ACCELERATION_TEMPORAL
+	uint32_t					x_time; ///< time of the last x step
+	uint32_t					y_time; ///< time of the last y step
+	uint32_t					z_time; ///< time of the last z step
+	uint32_t					e_time; ///< time of the last e step
+	uint32_t					all_time; ///< time of the last step of any axis
+	#endif
 
 	/// Endstop debouncing
 	uint8_t debounce_count_xmin, debounce_count_ymin, debounce_count_zmin;
@@ -191,6 +198,13 @@ typedef struct {
 	uint32_t					rampdown_steps;
 	/// 24.8 fixed point timer value, maximum speed
 	uint32_t					c_min;
+	#endif
+	#ifdef ACCELERATION_TEMPORAL
+	uint32_t					x_step_interval; ///< time between steps on X axis
+	uint32_t					y_step_interval; ///< time between steps on Y axis
+	uint32_t					z_step_interval; ///< time between steps on Z axis
+	uint32_t					e_step_interval; ///< time between steps on E axis
+	uint8_t						axis_to_step;    ///< axis to be stepped on the next interrupt
 	#endif
 
 	/// Endstop homing

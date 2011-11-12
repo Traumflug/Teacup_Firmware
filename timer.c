@@ -148,6 +148,7 @@ void setTimer(uint32_t delay)
 	// from one step to the next one, which should be more or less the same
 	// as from one step interrupt to the next one. The last step interrupt happend
 	// at OCR1A, so start delay from there.
+	#warning This can't work. If it took some time since the last setTimer() and the delay is very short, the timer will wait almost a full round (3,27 ms).
 	step_start = OCR1A;
 	if (next_step_time == 0) {
 		// new move, take current time as start value

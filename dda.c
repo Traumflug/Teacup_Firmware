@@ -288,7 +288,7 @@ void dda_create(DDA *dda, TARGET *target) {
 
 		#ifdef	ACCELERATION_TEMPORAL
 			// bracket part of this equation in an attempt to avoid overflow: 60 * 16MHz * 5mm is >32 bits
-			uint32_t move_duration = distance * (60 * F_CPU / startpoint.F);
+			uint32_t move_duration = distance * ((60 * F_CPU) / (target->F * 1000));
 		#else
 			// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 			// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
@@ -399,6 +399,36 @@ void dda_create(DDA *dda, TARGET *target) {
 			if (dda->rampup_steps > dda->total_steps / 2)
 				dda->rampup_steps = dda->total_steps / 2;
 			dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
+		#elif defined ACCELERATION_TEMPORAL
+			// TODO: limit speed of individual axes to MAXIMUM_FEEDRATE
+			// TODO: calculate acceleration/deceleration for each axis
+			dda->x_step_interval = dda->y_step_interval = \
+				dda->z_step_interval = dda->e_step_interval = 0xFFFFFFFF;
+			if (dda->x_delta)
+				dda->x_step_interval = move_duration / dda->x_delta;
+			if (dda->y_delta)
+				dda->y_step_interval = move_duration / dda->y_delta;
+			if (dda->z_delta)
+				dda->z_step_interval = move_duration / dda->z_delta;
+			if (dda->e_delta)
+				dda->e_step_interval = move_duration / dda->e_delta;
+
+			dda->axis_to_step = 'x';
+			dda->c = dda->x_step_interval;
+			if (dda->y_step_interval < dda->c) {
+				dda->axis_to_step = 'y';
+				dda->c = dda->y_step_interval;
+			}
+			if (dda->z_step_interval < dda->c) {
+				dda->axis_to_step = 'z';
+				dda->c = dda->z_step_interval;
+			}
+			if (dda->e_step_interval < dda->c) {
+				dda->axis_to_step = 'e';
+				dda->c = dda->e_step_interval;
+			}
+
+			dda->c <<= 8;
 		#else
 			dda->c = (move_duration / target->F) << 8;
 			if (dda->c < c_limit)
@@ -454,6 +484,10 @@ void dda_start(DDA *dda) {
 		#ifdef ACCELERATION_RAMPING
 			move_state.step_no = 0;
 		#endif
+		#ifdef ACCELERATION_TEMPORAL
+		move_state.x_time = move_state.y_time = \
+			move_state.z_time = move_state.e_time = 0UL;
+		#endif
 
 		// ensure this dda starts
 		dda->live = 1;
@@ -486,6 +520,7 @@ void dda_start(DDA *dda) {
 void dda_step(DDA *dda) {
 	uint8_t endstop_stop; ///< Stop due to endstop trigger
 	uint8_t endstop_not_done = 0; ///< Which axes haven't finished homing
+	uint32_t c_candidate;
 
 #if defined X_MIN_PIN || defined X_MAX_PIN
 	if (dda->endstop_check & 0x1) {
@@ -511,7 +546,8 @@ void dda_step(DDA *dda) {
 #endif
 		endstop_stop = 0;
 
-	if ((move_state.x_steps) && !endstop_stop) {
+#if ! defined ACCELERATION_TEMPORAL
+	if ((move_state.x_steps) && ! endstop_stop) {
 		move_state.x_counter -= dda->x_delta;
 		if (move_state.x_counter < 0) {
 			x_step();
@@ -519,6 +555,14 @@ void dda_step(DDA *dda) {
 			move_state.x_counter += dda->total_steps;
 		}
 	}
+#else	// ACCELERATION_TEMPORAL
+	if ((dda->axis_to_step == 'x') && ! endstop_stop) {
+		x_step();
+		move_state.x_steps--;
+		move_state.x_time += dda->x_step_interval;
+		move_state.all_time = move_state.x_time;
+	}
+#endif
 
 #if defined Y_MIN_PIN || defined Y_MAX_PIN
 	if (dda->endstop_check & 0x2) {
@@ -544,7 +588,8 @@ void dda_step(DDA *dda) {
 #endif
 		endstop_stop = 0;
 
-	if ((move_state.y_steps) && !endstop_stop) {
+#if ! defined ACCELERATION_TEMPORAL
+	if ((move_state.y_steps) && ! endstop_stop) {
 		move_state.y_counter -= dda->y_delta;
 		if (move_state.y_counter < 0) {
 			y_step();
@@ -552,6 +597,14 @@ void dda_step(DDA *dda) {
 			move_state.y_counter += dda->total_steps;
 		}
 	}
+#else	// ACCELERATION_TEMPORAL
+	if ((dda->axis_to_step == 'y') && ! endstop_stop) {
+		y_step();
+		move_state.y_steps--;
+		move_state.y_time += dda->y_step_interval;
+		move_state.all_time = move_state.y_time;
+	}
+#endif
 
 #if defined Z_MIN_PIN || defined Z_MAX_PIN
 	if (dda->endstop_check & 0x4) {
@@ -577,7 +630,8 @@ void dda_step(DDA *dda) {
 #endif
 		endstop_stop = 0;
 
-	if ((move_state.z_steps) && !endstop_stop) {
+#if ! defined ACCELERATION_TEMPORAL
+	if ((move_state.z_steps) && ! endstop_stop) {
 		move_state.z_counter -= dda->z_delta;
 		if (move_state.z_counter < 0) {
 			z_step();
@@ -585,7 +639,16 @@ void dda_step(DDA *dda) {
 			move_state.z_counter += dda->total_steps;
 		}
 	}
+#else	// ACCELERATION_TEMPORAL
+	if ((dda->axis_to_step == 'z') && ! endstop_stop) {
+		z_step();
+		move_state.z_steps--;
+		move_state.z_time += dda->z_step_interval;
+		move_state.all_time = move_state.z_time;
+	}
+#endif
 
+#if ! defined ACCELERATION_TEMPORAL
 	if (move_state.e_steps) {
 		move_state.e_counter -= dda->e_delta;
 		if (move_state.e_counter < 0) {
@@ -594,6 +657,14 @@ void dda_step(DDA *dda) {
 			move_state.e_counter += dda->total_steps;
 		}
 	}
+#else	// ACCELERATION_TEMPORAL
+	if (dda->axis_to_step == 'e') {
+		e_step();
+		move_state.e_steps--;
+		move_state.e_time += dda->e_step_interval;
+		move_state.all_time = move_state.e_time;
+	}
+#endif
 
 	#if STEP_INTERRUPT_INTERRUPTIBLE
 		// Since we have sent steps to all the motors that will be stepping
@@ -680,6 +751,49 @@ void dda_step(DDA *dda) {
 		// as we stop without ramping down, we have to re-init our ramping here
 		dda_init();
 	}
+	#ifdef ACCELERATION_TEMPORAL
+		/** How is this ACCELERATION TEMPORAL expected to work?
+
+			All axes work independently of each other, as if they were on four different, synchronized timers. As we have not enough suitable timers, we have to share one for all axes.
+
+			To do this, each axis maintains the time of its last step in move_state.{xyze}_time. This time is updated as the step is done, see early in dda_step(). To find out which axis is the next one to step, the time of each axis' next step is compared to the time of the step just done. Zero means this actually is the axis just stepped, the smallest value > 0 wins.
+
+			One problem undoubtly arising is, steps should sometimes be done at {almost,exactly} the same time. We trust the timer to deal properly with very short or even zero periods. If a step can't be done in time, the timer shall do the step as soon as possible and compensate for the delay later. In turn we promise here to send a maximum of four such short-delays consecutively and to give sufficient time on average.
+		*/
+
+		// TODO: why is this line needed? If all steps are done, dda_steps()
+		//       shouldn't be called any longer, until after a dda_start().
+		dda->axis_to_step = ' '; // start with no axis to step
+		if (move_state.x_steps) {
+			c_candidate = move_state.x_time + dda->x_step_interval - move_state.all_time;
+			dda->axis_to_step = 'x';
+			dda->c = c_candidate;
+		}
+		if (move_state.y_steps) {
+			c_candidate = move_state.y_time + dda->y_step_interval - move_state.all_time;
+			if (c_candidate < dda->c) {
+				dda->axis_to_step = 'y';
+				dda->c = c_candidate;
+			}
+		}
+		if (move_state.z_steps) {
+			c_candidate = move_state.z_time + dda->z_step_interval - move_state.all_time;
+			if (c_candidate < dda->c) {
+				dda->axis_to_step = 'z';
+				dda->c = c_candidate;
+			}
+		}
+		if (move_state.e_steps) {
+			c_candidate = move_state.e_time + dda->e_step_interval - move_state.all_time;
+			if (c_candidate < dda->c) {
+				dda->axis_to_step = 'e';
+				dda->c = c_candidate;
+			}
+		}
+		if (dda->c == 0) dda->c = 10000; // hack, as we currently need another timer
+		                                 // set after everything is done.
+		dda->c <<= 8;
+	#endif
 
 	// If there are no steps left, we have finished.
 	if (move_state.x_steps == 0 && move_state.y_steps == 0 &&
