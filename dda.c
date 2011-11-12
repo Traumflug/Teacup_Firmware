@@ -762,7 +762,7 @@ void update_current_position() {
 		#ifndef E_ABSOLUTE
 			current_position.E = move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
 		#else
-			if (dda->z_direction)
+			if (dda->e_direction)
 				current_position.E = dda->endpoint.E -
 				                     move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
 			else
