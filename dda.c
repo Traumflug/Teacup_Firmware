@@ -486,7 +486,6 @@ void dda_start(DDA *dda) {
 	\todo take into account the time that interrupt takes to run
 */
 void dda_step(DDA *dda) {
-	uint8_t	did_step = 0;
 	uint8_t endstop_stop; ///< Stop due to endstop trigger
 	uint8_t endstop_not_done = 0; ///< Which axes haven't finished homing
 
@@ -518,7 +517,6 @@ void dda_step(DDA *dda) {
 		move_state.x_counter -= dda->x_delta;
 		if (move_state.x_counter < 0) {
 			x_step();
-			did_step = 1;
 			move_state.x_steps--;
 			move_state.x_counter += dda->total_steps;
 		}
@@ -552,7 +550,6 @@ void dda_step(DDA *dda) {
 		move_state.y_counter -= dda->y_delta;
 		if (move_state.y_counter < 0) {
 			y_step();
-			did_step = 1;
 			move_state.y_steps--;
 			move_state.y_counter += dda->total_steps;
 		}
@@ -586,7 +583,6 @@ void dda_step(DDA *dda) {
 		move_state.z_counter -= dda->z_delta;
 		if (move_state.z_counter < 0) {
 			z_step();
-			did_step = 1;
 			move_state.z_steps--;
 			move_state.z_counter += dda->total_steps;
 		}
@@ -596,7 +592,6 @@ void dda_step(DDA *dda) {
 		move_state.e_counter -= dda->e_delta;
 		if (move_state.e_counter < 0) {
 			e_step();
-			did_step = 1;
 			move_state.e_steps--;
 			move_state.e_counter += dda->total_steps;
 		}
@@ -653,7 +648,7 @@ void dda_step(DDA *dda) {
 				move_state.n = -((int32_t)2) - move_state.n;
 			recalc_speed = 1;
 		}
-		else if (move_state.step_no > dda->rampdown_steps) {
+		else if (move_state.step_no >= dda->rampdown_steps) {
 			if (move_state.n > 0) // wrong ramp direction
 				move_state.n = -((int32_t)2) - move_state.n;
 			recalc_speed = 1;
@@ -687,15 +682,9 @@ void dda_step(DDA *dda) {
 		dda_init();
 	}
 
-	// TODO: did_step is obsolete ...
-	if (did_step) {
-		// we stepped, reset timeout
-		steptimeout = 0;
-
-		// if we could do anything at all, we're still running
-		// otherwise, must have finished
-	}
-	else if (move_state.x_steps == 0 && move_state.y_steps == 0 && move_state.z_steps == 0 && move_state.e_steps == 0) {
+	// If there are no steps left, we have finished.
+	if (move_state.x_steps == 0 && move_state.y_steps == 0 &&
+	    move_state.z_steps == 0 && move_state.e_steps == 0) {
 		dda->live = 0;
 		#ifdef	DC_EXTRUDER
 			heater_set(DC_EXTRUDER, 0);
@@ -703,6 +692,8 @@ void dda_step(DDA *dda) {
 		// z stepper is only enabled while moving
 		z_disable();
 	}
+	else
+		steptimeout = 0;
 
 	cli();
 
