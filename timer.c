@@ -54,14 +54,14 @@ ISR(TIMER1_COMPB_vect) {
 		clock_counter_10ms -= 10;
 		clock_flag_10ms = 1;
 
-		clock_counter_250ms += 1;
+		clock_counter_250ms++;
 		if (clock_counter_250ms >= 25) {
-			clock_counter_250ms -= 25;
+			clock_counter_250ms = 0;
 			clock_flag_250ms = 1;
 
-			clock_counter_1s += 1;
+			clock_counter_1s++;
 			if (clock_counter_1s >= 4) {
-				clock_counter_1s -= 4;
+				clock_counter_1s = 0;
 				clock_flag_1s = 1;
 			}
 		}
