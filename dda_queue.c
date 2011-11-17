@@ -167,9 +167,6 @@ void next_move() {
 			dda_start(current_movebuffer);
 		}
 	} 
-	if (queue_empty())
-		setTimer(0);
-
 }
 
 /// DEBUG - print queue.
