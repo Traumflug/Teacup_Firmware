@@ -41,8 +41,6 @@ volatile uint8_t	clock_flag_10ms = 0;
 volatile uint8_t	clock_flag_250ms = 0;
 volatile uint8_t	clock_flag_1s = 0;
 
-volatile uint8_t	timer1_compa_deferred_enable = 0;
-
 /// comparator B is the system clock, happens every TICK_TIME
 ISR(TIMER1_COMPB_vect) {
 	// set output compare register to the next clock tick
@@ -83,7 +81,6 @@ ISR(TIMER1_COMPA_vect) {
 
 		// disable this interrupt. if we set a new timeout, it will be re-enabled when appropriate
 		TIMSK1 &= ~MASK(OCIE1A);
-		timer1_compa_deferred_enable = 0;
 		
 		// stepper tick
 		queue_step();
@@ -92,19 +89,7 @@ ISR(TIMER1_COMPA_vect) {
 		#ifdef DEBUG_LED_PIN
 			WRITE(DEBUG_LED_PIN, 0);
 		#endif
-		
-		// Enable the timer1_compa interrupt, if needed, 
-		// but only do it after disabling global interrupts.
-		// This will cause push any possible timer1a interrupt
-		// to the far side of the return, protecting the 
-		// stack from recursively clobbering memory.
-		
-		cli();
-		CLI_SEI_BUG_MEMORY_BARRIER();
-		
-		if (timer1_compa_deferred_enable) {
-			TIMSK1 |= MASK(OCIE1A);
-		}
+
 		return;
 	}
 
@@ -136,17 +121,20 @@ void timer_init()
 }
 
 #ifdef	HOST
-/// specify how long until the step timer should fire
+/*! Specify how long until the step timer should fire.
+	\param delay in CPU ticks
+
+	This enables the step interrupt, but also disables interrupts globally.
+	So, if you use it from inside the step interrupt, make sure to do so
+	as late as possible. If you use it from outside the step interrupt,
+	do a sei() after it to make the interrupt actually fire.
+*/
 void setTimer(uint32_t delay)
 {
 	// save interrupt flag
 	uint8_t sreg = SREG;
 	uint16_t step_start = 0;
-	
-	// disable interrupts
-	cli();
-	CLI_SEI_BUG_MEMORY_BARRIER();
-	
+
 	// re-enable clock interrupt in case we're recovering from emergency stop
 	TIMSK1 |= MASK(OCIE1B);
 
@@ -184,14 +172,20 @@ void setTimer(uint32_t delay)
 			OCR1A = step_start;
 		}
 
-		// Defer the enabling of the timer1_CompA interrupts.
-		
-		timer1_compa_deferred_enable = 1;
+		// Enable this interrupt, but only do it after disabling
+		// global interrupts. This will cause push any possible
+		// timer1a interrupt to the far side of the return, protecting the 
+		// stack from recursively clobbering memory.
+		cli();
+		CLI_SEI_BUG_MEMORY_BARRIER();
+		TIMSK1 |= MASK(OCIE1A);
+
 	} else {
+		// TODO: as the interrupt is designed to fire only once,
+		//       doing a setTimer(0) should be obsolete.
 		// flag: move has ended
 		next_step_time = 0;
 		TIMSK1 &= ~MASK(OCIE1A);
-		timer1_compa_deferred_enable = 0;
 	}
 
 	// restore interrupt flag

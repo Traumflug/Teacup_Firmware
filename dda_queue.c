@@ -74,13 +74,10 @@ void queue_step() {
 				current_movebuffer->live = current_movebuffer->waitfor_temp = 0;
 				serial_writestr_P(PSTR("Temp achieved\n"));
 			}
-
-			#if STEP_INTERRUPT_INTERRUPTIBLE
-				sei();
-			#endif
 		}
 		else {
-			// NOTE: dda_step makes this interrupt interruptible after steps have been sent but before new speed is calculated.
+			// NOTE: dda_step makes this interrupt interruptible for some time,
+			//       see STEP_INTERRUPT_INTERRUPTIBLE.
 			dda_step(current_movebuffer);
 		}
 	}
@@ -135,18 +132,9 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 	SREG = save_reg;
 	
 	if (isdead) {
-		timer1_compa_deferred_enable = 0;
 		next_move();
-		if (timer1_compa_deferred_enable) {
-			uint8_t save_reg = SREG;
-			cli();
-			CLI_SEI_BUG_MEMORY_BARRIER();
-			
-			TIMSK1 |= MASK(OCIE1A);
-			
-			MEMORY_BARRIER();
-			SREG = save_reg;
-		}
+		// Compensate for the cli() in setTimer().
+		sei();
 	}
 }
 

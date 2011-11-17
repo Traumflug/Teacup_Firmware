@@ -482,8 +482,6 @@ void dda_start(DDA *dda) {
 	Next, we work out how long until our next step using the selected acceleration algorithm and set the timer.
 	Then we decide if this was the last step for this move, and if so mark this dda as dead so next timer interrupt we can start a new one.
 	Finally we de-assert any asserted step pins.
-
-	\todo take into account the time that interrupt takes to run
 */
 void dda_step(DDA *dda) {
 	uint8_t endstop_stop; ///< Stop due to endstop trigger
@@ -598,10 +596,11 @@ void dda_step(DDA *dda) {
 	}
 
 	#if STEP_INTERRUPT_INTERRUPTIBLE
-		// since we have sent steps to all the motors that will be stepping and the rest of this function isn't so time critical,
-		// this interrupt can now be interruptible
-		// however we must ensure that we don't step again while computing the below, so disable *this* interrupt but allow others to fire
-// 		disableTimerInterrupt();
+		// Since we have sent steps to all the motors that will be stepping
+		// and the rest of this function isn't so time critical, this interrupt
+		// can now be interruptible by other interrupts.
+		// The step interrupt is disabled before entering dda_step() to ensure
+		// that we don't step again while computing the below.
 		sei();
 	#endif
 
@@ -694,8 +693,6 @@ void dda_step(DDA *dda) {
 	}
 	else
 		steptimeout = 0;
-
-	cli();
 
 	#ifdef ACCELERATION_RAMPING
 		// we don't hit maximum speed exactly with acceleration calculation, so limit it here
