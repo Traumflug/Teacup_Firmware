@@ -40,7 +40,7 @@
 	CPU clock rate
 */
 #ifndef	F_CPU
-	#define	F_CPU	20000000L
+	#define	F_CPU	20000000UL
 #endif
 
 /** \def HOST
