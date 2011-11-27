@@ -288,7 +288,21 @@ void dda_create(DDA *dda, TARGET *target) {
 
 		#ifdef	ACCELERATION_TEMPORAL
 			// bracket part of this equation in an attempt to avoid overflow: 60 * 16MHz * 5mm is >32 bits
-			uint32_t move_duration = distance * ((60 * F_CPU) / (target->F * 1000));
+			uint32_t move_duration, md_candidate;
+
+			move_duration = distance * ((60 * F_CPU) / (target->F * 1000UL));
+			md_candidate = dda->x_delta * ((60 * F_CPU) / (MAXIMUM_FEEDRATE_X * 1000UL));
+			if (md_candidate > move_duration)
+				move_duration = md_candidate;
+			md_candidate = dda->y_delta * ((60 * F_CPU) / (MAXIMUM_FEEDRATE_Y * 1000UL));
+			if (md_candidate > move_duration)
+				move_duration = md_candidate;
+			md_candidate = dda->z_delta * ((60 * F_CPU) / (MAXIMUM_FEEDRATE_Z * 1000UL));
+			if (md_candidate > move_duration)
+				move_duration = md_candidate;
+			md_candidate = dda->e_delta * ((60 * F_CPU) / (MAXIMUM_FEEDRATE_E * 1000UL));
+			if (md_candidate > move_duration)
+				move_duration = md_candidate;
 		#else
 			// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 			// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
