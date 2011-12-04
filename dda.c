@@ -520,7 +520,6 @@ void dda_start(DDA *dda) {
 void dda_step(DDA *dda) {
 	uint8_t endstop_stop; ///< Stop due to endstop trigger
 	uint8_t endstop_not_done = 0; ///< Which axes haven't finished homing
-	uint32_t c_candidate;
 
 #if defined X_MIN_PIN || defined X_MAX_PIN
 	if (dda->endstop_check & 0x1) {
@@ -760,6 +759,7 @@ void dda_step(DDA *dda) {
 
 			One problem undoubtly arising is, steps should sometimes be done at {almost,exactly} the same time. We trust the timer to deal properly with very short or even zero periods. If a step can't be done in time, the timer shall do the step as soon as possible and compensate for the delay later. In turn we promise here to send a maximum of four such short-delays consecutively and to give sufficient time on average.
 		*/
+		uint32_t c_candidate;
 
 		// TODO: why is this line needed? If all steps are done, dda_steps()
 		//       shouldn't be called any longer, until after a dda_start().
