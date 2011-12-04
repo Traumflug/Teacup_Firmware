@@ -11,6 +11,7 @@
 */
 
 #include	<avr/interrupt.h>
+#include	"memory_barrier.h"
 
 #include	"arduino.h"
 #include	"config.h"
@@ -19,7 +20,6 @@
 #include	"dda_queue.h"
 #endif
 
-#include	"memory_barrier.h"
 
 /// how often we overflow and update our clock; with F_CPU=16MHz, max is < 4.096ms (TICK_TIME = 65535)
 #define		TICK_TIME			2 MS
@@ -48,6 +48,9 @@ volatile uint8_t	clock_flag_1s = 0;
 
 /// comparator B is the system clock, happens every TICK_TIME
 ISR(TIMER1_COMPB_vect) {
+	// save status register
+	uint8_t sreg_save = SREG;
+
 	// set output compare register to the next clock tick
 	OCR1B = (OCR1B + TICK_TIME) & 0xFFFF;
 
@@ -71,12 +74,19 @@ ISR(TIMER1_COMPB_vect) {
 			}
 		}
 	}
+
+	// restore status register
+	MEMORY_BARRIER();
+	SREG = sreg_save;
 }
 
 #ifdef	HOST
 
 /// comparator A is the step timer. It has higher priority then B.
 ISR(TIMER1_COMPA_vect) {
+	// save status register
+	uint8_t sreg_save = SREG;
+
 	// Check if this is a real step, or just a next_step_time "overflow"
 	if (next_step_time < 65536) {
 		// step!
@@ -108,6 +118,10 @@ ISR(TIMER1_COMPA_vect) {
 		next_step_time += 10000;
 	}
 	// leave OCR1A as it was
+
+	// restore status register
+	MEMORY_BARRIER();
+	SREG = sreg_save;
 }
 #endif /* ifdef HOST */
 
@@ -136,8 +150,6 @@ void timer_init()
 */
 void setTimer(uint32_t delay)
 {
-	// save interrupt flag
-	uint8_t sreg = SREG;
 	uint16_t step_start = 0;
 	#ifdef ACCELERATION_TEMPORAL
 	uint16_t current_time;
@@ -211,10 +223,6 @@ void setTimer(uint32_t delay)
 	// timer1a interrupt to the far side of the return, protecting the 
 	// stack from recursively clobbering memory.
 	TIMSK1 |= MASK(OCIE1A);
-
-	// restore interrupt flag
-	MEMORY_BARRIER();
-	SREG = sreg;
 }
 
 /// stop timers - emergency stop

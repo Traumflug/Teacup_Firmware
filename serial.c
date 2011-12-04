@@ -11,6 +11,7 @@
 */
 
 #include	<avr/interrupt.h>
+#include	"memory_barrier.h"
 
 #include	"config.h"
 #include	"arduino.h"
@@ -110,6 +111,9 @@ ISR(USART_RX_vect)
 ISR(USART0_RX_vect)
 #endif
 {
+	// save status register
+	uint8_t sreg_save = SREG;
+
 	if (buf_canwrite(rx))
 		buf_push(rx, UDR0);
 	else {
@@ -128,6 +132,10 @@ ISR(USART0_RX_vect)
 		UCSR0B |= MASK(UDRIE0);
 	}
 	#endif
+
+	// restore status register
+	MEMORY_BARRIER();
+	SREG = sreg_save;
 }
 
 /// transmit buffer ready interrupt
@@ -139,6 +147,9 @@ ISR(USART_UDRE_vect)
 ISR(USART0_UDRE_vect)
 #endif
 {
+	// save status register
+	uint8_t sreg_save = SREG;
+
 	#ifdef	XONXOFF
 	if (flowflags & FLOWFLAG_SEND_XON) {
 		UDR0 = ASCII_XON;
@@ -154,6 +165,10 @@ ISR(USART0_UDRE_vect)
 		buf_pop(tx, UDR0);
 	else
 		UCSR0B &= ~MASK(UDRIE0);
+
+	// restore status register
+	MEMORY_BARRIER();
+	SREG = sreg_save;
 }
 
 /*
