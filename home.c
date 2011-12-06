@@ -163,7 +163,7 @@ void home_y_positive() {
 		queue_wait();
 		// set position to MAX
 		startpoint.Y = next_target.target.Y = (int32_t)(Y_MAX * 1000.);
-		new_startpoint();
+		dda_new_startpoint();
 		// go to zero
 		t.Y = 0;
 		t.F = MAXIMUM_FEEDRATE_Y;
