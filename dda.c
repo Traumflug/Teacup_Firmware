@@ -775,9 +775,6 @@ void dda_step(DDA *dda) {
 		*/
 		uint32_t c_candidate;
 
-		// TODO: why is this line needed? If all steps are done, dda_steps()
-		//       shouldn't be called any longer, until after a dda_start().
-		dda->axis_to_step = ' '; // start with no axis to step
 		if (move_state.x_steps) {
 			c_candidate = move_state.x_time + dda->x_step_interval - move_state.all_time;
 			dda->axis_to_step = 'x';
