@@ -775,6 +775,7 @@ void dda_step(DDA *dda) {
 		*/
 		uint32_t c_candidate;
 
+		dda->c = 0xFFFFFFFF;
 		if (move_state.x_steps) {
 			c_candidate = move_state.x_time + dda->x_step_interval - move_state.all_time;
 			dda->axis_to_step = 'x';
