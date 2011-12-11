@@ -802,8 +802,6 @@ void dda_step(DDA *dda) {
 				dda->c = c_candidate;
 			}
 		}
-		if (dda->c == 0) dda->c = 10000; // hack, as we currently need another timer
-		                                 // set after everything is done.
 		dda->c <<= 8;
 	#endif
 
