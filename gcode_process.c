@@ -392,6 +392,13 @@ void process_gcode_command() {
 				//? Undocumented.
 				tool = next_tool;
 				break;
+
+			// M82 - Set E codes absolute (default)
+			// not implemented
+
+			// M83 - Set E codes relative while in Absolute Coordinates (G90) mode
+			// not implemented
+
 			// M84- stop idle hold
 			case 84:
 				stepper_disable();
