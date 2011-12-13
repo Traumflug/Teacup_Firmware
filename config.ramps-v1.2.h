@@ -65,17 +65,12 @@
 
 	valid range = 20 to 4'0960'000 (0.02 to 40960 steps/mm)
 */
-#define MICROSTEPPING_X				16.0
-#define MICROSTEPPING_Y				16.0
-#define MICROSTEPPING_Z				16.0
-#define MICROSTEPPING_E				4.0
-
-#define	STEPS_PER_M_X					(5023*MICROSTEPPING_X)
-#define	STEPS_PER_M_Y					(5023*MICROSTEPPING_Y)
-#define	STEPS_PER_M_Z					(416699*MICROSTEPPING_Z)
+#define	STEPS_PER_M_X					80368
+#define	STEPS_PER_M_Y					80368
+#define	STEPS_PER_M_Z					3333592
 
 /// http://blog.arcol.hu/?p=157 may help with this one
-#define	STEPS_PER_M_E					(2759*MICROSTEPPING_E)
+#define	STEPS_PER_M_E					11036
 
 
 /*

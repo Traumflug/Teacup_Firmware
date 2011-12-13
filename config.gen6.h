@@ -65,12 +65,12 @@
 
 	valid range = 20 to 4'0960'000 (0.02 to 40960 steps/mm)
 */
-#define	STEPS_PER_M_X					(5000*8)
-#define	STEPS_PER_M_Y					(5000*8)
-#define	STEPS_PER_M_Z					(160000*8)
+#define	STEPS_PER_M_X					40000
+#define	STEPS_PER_M_Y					40000
+#define	STEPS_PER_M_Z					1280000
 
 /// http://blog.arcol.hu/?p=157 may help with this one
-#define	STEPS_PER_M_E					(160000*8)
+#define	STEPS_PER_M_E					1280000
 
 
 /*
