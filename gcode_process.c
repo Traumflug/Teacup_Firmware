@@ -746,6 +746,28 @@ void process_gcode_command() {
 				#endif
 				break;
 
+      case 203:
+        //? --- M203: monitor temperature PID data (RepetierHost) ---
+        //? Enable streaming temperature reporting for one of the temp sensors
+        if (next_target.seen_S) {
+          switch (next_target.S)
+          {
+            case 0:     // Extruder 1
+              heater_stream_enable(0);
+              break;
+
+            case 100:   // Heated bed
+              heater_stream_enable(1);
+              break;
+
+            case 1:     // Extruder 2 (not present)
+            default:  // Anything else disables streaming info
+              heater_stream_enable(255);   // 255=NotASensor, so disabled
+              break;
+          }
+        }
+        break;
+
 			#ifdef	DEBUG
 			case 240:
 				//? --- M240: echo off ---

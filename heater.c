@@ -13,6 +13,7 @@
 #include	"temp.h"
 #include "pinio.h"
 #include	"crc.h"
+#include "timer.h"
 
 #ifndef	EXTRUDER
 	#include	"sersendf.h"
@@ -403,6 +404,9 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 	}
 	#endif /* HEATER_SANITY_CHECK */
 
+  // Stream PID info for M203 graphing when requested
+  heater_stream(h, current_temp, target_temp, pid_output);
+
 	heater_set(h, pid_output);
 }
 
@@ -538,3 +542,15 @@ void heater_print(uint16_t i) {
 	sersendf_P(PSTR("P:%ld I:%ld D:%ld Ilim:%u crc:%u "), heaters_pid[i].p_factor, heaters_pid[i].i_factor, heaters_pid[i].d_factor, heaters_pid[i].i_limit, crc_block(&heaters_pid[i].p_factor, 14));
 }
 #endif
+
+uint8_t heater_stream_index = 255;
+void heater_stream_enable(uint16_t i) {
+  heater_stream_index = i ;
+}
+
+extern uint32_t heater_millis;
+void heater_stream(uint16_t i, uint16_t current, uint16_t target, uint8_t pwm) {
+  if ( heater_stream_index == i )
+    sersendf_P(PSTR("MTEMP:%lu %u %u %u\n"), get_millis(), current/4, target/4, pwm);
+}
+

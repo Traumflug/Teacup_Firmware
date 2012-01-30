@@ -34,4 +34,7 @@ void heater_save_settings(void);
 
 void heater_print(uint16_t i);
 
+void heater_stream_enable(uint16_t i);
+void heater_stream(uint16_t i, uint16_t current, uint16_t target, uint8_t pwm);
+
 #endif	/* _HEATER_H */

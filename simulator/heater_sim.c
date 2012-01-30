@@ -15,6 +15,9 @@ uint8_t heaters_all_zero(void) {
   return 1;
 }
 
+void heater_stream_enable(uint16_t i) {
+}
+
 #ifdef EECONFIG
 void pid_set_p(heater_t index, int32_t p) {}
 void pid_set_i(heater_t index, int32_t i) {}
