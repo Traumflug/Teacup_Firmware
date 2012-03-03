@@ -440,6 +440,13 @@ PWM value for 'off'
 */
 #define	TH_COUNT					8
 
+/** \def FAST_PWM
+	Teacup offers two PWM frequencies, 76(61) Hz and 78000(62500) Hz on a 20(16) MHz electronics. The faster one is the default, as it's what most other firmwares do. It can make the heater MOSFETs pretty hot, though.
+
+	Comment this option out if your MOSFETs overheat. Drawback is, in a quiet environment you might notice the heaters and your power supply humming, then.
+*/
+#define	FAST_PWM
+
 /// this is the scaling of internally stored PID values. 1024L is a good value
 #define	PID_SCALE						1024L
 

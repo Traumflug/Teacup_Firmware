@@ -186,13 +186,29 @@ void io_init(void) {
 
 	// setup PWM timers: fast PWM, no prescaler
 	TCCR0A = MASK(WGM01) | MASK(WGM00);
-	TCCR0B = MASK(CS00);
+	// PWM frequencies in TCCR0B, see page 108 of the ATmega644 reference.
+	TCCR0B = MASK(CS00); // F_CPU / 256 (about 78(62.5) kHz on a 20(16) MHz chip)
+	//TCCR0B = MASK(CS01);              // F_CPU / 256 / 8  (about 9.8(7.8) kHz)
+	//TCCR0B = MASK(CS00) | MASK(CS01); // F_CPU / 256 / 64  (about 1220(977) Hz)
+	//TCCR0B = MASK(CS02);              // F_CPU / 256 / 256  (about 305(244) Hz)
+	#ifndef FAST_PWM
+		TCCR0B = MASK(CS00) | MASK(CS02); // F_CPU / 256 / 1024  (about 76(61) Hz)
+	#endif
 	TIMSK0 = 0;
 	OCR0A = 0;
 	OCR0B = 0;
 
 	TCCR2A = MASK(WGM21) | MASK(WGM20);
-	TCCR2B = MASK(CS20);
+	// PWM frequencies in TCCR2B, see page 156 of the ATmega644 reference.
+	TCCR2B = MASK(CS20); // F_CPU / 256  (about 78(62.5) kHz on a 20(16) MHz chip)
+	//TCCR2B = MASK(CS21);              // F_CPU / 256 / 8  (about 9.8(7.8) kHz)
+	//TCCR2B = MASK(CS20) | MASK(CS21); // F_CPU / 256 / 32  (about 2.4(2.0) kHz)
+	//TCCR2B = MASK(CS22);              // F_CPU / 256 / 64  (about 1220(977) Hz)
+	//TCCR2B = MASK(CS20) | MASK(CS22); // F_CPU / 256 / 128  (about 610(488) Hz)
+	//TCCR2B = MASK(CS21) | MASK(CS22); // F_CPU / 256 / 256  (about 305(244) Hz)
+	#ifndef FAST_PWM
+		TCCR2B = MASK(CS20) | MASK(CS21) | MASK(CS22); // F_CPU / 256 / 1024
+	#endif
 	TIMSK2 = 0;
 	OCR2A = 0;
 	OCR2B = 0;
