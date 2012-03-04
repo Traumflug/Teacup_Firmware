@@ -34,7 +34,7 @@ void home() {
 /// find X MIN endstop
 void home_x_negative() {
 	#if defined X_MIN_PIN
-		TARGET t = startpoint;
+		TARGET t = { 0L, 0L, 0L, 0L, 0L, 1, 1 };
 
 		t.X = -1000000;
 		#ifdef SLOW_HOMING
@@ -70,7 +70,7 @@ void home_x_positive() {
 		#warning X_MAX_PIN defined, but not X_MAX. home_x_positive() disabled.
 	#endif
 	#if defined X_MAX_PIN && defined X_MAX
-		TARGET t = startpoint;
+		TARGET t = { 0L, 0L, 0L, 0L, 0L, 1, 1 };
 
 		t.X = +1000000;
 		#ifdef SLOW_HOMING
@@ -104,7 +104,7 @@ void home_x_positive() {
 /// fund Y MIN endstop
 void home_y_negative() {
 	#if defined Y_MIN_PIN
-		TARGET t = startpoint;
+		TARGET t = { 0L, 0L, 0L, 0L, 0L, 1, 1 };
 
 		t.Y = -1000000;
 		#ifdef SLOW_HOMING
@@ -140,7 +140,7 @@ void home_y_positive() {
 		#warning Y_MAX_PIN defined, but not Y_MAX. home_y_positive() disabled.
 	#endif
 	#if defined Y_MAX_PIN && defined Y_MAX
-		TARGET t = startpoint;
+		TARGET t = { 0L, 0L, 0L, 0L, 0L, 1, 1 };
 
 		t.Y = +1000000;
 		#ifdef SLOW_HOMING
@@ -174,7 +174,7 @@ void home_y_positive() {
 /// find Z MIN endstop
 void home_z_negative() {
 	#if defined Z_MIN_PIN
-		TARGET t = startpoint;
+		TARGET t = { 0L, 0L, 0L, 0L, 0L, 1, 1 };
 
 		t.Z = -1000000;
 		#ifdef SLOW_HOMING
@@ -211,7 +211,7 @@ void home_z_positive() {
 		#warning Z_MAX_PIN defined, but not Z_MAX. home_z_positive() disabled.
 	#endif
 	#if defined Z_MAX_PIN && defined Z_MAX
-		TARGET t = startpoint;
+		TARGET t = { 0L, 0L, 0L, 0L, 0L, 1, 1 };
 
 		t.Z = +1000000;
 		#ifdef SLOW_HOMING

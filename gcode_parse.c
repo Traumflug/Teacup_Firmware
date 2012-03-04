@@ -75,6 +75,8 @@ static int32_t decfloat_to_int(decfloat *df, uint32_t multiplicand) {
 	return df->sign ? -(int32_t)r : (int32_t)r;
 }
 
+// TODO TODO: write a gcode_init(), next_target is used uninitialised. For a hint on what to do, see line 340ff.
+
 /// Character Received - add it to our command
 /// \param c the next character to process
 void gcode_parse_char(uint8_t c) {
@@ -344,16 +346,12 @@ void gcode_parse_char(uint8_t c) {
 		next_target.seen_G = 1;
 		next_target.G = 1;
 
-		if (next_target.option_relative) {
+		if (next_target.target.all_relative) {
 			next_target.target.X = next_target.target.Y = next_target.target.Z = 0;
-			#ifdef	E_ABSOLUTE
-				next_target.target.E = 0;
-			#endif
 		}
-		#ifndef	E_ABSOLUTE
-			// E always relative
+		if (next_target.target.all_relative || next_target.target.e_relative) {
 			next_target.target.E = 0;
-		#endif
+		}
 	}
 }
 

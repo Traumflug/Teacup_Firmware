@@ -97,11 +97,17 @@
 	X, Y, Z and E are in micrometers unless explcitely stated. F is in mm/min.
 */
 typedef struct {
+// TODO TODO: We should really make up a loop for all axes.
+//            Think of what happens when a sixth axis (multi colour extruder)
+//            appears?
 	int32_t						X;
 	int32_t						Y;
 	int32_t						Z;
 	int32_t						E;
 	uint32_t					F;
+
+	uint8_t		all_relative			:1; ///< bool: relative coordinates?
+	uint8_t		e_relative				:1; ///< bool: e axis relative? Overrides all_relative
 } TARGET;
 
 /**

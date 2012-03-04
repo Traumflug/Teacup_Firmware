@@ -40,7 +40,6 @@ typedef struct {
 			uint8_t					seen_checksum				:1; ///< seen a checksum?
 			uint8_t					seen_semi_comment		:1; ///< seen a semicolon?
 			uint8_t					seen_parens_comment	:1; ///< seen an open parenthesis
-			uint8_t					option_relative			:1; ///< relative or absolute coordinates?
 			uint8_t					option_inches				:1; ///< inches or millimeters?
 		};
 		uint16_t				flags;

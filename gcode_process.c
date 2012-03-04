@@ -41,9 +41,7 @@ uint8_t next_tool;
 #if E_STARTSTOP_STEPS > 0
 /// move E by a certain amount at a certain speed
 static void SpecialMoveE(int32_t e, uint32_t f) {
-	TARGET t = startpoint;
-	t.E += e;
-	t.F = f;
+	TARGET t = { 0L, 0L, 0L, e, f, 1, 1 };
 	enqueue(&t);
 }
 #endif /* E_STARTSTOP_STEPS > 0 */
@@ -61,45 +59,66 @@ static void SpecialMoveE(int32_t e, uint32_t f) {
 void process_gcode_command() {
 	uint32_t	backup_f;
 
-	// convert relative to absolute
-	if (next_target.option_relative) {
-		next_target.target.X += startpoint.X;
-		next_target.target.Y += startpoint.Y;
-		next_target.target.Z += startpoint.Z;
-		#ifdef	E_ABSOLUTE
-			next_target.target.E += startpoint.E;
-		#endif
-	}
-	// E ALWAYS relative, otherwise we overflow our registers after only a few layers
-	// 	next_target.target.E += startpoint.E;
-	// easier way to do this
-	// 	startpoint.E = 0;
-	// moved to dda.c, end of dda_create() and dda_queue.c, next_move()
-
 	// implement axis limits
 	#ifdef	X_MIN
-		if (next_target.target.X < X_MIN * 1000.)
-			next_target.target.X = X_MIN * 1000.;
+		if (next_target.target.all_relative) {
+			if (next_target.target.X += startpoint.X < X_MIN * 1000.)
+				next_target.target.X = X_MIN * 1000. + startpoint.X;
+		}
+		else {
+			if (next_target.target.X < X_MIN * 1000.)
+				next_target.target.X = X_MIN * 1000.;
+		}
 	#endif
 	#ifdef	X_MAX
-		if (next_target.target.X > X_MAX * 1000.)
-			next_target.target.X = X_MAX * 1000.;
+		if (next_target.target.all_relative) {
+			if (next_target.target.X += startpoint.X > X_MAX * 1000.)
+				next_target.target.X = X_MIN * 1000. - startpoint.X;
+		}
+		else {
+			if (next_target.target.X > X_MAX * 1000.)
+				next_target.target.X = X_MAX * 1000.;
+		}
 	#endif
 	#ifdef	Y_MIN
-		if (next_target.target.Y < Y_MIN * 1000.)
-			next_target.target.Y = Y_MIN * 1000.;
+		if (next_target.target.all_relative) {
+			if (next_target.target.Y += startpoint.Y < Y_MIN * 1000.)
+				next_target.target.Y = Y_MIN * 1000. + startpoint.Y;
+		}
+		else {
+			if (next_target.target.Y < Y_MIN * 1000.)
+				next_target.target.Y = Y_MIN * 1000.;
+		}
 	#endif
 	#ifdef	Y_MAX
-		if (next_target.target.Y > Y_MAX * 1000.)
-			next_target.target.Y = Y_MAX * 1000.;
+		if (next_target.target.all_relative) {
+			if (next_target.target.Y += startpoint.Y > Y_MAX * 1000.)
+				next_target.target.Y = Y_MIN * 1000. - startpoint.Y;
+		}
+		else {
+			if (next_target.target.Y > Y_MAX * 1000.)
+				next_target.target.Y = Y_MAX * 1000.;
+		}
 	#endif
 	#ifdef	Z_MIN
-		if (next_target.target.Z < Z_MIN * 1000.)
-			next_target.target.Z = Z_MIN * 1000.;
+		if (next_target.target.all_relative) {
+			if (next_target.target.Z += startpoint.Z < Z_MIN * 1000.)
+				next_target.target.Z = Z_MIN * 1000. + startpoint.Z;
+		}
+		else {
+			if (next_target.target.Z < Z_MIN * 1000.)
+				next_target.target.Z = Z_MIN * 1000.;
+		}
 	#endif
 	#ifdef	Z_MAX
-		if (next_target.target.Z > Z_MAX * 1000.)
-			next_target.target.Z = Z_MAX * 1000.;
+		if (next_target.target.all_relative) {
+			if (next_target.target.Z += startpoint.Z > Z_MAX * 1000.)
+				next_target.target.Z = Z_MIN * 1000. - startpoint.Z;
+		}
+		else {
+			if (next_target.target.Z > Z_MAX * 1000.)
+				next_target.target.Z = Z_MAX * 1000.;
+		}
 	#endif
 
 
@@ -115,6 +134,7 @@ void process_gcode_command() {
 	    next_tool = next_target.T;
 	}
 
+// TODO TODO: really?
 	// if we didn't see an axis word, set it to startpoint. this fixes incorrect moves after homing
 	if (next_target.seen_X == 0)
 		next_target.target.X = startpoint.X;
@@ -253,9 +273,15 @@ void process_gcode_command() {
 				//?
 				//? Example: G90
 				//?
-				//? All coordinates from now on are absolute relative to the origin of the machine.  (This is the RepRap default.)
+				//? All coordinates from now on are absolute relative to the origin
+				//? of the machine. This is the RepRap default.
 				//?
-				next_target.option_relative = 0;
+
+				// No queue_wait() needed.
+				next_target.target.all_relative = 0;
+				// TODO: What's about startpoint, next_target an friends?
+				//       What should a machine do when returning from relative
+				//       to absolute mode?
 				break;
 
 			case 91:
@@ -265,7 +291,9 @@ void process_gcode_command() {
 				//?
 				//? All coordinates from now on are relative to the last position.
 				//?
-				next_target.option_relative = 1;
+
+				// No queue_wait() needed.
+				next_target.target.all_relative = 1;
 				break;
 
 			case 92:
@@ -393,11 +421,25 @@ void process_gcode_command() {
 				tool = next_tool;
 				break;
 
-			// M82 - Set E codes absolute (default)
-			// not implemented
+			case 82:
+				//? --- M82 - Set E codes absolute ---
+				//?
+				//? This is the default. M82/M82 is not documented in the
+				//? RepRap wiki, behaviours was taken from Strinter as of March 2012.
+
+				// No wait_queue() needed.
+				next_target.target.e_relative = 0;
+				break;
 
 			// M83 - Set E codes relative while in Absolute Coordinates (G90) mode
-			// not implemented
+			case 83:
+				//? --- M83 - Set E codes relative ---
+				//?
+				//? Counterpart to M82.
+
+				// No wait_queue() needed.
+				next_target.target.e_relative = 1;
+				break;
 
 			// M84- stop idle hold
 			case 84:
@@ -407,6 +449,7 @@ void process_gcode_command() {
 				z_disable();
 				e_disable();
 				break;
+
 			// M3/M101- extruder on
 			case 3:
 			case 101:

@@ -222,28 +222,55 @@ void dda_create(DDA *dda, TARGET *target) {
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
-	x_delta_um = (uint32_t)labs(target->X - startpoint.X);
-	y_delta_um = (uint32_t)labs(target->Y - startpoint.Y);
-	z_delta_um = (uint32_t)labs(target->Z - startpoint.Z);
-	e_delta_um = (uint32_t)labs(target->E - startpoint.E);
+// TODO TODO: We should really make up a loop for all axes.
+//            Think of what happens when a sixth axis (multi colour extruder)
+//            appears?
+	if (target->all_relative) {
+		x_delta_um = labs(target->X);
+		um_to_steps_x(dda->x_delta, x_delta_um);
+		dda->x_direction = (target->X < 0)?1:0;
 
-	um_to_steps_x(steps, target->X);
-	dda->x_delta = labs(steps - startpoint_steps.X);
-	startpoint_steps.X = steps;
-	um_to_steps_y(steps, target->Y);
-	dda->y_delta = labs(steps - startpoint_steps.Y);
-	startpoint_steps.Y = steps;
-	um_to_steps_z(steps, target->Z);
-	dda->z_delta = labs(steps - startpoint_steps.Z);
-	startpoint_steps.Z = steps;
-	um_to_steps_e(steps, target->E);
-	dda->e_delta = labs(steps - startpoint_steps.E);
-	startpoint_steps.E = steps;
+		y_delta_um = labs(target->Y);
+		um_to_steps_y(dda->y_delta, y_delta_um);
+		dda->y_direction = (target->Y < 0)?1:0;
 
-	dda->x_direction = (target->X >= startpoint.X)?1:0;
-	dda->y_direction = (target->Y >= startpoint.Y)?1:0;
-	dda->z_direction = (target->Z >= startpoint.Z)?1:0;
-	dda->e_direction = (target->E >= startpoint.E)?1:0;
+		z_delta_um = labs(target->Z);
+		um_to_steps_z(dda->z_delta, z_delta_um);
+		dda->z_direction = (target->Z < 0)?1:0;
+	}
+	else {
+		x_delta_um = (uint32_t)labs(target->X - startpoint.X);
+		y_delta_um = (uint32_t)labs(target->Y - startpoint.Y);
+		z_delta_um = (uint32_t)labs(target->Z - startpoint.Z);
+
+		um_to_steps_x(steps, target->X);
+		dda->x_delta = labs(steps - startpoint_steps.X);
+		startpoint_steps.X = steps;
+		um_to_steps_y(steps, target->Y);
+		dda->y_delta = labs(steps - startpoint_steps.Y);
+		startpoint_steps.Y = steps;
+		um_to_steps_z(steps, target->Z);
+		dda->z_delta = labs(steps - startpoint_steps.Z);
+		startpoint_steps.Z = steps;
+
+		dda->x_direction = (target->X >= startpoint.X)?1:0;
+		dda->y_direction = (target->Y >= startpoint.Y)?1:0;
+		dda->z_direction = (target->Z >= startpoint.Z)?1:0;
+	}
+
+	// This if() matches Sprinter's behaviour as of March 2012.
+	if (target->all_relative || target->e_relative) {
+		e_delta_um = labs(target->E);
+		um_to_steps_e(dda->e_delta, e_delta_um);
+		dda->e_direction = (target->E < 0)?1:0;
+	}
+	else {
+		e_delta_um = (uint32_t)labs(target->E - startpoint.E);
+		um_to_steps_e(steps, target->E);
+		dda->e_delta = labs(steps - startpoint_steps.E);
+		startpoint_steps.E = steps;
+		dda->e_direction = (target->E >= startpoint.E)?1:0;
+	}
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 		sersendf_P(PSTR("%ld,%ld,%ld,%ld] ["), target->X - startpoint.X, target->Y - startpoint.Y, target->Z - startpoint.Z, target->E - startpoint.E);
@@ -455,10 +482,6 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	// next dda starts where we finish
 	memcpy(&startpoint, target, sizeof(TARGET));
-	// if E is relative, reset it here
-	#ifndef E_ABSOLUTE
-		startpoint.E = startpoint_steps.E = 0;
-	#endif
 }
 
 /*! Start a prepared DDA

@@ -274,6 +274,9 @@ void init(void) {
 	// set up serial
 	serial_init();
 
+	// set up G-code parsing
+	// gcode_init();
+
 	// set up inputs and outputs
 	io_init();
 
