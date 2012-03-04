@@ -88,6 +88,7 @@ PGM_P	str_ox = "0x";
 
 	u - unsigned int\n
 	d - signed int\n
+	q - signed int with decimal before the third digit from the right\n
 	c - character\n
 	x - hex\n
 	% - send a literal % character
