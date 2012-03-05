@@ -66,6 +66,8 @@ typedef struct {
 /// the command being processed
 extern GCODE_COMMAND next_target;
 
+void gcode_init(void);
+
 /// accept the next character and process it
 void gcode_parse_char(uint8_t c);
 

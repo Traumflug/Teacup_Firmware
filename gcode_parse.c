@@ -75,6 +75,18 @@ static int32_t decfloat_to_int(decfloat *df, uint32_t multiplicand) {
 	return df->sign ? -(int32_t)r : (int32_t)r;
 }
 
+void gcode_init(void) {
+	// gcc guarantees us all variables are initialised to 0.
+
+	// assume a G1 by default
+	next_target.seen_G = 1;
+	next_target.G = 1;
+
+	#ifndef E_ABSOLUTE
+		next_target.option_e_relative = 1;
+	#endif
+}
+
 // TODO TODO: write a gcode_init(), next_target is used uninitialised. For a hint on what to do, see line 340ff.
 
 /// Character Received - add it to our command
