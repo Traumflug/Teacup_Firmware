@@ -106,7 +106,6 @@ typedef struct {
 	int32_t						E;
 	uint32_t					F;
 
-	uint8_t		all_relative			:1; ///< bool: relative coordinates?
 	uint8_t		e_relative				:1; ///< bool: e axis relative? Overrides all_relative
 } TARGET;
 

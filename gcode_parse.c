@@ -346,10 +346,10 @@ void gcode_parse_char(uint8_t c) {
 		next_target.seen_G = 1;
 		next_target.G = 1;
 
-		if (next_target.target.all_relative) {
+		if (next_target.option_all_relative) {
 			next_target.target.X = next_target.target.Y = next_target.target.Z = 0;
 		}
-		if (next_target.target.all_relative || next_target.target.e_relative) {
+		if (next_target.option_all_relative || next_target.option_e_relative) {
 			next_target.target.E = 0;
 		}
 	}

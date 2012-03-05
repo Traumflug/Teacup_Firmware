@@ -225,41 +225,25 @@ void dda_create(DDA *dda, TARGET *target) {
 // TODO TODO: We should really make up a loop for all axes.
 //            Think of what happens when a sixth axis (multi colour extruder)
 //            appears?
-	if (target->all_relative) {
-		x_delta_um = labs(target->X);
-		um_to_steps_x(dda->x_delta, x_delta_um);
-		dda->x_direction = (target->X >= 0)?1:0;
+	x_delta_um = (uint32_t)labs(target->X - startpoint.X);
+	y_delta_um = (uint32_t)labs(target->Y - startpoint.Y);
+	z_delta_um = (uint32_t)labs(target->Z - startpoint.Z);
 
-		y_delta_um = labs(target->Y);
-		um_to_steps_y(dda->y_delta, y_delta_um);
-		dda->y_direction = (target->Y >= 0)?1:0;
+	um_to_steps_x(steps, target->X);
+	dda->x_delta = labs(steps - startpoint_steps.X);
+	startpoint_steps.X = steps;
+	um_to_steps_y(steps, target->Y);
+	dda->y_delta = labs(steps - startpoint_steps.Y);
+	startpoint_steps.Y = steps;
+	um_to_steps_z(steps, target->Z);
+	dda->z_delta = labs(steps - startpoint_steps.Z);
+	startpoint_steps.Z = steps;
 
-		z_delta_um = labs(target->Z);
-		um_to_steps_z(dda->z_delta, z_delta_um);
-		dda->z_direction = (target->Z >= 0)?1:0;
-	}
-	else {
-		x_delta_um = (uint32_t)labs(target->X - startpoint.X);
-		y_delta_um = (uint32_t)labs(target->Y - startpoint.Y);
-		z_delta_um = (uint32_t)labs(target->Z - startpoint.Z);
+	dda->x_direction = (target->X >= startpoint.X)?1:0;
+	dda->y_direction = (target->Y >= startpoint.Y)?1:0;
+	dda->z_direction = (target->Z >= startpoint.Z)?1:0;
 
-		um_to_steps_x(steps, target->X);
-		dda->x_delta = labs(steps - startpoint_steps.X);
-		startpoint_steps.X = steps;
-		um_to_steps_y(steps, target->Y);
-		dda->y_delta = labs(steps - startpoint_steps.Y);
-		startpoint_steps.Y = steps;
-		um_to_steps_z(steps, target->Z);
-		dda->z_delta = labs(steps - startpoint_steps.Z);
-		startpoint_steps.Z = steps;
-
-		dda->x_direction = (target->X >= startpoint.X)?1:0;
-		dda->y_direction = (target->Y >= startpoint.Y)?1:0;
-		dda->z_direction = (target->Z >= startpoint.Z)?1:0;
-	}
-
-	// This if() matches Sprinter's behaviour as of March 2012.
-	if (target->all_relative || target->e_relative) {
+	if (target->e_relative) {
 		e_delta_um = labs(target->E);
 		um_to_steps_e(dda->e_delta, e_delta_um);
 		dda->e_direction = (target->E >= 0)?1:0;

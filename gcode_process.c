@@ -41,7 +41,7 @@ uint8_t next_tool;
 #if E_STARTSTOP_STEPS > 0
 /// move E by a certain amount at a certain speed
 static void SpecialMoveE(int32_t e, uint32_t f) {
-	TARGET t = { 0L, 0L, 0L, e, f, 1, 1 };
+	TARGET t = { 0L, 0L, 0L, e, f, 1 };
 	enqueue(&t);
 }
 #endif /* E_STARTSTOP_STEPS > 0 */
@@ -59,66 +59,44 @@ static void SpecialMoveE(int32_t e, uint32_t f) {
 void process_gcode_command() {
 	uint32_t	backup_f;
 
+	// convert relative to absolute
+	if (next_target.option_all_relative) {
+		next_target.target.X += startpoint.X;
+		next_target.target.Y += startpoint.Y;
+		next_target.target.Z += startpoint.Z;
+	}
+
+	// E relative movement.
+	// Matches Sprinter's behaviour as of March 2012.
+	if (next_target.option_all_relative || next_target.option_e_relative)
+		next_target.target.e_relative = 1;
+	else
+		next_target.target.e_relative = 0;
+
 	// implement axis limits
 	#ifdef	X_MIN
-		if (next_target.target.all_relative) {
-			if (next_target.target.X += startpoint.X < X_MIN * 1000.)
-				next_target.target.X = X_MIN * 1000. + startpoint.X;
-		}
-		else {
-			if (next_target.target.X < X_MIN * 1000.)
-				next_target.target.X = X_MIN * 1000.;
-		}
+		if (next_target.target.X < X_MIN * 1000.)
+			next_target.target.X = X_MIN * 1000.;
 	#endif
 	#ifdef	X_MAX
-		if (next_target.target.all_relative) {
-			if (next_target.target.X += startpoint.X > X_MAX * 1000.)
-				next_target.target.X = X_MAX * 1000. - startpoint.X;
-		}
-		else {
-			if (next_target.target.X > X_MAX * 1000.)
-				next_target.target.X = X_MAX * 1000.;
-		}
+		if (next_target.target.X > X_MAX * 1000.)
+			next_target.target.X = X_MAX * 1000.;
 	#endif
 	#ifdef	Y_MIN
-		if (next_target.target.all_relative) {
-			if (next_target.target.Y += startpoint.Y < Y_MIN * 1000.)
-				next_target.target.Y = Y_MIN * 1000. + startpoint.Y;
-		}
-		else {
-			if (next_target.target.Y < Y_MIN * 1000.)
-				next_target.target.Y = Y_MIN * 1000.;
-		}
+		if (next_target.target.Y < Y_MIN * 1000.)
+			next_target.target.Y = Y_MIN * 1000.;
 	#endif
 	#ifdef	Y_MAX
-		if (next_target.target.all_relative) {
-			if (next_target.target.Y += startpoint.Y > Y_MAX * 1000.)
-				next_target.target.Y = Y_MAX * 1000. - startpoint.Y;
-		}
-		else {
-			if (next_target.target.Y > Y_MAX * 1000.)
-				next_target.target.Y = Y_MAX * 1000.;
-		}
+		if (next_target.target.Y > Y_MAX * 1000.)
+			next_target.target.Y = Y_MAX * 1000.;
 	#endif
 	#ifdef	Z_MIN
-		if (next_target.target.all_relative) {
-			if (next_target.target.Z += startpoint.Z < Z_MIN * 1000.)
-				next_target.target.Z = Z_MIN * 1000. + startpoint.Z;
-		}
-		else {
-			if (next_target.target.Z < Z_MIN * 1000.)
-				next_target.target.Z = Z_MIN * 1000.;
-		}
+		if (next_target.target.Z < Z_MIN * 1000.)
+			next_target.target.Z = Z_MIN * 1000.;
 	#endif
 	#ifdef	Z_MAX
-		if (next_target.target.all_relative) {
-			if (next_target.target.Z += startpoint.Z > Z_MAX * 1000.)
-				next_target.target.Z = Z_MAX * 1000. - startpoint.Z;
-		}
-		else {
-			if (next_target.target.Z > Z_MAX * 1000.)
-				next_target.target.Z = Z_MAX * 1000.;
-		}
+		if (next_target.target.Z > Z_MAX * 1000.)
+			next_target.target.Z = Z_MAX * 1000.;
 	#endif
 
 
@@ -276,12 +254,14 @@ void process_gcode_command() {
 				//? All coordinates from now on are absolute relative to the origin
 				//? of the machine. This is the RepRap default.
 				//?
+				//? If you ever want to switch back and forth between relative and
+				//? absolute movement keep in mind, X, Y and Z follow the machine's
+				//? coordinate system while E doesn't change it's position in the
+				//? coordinate system on relative movements.
+				//?
 
-				// No queue_wait() needed.
-				next_target.target.all_relative = 0;
-				// TODO: What's about startpoint, next_target an friends?
-				//       What should a machine do when returning from relative
-				//       to absolute mode?
+				// No wait_queue() needed.
+				next_target.option_all_relative = 0;
 				break;
 
 			case 91:
@@ -292,8 +272,8 @@ void process_gcode_command() {
 				//? All coordinates from now on are relative to the last position.
 				//?
 
-				// No queue_wait() needed.
-				next_target.target.all_relative = 1;
+				// No wait_queue() needed.
+				next_target.option_all_relative = 1;
 				break;
 
 			case 92:
@@ -319,9 +299,7 @@ void process_gcode_command() {
 					axisSelected = 1;
 				}
 				if (next_target.seen_E) {
-					#ifdef	E_ABSOLUTE
-						startpoint.E = next_target.target.E;
-					#endif
+					startpoint.E = next_target.target.E;
 					axisSelected = 1;
 				}
 
@@ -424,21 +402,26 @@ void process_gcode_command() {
 			case 82:
 				//? --- M82 - Set E codes absolute ---
 				//?
-				//? This is the default. M82/M83 is not documented in the
-				//? RepRap wiki, behaviours was taken from Sprinter as of March 2012.
+				//? This is the default and overrides G90/G91.
+				//? M82/M83 is not documented in the RepRap wiki, behaviour
+				//? was taken from Sprinter as of March 2012.
+				//?
+				//? While E does relative movements, it doesn't change its
+				//? position in the coordinate system. See also comment on G90.
+				//?
 
 				// No wait_queue() needed.
-				next_target.target.e_relative = 0;
+				next_target.option_e_relative = 0;
 				break;
 
-			// M83 - Set E codes relative while in Absolute Coordinates (G90) mode
 			case 83:
 				//? --- M83 - Set E codes relative ---
 				//?
 				//? Counterpart to M82.
+				//?
 
 				// No wait_queue() needed.
-				next_target.target.e_relative = 1;
+				next_target.option_e_relative = 1;
 				break;
 
 			// M84- stop idle hold
