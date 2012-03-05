@@ -306,7 +306,8 @@ void process_gcode_command() {
 				if (axisSelected == 0) {
 					startpoint.X = next_target.target.X =
 					startpoint.Y = next_target.target.Y =
-					startpoint.Z = next_target.target.Z = 0;
+					startpoint.Z = next_target.target.Z =
+					startpoint.E = next_target.target.E = 0;
 				}
 
 				dda_new_startpoint();
