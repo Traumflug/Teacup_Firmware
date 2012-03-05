@@ -878,16 +878,17 @@ void update_current_position() {
 			current_position.Z = dda->endpoint.Z +
 			                     move_state.z_steps * 1000 / ((STEPS_PER_M_Z + 500) / 1000);
 
-		#ifndef E_ABSOLUTE
+		if (dda->endpoint.e_relative) {
 			current_position.E = move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
-		#else
+		}
+		else {
 			if (dda->e_direction)
 				current_position.E = dda->endpoint.E -
 				                     move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
 			else
 				current_position.E = dda->endpoint.E +
 				                     move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
-		#endif
+		}
 
 		// current_position.F is updated in dda_start()
 	}
