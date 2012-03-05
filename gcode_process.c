@@ -73,7 +73,7 @@ void process_gcode_command() {
 	#ifdef	X_MAX
 		if (next_target.target.all_relative) {
 			if (next_target.target.X += startpoint.X > X_MAX * 1000.)
-				next_target.target.X = X_MIN * 1000. - startpoint.X;
+				next_target.target.X = X_MAX * 1000. - startpoint.X;
 		}
 		else {
 			if (next_target.target.X > X_MAX * 1000.)
@@ -93,7 +93,7 @@ void process_gcode_command() {
 	#ifdef	Y_MAX
 		if (next_target.target.all_relative) {
 			if (next_target.target.Y += startpoint.Y > Y_MAX * 1000.)
-				next_target.target.Y = Y_MIN * 1000. - startpoint.Y;
+				next_target.target.Y = Y_MAX * 1000. - startpoint.Y;
 		}
 		else {
 			if (next_target.target.Y > Y_MAX * 1000.)
@@ -113,7 +113,7 @@ void process_gcode_command() {
 	#ifdef	Z_MAX
 		if (next_target.target.all_relative) {
 			if (next_target.target.Z += startpoint.Z > Z_MAX * 1000.)
-				next_target.target.Z = Z_MIN * 1000. - startpoint.Z;
+				next_target.target.Z = Z_MAX * 1000. - startpoint.Z;
 		}
 		else {
 			if (next_target.target.Z > Z_MAX * 1000.)
@@ -424,8 +424,8 @@ void process_gcode_command() {
 			case 82:
 				//? --- M82 - Set E codes absolute ---
 				//?
-				//? This is the default. M82/M82 is not documented in the
-				//? RepRap wiki, behaviours was taken from Strinter as of March 2012.
+				//? This is the default. M82/M83 is not documented in the
+				//? RepRap wiki, behaviours was taken from Sprinter as of March 2012.
 
 				// No wait_queue() needed.
 				next_target.target.e_relative = 0;

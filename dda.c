@@ -228,15 +228,15 @@ void dda_create(DDA *dda, TARGET *target) {
 	if (target->all_relative) {
 		x_delta_um = labs(target->X);
 		um_to_steps_x(dda->x_delta, x_delta_um);
-		dda->x_direction = (target->X < 0)?1:0;
+		dda->x_direction = (target->X >= 0)?1:0;
 
 		y_delta_um = labs(target->Y);
 		um_to_steps_y(dda->y_delta, y_delta_um);
-		dda->y_direction = (target->Y < 0)?1:0;
+		dda->y_direction = (target->Y >= 0)?1:0;
 
 		z_delta_um = labs(target->Z);
 		um_to_steps_z(dda->z_delta, z_delta_um);
-		dda->z_direction = (target->Z < 0)?1:0;
+		dda->z_direction = (target->Z >= 0)?1:0;
 	}
 	else {
 		x_delta_um = (uint32_t)labs(target->X - startpoint.X);
@@ -262,7 +262,7 @@ void dda_create(DDA *dda, TARGET *target) {
 	if (target->all_relative || target->e_relative) {
 		e_delta_um = labs(target->E);
 		um_to_steps_e(dda->e_delta, e_delta_um);
-		dda->e_direction = (target->E < 0)?1:0;
+		dda->e_direction = (target->E >= 0)?1:0;
 	}
 	else {
 		e_delta_um = (uint32_t)labs(target->E - startpoint.E);
