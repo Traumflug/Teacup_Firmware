@@ -94,8 +94,6 @@ void gcode_init(void) {
 	#endif
 }
 
-// TODO TODO: write a gcode_init(), next_target is used uninitialised. For a hint on what to do, see line 340ff.
-
 /// Character Received - add it to our command
 /// \param c the next character to process
 void gcode_parse_char(uint8_t c) {
