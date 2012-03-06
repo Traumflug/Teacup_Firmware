@@ -60,7 +60,7 @@ extern const uint32_t powers[];  // defined in sermsg.c
 ///
 /// Tested for up to 42'000 mm (accurate), 420'000 mm (precision 10 um) and
 /// 4'200'000 mm (precision 100 um).
-static int32_t decfloat_to_int(decfloat *df, uint32_t multiplicand) {
+static int32_t decfloat_to_int(decfloat *df, uint16_t multiplicand) {
 	uint32_t	r = df->mantissa;
 	uint8_t	e = df->exponent;
 
