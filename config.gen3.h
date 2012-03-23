@@ -262,12 +262,18 @@
 
 /***************************************************************************\
 *                                                                           *
-* Define your temperature sensors here                                      *
+* Define your temperature sensors here. One line for each sensor, only      *
+* limited by the number of available ATmega pins.                           *
 *                                                                           *
-* for GEN3 set temp_type to TT_INTERCOM and temp_pin to 0                   *
+* For a GEN3 set temp_type to TT_INTERCOM and temp_pin to 0.                *
 *                                                                           *
-* Types are same as TEMP_ list above- TT_MAX6675, TT_THERMISTOR, TT_AD595,  *
+* Types are same as TEMP_ list above - TT_MAX6675, TT_THERMISTOR, TT_AD595, *
 *   TT_PT100, TT_INTERCOM, TT_NONE. See list in temp.c.                     *
+*                                                                           *
+* The "additional" field is used for TT_THERMISTOR only. It defines the     *
+* name of the table(s) in ThermistorTable.h to use. Typically, this is      *
+* THERMISTOR_EXTRUDER for the first or only table, or THERMISTOR_BED for    *
+* the second table. See also early in ThermistorTable.{single|double}.h.    *
 *                                                                           *
 \***************************************************************************/
 
@@ -275,9 +281,9 @@
 	#define DEFINE_TEMP_SENSOR(...)
 #endif
 
-//                 name       type          pin			additional
-DEFINE_TEMP_SENSOR(noheater,	TT_INTERCOM,	0,		0)
-DEFINE_TEMP_SENSOR(bed,			TT_INTERCOM,	1,		0)
+//                 name       type            pin        additional
+DEFINE_TEMP_SENSOR(noheater,  TT_INTERCOM,    0,         0)
+DEFINE_TEMP_SENSOR(bed,       TT_INTERCOM,    1,         0)
 
 // bed has no heater attached
 #define HEATER_bed HEATER_noheater
