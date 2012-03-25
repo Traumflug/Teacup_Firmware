@@ -112,15 +112,6 @@ void process_gcode_command() {
 	    next_tool = next_target.T;
 	}
 
-// TODO TODO: really?
-	// if we didn't see an axis word, set it to startpoint. this fixes incorrect moves after homing
-	if (next_target.seen_X == 0)
-		next_target.target.X = startpoint.X;
-	if (next_target.seen_Y == 0)
-		next_target.target.Y = startpoint.Y;
-	if (next_target.seen_Z == 0)
-		next_target.target.Z = startpoint.Z;
-
 	if (next_target.seen_G) {
 		uint8_t axisSelected = 0;
 		switch (next_target.G) {
