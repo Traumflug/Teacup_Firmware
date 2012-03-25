@@ -120,8 +120,6 @@ void process_gcode_command() {
 		next_target.target.Y = startpoint.Y;
 	if (next_target.seen_Z == 0)
 		next_target.target.Z = startpoint.Z;
-	if (next_target.seen_E == 0)
-		next_target.target.E = startpoint.E;
 
 	if (next_target.seen_G) {
 		uint8_t axisSelected = 0;
