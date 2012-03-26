@@ -38,7 +38,7 @@ patches, issues go here
 3) make
 4) make program
 4a) if programming blank chip, make program-fuses
-5) ./sender.sh
+5) ./sender.sh (or use a GUI G-code sender, like Pronterface)
 6) have a play, go to 1) if not right
 7) try printing something!
 
