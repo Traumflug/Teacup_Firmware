@@ -6,6 +6,7 @@
 
 #include	<avr/io.h>
 #include	<avr/interrupt.h>
+#include	"memory_barrier.h"
 
 #include	"config.h"
 #include	"delay.h"
