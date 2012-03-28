@@ -3,6 +3,7 @@
 /** \file
 	\brief Gen3 Electronics Sample Configuration
 */
+
 /*
 	CONTENTS
 
@@ -15,8 +16,6 @@
 	7. Miscellaneous
 	8. Appendix A - PWMable pins and mappings
 */
-
-#error this config is marginally, and may be incorrect! please post in forum or via git any corrections
 
 /***************************************************************************\
 *                                                                           *
@@ -60,12 +59,12 @@
 
 	valid range = 20 to 4'0960'000 (0.02 to 40960 steps/mm)
 */
-#define	STEPS_PER_M_X					320000
-#define	STEPS_PER_M_Y					320000
-#define	STEPS_PER_M_Z					200000
+#define	STEPS_PER_M_X					10047
+#define	STEPS_PER_M_Y					10047
+#define	STEPS_PER_M_Z					320000
 
 /// http://blog.arcol.hu/?p=157 may help with this one
-#define	STEPS_PER_M_E					320000
+#define	STEPS_PER_M_E					35200
 
 
 /*
@@ -76,8 +75,8 @@
 */
 
 /// used for G0 rapid moves and as a cap for all other feedrates
-#define	MAXIMUM_FEEDRATE_X		200
-#define	MAXIMUM_FEEDRATE_Y		200
+#define	MAXIMUM_FEEDRATE_X		5000
+#define	MAXIMUM_FEEDRATE_Y		5000
 #define	MAXIMUM_FEEDRATE_Z		100
 #define	MAXIMUM_FEEDRATE_E		200
 
@@ -194,9 +193,9 @@
 #define	X_MAX_PIN							DIO21
 #define	X_ENABLE_PIN					DIO19
 //#define	X_INVERT_DIR
-//#define	X_INVERT_MIN
-//#define	X_INVERT_MAX
-//#define	X_INVERT_ENABLE
+#define	X_INVERT_MIN
+#define	X_INVERT_MAX
+#define	X_INVERT_ENABLE
 
 #define	Y_STEP_PIN						DIO23
 #define	Y_DIR_PIN							DIO22
@@ -204,9 +203,9 @@
 #define	Y_MAX_PIN							AIO5
 #define	Y_ENABLE_PIN					AIO7
 //#define	Y_INVERT_DIR
-//#define	Y_INVERT_MIN
-//#define	Y_INVERT_MAX
-//#define	Y_INVERT_ENABLE
+#define	Y_INVERT_MIN
+#define	Y_INVERT_MAX
+#define	Y_INVERT_ENABLE
 
 #define	Z_STEP_PIN						AIO4
 #define	Z_DIR_PIN							AIO3
@@ -214,9 +213,9 @@
 #define	Z_MAX_PIN							AIO0
 #define	Z_ENABLE_PIN					AIO2
 //#define	Z_INVERT_DIR
-//#define	Z_INVERT_MIN
-//#define	Z_INVERT_MAX
-//#define	Z_INVERT_ENABLE
+#define	Z_INVERT_MIN
+#define	Z_INVERT_MAX
+#define	Z_INVERT_ENABLE
 
 #define	E_STEP_PIN						DIO17
 #define	E_DIR_PIN							DIO16
