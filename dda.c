@@ -9,6 +9,7 @@
 #include	<math.h>
 #include	<avr/interrupt.h>
 
+#include	"dda_maths.h"
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"
@@ -188,10 +189,10 @@ void dda_init(void) {
 	This is needed for example after homing or a G92. The new location must be in startpoint already.
 */
 void dda_new_startpoint(void) {
-	um_to_steps_x(startpoint_steps.X, startpoint.X);
-	um_to_steps_y(startpoint_steps.Y, startpoint.Y);
-	um_to_steps_z(startpoint_steps.Z, startpoint.Z);
-	um_to_steps_e(startpoint_steps.E, startpoint.E);
+	startpoint_steps.X = um_to_steps_x(startpoint.X);
+	startpoint_steps.Y = um_to_steps_y(startpoint.Y);
+	startpoint_steps.Z = um_to_steps_z(startpoint.Z);
+	startpoint_steps.E = um_to_steps_e(startpoint.E);
 }
 
 /*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
@@ -226,13 +227,13 @@ void dda_create(DDA *dda, TARGET *target) {
 	y_delta_um = (uint32_t)labs(target->Y - startpoint.Y);
 	z_delta_um = (uint32_t)labs(target->Z - startpoint.Z);
 
-	um_to_steps_x(steps, target->X);
+	steps = um_to_steps_x(target->X);
 	dda->x_delta = labs(steps - startpoint_steps.X);
 	startpoint_steps.X = steps;
-	um_to_steps_y(steps, target->Y);
+	steps = um_to_steps_y(target->Y);
 	dda->y_delta = labs(steps - startpoint_steps.Y);
 	startpoint_steps.Y = steps;
-	um_to_steps_z(steps, target->Z);
+	steps = um_to_steps_z(target->Z);
 	dda->z_delta = labs(steps - startpoint_steps.Z);
 	startpoint_steps.Z = steps;
 
@@ -242,12 +243,12 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	if (target->e_relative) {
 		e_delta_um = labs(target->E);
-		um_to_steps_e(dda->e_delta, e_delta_um);
+		dda->e_delta = um_to_steps_e(target->E);
 		dda->e_direction = (target->E >= 0)?1:0;
 	}
 	else {
 		e_delta_um = (uint32_t)labs(target->E - startpoint.E);
-		um_to_steps_e(steps, target->E);
+		steps = um_to_steps_e(target->E);
 		dda->e_delta = labs(steps - startpoint_steps.E);
 		startpoint_steps.E = steps;
 		dda->e_direction = (target->E >= startpoint.E)?1:0;
