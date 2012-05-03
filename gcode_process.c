@@ -66,9 +66,8 @@ void process_gcode_command() {
 		next_target.target.X += startpoint.X;
 		next_target.target.Y += startpoint.Y;
 		next_target.target.Z += startpoint.Z;
-		#ifdef	E_ABSOLUTE
+		if ( config.e_absolute )
 			next_target.target.E += startpoint.E;
-		#endif
 	}
 	// E ALWAYS relative, otherwise we overflow our registers after only a few layers
 	// 	next_target.target.E += startpoint.E;
@@ -291,9 +290,8 @@ void process_gcode_command() {
 					axisSelected = 1;
 				}
 				if (next_target.seen_E) {
-					#ifdef	E_ABSOLUTE
+					if ( config.e_absolute )
 						startpoint.E = next_target.target.E;
-					#endif
 					axisSelected = 1;
 				}
 
@@ -393,11 +391,14 @@ void process_gcode_command() {
 				tool = next_tool;
 				break;
 
-			// M82 - Set E codes absolute (default)
-			// not implemented
-
-			// M83 - Set E codes relative while in Absolute Coordinates (G90) mode
-			// not implemented
+			// M82- use absolute E coordinates
+			case 82:
+				config.e_absolute = 1;
+				break;
+			// M83- use relative E coordinates
+			case 83:
+				config.e_absolute = 0;
+				break;
 
 			// M84- stop idle hold
 			case 84:

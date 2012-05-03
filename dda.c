@@ -53,6 +53,19 @@ TARGET current_position __attribute__ ((__section__ (".bss")));
 MOVE_STATE move_state __attribute__ ((__section__ (".bss")));
 
 /*
+ * Config data
+ */
+CONFIG config __attribute__ ((__section__ (".bss"))) = {
+	{
+#ifdef E_ABSOLUTE
+		1,
+#else
+		0,
+#endif
+	}
+} ;
+
+/*
 	utility functions
 */
 
@@ -455,10 +468,10 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	// next dda starts where we finish
 	memcpy(&startpoint, target, sizeof(TARGET));
+
 	// if E is relative, reset it here
-	#ifndef E_ABSOLUTE
+	if ( !config.e_absolute )
 		startpoint.E = startpoint_steps.E = 0;
-	#endif
 }
 
 /*! Start a prepared DDA
@@ -871,16 +884,17 @@ void update_current_position() {
 			current_position.Z = dda->endpoint.Z +
 			                     move_state.z_steps * 1000 / ((STEPS_PER_M_Z + 500) / 1000);
 
-		#ifndef E_ABSOLUTE
+		if ( !config.e_absolute ) {
 			current_position.E = move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
-		#else
+		}
+		else {
 			if (dda->e_direction)
 				current_position.E = dda->endpoint.E -
 				                     move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
 			else
 				current_position.E = dda->endpoint.E +
 				                     move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
-		#endif
+		}
 
 		// current_position.F is updated in dda_start()
 	}

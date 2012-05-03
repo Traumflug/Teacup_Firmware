@@ -213,6 +213,16 @@ typedef struct {
 } DDA;
 
 /*
+ * Dynamic config
+ */
+typedef struct {
+	struct {
+		// Operational params
+		uint8_t					e_absolute	:1; ///< bool: E axis is specified in absolute/relative position
+	};
+} CONFIG ;
+
+/*
 	variables
 */
 
@@ -228,6 +238,9 @@ extern TARGET startpoint_steps;
 
 /// current_position holds the machine's current position. this is only updated when we step, or when G92 (set home) is received.
 extern TARGET current_position;
+
+/// holds dynamic config settings
+extern CONFIG config;
 
 /*
 	methods
