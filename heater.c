@@ -118,9 +118,11 @@ void heater_init() {
 				case (uint16_t) &OCR3BL:
 					TCCR3A |= MASK(COM3B1);
 					break;
+				#ifdef COM3C1
 				case (uint16_t) &OCR3CL:
 					TCCR3A |= MASK(COM3C1);
 					break;
+				#endif
 				#endif
 				#ifdef	TCCR4A
 				case (uint16_t) &OCR4AL:

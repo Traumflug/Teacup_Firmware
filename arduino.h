@@ -67,20 +67,19 @@
 	added as necessary or if I feel like it- not a comprehensive list!
 */
 
-#if defined (__AVR_ATmega168__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__)
+#if defined (__AVR_ATmega168__) || defined (__AVR_ATmega328__) || \
+    defined (__AVR_ATmega328P__)
 	#include	"arduino_168_328p.h"
-#endif	/*	_AVR_ATmega{168,328,328P}__ */
+#endif
 
-#if defined (__AVR_ATmega644__) || defined (__AVR_ATmega644P__) || defined (__AVR_ATmega644PA__)
+#if defined (__AVR_ATmega644__) || defined (__AVR_ATmega644P__) || \
+    defined (__AVR_ATmega644PA__) || defined (__AVR_ATmega1284__) || \
+    defined (__AVR_ATmega1284P__)
 	#include	"arduino_644.h"
-#endif	/*	_AVR_ATmega{644,644P,644PA}__ */
+#endif
 
-#if defined (__AVR_ATmega1280__)
+#if defined (__AVR_ATmega1280__) || defined (__AVR_ATmega2560__)
 	#include	"arduino_1280.h"
-#endif	/* __AVR_ATmega1280__ */
-
-#if defined (__AVR_ATmega2560__)
-	#include    "arduino_1280.h" //2560 has the same pins and ports so we can reuse the 1280 file.
 #endif
 
 #if defined (__AVR_AT90USB1287__)
