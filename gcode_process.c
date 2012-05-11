@@ -704,7 +704,6 @@ void process_gcode_command() {
 				y_enable();
 				z_enable();
 				e_enable();
-				steptimeout = 0;
 				break;
 
 			case 191:

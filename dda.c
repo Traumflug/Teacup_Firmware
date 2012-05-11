@@ -28,9 +28,6 @@
 #error STEPS_PER_MM_Y is gone, review your config.h and use STEPS_PER_M_Y
 #endif
 
-/// step timeout
-volatile uint8_t	steptimeout = 0;
-
 /*
 	position tracking
 */
@@ -275,7 +272,6 @@ void dda_create(DDA *dda, TARGET *target) {
 	}
 	else {
 		// get steppers ready to go
-		steptimeout = 0;
 		power_on();
 		stepper_enable();
 		x_enable();
@@ -483,7 +479,7 @@ void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!
 	if ( ! dda->nullmove) {
 		// get ready to go
-		steptimeout = 0;
+		psu_timeout = 0;
 		if (dda->z_delta)
 			z_enable();
 
@@ -823,7 +819,7 @@ void dda_step(DDA *dda) {
 		z_disable();
 	}
 	else
-		steptimeout = 0;
+		psu_timeout = 0;
 
 	#ifdef ACCELERATION_RAMPING
 		// we don't hit maximum speed exactly with acceleration calculation, so limit it here
