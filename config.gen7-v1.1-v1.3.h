@@ -30,9 +30,12 @@
 
 	If you want to port this to a new chip, start off with arduino.h and see how you go.
 */
-#ifndef __AVR_ATmega644P__
-  #ifndef __AVR_ATmega644__
-	  #error GEN7 has a 644 or a 644P! set your cpu type in Makefile!
+#ifndef __AVR_ATmega644__
+  #ifndef __AVR_ATmega644P__
+    #ifndef __AVR_ATmega1284P__
+      #error GEN7 has an ATmega 644, 644P or 1284P. Set your CPU type in the \
+             Makefile or select your board in the Arduino IDE!
+    #endif
   #endif
 #endif
 
