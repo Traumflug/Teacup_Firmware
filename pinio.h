@@ -11,6 +11,13 @@
 Power
 */
 
+/// psu_timeout is set to zero when we step, and increases over time so we can
+/// turn the motors off when they've been idle for a while.
+/// A second function is to guarantee a minimum on time of the PSU.
+/// Timeout counting is done in clock.c.
+/// It is used inside and outside of interrupts, which is why it has been made volatile
+extern volatile uint8_t psu_timeout;
+
 void power_on(void);
 void power_off(void);
 

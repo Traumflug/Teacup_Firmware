@@ -25,14 +25,14 @@
 void clock_250ms() {
 	#ifndef	NO_AUTO_IDLE
 	if (temp_all_zero())	{
-		if (steptimeout > (30 * 4)) {
+		if (psu_timeout > (30 * 4)) {
 			power_off();
 		}
 		else {
 			uint8_t save_reg = SREG;
 			cli();
 			CLI_SEI_BUG_MEMORY_BARRIER();
-			steptimeout++;
+			psu_timeout++;
 			MEMORY_BARRIER();
 			SREG = save_reg;
 		}
