@@ -334,12 +334,9 @@ DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO13_PIN, THERMISTOR_EXTRUDER)
 #endif
 
 // NOTE: these pins are for RAMPS V1.1 and newer. V1.0 is different
-//               name      port   pin    pwm
-DEFINE_HEATER( extruder,	PB4)
-//DEFINE_HEATER( bed,     	PH5)
-//DEFINE_HEATER( fan,     	PH6)
-// DEFINE_HEATER(chamber,	PORTD, PIND7, OCR2A)
-// DEFINE_HEATER(motor,		PORTD, PIND6, OCR2B)
+//            name      port
+DEFINE_HEATER(extruder, PB4)
+//DEFINE_HEATER( bed,     PH5)
 
 /// and now because the c preprocessor isn't as smart as it could be,
 /// uncomment the ones you've listed above and comment the rest.
@@ -349,7 +346,6 @@ DEFINE_HEATER( extruder,	PB4)
 
 #define	HEATER_EXTRUDER HEATER_extruder
 //#define HEATER_BED HEATER_bed
-// #define HEATER_FAN HEATER_fan
 
 
 

@@ -329,12 +329,12 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  1,         THERMISTOR_EXTRUDER)
 	#define DEFINE_HEATER(...)
 #endif
 
-//               name      port   pin    pwm
-DEFINE_HEATER(extruder,	PB3)
-DEFINE_HEATER(bed,			PB4)
-// DEFINE_HEATER(fan,			PORTB, PINB4, OCR0B)
-// DEFINE_HEATER(chamber,	PORTD, PIND7, OCR2A)
-// DEFINE_HEATER(motor,		PORTD, PIND6, OCR2B)
+//            name      port
+DEFINE_HEATER(extruder, PB3)
+DEFINE_HEATER(bed,      PB4)
+// DEFINE_HEATER(fan,      PINB4)
+// DEFINE_HEATER(chamber,  PIND7)
+// DEFINE_HEATER(motor,    PIND6)
 
 /// and now because the c preprocessor isn't as smart as it could be,
 /// uncomment the ones you've listed above and comment the rest.
@@ -345,6 +345,8 @@ DEFINE_HEATER(bed,			PB4)
 #define	HEATER_EXTRUDER HEATER_extruder
 #define HEATER_BED HEATER_bed
 // #define HEATER_FAN HEATER_fan
+// #define HEATER_CHAMBER HEATER_chamber
+// #define HEATER_MOTOR HEATER_motor
 
 
 

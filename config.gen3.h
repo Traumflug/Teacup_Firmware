@@ -332,12 +332,9 @@ DEFINE_TEMP_SENSOR(bed,       TT_INTERCOM,    1,         0)
 	#define DEFINE_HEATER(...)
 #endif
 
-//               name      port   pin    pwm
-// DEFINE_HEATER(extruder,	PORTB, PINB3, OCR0A)
-// DEFINE_HEATER(bed,			PORTB, PINB4, OCR0B)
-// DEFINE_HEATER(fan,			PORTB, PINB4, OCR0B)
-// DEFINE_HEATER(chamber,	PORTD, PIND7, OCR2A)
-// DEFINE_HEATER(motor,		PORTD, PIND6, OCR2B)
+//            name      port
+// DEFINE_HEATER(extruder, PINB3)
+// DEFINE_HEATER(bed,      PINB4)
 
 /** \def HEATER_EXTRUDER
 	\def HEATER_BED
@@ -353,7 +350,6 @@ DEFINE_TEMP_SENSOR(bed,       TT_INTERCOM,    1,         0)
 
 // workaround for heated bed over intercom. HEATER_BED is the intercom temp channel number.
 #define HEATER_BED 1
-// #define HEATER_FAN HEATER_fan
 
 
 

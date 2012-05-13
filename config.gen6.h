@@ -325,8 +325,7 @@ DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  PINA5,     THERMISTOR_EXTRUDER)
 	#define DEFINE_HEATER(...)
 #endif
 
-//               name      port   pin    pwm
-// DEFINE_HEATER(extruder,   PORTD, PIND6, OCR2B)
+//            name      port
 DEFINE_HEATER(extruder, PD6)
 
 /// and now because the c preprocessor isn't as smart as it could be,
@@ -336,8 +335,6 @@ DEFINE_HEATER(extruder, PD6)
 /// I have searched high and low for a way to make the preprocessor do this for us, but so far I have not found a way.
 
 #define	HEATER_EXTRUDER HEATER_extruder
-// #define HEATER_BED HEATER_bed
-// #define HEATER_FAN HEATER_fan
 
 
 

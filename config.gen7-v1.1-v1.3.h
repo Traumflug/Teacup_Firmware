@@ -334,9 +334,9 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  PINA2,     THERMISTOR_BED)
 	#define DEFINE_HEATER(...)
 #endif
 
-//               name      port   pin    pwm
-DEFINE_HEATER(extruder,	PB4)
-DEFINE_HEATER(bed, PB3)
+//            name      port
+DEFINE_HEATER(extruder, DIO4)
+DEFINE_HEATER(bed,      DIO3)
 
 /// and now because the c preprocessor isn't as smart as it could be,
 /// uncomment the ones you've listed above and comment the rest.
