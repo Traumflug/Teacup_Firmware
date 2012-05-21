@@ -137,8 +137,8 @@ void temp_sensor_tick() {
 					// enable TT_MAX6675
 					WRITE(SS, 0);
 
-					// ensure 100ns delay - a bit extra is fine
-					delay(1);
+					// No delay required, see
+					// https://github.com/triffid/Teacup_Firmware/issues/22
 
 					// read MSB
 					SPDR = 0;
