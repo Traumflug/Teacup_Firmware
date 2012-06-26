@@ -50,4 +50,17 @@ inline int32_t um_to_steps_e(int32_t distance) {
                     STEPS_PER_M_E % 1000000UL, 1000000UL);
 }
 
+// approximate 2D distance
+uint32_t approx_distance(uint32_t dx, uint32_t dy);
+
+// approximate 3D distance
+uint32_t approx_distance_3(uint32_t dx, uint32_t dy, uint32_t dz);
+
+// integer square root algorithm
+uint16_t int_sqrt(uint32_t a);
+
+// this is an ultra-crude pseudo-logarithm routine, such that:
+// 2 ^ msbloc(v) >= v
+const uint8_t msbloc (uint32_t v);
+
 #endif	/* _DDA_MATHS_H */
