@@ -6,12 +6,17 @@
 #include	"config.h"
 
 // return rounded result of multiplicand * multiplier / divisor
-#define muldiv(multiplicand, multiplier, divisor) \
-  muldivQR(multiplicand, multiplier / divisor, multiplier % divisor, divisor)
-
-// same as before, but with quotient and remainder precalculated elsewhere
+// this version is with quotient and remainder precalculated elsewhere
 const int32_t muldivQR(int32_t multiplicand, uint32_t qn, uint32_t rn,
                        uint32_t divisor);
+
+// return rounded result of multiplicand * multiplier / divisor
+static int32_t muldiv(int32_t, uint32_t, uint32_t) __attribute__ ((always_inline));
+inline int32_t muldiv(int32_t multiplicand, uint32_t multiplier,
+                      uint32_t divisor) {
+  return muldivQR(multiplicand, multiplier / divisor,
+                  multiplier % divisor, divisor);
+}
 
 /*
 	micrometer distance <=> motor step distance conversions
