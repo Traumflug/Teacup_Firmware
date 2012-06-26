@@ -9,10 +9,11 @@
 #include <stdint.h>
 
 /*!
-  Integer multiply-divide algorithm.
+  Integer multiply-divide algorithm. Returns the same as muldiv(multiplicand, multiplier, divisor), but also allowing to use precalculated quotients and remainders.
 
   \param multiplicand
-  \param multiplier
+  \param qn ( = multiplier / divisor )
+  \param rn ( = multiplier % divisor )
   \param divisor
   \return rounded result of multiplicand * multiplier / divisor
 
@@ -25,13 +26,11 @@
   Found on  http://stackoverflow.com/questions/4144232/
   how-to-calculate-a-times-b-divided-by-c-only-using-32-bit-integer-types-even-i
 */
-const int32_t muldiv(int32_t multiplicand, uint32_t multiplier,
-                     uint32_t divisor) {
+const int32_t muldivQR(int32_t multiplicand, uint32_t qn, uint32_t rn,
+                       uint32_t divisor) {
   uint32_t quotient = 0;
   uint32_t remainder = 0;
   uint8_t negative_flag = 0;
-  uint32_t qn = multiplier / divisor;
-  uint32_t rn = multiplier % divisor;
 
   if (multiplicand < 0) {
     negative_flag = 1;
