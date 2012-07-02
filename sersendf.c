@@ -10,9 +10,6 @@
 #include	"serial.h"
 #include	"sermsg.h"
 
-/// for sending hex data
-PGM_P	str_ox = "0x";
-
 // void sersendf(char *format, ...) {
 // 	va_list args;
 // 	va_start(args, format);
@@ -131,7 +128,7 @@ void sersendf_P(PGM_P format, ...) {
 					j = 0;
 					break;
 				case 'x':
-					serial_writestr_P(str_ox);
+					serial_writestr_P(PSTR("0x"));
 					if (j == 4)
 						serwrite_hex32(va_arg(args, uint32_t));
 					else if (j == 1)
