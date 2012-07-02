@@ -25,10 +25,6 @@
 	#include	"heater.h"
 #endif
 
-#ifdef STEPS_PER_MM_Y
-#error STEPS_PER_MM_Y is gone, review your config.h and use STEPS_PER_M_Y
-#endif
-
 /*
 	position tracking
 */
@@ -283,10 +279,6 @@ void dda_create(DDA *dda, TARGET *target) {
 		else
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
-// remove this when people have swallowed the new config item
-#ifdef ACCELERATION_STEEPNESS
-#error ACCELERATION_STEEPNESS is gone, review your config.h and use ACCELERATION
-#endif
 			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
 			dda->c_min = (move_duration / target->F) << 8;
 			if (dda->c_min < c_limit)
