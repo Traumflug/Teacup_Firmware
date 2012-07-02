@@ -188,7 +188,7 @@ void heater_save_settings() {
 
 /** \brief run heater PID algorithm
 	\param h which heater we're running the loop for
-	\param t which temp sensor this heater is attached to
+	\param type which temp sensor type this heater is attached to
 	\param current_temp the temperature that the associated temp sensor is reporting
 	\param target_temp the temperature we're trying to achieve
 */
@@ -317,7 +317,7 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 	if (labs((int16_t)(current_temp - heaters_runtime[h].sane_temperature)) > (TEMP_HYSTERESIS*4)) {
 		// no change, or change in wrong direction for a long time- heater is broken!
 		pid_output = 0;
-		sersendf_P(PSTR("!! heater %d or temp sensor %d broken- temp is %d.%dC, target is %d.%dC, didn't reach %d.%dC in %d0 milliseconds\n"), h, t, current_temp >> 2, (current_temp & 3) * 25, target_temp >> 2, (target_temp & 3) * 25, heaters_runtime[h].sane_temperature >> 2, (heaters_runtime[h].sane_temperature & 3) * 25, heaters_runtime[h].sanity_counter);
+		sersendf_P(PSTR("!! heater %d or its temp sensor broken - temp is %d.%dC, target is %d.%dC, didn't reach %d.%dC in %d0 milliseconds\n"), h, current_temp >> 2, (current_temp & 3) * 25, target_temp >> 2, (target_temp & 3) * 25, heaters_runtime[h].sane_temperature >> 2, (heaters_runtime[h].sane_temperature & 3) * 25, heaters_runtime[h].sanity_counter);
 	}
 	#endif /* HEATER_SANITY_CHECK */
 
