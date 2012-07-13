@@ -150,6 +150,7 @@ size: $(PROGRAM).elf
 config.h: config.default.h
 	@echo "Please review config.h, as config.default.h is more recent."
 	@echo "To view the differences, run: diff -bBEu config.h config.default.h"
+	@echo "If you just want to get rid of this message, run: touch config.h"
 	@false
 
 doc: Doxyfile *.c *.h
