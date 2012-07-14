@@ -159,7 +159,8 @@ size: $(PROGRAM).elf
 	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(eeprom)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    EEPROM: %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (1 * 1024)), ceil($$a * 100 / (2 * 1024)), ceil($$a * 100 / (2 * 1024)), ceil($$a * 100 / (4 * 1024)) }'
 
 config.h: config.default.h
-	@echo "Please review config.h, as config.default.h is more recent."
+	@echo "config.default.h is more recent than config.h. You likely want to"
+	@echo "review (edit) config.h to match new features in config.default.h."
 	@echo "To view the differences, run: diff -bBEu config.h config.default.h"
 	@echo "If you just want to get rid of this message, run: touch config.h"
 	@false
