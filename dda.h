@@ -5,81 +5,6 @@
 
 #include	"config.h"
 
-/*
-	micrometer to steps conversion
-
-	handle a few cases to avoid overflow while keeping reasonable accuracy
-	input is up to 20 bits, so we can multiply by 4096 at most
-*/
-#if	STEPS_PER_M_X >= 4096000
-	#define	um_to_steps_x(dest, src) \
-		do { dest = (src * (STEPS_PER_M_X / 10000L) + 50L) / 100L; } while (0)
-#elif	STEPS_PER_M_X >= 409600
-	#define	um_to_steps_x(dest, src) \
-		do { dest = (src * (STEPS_PER_M_X / 1000L) + 500L) / 1000L; } while (0)
-#elif	STEPS_PER_M_X >= 40960
-	#define	um_to_steps_x(dest, src) \
-		do { dest = (src * (STEPS_PER_M_X / 100L) + 5000L) / 10000L; } while (0)
-#elif	STEPS_PER_M_X >= 4096
-	#define	um_to_steps_x(dest, src) \
-		do { dest = (src * (STEPS_PER_M_X / 10L) + 50000L) / 100000L; } while (0)
-#else
-	#define	um_to_steps_x(dest, src) \
-		do { dest = (src * (STEPS_PER_M_X / 1L) + 500000L) / 1000000L; } while (0)
-#endif
-
-#if	STEPS_PER_M_Y >= 4096000
-	#define	um_to_steps_y(dest, src) \
-		do { dest = (src * (STEPS_PER_M_Y / 10000L) + 50L) / 100L; } while (0)
-#elif	STEPS_PER_M_Y >= 409600
-	#define	um_to_steps_y(dest, src) \
-		do { dest = (src * (STEPS_PER_M_Y / 1000L) + 500L) / 1000L; } while (0)
-#elif	STEPS_PER_M_Y >= 40960
-	#define	um_to_steps_y(dest, src) \
-		do { dest = (src * (STEPS_PER_M_Y / 100L) + 5000L) / 10000L; } while (0)
-#elif	STEPS_PER_M_Y >= 4096
-	#define	um_to_steps_y(dest, src) \
-		do { dest = (src * (STEPS_PER_M_Y / 10L) + 50000L) / 100000L; } while (0)
-#else
-	#define	um_to_steps_y(dest, src) \
-		do { dest = (src * (STEPS_PER_M_Y / 1L) + 500000L) / 1000000L; } while (0)
-#endif
-
-#if	STEPS_PER_M_Z >= 4096000
-	#define	um_to_steps_z(dest, src) \
-		do { dest = (src * (STEPS_PER_M_Z / 10000L) + 50L) / 100L; } while (0)
-#elif	STEPS_PER_M_Z >= 409600
-	#define	um_to_steps_z(dest, src) \
-		do { dest = (src * (STEPS_PER_M_Z / 1000L) + 500L) / 1000L; } while (0)
-#elif	STEPS_PER_M_Z >= 40960
-	#define	um_to_steps_z(dest, src) \
-		do { dest = (src * (STEPS_PER_M_Z / 100L) + 5000L) / 10000L; } while (0)
-#elif	STEPS_PER_M_Z >= 4096
-	#define	um_to_steps_z(dest, src) \
-		do { dest = (src * (STEPS_PER_M_Z / 10L) + 50000L) / 100000L; } while (0)
-#else
-	#define	um_to_steps_z(dest, src) \
-		do { dest = (src * (STEPS_PER_M_Z / 1L) + 500000L) / 1000000L; } while (0)
-#endif
-
-#if	STEPS_PER_M_E >= 4096000
-	#define	um_to_steps_e(dest, src) \
-		do { dest = (src * (STEPS_PER_M_E / 10000L) + 50L) / 100L; } while (0)
-#elif	STEPS_PER_M_E >= 409600
-	#define	um_to_steps_e(dest, src) \
-		do { dest = (src * (STEPS_PER_M_E / 1000L) + 500L) / 1000L; } while (0)
-#elif	STEPS_PER_M_E >= 40960
-	#define	um_to_steps_e(dest, src) \
-		do { dest = (src * (STEPS_PER_M_E / 100L) + 5000L) / 10000L; } while (0)
-#elif	STEPS_PER_M_E >= 4096
-	#define	um_to_steps_e(dest, src) \
-		do { dest = (src * (STEPS_PER_M_E / 10L) + 50000L) / 100000L; } while (0)
-#else
-	#define	um_to_steps_e(dest, src) \
-		do { dest = (src * (STEPS_PER_M_E / 1L) + 500000L) / 1000000L; } while (0)
-#endif
-
-
 #ifdef ACCELERATION_REPRAP
 	#ifdef ACCELERATION_RAMPING
 		#error Cant use ACCELERATION_REPRAP and ACCELERATION_RAMPING together.
@@ -221,10 +146,6 @@ typedef struct {
 	variables
 */
 
-/// steptimeout is set to zero when we step, and increases over time so we can turn the motors off when they've been idle for a while
-/// It is also used inside and outside of interrupts, which is why it has been made volatile
-extern volatile uint8_t steptimeout;
-
 /// startpoint holds the endpoint of the most recently created DDA, so we know where the next one created starts. could also be called last_endpoint
 extern TARGET startpoint;
 
@@ -237,12 +158,6 @@ extern TARGET current_position;
 /*
 	methods
 */
-
-uint32_t approx_distance( uint32_t dx, uint32_t dy )								__attribute__ ((hot));
-uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz )	__attribute__ ((hot));
-
-// const because return value is always the same given the same v
-const uint8_t	msbloc (uint32_t v)																		__attribute__ ((const));
 
 // initialize dda structures
 void dda_init(void);

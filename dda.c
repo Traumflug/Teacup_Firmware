@@ -9,6 +9,7 @@
 #include	<math.h>
 #include	<avr/interrupt.h>
 
+#include	"dda_maths.h"
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"
@@ -23,13 +24,6 @@
 #ifdef	DC_EXTRUDER
 	#include	"heater.h"
 #endif
-
-#ifdef STEPS_PER_MM_Y
-#error STEPS_PER_MM_Y is gone, review your config.h and use STEPS_PER_M_Y
-#endif
-
-/// step timeout
-volatile uint8_t	steptimeout = 0;
 
 /*
 	position tracking
@@ -52,127 +46,6 @@ TARGET current_position __attribute__ ((__section__ (".bss")));
 /// \brief numbers for tracking the current state of movement
 MOVE_STATE move_state __attribute__ ((__section__ (".bss")));
 
-/*
-	utility functions
-*/
-
-// courtesy of http://www.flipcode.com/archives/Fast_Approximate_Distance_Functions.shtml
-/*! linear approximation 2d distance formula
-	\param dx distance in X plane
-	\param dy distance in Y plane
-	\return 3-part linear approximation of \f$\sqrt{\Delta x^2 + \Delta y^2}\f$
-
-	see http://www.flipcode.com/archives/Fast_Approximate_Distance_Functions.shtml
-*/
-uint32_t approx_distance( uint32_t dx, uint32_t dy )
-{
-	uint32_t min, max, approx;
-
-	if ( dx < dy )
-	{
-		min = dx;
-		max = dy;
-	} else {
-		min = dy;
-		max = dx;
-	}
-
-	approx = ( max * 1007 ) + ( min * 441 );
-	if ( max < ( min << 4 ))
-		approx -= ( max * 40 );
-
-	// add 512 for proper rounding
-	return (( approx + 512 ) >> 10 );
-}
-
-// courtesy of http://www.oroboro.com/rafael/docserv.php/index/programming/article/distance
-/*! linear approximation 3d distance formula
-	\param dx distance in X plane
-	\param dy distance in Y plane
-	\param dz distance in Z plane
-	\return 3-part linear approximation of \f$\sqrt{\Delta x^2 + \Delta y^2 + \Delta z^2}\f$
-
-	see http://www.oroboro.com/rafael/docserv.php/index/programming/article/distance
-*/
-uint32_t approx_distance_3( uint32_t dx, uint32_t dy, uint32_t dz )
-{
-	uint32_t min, med, max, approx;
-
-	if ( dx < dy )
-	{
-		min = dy;
-		med = dx;
-	} else {
-		min = dx;
-		med = dy;
-	}
-
-	if ( dz < min )
-	{
-		max = med;
-		med = min;
-		min = dz;
-	} else if ( dz < med ) {
-		max = med;
-		med = dz;
-	} else {
-		max = dz;
-	}
-
-	approx = ( max * 860 ) + ( med * 851 ) + ( min * 520 );
-	if ( max < ( med << 1 )) approx -= ( max * 294 );
-	if ( max < ( min << 2 )) approx -= ( max * 113 );
-	if ( med < ( min << 2 )) approx -= ( med *  40 );
-
-	// add 512 for proper rounding
-	return (( approx + 512 ) >> 10 );
-}
-
-/*!
-	integer square root algorithm
-	\param a find square root of this number
-	\return sqrt(a - 1) < returnvalue <= sqrt(a)
-
-	see http://www.embedded-systems.com/98/9802fe2.htm
-*/
-// courtesy of http://www.embedded-systems.com/98/9802fe2.htm
-uint16_t int_sqrt(uint32_t a) {
-	uint32_t rem = 0;
-	uint32_t root = 0;
-	uint16_t i;
-
-	for (i = 0; i < 16; i++) {
-		root <<= 1;
-		rem = ((rem << 2) + (a >> 30));
-		a <<= 2;
-		root++;
-		if (root <= rem) {
-			rem -= root;
-			root++;
-		}
-		else
-			root--;
-	}
-	return (uint16_t) ((root >> 1) & 0xFFFFL);
-}
-
-// this is an ultra-crude pseudo-logarithm routine, such that:
-// 2 ^ msbloc(v) >= v
-/*! crude logarithm algorithm
-	\param v value to find \f$log_2\f$ of
-	\return floor(log(v) / log(2))
-*/
-const uint8_t	msbloc (uint32_t v) {
-	uint8_t i;
-	uint32_t c;
-	for (i = 31, c = 0x80000000; i; i--) {
-		if (v & c)
-			return i;
-		c >>= 1;
-	}
-	return 0;
-}
-
 /*! Inititalise DDA movement structures
 */
 void dda_init(void) {
@@ -191,10 +64,10 @@ void dda_init(void) {
 	This is needed for example after homing or a G92. The new location must be in startpoint already.
 */
 void dda_new_startpoint(void) {
-	um_to_steps_x(startpoint_steps.X, startpoint.X);
-	um_to_steps_y(startpoint_steps.Y, startpoint.Y);
-	um_to_steps_z(startpoint_steps.Z, startpoint.Z);
-	um_to_steps_e(startpoint_steps.E, startpoint.E);
+	startpoint_steps.X = um_to_steps_x(startpoint.X);
+	startpoint_steps.Y = um_to_steps_y(startpoint.Y);
+	startpoint_steps.Z = um_to_steps_z(startpoint.Z);
+	startpoint_steps.E = um_to_steps_e(startpoint.E);
 }
 
 /*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
@@ -229,13 +102,13 @@ void dda_create(DDA *dda, TARGET *target) {
 	y_delta_um = (uint32_t)labs(target->Y - startpoint.Y);
 	z_delta_um = (uint32_t)labs(target->Z - startpoint.Z);
 
-	um_to_steps_x(steps, target->X);
+	steps = um_to_steps_x(target->X);
 	dda->x_delta = labs(steps - startpoint_steps.X);
 	startpoint_steps.X = steps;
-	um_to_steps_y(steps, target->Y);
+	steps = um_to_steps_y(target->Y);
 	dda->y_delta = labs(steps - startpoint_steps.Y);
 	startpoint_steps.Y = steps;
-	um_to_steps_z(steps, target->Z);
+	steps = um_to_steps_z(target->Z);
 	dda->z_delta = labs(steps - startpoint_steps.Z);
 	startpoint_steps.Z = steps;
 
@@ -245,12 +118,12 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	if (target->e_relative) {
 		e_delta_um = labs(target->E);
-		um_to_steps_e(dda->e_delta, e_delta_um);
+		dda->e_delta = labs(um_to_steps_e(target->E));
 		dda->e_direction = (target->E >= 0)?1:0;
 	}
 	else {
 		e_delta_um = (uint32_t)labs(target->E - startpoint.E);
-		um_to_steps_e(steps, target->E);
+		steps = um_to_steps_e(target->E);
 		dda->e_delta = labs(steps - startpoint_steps.E);
 		startpoint_steps.E = steps;
 		dda->e_direction = (target->E >= startpoint.E)?1:0;
@@ -275,7 +148,6 @@ void dda_create(DDA *dda, TARGET *target) {
 	}
 	else {
 		// get steppers ready to go
-		steptimeout = 0;
 		power_on();
 		stepper_enable();
 		x_enable();
@@ -407,10 +279,6 @@ void dda_create(DDA *dda, TARGET *target) {
 		else
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
-// remove this when people have swallowed the new config item
-#ifdef ACCELERATION_STEEPNESS
-#error ACCELERATION_STEEPNESS is gone, review your config.h and use ACCELERATION
-#endif
 			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
 			dda->c_min = (move_duration / target->F) << 8;
 			if (dda->c_min < c_limit)
@@ -483,7 +351,7 @@ void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!
 	if ( ! dda->nullmove) {
 		// get ready to go
-		steptimeout = 0;
+		psu_timeout = 0;
 		if (dda->z_delta)
 			z_enable();
 
@@ -823,7 +691,7 @@ void dda_step(DDA *dda) {
 		z_disable();
 	}
 	else
-		steptimeout = 0;
+		psu_timeout = 0;
 
 	#ifdef ACCELERATION_RAMPING
 		// we don't hit maximum speed exactly with acceleration calculation, so limit it here

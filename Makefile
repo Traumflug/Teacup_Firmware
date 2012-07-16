@@ -62,15 +62,28 @@ AVRDUDECONF = /etc/avrdude.conf
 PROGPORT = /dev/arduino
 # PROGPORT = /dev/ttyUSB0
 
-# atmega168
-#PROGBAUD = 19200
-# atmega328p, 644p, 1280
-PROGBAUD = 57600
-# atmega 2560
-# PROGBAUD = 115200
+##############################################################################
+#                                                                            #
+# This depends on the bootloader (or programmer) in use.                     #
+# Examples:                                                                  #
+#                                                                            #
+# Arduino Diecimilia with genuine bootloader:        19200                   #
+# Sanguino bootloader:                               57600                   #
+# Gen7 bootloader:                                  115200                   #
+#                                                                            #
+# Set PROGBAUD to 0 (Zero) for programmers.                                  #
+#                                                                            #
+##############################################################################
 
-# at least mega2560 needs stk500v2
-PROGID = arduino
+PROGBAUD = 115200
+
+##############################################################################
+#                                                                            #
+# Firmware upload device type. Typically stk500 or stk500v2.                 #
+#                                                                            #
+##############################################################################
+
+PROGID = stk500v2
 
 ##############################################################################
 #                                                                            #
@@ -80,7 +93,7 @@ PROGID = arduino
 
 PROGRAM = mendel
 
-SOURCES = $(PROGRAM).c dda.c gcode_parse.c gcode_process.c timer.c temp.c sermsg.c dda_queue.c watchdog.c debug.c sersendf.c heater.c analog.c intercom.c pinio.c clock.c home.c crc.c delay.c
+SOURCES = $(PROGRAM).c gcode_parse.c gcode_process.c dda.c dda_maths.c dda_queue.c timer.c temp.c sermsg.c watchdog.c debug.c sersendf.c heater.c analog.c intercom.c pinio.c clock.c home.c crc.c delay.c
 
 ARCH = avr-
 CC = $(ARCH)gcc
@@ -89,7 +102,7 @@ OBJCOPY = $(ARCH)objcopy
 
 OPTIMIZE = -Os -ffunction-sections -finline-functions-called-once -mcall-prologues
 # OPTIMIZE = -O0
-CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps
+CFLAGS = -g -Wall -Wstrict-prototypes $(OPTIMIZE) -mmcu=$(MCU_TARGET) $(DEFS) -std=gnu99 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -save-temps -Winline
 LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
 LIBS = -lm
 LIBDEPS =
@@ -104,9 +117,15 @@ else
 SOURCES += serial.c
 endif
 
+ifeq ($(PROGBAUD),0)
+PROGBAUD_FLAG =
+else
+PROGBAUD_FLAG = -b$(PROGBAUD)
+endif
+
 OBJ = $(patsubst %.c,%.o,${SOURCES})
 
-.PHONY: all program clean size subdirs program-fuses doc functionsbysize
+.PHONY: all program clean size subdirs doc functionsbysize
 .PRECIOUS: %.o %.elf
 
 all: config.h subdirs $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
@@ -122,19 +141,11 @@ program: $(PROGRAM).hex config.h
 	stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
 	@sleep 0.1
 	@stty $(PROGBAUD) raw ignbrk hup < $(PROGPORT)
-	$(AVRDUDE) -c$(PROGID) -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U flash:w:$^
+	$(AVRDUDE) -c$(PROGID) $(PROGBAUD_FLAG) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U flash:w:$^
 	stty 115200 raw ignbrk -hup -echo ixoff < $(PROGPORT)
 
-program-fuses:
-	avr-objdump -s -j .fuse mendel.o | perl -ne '/\s0000\s([0-9a-f]{2})/ && print "$$1\n"' > lfuse
-	avr-objdump -s -j .fuse mendel.o | perl -ne '/\s0000\s..([0-9a-f]{2})/ && print "$$1\n"' > hfuse
-	avr-objdump -s -j .fuse mendel.o | perl -ne '/\s0000\s....([0-9a-f]{2})/ && print "$$1\n"' > efuse
-	$(AVRDUDE) -c$(PROGID) -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U lfuse:w:lfuse
-	$(AVRDUDE) -c$(PROGID) -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U hfuse:w:hfuse
-	$(AVRDUDE) -c$(PROGID) -b$(PROGBAUD) -p$(MCU_TARGET) -P$(PROGPORT) -C$(AVRDUDECONF) -U efuse:w:efuse
-
 clean: clean-subdirs
-	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~ *fuse
+	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~
 
 clean-subdirs:
 	@for dir in $(SUBDIRS); do \
