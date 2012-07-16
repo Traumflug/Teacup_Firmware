@@ -153,11 +153,13 @@ void process_gcode_command() {
 				//?
 				queue_wait();
 				// delay
-				for (;next_target.P > 0;next_target.P--) {
-					ifclock(clock_flag_10ms) {
-						clock_10ms();
+				if (next_target.seen_P) {
+					for (;next_target.P > 0;next_target.P--) {
+						ifclock(clock_flag_10ms) {
+							clock_10ms();
+						}
+						delay_ms(1);
 					}
-					delay_ms(1);
 				}
 				break;
 
@@ -474,6 +476,10 @@ void process_gcode_command() {
 				//? Set the temperature of the current extruder to 190<sup>o</sup>C and return control to the host immediately (''i.e.'' before that temperature has been reached by the extruder).  See also M109.
 				//? Teacup supports an optional P parameter as a sensor index to address (eg M104 P1 S100 will set the bed temperature rather than the extruder temperature).
 				//?
+				if ( ! next_target.seen_S)
+					break;
+				if ( ! next_target.seen_P)
+					next_target.P = HEATER_EXTRUDER;
 				temp_set(next_target.P, next_target.S);
 				if (next_target.S)
 					power_on();
@@ -493,6 +499,8 @@ void process_gcode_command() {
 				#ifdef ENFORCE_ORDER
 					queue_wait();
 				#endif
+				if ( ! next_target.seen_P)
+					next_target.P = HEATER_EXTRUDER;
 				temp_print(next_target.P);
 				break;
 
@@ -541,8 +549,11 @@ void process_gcode_command() {
 				//?
 				//? Teacup supports an optional P parameter as a sensor index to address.
 				//?
-				if (next_target.seen_S)
-					temp_set(next_target.P, next_target.S);
+				if ( ! next_target.seen_S)
+					break;
+				if ( ! next_target.seen_P)
+					next_target.P = HEATER_EXTRUDER;
+				temp_set(next_target.P, next_target.S);
 				if (next_target.S) {
 					power_on();
 					enable_heater();
@@ -579,6 +590,8 @@ void process_gcode_command() {
 				//?
 				//? This command is only available in DEBUG builds of Teacup.
 
+				if ( ! next_target.seen_S)
+					break;
 				debug_flags = next_target.S;
 				break;
 			#endif
@@ -634,6 +647,8 @@ void process_gcode_command() {
 			case 130:
 				//? --- M130: heater P factor ---
 				//? Undocumented.
+				if ( ! next_target.seen_P)
+					next_target.P = HEATER_EXTRUDER;
 				if (next_target.seen_S)
 					pid_set_p(next_target.P, next_target.S);
 				break;
@@ -641,6 +656,8 @@ void process_gcode_command() {
 			case 131:
 				//? --- M131: heater I factor ---
 				//? Undocumented.
+				if ( ! next_target.seen_P)
+					next_target.P = HEATER_EXTRUDER;
 				if (next_target.seen_S)
 					pid_set_i(next_target.P, next_target.S);
 				break;
@@ -648,6 +665,8 @@ void process_gcode_command() {
 			case 132:
 				//? --- M132: heater D factor ---
 				//? Undocumented.
+				if ( ! next_target.seen_P)
+					next_target.P = HEATER_EXTRUDER;
 				if (next_target.seen_S)
 					pid_set_d(next_target.P, next_target.S);
 				break;
@@ -655,6 +674,8 @@ void process_gcode_command() {
 			case 133:
 				//? --- M133: heater I limit ---
 				//? Undocumented.
+				if ( ! next_target.seen_P)
+					next_target.P = HEATER_EXTRUDER;
 				if (next_target.seen_S)
 					pid_set_i_limit(next_target.P, next_target.S);
 				break;
@@ -668,6 +689,8 @@ void process_gcode_command() {
 			case 135:
 				//? --- M135: set heater output ---
 				//? Undocumented.
+				if ( ! next_target.seen_P)
+					next_target.P = HEATER_EXTRUDER;
 				if (next_target.seen_S) {
 					heater_set(next_target.P, next_target.S);
 					power_on();
@@ -679,6 +702,8 @@ void process_gcode_command() {
 				//? --- M136: PRINT PID settings to host ---
 				//? Undocumented.
 				//? This comand is only available in DEBUG builds.
+				if ( ! next_target.seen_P)
+					next_target.P = HEATER_EXTRUDER;
 				heater_print(next_target.P);
 				break;
 			#endif
@@ -687,6 +712,8 @@ void process_gcode_command() {
 				//? --- M140: Set heated bed temperature ---
 				//? Undocumented.
 				#ifdef	HEATER_BED
+					if ( ! next_target.seen_S)
+						break;
 					temp_set(HEATER_BED, next_target.S);
 					if (next_target.S)
 						power_on();
@@ -783,7 +810,9 @@ void process_gcode_command() {
 				//? --- M253: read arbitrary memory location ---
 				//? Undocumented
 				//? This command is only available in DEBUG builds.
-				if (next_target.seen_P == 0)
+				if ( ! next_target.seen_S)
+					break;
+				if ( ! next_target.seen_P)
 					next_target.P = 1;
 				for (; next_target.P; next_target.P--) {
 					serwrite_hex8(*(volatile uint8_t *)(next_target.S));
@@ -796,6 +825,8 @@ void process_gcode_command() {
 				//? --- M254: write arbitrary memory location ---
 				//? Undocumented
 				//? This command is only available in DEBUG builds.
+				if ( ! next_target.seen_S || ! next_target.seen_P)
+					break;
 				sersendf_P(PSTR("%x:%x->%x"), next_target.S, *(volatile uint8_t *)(next_target.S), next_target.P);
 				(*(volatile uint8_t *)(next_target.S)) = next_target.P;
 				// newline is sent from gcode_parse after we return
