@@ -500,7 +500,7 @@ void process_gcode_command() {
 					queue_wait();
 				#endif
 				if ( ! next_target.seen_P)
-					next_target.P = HEATER_EXTRUDER;
+					next_target.P = TEMP_SENSOR_none;
 				temp_print(next_target.P);
 				break;
 
