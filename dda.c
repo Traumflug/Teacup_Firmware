@@ -118,7 +118,7 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	if (target->e_relative) {
 		e_delta_um = labs(target->E);
-		dda->e_delta = um_to_steps_e(target->E);
+		dda->e_delta = labs(um_to_steps_e(target->E));
 		dda->e_direction = (target->E >= 0)?1:0;
 	}
 	else {
