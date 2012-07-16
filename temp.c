@@ -358,26 +358,30 @@ uint8_t temp_all_zero() {
 
 // extruder doesn't have sersendf_P
 #ifndef	EXTRUDER
+static void single_temp_print(temp_sensor_t index) {
+	uint8_t c = (temp_sensors_runtime[index].last_read_temp & 3) * 25;
+	sersendf_P(PSTR("%u.%u"), temp_sensors_runtime[index].last_read_temp >> 2, c);
+}
+
 /// send temperatures to host
 /// \param index sensor value to send
 void temp_print(temp_sensor_t index) {
-	uint8_t c = 0;
 
-	if (index >= NUM_TEMP_SENSORS)
-		return;
-
-	c = (temp_sensors_runtime[index].last_read_temp & 3) * 25;
-
-	#if REPRAP_HOST_COMPATIBILITY >= 20110509
-		sersendf_P(PSTR("T:%u.%u"), temp_sensors_runtime[index].last_read_temp >> 2, c);
-	#else
-		sersendf_P(PSTR("\nT:%u.%u"), temp_sensors_runtime[index].last_read_temp >> 2, c);
-	#endif
-	#ifdef HEATER_BED
-		c = (temp_sensors_runtime[HEATER_BED].last_read_temp & 3) * 25;
-
-		sersendf_P(PSTR(" B:%u.%u"), temp_sensors_runtime[HEATER_BED].last_read_temp >> 2 , c);
-	#endif
-
+	if (index == TEMP_SENSOR_none) { // standard behaviour
+		#ifdef HEATER_EXTRUDER
+			sersendf_P(PSTR("T:"));
+			single_temp_print(HEATER_EXTRUDER);
+		#endif
+		#ifdef HEATER_BED
+			sersendf_P(PSTR(" B:"));
+			single_temp_print(HEATER_BED);
+		#endif
+	}
+	else {
+		if (index >= NUM_TEMP_SENSORS)
+			return;
+		sersendf_P(PSTR("T[%su]:"), index);
+		single_temp_print(index);
+	}
 }
 #endif
