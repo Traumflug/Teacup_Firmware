@@ -222,7 +222,7 @@
 //#define	Z_INVERT_DIR
 //#define	Z_INVERT_MIN
 //#define	Z_INVERT_MAX
-//#define	Z_INVERT_ENABLE
+#define	Z_INVERT_ENABLE
 
 #define	E_STEP_PIN						DIO1
 #define	E_DIR_PIN							DIO0
@@ -232,7 +232,7 @@
 
 #define	PS_ON_PIN							DIO9
 #define	STEPPER_ENABLE_PIN		DIO14
-//#define	STEPPER_INVERT_ENABLE
+#define	STEPPER_INVERT_ENABLE
 
 //#define	SD_CARD_DETECT		 		DIO2
 //#define	SD_WRITE_PROTECT			DIO3
