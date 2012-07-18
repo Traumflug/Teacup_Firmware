@@ -44,10 +44,6 @@
 */
 #define	HOST
 
-/*
-	Values reflecting the gearing of your machine.
-		All numbers are fixed point integers, so no more than 3 digits to the right of the decimal point, please :-)
-*/
 
 /** \def STEPS_PER_M
 	steps per meter ( = steps per mm * 1000 )
@@ -63,6 +59,8 @@
 	half-stepping doubles the number, quarter stepping requires * 4, etc.
 
 	valid range = 20 to 4'0960'000 (0.02 to 40960 steps/mm)
+
+	all numbers are integers, so no decimal point, please :-)
 */
 #define	STEPS_PER_M_X					80368
 #define	STEPS_PER_M_Y					80368

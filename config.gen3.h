@@ -44,6 +44,7 @@
 */
 #define	HOST
 
+
 /** \def STEPS_PER_M
 	steps per meter ( = steps per mm * 1000 )
 
@@ -58,6 +59,8 @@
 	half-stepping doubles the number, quarter stepping requires * 4, etc.
 
 	valid range = 20 to 4'0960'000 (0.02 to 40960 steps/mm)
+
+	all numbers are integers, so no decimal point, please :-)
 */
 #define	STEPS_PER_M_X					10047
 #define	STEPS_PER_M_Y					10047
