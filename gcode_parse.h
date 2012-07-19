@@ -23,28 +23,24 @@ typedef struct {
 
 /// this holds all the possible data from a received command
 typedef struct {
-	union {
-		struct {
-			uint8_t					seen_G	:1;
-			uint8_t					seen_M	:1;
-			uint8_t					seen_X	:1;
-			uint8_t					seen_Y	:1;
-			uint8_t					seen_Z	:1;
-			uint8_t					seen_E	:1;
-			uint8_t					seen_F	:1;
-			uint8_t					seen_S	:1;
-
-			uint8_t					seen_P	:1;
-			uint8_t					seen_T	:1;
-			uint8_t					seen_N	:1;
-			uint8_t					seen_checksum				:1; ///< seen a checksum?
-			uint8_t					seen_semi_comment		:1; ///< seen a semicolon?
-			uint8_t					seen_parens_comment	:1; ///< seen an open parenthesis
-			uint8_t					option_all_relative	:1; ///< relative or absolute coordinates?
-			uint8_t					option_e_relative		:1; ///< same for e axis (M82/M83)
-			uint8_t					option_inches				:1; ///< inches or millimeters?
-		};
-		uint16_t				flags;
+	struct {
+		uint8_t					seen_G	:1;
+		uint8_t					seen_M	:1;
+		uint8_t					seen_X	:1;
+		uint8_t					seen_Y	:1;
+		uint8_t					seen_Z	:1;
+		uint8_t					seen_E	:1;
+		uint8_t					seen_F	:1;
+		uint8_t					seen_S	:1;
+		uint8_t					seen_P	:1;
+		uint8_t					seen_T	:1;
+		uint8_t					seen_N	:1;
+		uint8_t					seen_checksum				:1; ///< seen a checksum?
+		uint8_t					seen_semi_comment		:1; ///< seen a semicolon?
+		uint8_t					seen_parens_comment	:1; ///< seen an open parenthesis
+		uint8_t					option_all_relative	:1; ///< relative or absolute coordinates?
+		uint8_t					option_e_relative		:1; ///< same for e axis (M82/M83)
+		uint8_t					option_inches				:1; ///< inches or millimeters?
 	};
 
 	uint8_t						G;				///< G command number
