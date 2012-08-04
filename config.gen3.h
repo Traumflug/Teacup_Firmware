@@ -307,23 +307,18 @@ DEFINE_TEMP_SENSOR(bed,       TT_INTERCOM,    1,         0)
 
 /***************************************************************************\
 *                                                                           *
-* Define your heaters here                                                  *
+* Define your heaters here.                                                 *
 *                                                                           *
-* \WARNING For GEN3, ONLY DEFINE HEATERS CONNECTED TO YOUR MOTHERBOARD HERE *
-* Heaters connected to your extruder controller belong in extruder/config.h *
-*                                                                           *
-* If your heater isn't on a PWM-able pin, set heater_pwm to zero and we'll  *
-*   use bang-bang output. Note that PID will still be used                  *
-*                                                                           *
-* See Appendix 8 at the end of this file for PWMable pin mappings           *
-*                                                                           *
-* If a heater isn't attached to a temperature sensor above, it can still be *
-*   controlled by host but otherwise is ignored by firmware                 *
+* Currently, heaters work on PWM-able pins, only. See the end of this file  *
+* for PWM-able pin mappings.                                                *
 *                                                                           *
 * To attach a heater to a temp sensor above, simply use exactly the same    *
-*   name - copy+paste is your friend                                        *
-*                                                                           *
-* Some common names are 'extruder', 'bed', 'fan', 'motor'                   *
+* name - copy+paste is your friend. Some common names are 'extruder',       *
+* 'bed', 'fan', 'motor', ... names with special meaning can be found        *
+* in gcode_process.c. Currently, these are:                                 *
+*   HEATER_extruder   (M104)                                                *
+*   HEATER_bed        (M140)                                                *
+*   HEATER_fan        (M106/M107)                                           *
 *                                                                           *
 * A milling spindle can also be defined as a heater. Attach it to a         *
 * temperature sensor of TT_NONE, then you can control the spindle's rpm     *
