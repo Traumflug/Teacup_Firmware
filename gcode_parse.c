@@ -97,6 +97,8 @@ void gcode_init(void) {
 /// Character Received - add it to our command
 /// \param c the next character to process
 void gcode_parse_char(uint8_t c) {
+	uint8_t checksum_char = c;
+
 	// uppercase
 	if (c >= 'a' && c <= 'z')
 		c &= ~32;
@@ -309,7 +311,8 @@ void gcode_parse_char(uint8_t c) {
 		next_target.seen_parens_comment = 0; // recognize stuff after a (comment)
 
 	if (next_target.seen_checksum == 0)
-		next_target.checksum_calculated = crc(next_target.checksum_calculated, c);
+		next_target.checksum_calculated =
+			crc(next_target.checksum_calculated, checksum_char);
 
 	// end of line
 	if ((c == 10) || (c == 13)) {
