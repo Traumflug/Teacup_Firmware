@@ -154,7 +154,7 @@ void home_y_positive() {
 
 		#ifndef SLOW_HOMING
 			// back off slowly
-			t.X = -1000000;
+			t.Y = -1000000;
 			t.F = SEARCH_FEEDRATE_Y;
 			enqueue_home(&t, 0x2, 0);
 		#endif
