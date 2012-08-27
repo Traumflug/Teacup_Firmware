@@ -288,8 +288,8 @@
 #endif
 
 //                 name       type            pin        additional
-DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  PINA1,     THERMISTOR_EXTRUDER)
-DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  PINA2,     THERMISTOR_BED)
+DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO2,      THERMISTOR_BED)
 
 
 

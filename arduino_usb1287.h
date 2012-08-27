@@ -256,48 +256,56 @@ pins
 #define AIO0_WPORT PORTF
 #define AIO0_PWM			NULL
 #define AIO0_DDR DDRF
+#define AIO0_ADC		0
 
 #define AIO1_PIN PINF1
 #define AIO1_RPORT PINF
 #define AIO1_WPORT PORTF
 #define AIO1_PWM			NULL
 #define AIO1_DDR DDRF
+#define AIO1_ADC		1
 
 #define AIO2_PIN PINF2
 #define AIO2_RPORT PINF
 #define AIO2_WPORT PORTF
 #define AIO2_PWM			NULL
 #define AIO2_DDR DDRF
+#define AIO2_ADC		2
 
 #define AIO3_PIN PINF3
 #define AIO3_RPORT PINF
 #define AIO3_WPORT PORTF
 #define AIO3_PWM			NULL
 #define AIO3_DDR DDRF
+#define AIO3_ADC		3
 
 #define AIO4_PIN PINF4
 #define AIO4_RPORT PINF
 #define AIO4_WPORT PORTF
 #define AIO4_PWM			NULL
 #define AIO4_DDR DDRF
+#define AIO4_ADC		4
 
 #define AIO5_PIN PINF5
 #define AIO5_RPORT PINF
 #define AIO5_WPORT PORTF
 #define AIO5_PWM			NULL
 #define AIO5_DDR DDRF
+#define AIO5_ADC		5
 
 #define AIO6_PIN PINF6
 #define AIO6_RPORT PINF
 #define AIO6_WPORT PORTF
 #define AIO6_PWM			NULL
 #define AIO6_DDR DDRF
+#define AIO6_ADC		6
 
 #define AIO7_PIN PINF7
 #define AIO7_RPORT PINF
 #define AIO7_WPORT PORTF
 #define AIO7_PWM			NULL
 #define AIO7_DDR DDRF
+#define AIO7_ADC		7
 
 #define DIO40_PIN       PINF0
 #define DIO40_RPORT     PINF

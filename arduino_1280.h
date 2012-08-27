@@ -364,96 +364,112 @@ pins
 #define AIO0_WPORT	PORTF
 #define AIO0_DDR		DDRF
 #define AIO0_PWM		NULL
+#define AIO0_ADC		0
 
 #define AIO1_PIN		PINF1
 #define AIO1_RPORT	PINF
 #define AIO1_WPORT	PORTF
 #define AIO1_DDR		DDRF
 #define AIO1_PWM		NULL
+#define AIO1_ADC		1
 
 #define AIO2_PIN		PINF2
 #define AIO2_RPORT	PINF
 #define AIO2_WPORT	PORTF
 #define AIO2_DDR		DDRF
 #define AIO2_PWM		NULL
+#define AIO2_ADC		2
 
 #define AIO3_PIN		PINF3
 #define AIO3_RPORT	PINF
 #define AIO3_WPORT	PORTF
 #define AIO3_DDR		DDRF
 #define AIO3_PWM		NULL
+#define AIO3_ADC		3
 
 #define AIO4_PIN		PINF4
 #define AIO4_RPORT	PINF
 #define AIO4_WPORT	PORTF
 #define AIO4_DDR		DDRF
 #define AIO4_PWM		NULL
+#define AIO4_ADC		4
 
 #define AIO5_PIN		PINF5
 #define AIO5_RPORT	PINF
 #define AIO5_WPORT	PORTF
 #define AIO5_DDR		DDRF
 #define AIO5_PWM		NULL
+#define AIO5_ADC		5
 
 #define AIO6_PIN		PINF6
 #define AIO6_RPORT	PINF
 #define AIO6_WPORT	PORTF
 #define AIO6_DDR		DDRF
 #define AIO6_PWM		NULL
+#define AIO6_ADC		6
 
 #define AIO7_PIN		PINF7
 #define AIO7_RPORT	PINF
 #define AIO7_WPORT	PORTF
 #define AIO7_DDR		DDRF
 #define AIO7_PWM		NULL
+#define AIO7_ADC		7
 
 #define AIO8_PIN		PINK0
 #define AIO8_RPORT	PINK
 #define AIO8_WPORT	PORTK
 #define AIO8_DDR		DDRK
 #define AIO8_PWM		NULL
+#define AIO8_ADC		8
 
 #define AIO9_PIN		PINK1
 #define AIO9_RPORT	PINK
 #define AIO9_WPORT	PORTK
 #define AIO9_DDR		DDRK
 #define AIO9_PWM		NULL
+#define AIO9_ADC		9
 
 #define AIO10_PIN		PINK2
 #define AIO10_RPORT	PINK
 #define AIO10_WPORT	PORTK
 #define AIO10_DDR		DDRK
 #define AIO10_PWM		NULL
+#define AIO10_ADC		10
 
 #define AIO11_PIN		PINK3
 #define AIO11_RPORT	PINK
 #define AIO11_WPORT	PORTK
 #define AIO11_DDR		DDRK
 #define AIO11_PWM		NULL
+#define AIO11_ADC		11
 
 #define AIO12_PIN		PINK4
 #define AIO12_RPORT	PINK
 #define AIO12_WPORT	PORTK
 #define AIO12_DDR		DDRK
 #define AIO12_PWM		NULL
+#define AIO12_ADC		12
 
 #define AIO13_PIN		PINK5
 #define AIO13_RPORT	PINK
 #define AIO13_WPORT	PORTK
 #define AIO13_DDR		DDRK
 #define AIO13_PWM		NULL
+#define AIO13_ADC		13
 
 #define AIO14_PIN		PINK6
 #define AIO14_RPORT	PINK
 #define AIO14_WPORT	PORTK
 #define AIO14_DDR		DDRK
 #define AIO14_PWM		NULL
+#define AIO14_ADC		14
 
 #define AIO15_PIN		PINK7
 #define AIO15_RPORT	PINK
 #define AIO15_WPORT	PORTK
 #define AIO15_DDR		DDRK
 #define AIO15_PWM		NULL
+#define AIO15_ADC		15
 
 
 

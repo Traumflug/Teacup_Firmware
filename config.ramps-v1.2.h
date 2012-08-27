@@ -283,8 +283,8 @@ temperature is "achieved" for purposes of M109 and friends when actual temperatu
 #endif
 
 //                 name       type            pin        additional
-DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO2_PIN,  THERMISTOR_EXTRUDER)
-DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1_PIN,  THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO2,      THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
 
 
 

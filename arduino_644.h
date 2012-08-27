@@ -227,48 +227,56 @@ pins
 #define AIO0_WPORT	PORTA
 #define AIO0_DDR		DDRA
 #define AIO0_PWM		NULL
+#define AIO0_ADC		0
 
 #define AIO1_PIN		PINA1
 #define AIO1_RPORT	PINA
 #define AIO1_WPORT	PORTA
 #define AIO1_DDR		DDRA
 #define AIO1_PWM		NULL
+#define AIO1_ADC		1
 
 #define AIO2_PIN		PINA2
 #define AIO2_RPORT	PINA
 #define AIO2_WPORT	PORTA
 #define AIO2_DDR		DDRA
 #define AIO2_PWM		NULL
+#define AIO2_ADC		2
 
 #define AIO3_PIN		PINA3
 #define AIO3_RPORT	PINA
 #define AIO3_WPORT	PORTA
 #define AIO3_DDR		DDRA
 #define AIO3_PWM		NULL
+#define AIO3_ADC		3
 
 #define AIO4_PIN		PINA4
 #define AIO4_RPORT	PINA
 #define AIO4_WPORT	PORTA
 #define AIO4_DDR		DDRA
 #define AIO4_PWM		NULL
+#define AIO4_ADC		4
 
 #define AIO5_PIN		PINA5
 #define AIO5_RPORT	PINA
 #define AIO5_WPORT	PORTA
 #define AIO5_DDR		DDRA
 #define AIO5_PWM		NULL
+#define AIO5_ADC		5
 
 #define AIO6_PIN		PINA6
 #define AIO6_RPORT	PINA
 #define AIO6_WPORT	PORTA
 #define AIO6_DDR		DDRA
 #define AIO6_PWM		NULL
+#define AIO6_ADC		6
 
 #define AIO7_PIN		PINA7
 #define AIO7_RPORT	PINA
 #define AIO7_WPORT	PORTA
 #define AIO7_DDR		DDRA
 #define AIO7_PWM		NULL
+#define AIO7_ADC		7
 
 
 
