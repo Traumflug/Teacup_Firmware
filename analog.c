@@ -39,7 +39,7 @@ static volatile uint16_t adc_result[AINDEX_MAX + 1] __attribute__ ((__section__ 
 
 //! Configure all registers, start interrupt loop
 void analog_init() {
-	if (analog_mask > 0) {
+	if (NUM_TEMP_SENSORS > 0) {
 		// clear ADC bit in power reduction register because of ADC use.
 		#ifdef	PRR
 			PRR &= ~MASK(PRADC);
@@ -84,11 +84,15 @@ ISR(ADC_vect, ISR_NOBLOCK) {
 	uint8_t sreg_save = SREG;
 
 	// emulate free-running mode but be more deterministic about exactly which result we have, since this project has long-running interrupts
-	if (analog_mask > 0) {
+	if (NUM_TEMP_SENSORS > 0) {
 		// store next result
 		adc_result[AINDEX_CURRENT] = ADC;
 
 		// find next channel
+		/* TODO: this is not exactly high performance. adc_result[] should be of
+		   size NUM_TEMP_SENSORS only, along with an array of the corresponding
+		   ADC channel(s). This also requires changes to the callers of
+		   analog_read(). */ 
 		do {
 			adc_counter++;
 			adc_counter &= AINDEX_MAX;
@@ -117,7 +121,7 @@ ISR(ADC_vect, ISR_NOBLOCK) {
 	\return analog reading, 10-bit right aligned
 */
 uint16_t	analog_read(uint8_t channel) {
-	if (analog_mask > 0) {
+	if (NUM_TEMP_SENSORS > 0) {
 		uint16_t r;
 
 		uint8_t sreg;
