@@ -526,24 +526,6 @@ void process_gcode_command() {
 				#endif
 				break;
 
-			case 9:
-			case 107:
-				//? --- M107: Fan Off ---
-				//?
-				//? Example: M107
-				//?
-				//? Turn off the cooling fan (if any).
-				//?
-
-				#ifdef ENFORCE_ORDER
-					// wait for all moves to complete
-					queue_wait();
-				#endif
-				#ifdef HEATER_FAN
-					heater_set(HEATER_FAN, 0);
-				#endif
-				break;
-
 			case 109:
 				//? --- M109: Set Extruder Temperature ---
 				//?
