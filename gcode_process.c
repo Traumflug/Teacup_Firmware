@@ -506,11 +506,11 @@ void process_gcode_command() {
 
 			case 7:
 			case 106:
-				//? --- M106: Fan On ---
+				//? --- M106: Set Fan Speed ---
 				//?
-				//? Example: M106
+				//? Example: M106 S120
 				//?
-				//? Turn on the cooling fan (if any).
+				//? Control the cooling fan (if any).
 				//?
 
 				#ifdef ENFORCE_ORDER
@@ -518,7 +518,11 @@ void process_gcode_command() {
 					queue_wait();
 				#endif
 				#ifdef HEATER_FAN
-					heater_set(HEATER_FAN, 255);
+					if ( ! next_target.seen_S)
+						break;
+					temp_set(HEATER_FAN, next_target.S);
+					if (next_target.S)
+						power_on();
 				#endif
 				break;
 
