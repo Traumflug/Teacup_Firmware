@@ -526,30 +526,6 @@ void process_gcode_command() {
 				#endif
 				break;
 
-			case 109:
-				//? --- M109: Set Extruder Temperature ---
-				//?
-				//? Example: M109 S190
-				//?
-				//? Set the temperature of the current extruder to 190<sup>o</sup>C and wait for it to reach that value before sending an acknowledgment to the host.  In fact the RepRap firmware waits a while after the temperature has been reached for the extruder to stabilise - typically about 40 seconds.  This can be changed by a parameter in the firmware configuration file when the firmware is compiled.  See also M104 and M116.
-				//?
-				//? Teacup supports an optional P parameter as a sensor index to address.
-				//?
-				if ( ! next_target.seen_S)
-					break;
-				if ( ! next_target.seen_P)
-					next_target.P = HEATER_EXTRUDER;
-				temp_set(next_target.P, next_target.S);
-				if (next_target.S) {
-					power_on();
-					enable_heater();
-				}
-				else {
-					disable_heater();
-				}
-				enqueue(NULL);
-				break;
-
 			case 110:
 				//? --- M110: Set Current Line Number ---
 				//?
