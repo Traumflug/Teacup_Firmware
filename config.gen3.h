@@ -279,6 +279,9 @@
 * THERMISTOR_EXTRUDER for the first or only table, or THERMISTOR_BED for    *
 * the second table. See also early in ThermistorTable.{single|double}.h.    *
 *                                                                           *
+* TT_INTERCOM and TT_NONE don't use a pin, insert AIO0 anyways to keep      *
+* the compiler happy. The pin won't be used in this case.                   *
+*                                                                           *
 \***************************************************************************/
 
 #ifndef DEFINE_TEMP_SENSOR
@@ -286,8 +289,8 @@
 #endif
 
 //                 name       type            pin        additional
-DEFINE_TEMP_SENSOR(noheater,  TT_INTERCOM,    0,         0)
-DEFINE_TEMP_SENSOR(bed,       TT_INTERCOM,    1,         0)
+DEFINE_TEMP_SENSOR(noheater,  TT_INTERCOM,    AIO0,      0)
+DEFINE_TEMP_SENSOR(bed,       TT_INTERCOM,    AIO1,      0)
 
 // bed has no heater attached
 #define HEATER_bed HEATER_noheater
