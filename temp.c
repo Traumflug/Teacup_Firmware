@@ -178,7 +178,7 @@ void temp_sensor_tick() {
 					do {
 						uint8_t j, table_num;
 						//Read current temperature
-						temp = analog_read(temp_sensors[i].temp_pin);
+						temp = analog_read(i);
 						// for thermistors the thermistor table number is in the additional field
 						table_num = temp_sensors[i].additional;
 
@@ -237,7 +237,7 @@ void temp_sensor_tick() {
 
 				#ifdef	TEMP_AD595
 				case TT_AD595:
-					temp = analog_read(temp_sensors[i].temp_pin);
+					temp = analog_read(i);
 
 					// convert
 					// >>8 instead of >>10 because internal temp is stored as 14.2 fixed point

@@ -27,6 +27,6 @@
 
 void 			analog_init(void);
 
-uint16_t	analog_read(uint8_t channel);
+uint16_t	analog_read(uint8_t index);
 
 #endif	/* _ANALOG_H */
