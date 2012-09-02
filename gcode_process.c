@@ -780,17 +780,6 @@ void process_gcode_command() {
 				}
 				// newline is sent from gcode_parse after we return
 				break;
-
-			case 254:
-				//? --- M254: write arbitrary memory location ---
-				//? Undocumented
-				//? This command is only available in DEBUG builds.
-				if ( ! next_target.seen_S || ! next_target.seen_P)
-					break;
-				sersendf_P(PSTR("%x:%x->%x"), next_target.S, *(volatile uint8_t *)(next_target.S), next_target.P);
-				(*(volatile uint8_t *)(next_target.S)) = next_target.P;
-				// newline is sent from gcode_parse after we return
-				break;
 			#endif /* DEBUG */
 
 				// unknown mcode: spit an error
