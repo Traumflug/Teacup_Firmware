@@ -766,20 +766,6 @@ void process_gcode_command() {
 				print_queue();
 				break;
 
-			case 253:
-				//? --- M253: read arbitrary memory location ---
-				//? Undocumented
-				//? This command is only available in DEBUG builds.
-				if ( ! next_target.seen_S)
-					break;
-				if ( ! next_target.seen_P)
-					next_target.P = 1;
-				for (; next_target.P; next_target.P--) {
-					serwrite_hex8(*(volatile uint8_t *)(next_target.S));
-					next_target.S++;
-				}
-				// newline is sent from gcode_parse after we return
-				break;
 			#endif /* DEBUG */
 
 				// unknown mcode: spit an error
