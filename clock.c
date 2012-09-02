@@ -22,7 +22,7 @@
 
 	called from clock_10ms(), do not call directly
 */
-static void clock_250ms() {
+static void clock_250ms(void) {
 	#ifndef	NO_AUTO_IDLE
 	if (temp_all_zero())	{
 		if (psu_timeout > (30 * 4)) {
@@ -67,7 +67,7 @@ static void clock_250ms() {
 
 	called from clock(), do not call directly
 */
-static void clock_10ms() {
+static void clock_10ms(void) {
 	// reset watchdog
 	wd_reset();
 
