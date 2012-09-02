@@ -198,9 +198,6 @@ void queue_flush() {
 
 /// wait for queue to empty
 void queue_wait() {
-	for (;queue_empty() == 0;) {
-		ifclock(clock_flag_10ms) {
-			clock_10ms();
-		}
-	}
+	while (queue_empty() == 0)
+		clock();
 }

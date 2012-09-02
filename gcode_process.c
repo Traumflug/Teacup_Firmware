@@ -155,9 +155,7 @@ void process_gcode_command() {
 				// delay
 				if (next_target.seen_P) {
 					for (;next_target.P > 0;next_target.P--) {
-						ifclock(clock_flag_10ms) {
-							clock_10ms();
-						}
+						clock();
 						delay_ms(1);
 					}
 				}

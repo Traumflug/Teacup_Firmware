@@ -65,7 +65,7 @@ void clock_250ms() {
 
 /*! do stuff every 10 milliseconds
 
-	call from ifclock(CLOCK_FLAG_10MS) in busy loops
+	called from clock(), do not call directly
 */
 void clock_10ms() {
 	// reset watchdog
@@ -77,4 +77,15 @@ void clock_10ms() {
 		clock_250ms();
 	}
 }
+
+/*! do reoccuring stuff
+
+	call it occasionally in busy loops
+*/
+void clock() {
+	ifclock(clock_flag_10ms) {
+		clock_10ms();
+	}
+}
+
 

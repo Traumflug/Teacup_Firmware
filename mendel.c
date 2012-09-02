@@ -323,8 +323,6 @@ int main (void)
 			gcode_parse_char(c);
 		}
 
-		ifclock(clock_flag_10ms) {
-			clock_10ms();
-		}
+		clock();
 	}
 }
