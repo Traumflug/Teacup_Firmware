@@ -38,13 +38,20 @@ uint8_t	mb_tail = 0;
 DDA movebuffer[MOVEBUFFER_SIZE] __attribute__ ((__section__ (".bss")));
 
 /// check if the queue is completely full
+/// ACCELERATION_SPLIT: it's full when less than 5 slots are available
 uint8_t queue_full() {
-	MEMORY_BARRIER();
-	if (mb_tail > mb_head) {
-		return ((mb_tail - mb_head - 1) == 0) ? 255 : 0;
-	} else {
-		return ((mb_tail + MOVEBUFFER_SIZE - mb_head - 1) == 0) ? 255 : 0;
-	}
+  #ifdef ACCELERATION_SPLIT
+    #define SLOTS 5
+  #else
+    #define SLOTS 0
+  #endif
+  MEMORY_BARRIER();
+  if (mb_tail > mb_head) {
+    return ((mb_tail - mb_head - 1 - SLOTS) >= 0) ? 255 : 0;
+  } else {
+    return ((mb_tail + MOVEBUFFER_SIZE - mb_head - 1 - SLOTS) >= 0) ? 255 : 0;
+  }
+  #undef SLOTS
 }
 
 /// check if the queue is completely empty
