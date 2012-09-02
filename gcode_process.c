@@ -334,10 +334,6 @@ void process_gcode_command() {
 				// newline is sent from gcode_parse after we return
 				return;
 		}
-		#ifdef	DEBUG
-			if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION))
-				print_queue();
-		#endif
 	}
 	else if (next_target.seen_M) {
 		uint8_t i;
@@ -574,7 +570,27 @@ void process_gcode_command() {
 					queue_wait();
 				#endif
 				update_current_position();
-				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%ld"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F);
+				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%lu"),
+				                current_position.X, current_position.Y,
+				                current_position.Z, current_position.E,
+				                current_position.F);
+
+				#ifdef	DEBUG
+					if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
+						sersendf_P(PSTR(",c:%lu}\nEndpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}"),
+						                movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.X,
+						                movebuffer[mb_tail].endpoint.Y, movebuffer[mb_tail].endpoint.Z,
+						                movebuffer[mb_tail].endpoint.E, movebuffer[mb_tail].endpoint.F,
+						#ifdef ACCELERATION_REPRAP
+							movebuffer[mb_tail].end_c
+						#else
+							movebuffer[mb_tail].c
+						#endif
+						);
+						print_queue();
+					}
+				#endif /* DEBUG */
+
 				// newline is sent from gcode_parse after we return
 				break;
 
@@ -748,22 +764,6 @@ void process_gcode_command() {
 				debug_flags |= DEBUG_ECHO;
 				serial_writestr_P(PSTR("Echo on"));
 				// newline is sent from gcode_parse after we return
-				break;
-
-			case 250:
-				//? --- M250: return current position, end position, queue ---
-				//? Undocumented
-				//? This command is only available in DEBUG builds.
-				update_current_position();
-				sersendf_P(PSTR("{X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\t{X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\t"), current_position.X, current_position.Y, current_position.Z, current_position.E, current_position.F, movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.X, movebuffer[mb_tail].endpoint.Y, movebuffer[mb_tail].endpoint.Z, movebuffer[mb_tail].endpoint.E, movebuffer[mb_tail].endpoint.F,
-					#ifdef ACCELERATION_REPRAP
-						movebuffer[mb_tail].end_c
-					#else
-						movebuffer[mb_tail].c
-					#endif
-					);
-
-				print_queue();
 				break;
 
 			#endif /* DEBUG */
