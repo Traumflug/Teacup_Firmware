@@ -33,7 +33,11 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond);
 
 static void enqueue(TARGET *) __attribute__ ((always_inline));
 inline void enqueue(TARGET *t) {
-  enqueue_home(t, 0, 0);
+  #ifdef ACCELERATION_SPLIT
+    split_create(t);
+  #else
+    enqueue_home(t, 0, 0);
+  #endif
 }
 
 // called from step timer when current move is complete

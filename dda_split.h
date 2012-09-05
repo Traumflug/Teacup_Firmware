@@ -17,5 +17,7 @@
   #endif
 #endif
 
+void split_create(TARGET *target);
+
 
 #endif /* _DDA_SPLIT_H */
