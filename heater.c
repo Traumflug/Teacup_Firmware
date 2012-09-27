@@ -125,15 +125,25 @@ void heater_init() {
 				#endif
 				#endif
 				#ifdef	TCCR4A
-				case (uint16_t) &OCR4AL:
-					TCCR4A |= MASK(COM4A1);
-					break;
-				case (uint16_t) &OCR4BL:
-					TCCR4A |= MASK(COM4B1);
-					break;
-				case (uint16_t) &OCR4CL:
-					TCCR4A |= MASK(COM4C1);
-					break;
+					#if defined (OCR4AL)
+					case (uint16_t) &OCR4AL:
+						TCCR4A |= MASK(COM4A1);
+						break;
+					case (uint16_t) &OCR4BL:
+						TCCR4A |= MASK(COM4B1);
+						break;
+					case (uint16_t) &OCR4CL:
+						TCCR4A |= MASK(COM4C1);
+						break;
+					#else
+					// 10 bit timer
+					case (uint16_t) &OCR4A:
+						TCCR4A |= MASK(COM4A1);
+						break;
+					case (uint16_t) &OCR4B:
+						TCCR4A |= MASK(COM4B1);
+						break;
+					#endif
 				#endif
 				#ifdef	TCCR5A
 				case (uint16_t) &OCR5AL:

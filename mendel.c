@@ -184,7 +184,8 @@ void io_init(void) {
 		SET_OUTPUT(E_ENABLE_PIN);
 	#endif
 
-	// setup PWM timers: fast PWM, no prescaler
+	// setup PWM timers: fast PWM
+	// Warning 2012-01-11: these are not consistent across all AVRs
 	TCCR0A = MASK(WGM01) | MASK(WGM00);
 	// PWM frequencies in TCCR0B, see page 108 of the ATmega644 reference.
 	TCCR0B = MASK(CS00); // F_CPU / 256 (about 78(62.5) kHz on a 20(16) MHz chip)
@@ -222,8 +223,14 @@ void io_init(void) {
 	#endif
 
 	#ifdef	TCCR4A
-		TCCR4A = MASK(WGM40);
-		TCCR4B = MASK(WGM42) | MASK(CS40);
+		#ifdef TIMER4_IS_10_BIT
+			// ATmega16/32U4 fourth timer is a 10 special bit timer
+			TCCR4D = MASK(WGM40);
+			TCCR4B = MASK(CS40);
+		#else
+			TCCR4A = MASK(WGM40);
+			TCCR4B = MASK(WGM42) | MASK(CS40);
+		#endif
 		TIMSK4 = 0;
 		OCR4A = 0;
 		OCR4B = 0;

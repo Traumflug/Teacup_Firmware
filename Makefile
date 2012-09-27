@@ -35,6 +35,7 @@ MCU_TARGET = atmega644p
 # MCU_TARGET = atmega1280
 # MCU_TARGET = atmega2560
 # MCU_TARGET = at90usb1287
+# MCU_TARGET = atmega32u4
 
 # CPU clock rate
 F_CPU = 16000000L
@@ -109,7 +110,14 @@ LIBDEPS =
 SUBDIRS =
 
 ifneq (,$(findstring usb,$(MCU_TARGET)))
+USE_LUFA = true
+endif
+ifneq (,$(findstring u4,$(MCU_TARGET)))
+USE_LUFA = true
+endif
+ifdef USE_LUFA
 LDFLAGS += -Llufa_serial
+
 LIBS += -llufa_serial
 SUBDIRS += lufa_serial
 LIBDEPS += lufa_serial/liblufa_serial.a
