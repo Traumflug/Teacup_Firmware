@@ -615,7 +615,7 @@ void process_gcode_command() {
 				//?
 				//? Example: M116
 				//?
-				//? Wait for ''all'' temperatures and other slowly-changing variables to arrive at their set values.  See also M109.
+				//? Wait for temperatures and other slowly-changing variables to arrive at their set values.
 
 				enqueue(NULL);
 				break;
