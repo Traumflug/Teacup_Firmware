@@ -292,11 +292,16 @@ void temp_sensor_tick() {
 			temp_sensors_runtime[i].last_read_temp = temp;
 		}
 		if (labs((int16_t)(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp)) < (TEMP_HYSTERESIS*4)) {
-			if (temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*100))
+			if (temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*120))
 				temp_sensors_runtime[i].temp_residency++;
 		}
 		else {
-			temp_sensors_runtime[i].temp_residency = 0;
+			// Deal with flakey sensors which occasionally report a wrong value
+			// by setting residency back, but not entirely to zero.
+			if (temp_sensors_runtime[i].temp_residency > 10)
+				temp_sensors_runtime[i].temp_residency -= 10;
+			else
+				temp_sensors_runtime[i].temp_residency = 0;
 		}
 
 		if (temp_sensors[i].heater < NUM_HEATERS) {
