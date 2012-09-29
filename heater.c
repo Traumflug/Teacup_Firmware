@@ -125,7 +125,17 @@ void heater_init() {
 				#endif
 				#endif
 				#ifdef	TCCR4A
-				case (uint16_t) &OCR4AL:
+                                #if defined (__AVR_ATmega32U4__)
+                                // on the ATmega32, TCCR4 is a 10 bit timer
+ 				case (uint16_t) &OCR4A:
+					TCCR4A |= MASK(COM4A1);
+					break;
+				case (uint16_t) &OCR4B:
+					TCCR4A |= MASK(COM4B1);
+					break;
+                                       
+                                #else
+ 				case (uint16_t) &OCR4AL:
 					TCCR4A |= MASK(COM4A1);
 					break;
 				case (uint16_t) &OCR4BL:
@@ -134,6 +144,7 @@ void heater_init() {
 				case (uint16_t) &OCR4CL:
 					TCCR4A |= MASK(COM4C1);
 					break;
+                                #endif
 				#endif
 				#ifdef	TCCR5A
 				case (uint16_t) &OCR5AL:
@@ -160,9 +171,11 @@ void heater_init() {
 			heaters_pid[i].i_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_i_factor);
 			heaters_pid[i].d_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_d_factor);
 			heaters_pid[i].i_limit = eeprom_read_word((uint16_t *) &EE_factors[i].EE_i_limit);
-
-// 			if ((heaters_pid[i].p_factor == 0) && (heaters_pid[i].i_factor == 0) && (heaters_pid[i].d_factor == 0) && (heaters_pid[i].i_limit == 0)) {
-			if (crc_block(&heaters_pid[i].p_factor, 14) != eeprom_read_word((uint16_t *) &EE_factors[i].crc)) {
+ 			if (((heaters_pid[i].p_factor == 0) && 
+			     (heaters_pid[i].i_factor == 0) && 
+			     (heaters_pid[i].d_factor == 0) && 
+			     (heaters_pid[i].i_limit  == 0)) ||
+			    (crc_block(&heaters_pid[i].p_factor, 14) != eeprom_read_word((uint16_t *) &EE_factors[i].crc))) {
 				heaters_pid[i].p_factor = DEFAULT_P;
 				heaters_pid[i].i_factor = DEFAULT_I;
 				heaters_pid[i].d_factor = DEFAULT_D;
