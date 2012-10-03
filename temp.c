@@ -306,7 +306,7 @@ void temp_sensor_tick() {
 }
 
 /// report whether all temp sensors are reading their target temperatures
-/// used for M109 and friends
+/// used for M116 and friends
 uint8_t	temp_achieved() {
 	temp_sensor_t i;
 	uint8_t all_ok = 255;

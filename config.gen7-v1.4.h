@@ -251,10 +251,11 @@
 	Unit is degree Celsius.
 */
 #define	TEMP_HYSTERESIS			20
-/**
-	TEMP_RESIDENCY_TIME: actual temperature must be close to target for this long before target is achieved
 
-	temperature is "achieved" for purposes of M109 and friends when actual temperature is within [hysteresis] of target for [residency] seconds
+/**
+	TEMP_RESIDENCY_TIME: actual temperature must be close to target (within
+	set temperature +- TEMP_HYSTERESIS) for this long before target is achieved
+	(and a M116 succeeds). Unit is seconds.
 */
 #define	TEMP_RESIDENCY_TIME		60
 
