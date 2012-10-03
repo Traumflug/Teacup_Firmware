@@ -289,7 +289,17 @@ void temp_sensor_tick() {
 				default: /* prevent compiler warning */
 					break;
 			}
-			temp_sensors_runtime[i].last_read_temp = temp;
+			/* Exponentially Weighted Moving Average alpha constant for smoothing
+			   noisy sensors. Instrument Engineer's Handbook, 4th ed, Vol 2 p126
+			   says values of 0.05 to 0.1 for TEMP_EWMA are typical. */
+			#ifndef TEMP_EWMA
+				#define TEMP_EWMA 1.0
+			#endif
+			#define EWMA_SCALE  1024L
+			#define EWMA_ALPHA  ((long) (TEMP_EWMA * EWMA_SCALE))
+			temp_sensors_runtime[i].last_read_temp = (EWMA_ALPHA * temp +
+			  (EWMA_SCALE-EWMA_ALPHA) * temp_sensors_runtime[i].last_read_temp
+			                                         ) / EWMA_SCALE;
 		}
 		if (labs((int16_t)(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp)) < (TEMP_HYSTERESIS*4)) {
 			if (temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*120))
