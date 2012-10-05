@@ -45,10 +45,6 @@
 */
 #define	HOST
 
-/*
-	Values reflecting the gearing of your machine.
-		All numbers are fixed point integers, so no more than 3 digits to the right of the decimal point, please :-)
-*/
 
 /** \def STEPS_PER_M
 	steps per meter ( = steps per mm * 1000 )
@@ -59,11 +55,13 @@
 		(steps motor per turn) / (pitch of the thread) * 1000
 
 	for belts, this is
-		(steps per motor turn) / (number of gear teeth/turn) / (belt mm/tooth) * 1000 mm/m
+		(steps per motor turn) / (number of gear teeth) / (belt module) * 1000
 
 	half-stepping doubles the number, quarter stepping requires * 4, etc.
 
 	valid range = 20 to 4'0960'000 (0.02 to 40960 steps/mm)
+
+	all numbers are integers, so no decimal point, please :-)
 
 T5=5mm, T2.5=2.5mm, MXL=0.08=2.032mm XL=1/5"=5.08mm
 
@@ -153,7 +151,6 @@ maxFeedPerMin <- stepsPerSec / distsPerM * 1000 *60
 /// this is how many steps to suck back the filament by when we stop. set to zero to disable
 #define	E_STARTSTOP_STEPS			20
 
-
 /**
 	Soft axis limits, in mm.
 	Define them to your machine's size relative to what your host considers to be the origin.
@@ -170,6 +167,8 @@ maxFeedPerMin <- stepsPerSec / distsPerM * 1000 *60
 
 /**	\def E_ABSOLUTE
 	Some G-Code creators produce relative length commands for the extruder, others absolute ones. G-Code using absolute lengths can be recognized when there are G92 E0 commands from time to time. If you have G92 E0 in your G-Code, define this flag.
+
+	This is the startup default and can be changed with M82/M83 while running.
 */
 // #define E_ABSOLUTE
 
@@ -255,9 +254,6 @@ New plan:
       End d5 : 23
       End d4 : 22
 */
-
-/* make a lot of READ|WRITE|TOGGLE(DIO15) thingies expand into operations on DIO15_PIN */
-/* Also, include the apprpriate chip-wise arduino_*.h file that maps DIO15_PIN into PINA0, etc. */
 
 #include	"arduino.h"
 
@@ -353,12 +349,21 @@ New plan:
 
 /***************************************************************************\
 *                                                                           *
-* Define your temperature sensors here                                      *
+* Define your temperature sensors here. One line for each sensor, only      *
+* limited by the number of available ATmega pins.                           *
 *                                                                           *
-* for GEN3 set temp_type to TT_INTERCOM and temp_pin to 0                   *
+* For a GEN3 set temp_type to TT_INTERCOM and temp_pin to 0.                *
 *                                                                           *
-* Types are same as TEMP_ list above- TT_MAX6675, TT_THERMISTOR, TT_AD595,  *
+* Types are same as TEMP_ list above - TT_MAX6675, TT_THERMISTOR, TT_AD595, *
 *   TT_PT100, TT_INTERCOM, TT_NONE. See list in temp.c.                     *
+*                                                                           *
+* The "additional" field is used for TT_THERMISTOR only. It defines the     *
+* name of the table(s) in ThermistorTable.h to use. Typically, this is      *
+* THERMISTOR_EXTRUDER for the first or only table, or THERMISTOR_BED for    *
+* the second table. See also early in ThermistorTable.{single|double}.h.    *
+*                                                                           *
+* TT_INTERCOM and TT_NONE don't use a pin, insert AIO0 anyways to keep      *
+* the compiler happy. The pin won't be used in this case.                   *
 *                                                                           *
 \***************************************************************************/
 
@@ -371,7 +376,7 @@ DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO0,      THERMISTOR_EXTRUDER)
 DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
 // "noheater" is a special name for a sensor which doesn't have a heater.
 // Use "M105 P#" to read it, where # is a zero-based index into this list.
-// DEFINE_TEMP_SENSOR(noheater,				TT_THERMISTOR,	1,	0)
+// DEFINE_TEMP_SENSOR(noheater,  TT_THERMISTOR,  1,            0)
 
 
 
@@ -389,20 +394,18 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
 
 /***************************************************************************\
 *                                                                           *
-* Define your heaters here                                                  *
+* Define your heaters here.                                                 *
 *                                                                           *
-* If your heater isn't on a PWM-able pin, set heater_pwm to zero and we'll  *
-*   use bang-bang output. Note that PID will still be used                  *
-*                                                                           *
-* See Appendix 8 at the end of this file for PWMable pin mappings           *
-*                                                                           *
-* If a heater isn't attached to a temperature sensor above, it can still be *
-*   controlled by host but otherwise is ignored by firmware                 *
+* Currently, heaters work on PWM-able pins, only. See the end of this file  *
+* for PWM-able pin mappings.                                                *
 *                                                                           *
 * To attach a heater to a temp sensor above, simply use exactly the same    *
-*   name - copy+paste is your friend                                        *
-*                                                                           *
-* Some common names are 'extruder', 'bed', 'fan', 'motor'                   *
+* name - copy+paste is your friend. Some common names are 'extruder',       *
+* 'bed', 'fan', 'motor', ... names with special meaning can be found        *
+* in gcode_process.c. Currently, these are:                                 *
+*   HEATER_extruder   (M104)                                                *
+*   HEATER_bed        (M140)                                                *
+*   HEATER_fan        (M106/M107)                                           *
 *                                                                           *
 * A milling spindle can also be defined as a heater. Attach it to a         *
 * temperature sensor of TT_NONE, then you can control the spindle's rpm     *
@@ -414,12 +417,12 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
 	#define DEFINE_HEATER(...)
 #endif
 
-//               name      port   pin    pwm
-DEFINE_HEATER(extruder,	DIO6)
-DEFINE_HEATER(bed,	DIO4)
-// DEFINE_HEATER(fan,			PORTB, PINB4, OCR0B)
-// DEFINE_HEATER(chamber,	PORTD, PIND7, OCR2A)
-// DEFINE_HEATER(motor,		PORTD, PIND6, OCR2B)
+//            name      port
+DEFINE_HEATER(extruder, DIO6)
+DEFINE_HEATER(bed,      DIO4)
+// DEFINE_HEATER(fan,      PINB4)
+// DEFINE_HEATER(chamber,  PIND7)
+// DEFINE_HEATER(motor,    PIND6)
 
 /// and now because the c preprocessor isn't as smart as it could be,
 /// uncomment the ones you've listed above and comment the rest.
@@ -430,6 +433,8 @@ DEFINE_HEATER(bed,	DIO4)
 #define	HEATER_EXTRUDER HEATER_extruder
 #define HEATER_BED HEATER_bed
 // #define HEATER_FAN HEATER_fan
+// #define HEATER_CHAMBER HEATER_chamber
+// #define HEATER_MOTOR HEATER_motor
 
 
 
@@ -476,24 +481,24 @@ DEFINE_HEATER(bed,	DIO4)
 		WARNING: this WILL break most host-side talkers that expect particular responses from firmware such as reprap host and replicatorG
 		use with serial terminal or other suitable talker only.
 */
-#define	DEBUG
+// #define	DEBUG
 
 /** \def BANG_BANG
 BANG_BANG
 drops PID loop from heater control, reduces code size significantly (1300 bytes!)
 may allow DEBUG on '168
 */
-//#define	BANG_BANG
+// #define	BANG_BANG
 /** \def BANG_BANG_ON
 BANG_BANG_ON
 PWM value for 'on'
 */
-#define	BANG_BANG_ON	200
+// #define	BANG_BANG_ON	200
 /** \def BANG_BANG_OFF
 BANG_BANG_OFF
 PWM value for 'off'
 */
-#define	BANG_BANG_OFF	4
+// #define	BANG_BANG_OFF	45
 
 /**
 	move buffer size, in number of moves
@@ -532,6 +537,19 @@ PWM value for 'off'
 	higher values make PID derivative term more stable at the expense of reaction time
 */
 #define	TH_COUNT					8
+
+/** \def FAST_PWM
+	Teacup offers two PWM frequencies, 76(61) Hz and 78000(62500) Hz on a
+	20(16) MHz electronics. The slower one is the default, as it's the safer
+	choice. Drawback is, in a quiet environment you might notice the heaters
+	and your power supply humming.
+
+	Uncomment this option if you want to get rid of this humming or want
+	faster PWM for other reasons.
+
+	See also: http://reprap.org/wiki/Gen7_Research#MOSFET_heat_and_PWM
+*/
+// #define	FAST_PWM
 
 /// this is the scaling of internally stored PID values. 1024L is a good value
 #define	PID_SCALE						1024L
