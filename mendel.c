@@ -72,19 +72,11 @@ void io_init(void) {
 	WRITE(X_DIR_PIN,  0);	SET_OUTPUT(X_DIR_PIN);
 	#ifdef X_MIN_PIN
 		SET_INPUT(X_MIN_PIN);
-		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(X_MIN_PIN, 1);
-		#else
-			WRITE(X_MIN_PIN, 0);
-		#endif
+		WRITE(X_MIN_PIN, 0); // pullup resistors off
 	#endif
 	#ifdef X_MAX_PIN
 		SET_INPUT(X_MAX_PIN);
-		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(X_MAX_PIN, 1);
-		#else
-			WRITE(X_MAX_PIN, 0);
-		#endif
+		WRITE(X_MAX_PIN, 0); // pullup resistors off
 	#endif
 
 	// Y Stepper
@@ -92,19 +84,11 @@ void io_init(void) {
 	WRITE(Y_DIR_PIN,  0);	SET_OUTPUT(Y_DIR_PIN);
 	#ifdef Y_MIN_PIN
 		SET_INPUT(Y_MIN_PIN);
-		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(Y_MIN_PIN, 1);
-		#else
-			WRITE(Y_MIN_PIN, 0);
-		#endif
+		WRITE(Y_MIN_PIN, 0); // pullup resistors off
 	#endif
 	#ifdef Y_MAX_PIN
 		SET_INPUT(Y_MAX_PIN);
-		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(Y_MAX_PIN, 1);
-		#else
-			WRITE(Y_MAX_PIN, 0);
-		#endif
+		WRITE(Y_MAX_PIN, 0); // pullup resistors off
 	#endif
 
 	// Z Stepper
@@ -114,19 +98,11 @@ void io_init(void) {
 	#endif
 	#ifdef Z_MIN_PIN
 		SET_INPUT(Z_MIN_PIN);
-		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(Z_MIN_PIN, 1);
-		#else
-			WRITE(Z_MIN_PIN, 0);
-		#endif
+		WRITE(Z_MIN_PIN, 0); // pullup resistors off
 	#endif
 	#ifdef Z_MAX_PIN
 		SET_INPUT(Z_MAX_PIN);
-		#ifdef USE_INTERNAL_PULLUPS
-			WRITE(Z_MAX_PIN, 1);
-		#else
-			WRITE(Z_MAX_PIN, 0);
-		#endif
+		WRITE(Z_MAX_PIN, 0); // pullup resistors off
 	#endif
 
 	#if defined E_STEP_PIN && defined E_DIR_PIN

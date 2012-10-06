@@ -724,6 +724,8 @@ void process_gcode_command() {
 				//? --- M200: report endstop status ---
 				//? Report the current status of the endstops configured in the firmware to the host.
 				power_on();
+				endstops_on();
+				delay_ms(10); // allow the signal to stabilize
 				#if defined(X_MIN_PIN)
 					sersendf_P(PSTR("x_min:%d "), x_min());
 				#endif
@@ -745,6 +747,7 @@ void process_gcode_command() {
 				#if !(defined(X_MIN_PIN) || defined(X_MAX_PIN) || defined(Y_MIN_PIN) || defined(Y_MAX_PIN) || defined(Z_MIN_PIN) || defined(Z_MAX_PIN))
 					sersendf_P(PSTR("no endstops defined"));
 				#endif
+				endstops_off();
 				break;
 
 			#ifdef	DEBUG

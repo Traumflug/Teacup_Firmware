@@ -354,6 +354,8 @@ void dda_start(DDA *dda) {
 		psu_timeout = 0;
 		if (dda->z_delta)
 			z_enable();
+		if (dda->endstop_check)
+			endstops_on();
 
 		// set direction outputs
 		x_direction(dda->x_direction);
@@ -636,6 +638,7 @@ void dda_step(DDA *dda) {
 	// TODO: If we stop axes individually, could we home two or more axes at the same time?
 	if (dda->endstop_check != 0x0 && endstop_not_done == 0x0) {
 		move_state.x_steps = move_state.y_steps = move_state.z_steps = move_state.e_steps = 0;
+		endstops_off();
 		// as we stop without ramping down, we have to re-init our ramping here
 		dda_init();
 	}
