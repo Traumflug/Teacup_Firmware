@@ -129,8 +129,12 @@ void heater_init() {
 	#ifdef	TCCR4A
 		#ifdef TIMER4_IS_10_BIT
 			// ATmega16/32U4 fourth timer is a 10 special bit timer
-			TCCR4D = MASK(WGM40);
-			TCCR4B = MASK(CS40);
+			TCCR4A = MASK(PWM4A) | MASK(PWM4B) ; // enable A and B
+			TCCR4C = MASK(PWM4D); // and D
+			TCCR4D = MASK(WGM40); // Phase correct
+			TCCR4B = MASK(CS40);  // no prescaler
+			TC4H   = 0;           // clear high bits
+			OCR4C  = 0xff;        // 8 bit max count at top before reset
 		#else
 			TCCR4A = MASK(WGM40);
 			TCCR4B = MASK(WGM42) | MASK(CS40);
@@ -138,6 +142,9 @@ void heater_init() {
 		TIMSK4 = 0;
 		OCR4A = 0;
 		OCR4B = 0;
+		#ifdef OCR4D  
+			OCR4D = 0;
+		#endif
 	#endif
 
 	#ifdef	TCCR5A
@@ -198,6 +205,11 @@ void heater_init() {
 					case (uint16_t) &OCR4B:
 						TCCR4A |= MASK(COM4B1);
 						break;
+					#ifdef OCR4D  
+						case (uint16_t) &OCR4D:
+							TCCR4C |= MASK(COM4D1);
+							break;
+					#endif
 					#endif
 				#endif
 				#ifdef	TCCR5A

@@ -37,14 +37,18 @@
 #define SDA          DIO6
 
 // timers and PWM
+// The 32U4 PWMs are fairly restricted. If you avoid timer 1 for the clock, 
+// two pairs of the PWMs are complements of each other:
+// DIO11 & DIO12 on ~OC4D & OC4D and DIO14 & DIO15 on ~OC4B & OC4B
 #define TIMER4_IS_10_BIT
 #define OC0A         DIO4
 #define OC0B         DIO5
-#define OC3A         DIO9
+#define OC3A         DIO9  // 10 bit timer on OC4A, inverse of PWM on DIO10
 #define OC4A         D1O10
+//#define OC4B         DIO14  // inverse of PWM on DIO15
+#define OC4B         DIO15
+//#define OC4D         DIO11  // inverse of PWM on DIO12  
 #define OC4D         DIO12
-#define OC1A         DIO14
-#define OC1B         DIO16
 
 
 // change for your board
@@ -85,8 +89,6 @@ pins
 // Timer 1 would be a problem drf 2012-01-09
 // Timer 0 might be used by serial.c 
 #define DIO4_PWM     &OCR0A
-//#define DIO4_PWM     &OCR1C
-//#define DIO4_PWM     NULL
 #define DIO4_DDR     DDRB
 
 #define DIO5_PIN     PIND0
@@ -117,7 +119,7 @@ pins
 #define DIO9_PIN     PINC6
 #define DIO9_RPORT   PINC
 #define DIO9_WPORT   PORTC
-#define DIO9_PWM     &OCR3A
+#define DIO9_PWM     &OCR3AL  // inverse of DIO10_PWM
 #define DIO9_DDR     DDRC
 
 #define DIO10_PIN    PINC7
@@ -129,8 +131,7 @@ pins
 #define DIO11_PIN    PIND6
 #define DIO11_RPORT  PIND
 #define DIO11_WPORT  PORTD
-// note that this PWM is true on not-OCR4D
-#define DIO11_PWM    &OCR4D
+#define DIO11_PWM    NULL  // inverse of DIO12_PWM
 #define DIO11_DDR    DDRD
 
 #define DIO12_PIN    PIND7
@@ -148,7 +149,7 @@ pins
 #define DIO14_PIN    PINB5
 #define DIO14_RPORT  PINB
 #define DIO14_WPORT  PORTB
-#define DIO14_PWM    &OCR4B
+#define DIO14_PWM    NULL  // inverse of DIO15_PWM
 #define DIO14_DDR    DDRB
 
 #define DIO15_PIN    PINB6
