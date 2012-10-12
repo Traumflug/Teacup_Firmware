@@ -27,8 +27,8 @@ typedef struct {
 
 #undef DEFINE_HEATER
 /// \brief helper macro to fill heater definition struct from config.h
-// #define DEFINE_HEATER(name, port, pin, pwm) { &(port), (pin), &(pwm) },
-#define	DEFINE_HEATER(name, pin) { &(pin ## _WPORT), pin ## _PIN, (pin ## _PWM) },
+#define	DEFINE_HEATER(name, pin, pwm) { &(pin ## _WPORT), pin ## _PIN, \
+                                        pwm ? (pin ## _PWM) : NULL},
 static const heater_definition_t heaters[NUM_HEATERS] =
 {
 	#include	"config.h"
@@ -251,7 +251,7 @@ void heater_init() {
 	// set all heater pins to output
 	do {
 		#undef	DEFINE_HEATER
-		#define	DEFINE_HEATER(name, pin) WRITE(pin, 0); SET_OUTPUT(pin);
+		#define	DEFINE_HEATER(name, pin, pwm) WRITE(pin, 0); SET_OUTPUT(pin);
 			#include "config.h"
 		#undef DEFINE_HEATER
 	} while (0);
