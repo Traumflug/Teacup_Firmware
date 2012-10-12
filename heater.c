@@ -429,7 +429,7 @@ void heater_set(heater_t index, uint8_t value) {
 		#endif
 	}
 	else {
-		if (value >= 8)
+		if (value >= ((BANG_BANG_ON + BANG_BANG_OFF) / 2))
 			*(heaters[index].heater_port) |= MASK(heaters[index].heater_pin);
 		else
 			*(heaters[index].heater_port) &= ~MASK(heaters[index].heater_pin);
