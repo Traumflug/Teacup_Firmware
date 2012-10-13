@@ -306,7 +306,7 @@ to use the other 6 PWMs instead.
 
 #define	Z_STEP_PIN						DIO14
 #define	Z_DIR_PIN							DIO13
-#define	Z_MIN_PIN							DIO2
+#define	Z_MIN_PIN							DIO3
 //#define	Z_MAX_PIN							xxxx
 //#define	Z_ENABLE_PIN					DIO17
 //#define	Z_INVERT_DIR
@@ -390,9 +390,13 @@ to use the other 6 PWMs instead.
 	#define DEFINE_TEMP_SENSOR(...)
 #endif
 
-//                 name       type            pin        additional
-DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO0,      THERMISTOR_EXTRUDER)
-DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
+//                 name       type          pin		additional
+DEFINE_TEMP_SENSOR(extruder,	TT_THERMISTOR,	AIO0,	THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(bed,		TT_THERMISTOR,	AIO1,	THERMISTOR_EXTRUDER)
+//DEFINE_TEMP_SENSOR(spindle,		TT_NONE,	AIO1,	THERMISTOR_EXTRUDER)
+//DEFINE_TEMP_SENSOR(chamber,		TT_NONE,	AIO1,	THERMISTOR_EXTRUDER)
+//DEFINE_TEMP_SENSOR(motor,		TT_NONE,	AIO1,	THERMISTOR_EXTRUDER)
+//DEFINE_TEMP_SENSOR(servo,		TT_NONE,	AIO1,	THERMISTOR_EXTRUDER)
 // "noheater" is a special name for a sensor which doesn't have a heater.
 // Use "M105 P#" to read it, where # is a zero-based index into this list.
 // DEFINE_TEMP_SENSOR(noheater,  TT_THERMISTOR,  1,            0)
