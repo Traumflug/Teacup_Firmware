@@ -69,6 +69,12 @@ struct {
 	uint8_t						heater_output;					///< this is the PID value we eventually send to the heater
 } heaters_runtime[NUM_HEATERS];
 
+#ifdef BANG_BANG
+	#define HEATER_THRESHOLD ((BANG_BANG_ON + BANG_BANG_OFF) / 2)
+#else
+	#define HEATER_THRESHOLD 8
+#endif
+
 /// default scaled P factor, equivalent to 8.0
 #define		DEFAULT_P				8192
 /// default scaled I factor, equivalent to 0.5
@@ -429,7 +435,7 @@ void heater_set(heater_t index, uint8_t value) {
 		#endif
 	}
 	else {
-		if (value >= ((BANG_BANG_ON + BANG_BANG_OFF) / 2))
+		if (value >= HEATER_THRESHOLD)
 			*(heaters[index].heater_port) |= MASK(heaters[index].heater_pin);
 		else
 			*(heaters[index].heater_port) &= ~MASK(heaters[index].heater_pin);
