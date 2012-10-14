@@ -29,7 +29,7 @@
 	uses avr-libc's optimised crc16 routine
 */
 uint16_t	crc_block(void *data, uint16_t len) {
-	uint16_t	crc = 0;
+	uint16_t	crc = 0xfeed;
 	for (; len; data++, len--) {
 		crc = _crc16_update(crc, *((uint8_t *) data));
 	}
