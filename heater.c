@@ -134,7 +134,7 @@ void heater_init() {
 
 	#ifdef	TCCR4A
 		#ifdef TIMER4_IS_10_BIT
-			// ATmega16/32U4 fourth timer is a 10 special bit timer
+			// ATmega16/32U4 fourth timer is a special 10 bit timer
 			TCCR4A = MASK(PWM4A) | MASK(PWM4B) ; // enable A and B
 			TCCR4C = MASK(PWM4D); // and D
 			TCCR4D = MASK(WGM40); // Phase correct
@@ -352,7 +352,7 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 	#else
 		if (current_temp >= target_temp)
 			pid_output = BANG_BANG_OFF;
-		else
+		else //BANG_BANG
 			pid_output = BANG_BANG_ON;
 	#endif
 

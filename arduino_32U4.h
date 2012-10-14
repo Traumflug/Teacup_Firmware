@@ -125,6 +125,7 @@ pins
 #define DIO10_PIN    PINC7
 #define DIO10_RPORT  PINC
 #define DIO10_WPORT  PORTC
+// pin 10/c7 is on a 8/10 bit timer 4 and share the register with inverses
 #define DIO10_PWM    &OCR4A
 #define DIO10_DDR    DDRC
 

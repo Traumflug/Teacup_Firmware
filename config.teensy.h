@@ -2,7 +2,7 @@
 /* attempt by drf@vims.edu 2012-01-09 to fit TeaCup into a $16 teensy from htpp://www.pjrc.com/teensy/ */
 
 /** \file
-	\brief Teensy configuration.
+	\brief Teensy 2.0 configuration.
 */
 
 /*
@@ -73,43 +73,16 @@ MXL 2.032 mm/tooth, 29
  Z       200*2       / 1           / 1           * 1000  = 400000  # half-step for noise
  Extrude through a Wades' 10:43 with a M8 hobbed bolt:
          steps/revM  * revM/revO    / (dia * circ/rev) *  mm/m
- E       200*1*16    *43/10         / (8  *   3.14159)  * 1000 = 547493.5
+ E       200*1*4     * 43/10        / (8   *  3.14159) *  1000 = 136873.4
          mm/m        / (mm/rev ext)   (rev mot/rev ext)  step/revmot
- E       1000      / (8 * 3.14159)  * 43/10             * 200 * 16 = 547494
-
-w/o microstepping
-
-X,Y: 3393
-Z: 200000
-E: 34218
-
-Steps/sec at max feeds:
-c(9900,9900,1400,1900)/60*c(13576,13576,400000,547494)/1000 == 2240.040  2240.040  9333.333 17337.310
-
-Resolution in mm per step:
-1/c(13576,13576,400000,547494)*1000 == 0.073659399 0.073659399 0.002500000 0.001826504
-
+ E       1000        / (8 * 3.14159)  * 43/10           * 200 * 4 = 136873.4
 */
-#define MICROSTEPPING 1
-
-#ifdef MICROSTEPPING
 #define	STEPS_PER_M_X				        13576
 #define	STEPS_PER_M_Y					13576
 #define	STEPS_PER_M_Z				        400000
 
 /// http://blog.arcol.hu/?p=157 may help with this one
-#define	STEPS_PER_M_E					547494
-
-#else
-#define	STEPS_PER_M_X				        3393
-#define	STEPS_PER_M_Y					3393
-#define	STEPS_PER_M_Z				        200000
-
-/// http://blog.arcol.hu/?p=157 may help with this one
-#define	STEPS_PER_M_E					34218
-
-#endif
-
+#define	STEPS_PER_M_E				        160423
 
 /*
 	Values depending on the capabilities of your stepper motors and other mechanics.
@@ -118,23 +91,11 @@ Resolution in mm per step:
 		Units are mm/min
 */
 
-/* R code for calculating mac feed rates:
-
-stepsPerSec <- 16e6 / 1028     /2
-distsPerM <- c(13576,13576,400000,547494)
-maxFeedPerMin <- stepsPerSec / distsPerM * 1000 *60
- */
-
-// 16MHz / 1028 cyc/step = 15570 step/sec
-// 1666 / 547.494 step/mmE *60  = 182 mm/min E
-// 1666 /c(13576,13576,400000,547494)*1000*60
-// my build at 4x X,Y, 2xZ 16xE 2012-02-26
-
 /// used for G0 rapid moves and as a cap for all other feedrates
 #define	MAXIMUM_FEEDRATE_X		6881
 #define	MAXIMUM_FEEDRATE_Y		6881
 #define	MAXIMUM_FEEDRATE_Z		233
-#define	MAXIMUM_FEEDRATE_E		170
+#define	MAXIMUM_FEEDRATE_E		680
 
 /// used when searching endstops and as default feedrate
 #define	SEARCH_FEEDRATE_X			50
@@ -231,28 +192,33 @@ maxFeedPerMin <- stepsPerSec / distsPerM * 1000 *60
 
 Teensy http://www.pjrc.com/teensy ATMega64U4 carrier:
 
-New plan:
-                                         USB
-                               GND |-----#####-----| +5V
-              X0end              0 |b0   #####   F0| 21 A0               Extruder TC
-              Y0end              1 |b1           f1| 20 A1               Bed TC
-              Z0end              2 |b2  /=e6     f4| 19 A2               Stepper -ENable
-           Z_ENABLE              3 |b3 *      *  f5| 18 A3               STEP X
-           Bed Heat        PWM   4 |b7  aref=/   f6| 17 A4               DIR X
-      Extruder Heat        PWM   5 |d0           f7| 16 A5               STEP Y
-                                 6 |d1           b6| 15 A6  PWM          DIR Y
-                                 7 |d2   V G R   b5| 14 A7  PWM          STEP Z
-                                 8 |d3 d c n S d b4| 13 A8               DIR Z
-                           PWM   9 |d6 5 c d T 4 d7| 12 A9  PWM          STEP E
-                           PWM  10 |d7 * * * * * d6| 11 A10 (led)        DIR E
-                                   --------------------
-                                    23 ^     \ \22 A11
-                                              \- RST
+DaveX plan for Wallace:
+                               USB
+           GND       GND |-----#####-----| +5V              ATX +5SB
+     ATX PS_ON         0 |b0   #####   F0| 21 A0            Extruder TC
+         X_MIN         1 |b1           f1| 20 A1            Bed TC
+         Y_MIN         2 |b2  /=e6     f4| 19 A2            Stepper -ENABLE (or -SLEEP)
+         Z_MIN         3 |b3 *      *  f5| 18 A3            STEP X
+                 PWM   4 |b7  aref=/   f6| 17 A4            DIR X
+                 PWM   5 |d0           f7| 16 A5            STEP Y
+                       6 |d1           b6| 15 A6  PWM       DIR Y
+                       7 |d2   V G R   b5| 14 A7            STEP Z
+           Fan         8 |d3 d c n S d b4| 13 A8            DIR Z
+      Bed Heat   PWM   9 |d6 5 c d T 4 d7| 12 A9  PWM       STEP E
+ Extruder Heat   PWM  10 |d7 * * * * * d6| 11 A10 (led)     DIR E
+                         --------------------
+                          23 ^      \ \----22 A11
+                                      \------ RST
 
-      Interior E6: 22 A11
+      Interior E6: 24, AIN0, INT6
       Interior Aref : Aref
       End d5 : 23
-      End d4 : 22
+      End d4 : 22, A1
+
+PWM might be possible on pins PB5/DIO14/AIO7 and PD6/DIO11/AIO10 pins but they
+are complementary to the PWMs on the successive pins, if you reserve
+timer/counter1 for Teacup. Avoid trying to use these two inverse PWMs, and try
+to use the other 6 PWMs instead.
 */
 
 #include	"arduino.h"
@@ -276,11 +242,11 @@ New plan:
 
 //#define	PS_ON_PIN							DIO0
 #define	STEPPER_ENABLE_PIN		DIO19
-//#define	STEPPER_INVERT_ENABLE
+#define	STEPPER_INVERT_ENABLE
 
 #define	X_STEP_PIN						DIO18
 #define	X_DIR_PIN							DIO17
-#define	X_MIN_PIN							DIO0
+#define	X_MIN_PIN							DIO1
 //#define	X_MAX_PIN							xxxx
 //#define	X_ENABLE_PIN					xxxx
 //#define	X_INVERT_DIR
@@ -290,7 +256,7 @@ New plan:
 
 #define	Y_STEP_PIN						DIO16
 #define	Y_DIR_PIN							DIO15
-#define	Y_MIN_PIN							DIO1
+#define	Y_MIN_PIN							DIO3
 //#define	Y_MAX_PIN							xxxx
 //#define	Y_ENABLE_PIN					xxxx
 //#define	Y_INVERT_DIR
@@ -409,9 +375,6 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
 *                                                                           *
 * Define your heaters here.                                                 *
 *                                                                           *
-* Currently, heaters work on PWM-able pins, only. See the end of this file  *
-* for PWM-able pin mappings.                                                *
-*                                                                           *
 * To attach a heater to a temp sensor above, simply use exactly the same    *
 * name - copy+paste is your friend. Some common names are 'extruder',       *
 * 'bed', 'fan', 'motor', ... names with special meaning can be found        *
@@ -424,16 +387,23 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
 * temperature sensor of TT_NONE, then you can control the spindle's rpm     *
 * via temperature commands. M104 S1..255 for spindle on, M104 S0 for off.   *
 *                                                                           *
+* Set 'pwm' to ...                                                          *
+*  1  for using PWM on a PWM-able pin and on/off on other pins.             *
+*  0  for using on/off on a PWM-able pin, too.                              *
+* Using PWM usually gives smoother temperature control but can conflict     *
+* with slow switches, like solid state relays. PWM frequency can be         *
+* influenced globally with FAST_PWM, see below.                             *
+*                                                                           *
 \***************************************************************************/
 
 #ifndef DEFINE_HEATER
 	#define DEFINE_HEATER(...)
 #endif
 
-//            name      port
-DEFINE_HEATER(extruder, DIO6)
-DEFINE_HEATER(bed,      DIO4)
-// DEFINE_HEATER(fan,      PINB4)
+//            name      port   pwm
+DEFINE_HEATER(extruder, DIO10, 1)
+DEFINE_HEATER(bed,      DIO9,  1)
+DEFINE_HEATER(fan,      DIO8,  0)
 // DEFINE_HEATER(chamber,  PIND7)
 // DEFINE_HEATER(motor,    PIND6)
 
@@ -445,7 +415,7 @@ DEFINE_HEATER(bed,      DIO4)
 
 #define	HEATER_EXTRUDER HEATER_extruder
 #define HEATER_BED HEATER_bed
-// #define HEATER_FAN HEATER_fan
+#define HEATER_FAN HEATER_fan
 // #define HEATER_CHAMBER HEATER_chamber
 // #define HEATER_MOTOR HEATER_motor
 
@@ -501,17 +471,17 @@ BANG_BANG
 drops PID loop from heater control, reduces code size significantly (1300 bytes!)
 may allow DEBUG on '168
 */
-// #define	BANG_BANG
+#define	BANG_BANG
 /** \def BANG_BANG_ON
 BANG_BANG_ON
 PWM value for 'on'
 */
-// #define	BANG_BANG_ON	200
+#define	BANG_BANG_ON	200
 /** \def BANG_BANG_OFF
 BANG_BANG_OFF
 PWM value for 'off'
 */
-// #define	BANG_BANG_OFF	45
+#define	BANG_BANG_OFF	45
 
 /**
 	move buffer size, in number of moves
@@ -614,13 +584,15 @@ PWM value for 'off'
 * OCR5BL - PL4 - DIO45                                                      *
 * OCR5CL - PL5 - DIO44                                                      *
 *                                                                           *
-* For the Teensy atmega32U, timer pin/mappings are as follows               *
+* For the atmega32U, timer pin/mappings are as follows                      *
 *                                                                           *
-* Timer 1 is used for stepping, so OC1A and OC1B aren't good PWMs           *
 * OCR0A - PB7 - DIO4                                                        *
 * OCR0B - PD0 - DIO5                                                        *
 * OCR3A - PC6 - DIO9                                                        *
 * OCR4A - PC7 - DIO10                                                       *
+*~OCRAD - PD6 - DIO11 - AIO10    *** inverse of OCR4D (avoid it) ***        *
 * OCR4D - PD7 - DIO12 - AIO9                                                *
+*~OCRAB - PB5 - DIO14 - AIO7     *** inverse of OCR4B (avoid it) ***        *
+* OCR4B - PB6 - DIO15 - AIO6                                                *
 *                                                                           *
 \***************************************************************************/
