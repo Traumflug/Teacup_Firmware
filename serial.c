@@ -24,6 +24,7 @@
 /// ascii XON character
 #define		ASCII_XON		17
 
+#ifndef USE_USB
 /// rx buffer head pointer. Points to next available space.
 volatile uint8_t rxhead = 0;
 /// rx buffer tail pointer. Points to last character in buffer
@@ -223,6 +224,7 @@ void serial_writechar(uint8_t data)
 	// enable TX interrupt so we can send this character
 	UCSR0B |= MASK(UDRIE0);
 }
+#endif /* USE_USB */
 
 /// send a whole block
 void serial_writeblock(void *data, int datalen)
