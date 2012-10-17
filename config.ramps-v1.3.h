@@ -325,9 +325,6 @@ DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO13,     THERMISTOR_EXTRUDER)
 *                                                                           *
 * Define your heaters here.                                                 *
 *                                                                           *
-* Currently, heaters work on PWM-able pins, only. See the end of this file  *
-* for PWM-able pin mappings.                                                *
-*                                                                           *
 * To attach a heater to a temp sensor above, simply use exactly the same    *
 * name - copy+paste is your friend. Some common names are 'extruder',       *
 * 'bed', 'fan', 'motor', ... names with special meaning can be found        *
@@ -340,6 +337,13 @@ DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO13,     THERMISTOR_EXTRUDER)
 * temperature sensor of TT_NONE, then you can control the spindle's rpm     *
 * via temperature commands. M104 S1..255 for spindle on, M104 S0 for off.   *
 *                                                                           *
+* Set 'pwm' to ...                                                          *
+*  1  for using PWM on a PWM-able pin and on/off on other pins.             *
+*  0  for using on/off on a PWM-able pin, too.                              *
+* Using PWM usually gives smoother temperature control but can conflict     *
+* with slow switches, like solid state relays. PWM frequency can be         *
+* influenced globally with FAST_PWM, see below.                             *
+*                                                                           *
 \***************************************************************************/
 
 #ifndef DEFINE_HEATER
@@ -347,9 +351,9 @@ DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO13,     THERMISTOR_EXTRUDER)
 #endif
 
 // NOTE: these pins are for RAMPS V1.1 and newer. V1.0 is different
-//            name      port
-DEFINE_HEATER(extruder, PB4)
-//DEFINE_HEATER( bed,     PH5)
+//            name      port   pwm
+DEFINE_HEATER(extruder, PB4,   1)
+//DEFINE_HEATER( bed,     PH5,   1)
 
 /// and now because the c preprocessor isn't as smart as it could be,
 /// uncomment the ones you've listed above and comment the rest.

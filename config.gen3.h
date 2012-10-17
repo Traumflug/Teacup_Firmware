@@ -325,9 +325,6 @@ DEFINE_TEMP_SENSOR(bed,       TT_INTERCOM,    AIO1,      0)
 *                                                                           *
 * Define your heaters here.                                                 *
 *                                                                           *
-* Currently, heaters work on PWM-able pins, only. See the end of this file  *
-* for PWM-able pin mappings.                                                *
-*                                                                           *
 * To attach a heater to a temp sensor above, simply use exactly the same    *
 * name - copy+paste is your friend. Some common names are 'extruder',       *
 * 'bed', 'fan', 'motor', ... names with special meaning can be found        *
@@ -340,15 +337,22 @@ DEFINE_TEMP_SENSOR(bed,       TT_INTERCOM,    AIO1,      0)
 * temperature sensor of TT_NONE, then you can control the spindle's rpm     *
 * via temperature commands. M104 S1..255 for spindle on, M104 S0 for off.   *
 *                                                                           *
+* Set 'pwm' to ...                                                          *
+*  1  for using PWM on a PWM-able pin and on/off on other pins.             *
+*  0  for using on/off on a PWM-able pin, too.                              *
+* Using PWM usually gives smoother temperature control but can conflict     *
+* with slow switches, like solid state relays. PWM frequency can be         *
+* influenced globally with FAST_PWM, see below.                             *
+*                                                                           *
 \***************************************************************************/
 
 #ifndef DEFINE_HEATER
 	#define DEFINE_HEATER(...)
 #endif
 
-//            name      port
-// DEFINE_HEATER(extruder, PINB3)
-// DEFINE_HEATER(bed,      PINB4)
+//            name      port   pwm
+// DEFINE_HEATER(extruder, PINB3, 1)
+// DEFINE_HEATER(bed,      PINB4, 1)
 
 /** \def HEATER_EXTRUDER
 	\def HEATER_BED

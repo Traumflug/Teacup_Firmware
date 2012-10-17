@@ -404,8 +404,8 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
 DEFINE_HEATER(extruder, DIO10, 1)
 DEFINE_HEATER(bed,      DIO9,  1)
 DEFINE_HEATER(fan,      DIO8,  0)
-// DEFINE_HEATER(chamber,  PIND7)
-// DEFINE_HEATER(motor,    PIND6)
+// DEFINE_HEATER(chamber,  PIND7, 1)
+// DEFINE_HEATER(motor,    PIND6, 1)
 
 /// and now because the c preprocessor isn't as smart as it could be,
 /// uncomment the ones you've listed above and comment the rest.
