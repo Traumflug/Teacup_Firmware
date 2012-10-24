@@ -6,6 +6,7 @@
 #include	<avr/pgmspace.h>
 
 #ifdef USE_USB
+  #include "usb_serial.h"
   #define serial_init() usb_init()
   #define serial_rxchars() usb_serial_available()
   #define serial_popchar() usb_serial_getchar()
