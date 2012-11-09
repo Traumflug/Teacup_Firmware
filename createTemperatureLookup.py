@@ -32,6 +32,7 @@ Options:
   --min-adc=... 	the minimum ADC reading to use. 
   --vadc=...            ADC reference voltage (high leg of R2) same as Vcc
   --vcc=...             Voltage divider supply (high leg of R2)  Unused
+  --table               Format data as one of an array of tables
 
 It is suggested to generate more values than you need, and delete some of the ones in the ranges
 that aren't interesting. This will improve accuracy in the temperature ranges that are important to you.
@@ -91,9 +92,13 @@ def main(argv):
 	vadc=5.0
 	vcc=5.0
 	mult=4
-	
+	table=False
+
 	try:
-		opts, args = getopt.getopt(argv, "h", ["help", "r0=", "t0=", "beta=", "r1=", "r2=", "max-adc=", "min-adc=", "num-temps=", "vcc=","vadc=","multiplier="])
+		opts, args = getopt.getopt(argv, "h", ["help", "r0=", "t0=", "beta=", "r1=",
+		                                       "r2=", "max-adc=", "min-adc=",
+		                                       "num-temps=", "vcc=", "vadc=",
+		                                       "multiplier=", "table"])
 	except getopt.GetoptError:
 		usage()
 		sys.exit(2)
@@ -124,6 +129,8 @@ def main(argv):
 			vcc = float(arg)
 		elif opt == "--multiplier":
 			mult = float(arg)
+		elif opt == "--table":
+			table = True
 	if r1:
 		max_adc = int(1023. * r1 / (r1 + r2))
 	else:
@@ -158,8 +165,8 @@ def main(argv):
 	print "// Since you'll have to do some testing to determine the correct temperature for your application anyway, you"
 	print "// may decide that the effort isn't worth it. Who cares if it's reporting the \"right\" temperature as long as it's"
 	print "// keeping the temperature steady enough to print, right?"
-	print "// Temp*%s table from https://github.com/triffid/Teacup_Firmware/blob/master/createTemperatureLookup.py" %mult
-	print "// ./createTemperatureLookup.py --r0=%s --t0=%s --r1=%s --r2=%s --beta=%s --max-adc=%s --min_adc=%s --multiplier=%s --vadc=%s" % (
+	print "// Temp*%s table from https://github.com/drf5n/Teacup_Firmware/blob/Gen7/createTemperatureLookup.py" %mult
+	print "// ./createTemperatureLookup.py --r0=%s --t0=%s --r1=%s --r2=%s --beta=%s --max-adc=%s --min-adc=%s --multiplier=%s --vadc=%s" % (
 		r0, t0, r1, r2, beta, max_adc, min_adc, mult, vadc)
 	print "// r0: %s" % (r0)
 	print "// t0: %s" % (t0)
@@ -169,9 +176,15 @@ def main(argv):
 	print "// min adc: %s at %s V" % (min_adc, min_adc*t.vadc/1024)
 	print "// max adc: %s at %s V" % (max_adc, max_adc*t.vadc/1024)
 	print "// ADC counts from {min} to {max} by {x}".format(min=min_adc, max=max_adc, x=increment)
-	print "#define NUMTEMPS %s" % (len(adcs))
+	if table == True:
+		print "// #define NUMTABLES 1    // These three lines open the temptable[NUMTABLES]... array"
+		print "// #define NUMTEMPS %s   //  ...   " %  (len(adcs))
+		print "// uint16_t temptable[NUMTABLES][NUMTEMPS][2] PROGMEM = { // ..."
+		print "{ //" + " Table 0 chunk for B={b}, R0={r0}, R1={r1}, R2={r2}, Vref={v}".format(par="{",b=beta,r0=r0,r1=r1,r2=r2,v=vadc) 
+	else:
+		print "#define NUMTEMPS  %s " %  (len(adcs))
+		print "uint16_t temptable[NUMTEMPS][2] PROGMEM = {"
 	print "// {ADC, temp*%s }, // temp         Rtherm     Vtherm      resolution   power" % (mult)
-	print "uint16_t temptable[NUMTEMPS][2] PROGMEM = {"
 
 	counter = 0
 	for adc in adcs:
@@ -183,8 +196,12 @@ def main(argv):
 		resolution = ( t.temp(adc-1)-t.temp(adc) if adc>1 else t.temp(adc) -t.temp(adc+1))
 		sep = (',' if counter != len(adcs) else ' ')
 		print "   {%4s, %6s}%s // %7.2f C,  %7.0f Ohm, %0.3f V, %0.2f C/count, %0.2fmW" % (adc, int(t.temp(adc)*mult), sep,degC, resistance,vTherm,resolution,ptherm*1000)
-	print "};"
-	
+	if table == False:
+		print "};"
+	else:
+		print '}, // remove comma for last table chunk'
+		print "// };   // Closure for the temptable[NUMTABLES] array"
+
 def usage():
     print __doc__
 
