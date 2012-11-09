@@ -8,14 +8,15 @@
 #	temps are now in 14.2 fixed point notation (i.e. measured in quarter-degrees)
 #	temps are not permitted to be negative (BUG:may result in numtemps fewer than requested)
 #	bugfix: --num-temps command line option works.
+# 2012-11-08, DaveX: Modified to add  --vcc=, --min_adc=, --mult and to print per-ADC comments  
 
 """Thermistor Value Lookup Table Generator
 
 Generates lookup to temperature values for use in a microcontroller in C format based on: 
-http://hydraraptor.blogspot.com/2007/10/measuring-temperature-easy-way.html
+  http://hydraraptor.blogspot.com/2007/10/measuring-temperature-easy-way.html
 
 The main use is for Arduino programs that read data from the circuit board described here:
-http://make.rrrf.org/ts-1.0
+  http://make.rrrf.org/ts-1.0 or http://reprap.org/wiki/Temperature_Sensor_2_0
 
 Usage: python createTemperatureLookup.py [options]
 
@@ -28,6 +29,9 @@ Options:
   --r2=... 			R2 rating where # is the ohm rating of R2 (eg: 10K = 10000)
   --num-temps=... 	the number of temperature points to calculate (default: 20)
   --max-adc=... 	the max ADC reading to use.  if you use R1, it limits the top value for the thermistor circuit, and thus the possible range of ADC values
+  --min-adc=... 	the minimum ADC reading to use. 
+  --vadc=...            ADC reference voltage (high leg of R2) same as Vcc
+  --vcc=...             Voltage divider supply (high leg of R2)  Unused
 
 It is suggested to generate more values than you need, and delete some of the ones in the ranges
 that aren't interesting. This will improve accuracy in the temperature ranges that are important to you.
@@ -39,30 +43,38 @@ import getopt
 
 class Thermistor:
 	"Class to do the thermistor maths"
-	def __init__(self, r0, t0, beta, r1, r2):
+	def __init__(self, r0, t0, beta, r1, r2,vcc,vadc):
 		self.r0 = r0                        # stated resistance, e.g. 10K
 		self.t0 = t0 + 273.15               # temperature at stated resistance, e.g. 25C
 		self.beta = beta                    # stated beta, e.g. 3500
-		self.vadc = 5.0                     # ADC reference
-		self.vcc = 5.0                      # supply voltage to potential divider
+		self.vadc = vadc                    # ADC reference
+		self.vcc = vcc                      # supply voltage to potential divider
 		self.k = r0 * exp(-beta / self.t0)   # constant part of calculation
 
 		if r1 > 0:
-			self.vs = r1 * self.vcc / (r1 + r2) # effective bias voltage
+			self.vs = r1 * self.vadc / (r1 + r2) # effective bias voltage
 			self.rs = r1 * r2 / (r1 + r2)       # effective bias impedance
 		else:
-			self.vs = self.vcc					 # effective bias voltage
+			self.vs = self.vadc					 # effective bias voltage
 			self.rs = r2                         # effective bias impedance
 
 	def temp(self,adc):
 		"Convert ADC reading into a temperature in Celcius"
 		v = adc * self.vadc / 1024          # convert the 10 bit ADC value to a voltage
 		r = self.rs * v / (self.vs - v)     # resistance of thermistor
-		return (self.beta / log(r / self.k)) - 273.15        # temperature
+		try:
+			return (self.beta / log(r / self.k)) - 273.15        # temperature
+		except: 
+			print "// error for ADC={adc}, {v},{r}".format(adc=adc, v=v,r=r)
+			return 0
+
+        def resistance(self, t):
+		"Convert a temperature into a thermistor resistance"
+		return self.r0 * exp(self.beta * (1 / (t + 273.15) - 1 / self.t0)) # resistance of the thermistor
 
 	def setting(self, t):
 		"Convert a temperature into a ADC value"
-		r = self.r0 * exp(self.beta * (1 / (t + 273.15) - 1 / self.t0)) # resistance of the thermistor
+		r = self.r0 * exp(self.beta * (1 / (t + 273.15) - 1 / self.t0))  # resistance of the thermistor
 		v = self.vs * r / (self.rs + r)     # the voltage at the potential divider
 		return round(v / self.vadc * 1024)  # the ADC reading
 
@@ -75,13 +87,17 @@ def main(argv):
 	r2 = 1600;
 	num_temps = int(20);
 	max_adc = int(1023);
+	min_adc = int(1);
+	vadc=5.0
+	vcc=5.0
+	mult=4
 	
 	try:
-		opts, args = getopt.getopt(argv, "h", ["help", "r0=", "t0=", "beta=", "r1=", "r2=", "max-adc=", "num-temps="])
+		opts, args = getopt.getopt(argv, "h", ["help", "r0=", "t0=", "beta=", "r1=", "r2=", "max-adc=", "min-adc=", "num-temps=", "vcc=","vadc=","multiplier="])
 	except getopt.GetoptError:
 		usage()
 		sys.exit(2)
-        
+
 	for opt, arg in opts:
 		if opt in ("-h", "--help"):
 			usage()
@@ -98,28 +114,41 @@ def main(argv):
 			r2 = int(arg)
 		elif opt == "--max-adc":
 			max_adc = int(arg)
+		elif opt == "--min-adc":
+			min_adc = int(arg)
 		elif opt == "--num-temps":
 			num_temps = int(arg)
-			
-	increment = int(max_adc/(num_temps-1));
-	
-	t = Thermistor(r0, t0, beta, r1, r2)
+		elif opt == "--vadc":
+			vadc = float(arg)
+		elif opt == "--vcc":
+			vcc = float(arg)
+		elif opt == "--multiplier":
+			mult = float(arg)
+	if r1:
+		max_adc = int(1023. * r1 / (r1 + r2))
+	else:
+		max_adc = 1023
 
-	adcs = range(1, max_adc, increment);
+	increment = int((max_adc-min_adc)/(num_temps-1));
+	t = Thermistor(r0, t0, beta, r1, r2, vcc, vadc)
+
+	adcs = range(min_adc, max_adc, increment);
+	adcs.append(max_adc)
 #	adcs = [1, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 130, 150, 190, 220,  250, 300]
-	first = 1
 
 	#Chop of negative temperatures (as we're using a unsigned 16-bit value for temp)
 	for i in range(0,len(adcs)):
-		if int(t.temp(adcs[i])*4) < 0:
+		if int(t.temp(adcs[i])*mult) < 0:
 			adcs=adcs[0:i+1]
 			#Replace this with the ADC reading for 0C
 			adcs[i]=int(t.setting(0))
 			#If the closes ADC reading to 0C is negative, convert to next highest ADC reading
-			if int(t.temp(adcs[i])*4)<0:
+			if int(t.temp(adcs[i])*mult)<0:
 				adcs[i] -=1
 			break
-	print "// Thermistor lookup table"
+	print "// Thermistor lookup table for RepRap Temperature Sensor Boards (http://reprap.org/wiki/Temperature_Sensor_2_0)"
+        print "// Made with createTemperatureLookup.py (https://github.com/triffid/Teacup_Firmware/blob/master/createTemperatureLookup.py)"
+        print "//           (patched per https://github.com/drf5n/Teacup_Firmware/blob/Gen7/createTemperatureLookup.py)"
 	print "// default thermistor lookup table"
 	print "// You may be able to improve the accuracy of this table in various ways."
 	print "//   1. Measure the actual resistance of the resistor. It's \"nominally\" 4.7K, but that's ± 5%."
@@ -129,24 +158,31 @@ def main(argv):
 	print "// Since you'll have to do some testing to determine the correct temperature for your application anyway, you"
 	print "// may decide that the effort isn't worth it. Who cares if it's reporting the \"right\" temperature as long as it's"
 	print "// keeping the temperature steady enough to print, right?"
-	print "// ./createTemperatureLookup.py --r0=%s --t0=%s --r1=%s --r2=%s --beta=%s --max-adc=%s" % (r0, t0, r1, r2, beta, max_adc)
+	print "// Temp*%s table from https://github.com/triffid/Teacup_Firmware/blob/master/createTemperatureLookup.py" %mult
+	print "// ./createTemperatureLookup.py --r0=%s --t0=%s --r1=%s --r2=%s --beta=%s --max-adc=%s --min_adc=%s --multiplier=%s --vadc=%s" % (
+		r0, t0, r1, r2, beta, max_adc, min_adc, mult, vadc)
 	print "// r0: %s" % (r0)
 	print "// t0: %s" % (t0)
-	print "// r1: %s" % (r1)
-	print "// r2: %s" % (r2)
+	print "// r1: %s (parallel with rTherm)" % (r1)
+	print "// r2: %s (series with rTherm)" % (r2)
 	print "// beta: %s" % (beta)
-	print "// max adc: %s" % (max_adc)
+	print "// min adc: %s at %s V" % (min_adc, min_adc*t.vadc/1024)
+	print "// max adc: %s at %s V" % (max_adc, max_adc*t.vadc/1024)
+	print "// ADC counts from {min} to {max} by {x}".format(min=min_adc, max=max_adc, x=increment)
 	print "#define NUMTEMPS %s" % (len(adcs))
-	print "// {ADC, temp*4 }, // temp"
+	print "// {ADC, temp*%s }, // temp         Rtherm     Vtherm      resolution   power" % (mult)
 	print "uint16_t temptable[NUMTEMPS][2] PROGMEM = {"
 
 	counter = 0
 	for adc in adcs:
 		counter = counter +1
-		if counter == len(adcs):
-			print "   {%s, %s} // %s C" % (adc, int(t.temp(adc)*4), t.temp(adc))
-		else:
-			print "   {%s, %s}, // %s C" % (adc, int(t.temp(adc)*4), t.temp(adc))
+		degC=t.temp(adc)
+		resistance=t.resistance(t.temp(adc))
+		vTherm= adc*t.vadc/1024
+		ptherm= vTherm*vTherm/resistance
+		resolution = ( t.temp(adc-1)-t.temp(adc) if adc>1 else t.temp(adc) -t.temp(adc+1))
+		sep = (',' if counter != len(adcs) else ' ')
+		print "   {%4s, %6s}%s // %7.2f C,  %7.0f Ohm, %0.3f V, %0.2f C/count, %0.2fmW" % (adc, int(t.temp(adc)*mult), sep,degC, resistance,vTherm,resolution,ptherm*1000)
 	print "};"
 	
 def usage():
