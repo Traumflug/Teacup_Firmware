@@ -139,6 +139,9 @@ void heater_init() {
 			TCCR4C = MASK(PWM4D); // and D
 			TCCR4D = MASK(WGM40); // Phase correct
 			TCCR4B = MASK(CS40);  // no prescaler
+			#ifndef FAST_PWM
+				TCCR4B = MASK(CS40) | MASK(CS42) | MASK(CS43); // 16mhz / 4096 /256 
+			#endif
 			TC4H   = 0;           // clear high bits
 			OCR4C  = 0xff;        // 8 bit max count at top before reset
 		#else
@@ -431,7 +434,7 @@ void heater_set(heater_t index, uint8_t value) {
 		*(heaters[index].heater_pwm) = value;
 		#ifdef	DEBUG
 		if (DEBUG_PID && (debug_flags & DEBUG_PID))
-			sersendf_P(PSTR("PWM{%u = %u}\n"), index, OCR0A);
+			sersendf_P(PSTR("PWM{%u = %u}\n"), index, *heaters[index].heater_pwm);
 		#endif
 	}
 	else {
