@@ -130,7 +130,7 @@ endif
 
 OBJ = $(patsubst %.c,%.o,${SOURCES})
 
-.PHONY: all program clean size subdirs doc functionsbysize
+.PHONY: all program clean size subdirs doc functionsbysize depend
 .PRECIOUS: %.o %.elf
 
 all: config.h subdirs $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
@@ -150,7 +150,7 @@ program: $(PROGRAM).hex config.h
 	stty 115200 raw ignbrk -hup -echo ixoff < $(PROGPORT)
 
 clean: clean-subdirs
-	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~
+	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~ .depend
 
 clean-subdirs:
 	@for dir in $(SUBDIRS); do \
@@ -175,6 +175,16 @@ doc: Doxyfile *.c *.h
 
 functionsbysize: $(OBJ)
 	@avr-objdump -h $^ | grep '\.text\.' | perl -ne '/\.text\.(\S+)\s+([0-9a-f]+)/ && printf "%u\t%s\n", eval("0x$$2"), $$1;' | sort -n
+
+depend: .depend
+	@true
+
+.depend: $(SOURCES)
+	rm -f .depend
+	$(CC) $(CFLAGS) -MM $^ > .depend;
+
+# pull in dependency info
+-include .depend
 
 %.o: %.c config.h Makefile
 	@echo "  CC        $@"

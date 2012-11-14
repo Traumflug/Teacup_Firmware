@@ -12,6 +12,7 @@
 *.i
 *.s
 *~
+.depend
 
 temporal.png
 temporal_data
