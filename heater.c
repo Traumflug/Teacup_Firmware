@@ -140,7 +140,8 @@ void heater_init() {
 			TCCR4D = MASK(WGM40); // Phase correct
 			TCCR4B = MASK(CS40);  // no prescaler
 			#ifndef FAST_PWM
-				TCCR4B = MASK(CS40) | MASK(CS42) | MASK(CS43); // 16mhz / 4096 /256 
+				TCCR4B = MASK(CS40) | MASK(CS42) | MASK(CS43); // 16 MHz / 1024 / 256 
+				//TCCR4B = MASK(CS40) | MASK(CS41) | MASK(CS43); // 16 MHz / 4096 / 256 
 			#endif
 			TC4H   = 0;           // clear high bits
 			OCR4C  = 0xff;        // 8 bit max count at top before reset
