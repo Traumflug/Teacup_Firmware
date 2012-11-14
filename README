@@ -31,8 +31,6 @@ patches, issues go here
 #                                                                            #
 ##############################################################################
 
-0) If using USB serial via LUFA, fetch the submodule with:
-        git submodule init; git submodule update
 1) COPY config.YOURBOARDHERE.h to config.h and edit to suit your electronics
 2) check programming settings in Makefile (chip type, avrdude settings, etc)
 3) make
