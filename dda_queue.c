@@ -157,9 +157,7 @@ void next_move() {
 		// mb_tail to the timer interrupt routine. 
 		mb_tail = t;
 		if (current_movebuffer->waitfor_temp) {
-			#ifndef	REPRAP_HOST_COMPATIBILITY
-				serial_writestr_P(PSTR("Waiting for target temp\n"));
-			#endif
+			serial_writestr_P(PSTR("Waiting for target temp\n"));
 			current_movebuffer->live = 1;
 			setTimer(HEATER_WAIT_TIMEOUT);
 		}

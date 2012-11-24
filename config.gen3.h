@@ -377,17 +377,6 @@ DEFINE_TEMP_SENSOR(bed,       TT_INTERCOM,    AIO1,      0)
 *                                                                           *
 \***************************************************************************/
 
-/** \def REPRAP_HOST_COMPATIBILITY
-	RepRap Host changes it's communications protocol from time to time and intentionally avoids backwards compatibility. Set this to the date the source code of your Host was fetched from RepRap's repository, which is likely also the build date.
-	See the discussion on the reprap-dev mailing list from 11 Oct. 2010.
-
-	Undefine it for best human readability, set it to an old date for compatibility with hosts before August 2010
-*/
-// #define REPRAP_HOST_COMPATIBILITY 19750101
-// #define REPRAP_HOST_COMPATIBILITY 20100806
-// #define REPRAP_HOST_COMPATIBILITY 20110509
-// #define REPRAP_HOST_COMPATIBILITY <date of next RepRap Host compatibility break>
-
 /** \def BAUD
   Baud rate for the serial RS232 protocol connection to the host. Usually
   115200, other common values are 19200, 38400 or 57600. Ignored when USB_SERIAL
