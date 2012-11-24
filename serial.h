@@ -1,11 +1,12 @@
 #ifndef	_SERIAL_H
 #define	_SERIAL_H
 
+#include "config.h"
 #include	<stdint.h>
 #include	<avr/io.h>
 #include	<avr/pgmspace.h>
 
-#ifdef USE_USB
+#ifdef USB_SERIAL
   #include "usb_serial.h"
   #define serial_init() usb_init()
   #define serial_rxchars() usb_serial_available()
@@ -24,7 +25,7 @@
   uint8_t serial_popchar(void);
   // send one character
   void serial_writechar(uint8_t data);
-#endif
+#endif /* USB_SERIAL */
 
 // read/write many characters
 // uint8_t serial_recvblock(uint8_t *block, int blocksize);

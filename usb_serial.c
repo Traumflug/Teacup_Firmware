@@ -31,8 +31,10 @@
 // Version 1.7: fix usb_serial_set_control
 // 2012-10-17: Import to Teacup firmware
 
+#include "config.h"
+
 /* protect this file from Arduino IDE */
-#ifdef USE_USB
+#ifdef USB_SERIAL
 
 #define USB_SERIAL_PRIVATE_INCLUDE
 #include "usb_serial.h"
@@ -937,4 +939,4 @@ ISR(USB_COM_vect)
 	UECONX = (1<<STALLRQ) | (1<<EPEN);	// stall
 }
 
-#endif /* USE_USB */
+#endif /* USB_SERIAL */

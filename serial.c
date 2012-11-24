@@ -13,7 +13,6 @@
 #include	<avr/interrupt.h>
 #include	"memory_barrier.h"
 
-#include	"config.h"
 #include	"arduino.h"
 
 /// size of TX and RX buffers. MUST be a \f$2^n\f$ value
@@ -24,7 +23,7 @@
 /// ascii XON character
 #define		ASCII_XON		17
 
-#ifndef USE_USB
+#ifndef USB_SERIAL
 /// rx buffer head pointer. Points to next available space.
 volatile uint8_t rxhead = 0;
 /// rx buffer tail pointer. Points to last character in buffer
@@ -224,7 +223,7 @@ void serial_writechar(uint8_t data)
 	// enable TX interrupt so we can send this character
 	UCSR0B |= MASK(UDRIE0);
 }
-#endif /* USE_USB */
+#endif /* USB_SERIAL */
 
 /// send a whole block
 void serial_writeblock(void *data, int datalen)

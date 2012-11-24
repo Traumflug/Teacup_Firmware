@@ -94,7 +94,10 @@ PROGID = stk500v2
 
 PROGRAM = mendel
 
-SOURCES = $(PROGRAM).c gcode_parse.c gcode_process.c dda.c dda_maths.c dda_queue.c timer.c temp.c sermsg.c watchdog.c debug.c sersendf.c heater.c analog.c intercom.c pinio.c clock.c home.c crc.c delay.c serial.c
+SOURCES  = $(PROGRAM).c gcode_parse.c gcode_process.c dda.c dda_maths.c
+SOURCES += dda_queue.c timer.c temp.c sermsg.c watchdog.c debug.c sersendf.c
+SOURCES += heater.c analog.c intercom.c pinio.c clock.c home.c crc.c delay.c
+SOURCES += serial.c usb_serial.c
 
 ARCH = avr-
 CC = $(ARCH)gcc
@@ -110,17 +113,6 @@ LDFLAGS = -Wl,--as-needed -Wl,--gc-sections
 LIBS = -lm
 LIBDEPS =
 SUBDIRS =
-
-ifneq (,$(findstring usb,$(MCU_TARGET)))
-USE_USB = true
-endif
-ifneq (,$(findstring u4,$(MCU_TARGET)))
-USE_USB = true
-endif
-ifdef USE_USB
-CFLAGS += -DUSE_USB
-SOURCES += usb_serial.c
-endif
 
 ifeq ($(PROGBAUD),0)
 PROGBAUD_FLAG =

@@ -383,10 +383,18 @@ DEFINE_HEATER(bed,      DIO3,  1)
 // #define REPRAP_HOST_COMPATIBILITY 20110509
 // #define REPRAP_HOST_COMPATIBILITY <date of next RepRap Host compatibility break>
 
-/**
-	Baud rate for the connection to the host. Usually 115200, other common values are 19200, 38400 or 57600.
+/** \def BAUD
+  Baud rate for the serial RS232 protocol connection to the host. Usually
+  115200, other common values are 19200, 38400 or 57600. Ignored when USB_SERIAL
+  is defined.
 */
-#define	BAUD	115200
+#define BAUD 115200
+
+/** \def USB_SERIAL
+  Define this for using USB instead of the serial RS232 protocol. Works on
+  USB-equipped ATmegas, like the ATmega32U4, only.
+*/
+// #define USB_SERIAL
 
 /** \def XONXOFF
 	Xon/Xoff flow control.
