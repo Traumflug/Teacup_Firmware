@@ -481,8 +481,6 @@ void process_gcode_command() {
 				if ( ! next_target.seen_P)
 					next_target.P = HEATER_EXTRUDER;
 				temp_set(next_target.P, next_target.S);
-				if (next_target.S)
-					power_on();
 				break;
 
 			case 105:
@@ -533,8 +531,6 @@ void process_gcode_command() {
 				if ( ! next_target.seen_S)
 					break;
         heater_set(next_target.P, next_target.S);
-				if (next_target.S)
-					power_on();
 				break;
 
 			case 110:
@@ -686,7 +682,6 @@ void process_gcode_command() {
 					next_target.P = HEATER_EXTRUDER;
 				if (next_target.seen_S) {
 					heater_set(next_target.P, next_target.S);
-					power_on();
 				}
 				break;
 
@@ -708,8 +703,6 @@ void process_gcode_command() {
 					if ( ! next_target.seen_S)
 						break;
 					temp_set(HEATER_BED, next_target.S);
-					if (next_target.S)
-						power_on();
 				#endif
 				break;
 
