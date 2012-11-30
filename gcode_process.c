@@ -696,30 +696,6 @@ void process_gcode_command() {
 				#endif
 				break;
 
-			case 190:
-				//? --- M190: Power On ---
-				//? Undocumented.
-				//? This one is pointless in Teacup. Implemented to calm the RepRap gurus.
-				//?
-				power_on();
-				stepper_enable();
-				x_enable();
-				y_enable();
-				z_enable();
-				e_enable();
-				break;
-
-			case 191:
-				//? --- M191: Power Off ---
-				//? Undocumented.
-				//? Same as M2. RepRap obviously prefers to invent new numbers instead of looking into standards. 
-				#ifdef ENFORCE_ORDER
-					// wait for all moves to complete
-					queue_wait();
-				#endif
-				power_off();
-				break;
-
 			case 200:
 				//? --- M200: report endstop status ---
 				//? Report the current status of the endstops configured in the firmware to the host.
