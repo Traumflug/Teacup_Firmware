@@ -675,16 +675,6 @@ void process_gcode_command() {
 				heater_save_settings();
 				break;
 
-			case 135:
-				//? --- M135: set heater output ---
-				//? Undocumented.
-				if ( ! next_target.seen_P)
-					next_target.P = HEATER_EXTRUDER;
-				if (next_target.seen_S) {
-					heater_set(next_target.P, next_target.S);
-				}
-				break;
-
 			#ifdef	DEBUG
 			case 136:
 				//? --- M136: PRINT PID settings to host ---
