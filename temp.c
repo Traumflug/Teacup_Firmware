@@ -33,10 +33,6 @@
 #include	"analog.h"
 #endif
 
-#ifdef TEMP_NONE
-// no actual sensor, just store the target temp
-#endif
-
 typedef enum {
 	PRESENT,
 	TCOPEN
@@ -98,12 +94,6 @@ void temp_init() {
 			case TT_INTERCOM:
 				intercom_init();
 				send_temperature(0, 0);
-				break;
-		#endif
-
-		#ifdef  TEMP_NONE
-			case TT_NONE:
-				// nothing to do
 				break;
 		#endif
 
@@ -262,15 +252,6 @@ void temp_sensor_tick() {
 
 					break;
 				#endif	/* TEMP_INTERCOM */
-
-				#ifdef	TEMP_NONE
-				case TT_NONE:
-					temp_sensors_runtime[i].last_read_temp =
-					  temp_sensors_runtime[i].target_temp; // for get_temp()
-					temp_sensors_runtime[i].next_read_time = 25;
-
-					break;
-				#endif	/* TEMP_NONE */
 
 				#ifdef	TEMP_DUMMY
 				case TT_DUMMY:

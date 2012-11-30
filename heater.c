@@ -304,14 +304,6 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 		return;
 	}
 
-	#ifdef TEMP_NONE
-		if (type == TT_NONE) {
-			// it's something like a milling spindle
-			heater_set(h, target_temp >> 2);
-			return;
-		}
-	#endif /* TEMP_NONE */
-
 	#ifndef	BANG_BANG
 		heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer++] = current_temp;
 		heaters_runtime[h].temp_history_pointer &= (TH_COUNT - 1);

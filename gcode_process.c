@@ -467,9 +467,15 @@ void process_gcode_command() {
 				//?
 				//? Example: M104 S190
 				//?
-				//? Set the temperature of the current extruder to 190<sup>o</sup>C and return control to the host immediately (''i.e.'' before that temperature has been reached by the extruder).  See also M116.
-				//? Teacup supports an optional P parameter as a sensor index to address (eg M104 P1 S100 will set the bed temperature rather than the extruder temperature).
-				//?
+        //? Set the temperature of the current extruder to 190<sup>o</sup>C
+        //? and return control to the host immediately (''i.e.'' before that
+        //? temperature has been reached by the extruder). For waiting, see M116.
+        //?
+        //? Teacup supports an optional P parameter as a zero-based temperature
+        //? sensor index to address (e.g. M104 P1 S100 will set the temperature
+        //? of the heater connected to the second temperature sensor rather
+        //? than the extruder temperature).
+        //?
 				if ( ! next_target.seen_S)
 					break;
 				if ( ! next_target.seen_P)
@@ -480,15 +486,18 @@ void process_gcode_command() {
 				break;
 
 			case 105:
-				//? --- M105: Get Extruder Temperature ---
+        //? --- M105: Get Temperature(s) ---
 				//?
 				//? Example: M105
 				//?
-				//? Request the temperature of the current extruder and the build base in degrees Celsius.  The temperatures are returned to the host computer.  For example, the line sent to the host in response to this command looks like
+        //? Request the temperature of the current extruder and the build base
+        //? in degrees Celsius. For example, the line sent to the host in
+        //? response to this command looks like
 				//?
 				//? <tt>ok T:201 B:117</tt>
 				//?
-				//? Teacup supports an optional P parameter as a sensor index to address.
+        //? Teacup supports an optional P parameter as a zero-based temperature
+        //? sensor index to address.
 				//?
 				#ifdef ENFORCE_ORDER
 					queue_wait();
@@ -500,24 +509,32 @@ void process_gcode_command() {
 
 			case 7:
 			case 106:
-				//? --- M106: Set Fan Speed ---
+				//? --- M106: Set Fan Speed / Set Device Power ---
 				//?
 				//? Example: M106 S120
 				//?
 				//? Control the cooling fan (if any).
 				//?
+        //? Teacup supports an optional P parameter as a zero-based heater
+        //? index to address. The heater index can differ from the temperature
+        //? sensor index, see config.h.
 
 				#ifdef ENFORCE_ORDER
 					// wait for all moves to complete
 					queue_wait();
 				#endif
-				#ifdef HEATER_FAN
-					if ( ! next_target.seen_S)
-						break;
-					temp_set(HEATER_FAN, next_target.S);
-					if (next_target.S)
-						power_on();
-				#endif
+        #ifdef HEATER_FAN
+          if ( ! next_target.seen_P)
+            next_target.P = HEATER_FAN;
+        #else
+          if ( ! next_target.seen_P)
+            break;
+        #endif
+				if ( ! next_target.seen_S)
+					break;
+        heater_set(next_target.P, next_target.S);
+				if (next_target.S)
+					power_on();
 				break;
 
 			case 110:

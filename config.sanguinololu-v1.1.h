@@ -274,25 +274,22 @@
 // #define	TEMP_AD595
 // #define	TEMP_PT100
 // #define	TEMP_INTERCOM
-// #define	TEMP_NONE
 
 /***************************************************************************\
 *                                                                           *
 * Define your temperature sensors here. One line for each sensor, only      *
 * limited by the number of available ATmega pins.                           *
 *                                                                           *
-* For a GEN3 set temp_type to TT_INTERCOM and temp_pin to 0.                *
-*                                                                           *
 * Types are same as TEMP_ list above - TT_MAX6675, TT_THERMISTOR, TT_AD595, *
-*   TT_PT100, TT_INTERCOM, TT_NONE. See list in temp.c.                     *
+*   TT_PT100, TT_INTERCOM. See list in temp.c.                              *
 *                                                                           *
 * The "additional" field is used for TT_THERMISTOR only. It defines the     *
 * name of the table(s) in ThermistorTable.h to use. Typically, this is      *
 * THERMISTOR_EXTRUDER for the first or only table, or THERMISTOR_BED for    *
 * the second table. See also early in ThermistorTable.{single|double}.h.    *
 *                                                                           *
-* TT_INTERCOM and TT_NONE don't use a pin, insert AIO0 anyways to keep      *
-* the compiler happy. The pin won't be used in this case.                   *
+* For a GEN3 set temp_type to TT_INTERCOM and temp_pin to AIO0. The pin     *
+* won't be used in this case.                                               *
 *                                                                           *
 \***************************************************************************/
 
@@ -320,7 +317,7 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO6,      THERMISTOR_EXTRUDER)
 
 /***************************************************************************\
 *                                                                           *
-* Define your heaters here.                                                 *
+* Define your heaters and devices here.                                     *
 *                                                                           *
 * To attach a heater to a temp sensor above, simply use exactly the same    *
 * name - copy+paste is your friend. Some common names are 'extruder',       *
@@ -328,11 +325,16 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO6,      THERMISTOR_EXTRUDER)
 * in gcode_process.c. Currently, these are:                                 *
 *   HEATER_extruder   (M104)                                                *
 *   HEATER_bed        (M140)                                                *
-*   HEATER_fan        (M106/M107)                                           *
+*   HEATER_fan        (M106)                                                *
 *                                                                           *
-* A milling spindle can also be defined as a heater. Attach it to a         *
-* temperature sensor of TT_NONE, then you can control the spindle's rpm     *
-* via temperature commands. M104 S1..255 for spindle on, M104 S0 for off.   *
+* Devices don't neccessarily have a temperature sensor, e.g. fans or        *
+* milling spindles. Operate such devices by setting their power (M106),     *
+* instead of setting their temperature (M104).                              *
+*                                                                           *
+* Also note, the index of a heater (M106 P#) can differ from the index of   *
+* its attached temperature sensor (M104 P#) in case sensor-less devices     *
+* are defined or the order of the definitions differs. The first defined    *
+* device has the index 0 (zero).                                            *
 *                                                                           *
 * Set 'pwm' to ...                                                          *
 *  1  for using PWM on a PWM-able pin and on/off on other pins.             *
