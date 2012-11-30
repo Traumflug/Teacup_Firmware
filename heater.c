@@ -443,6 +443,18 @@ void heater_set(heater_t index, uint8_t value) {
   power_on();
 }
 
+/** \brief check wether all heaters are off
+*/
+uint8_t heaters_all_zero() {
+  uint8_t i;
+
+  for (i = 0; i < NUM_HEATERS; i++) {
+    if (heaters_runtime[i].heater_output)
+      return 0;
+  }
+  return 255;
+}
+
 /** \brief turn off all heaters
 
 	for emergency stop

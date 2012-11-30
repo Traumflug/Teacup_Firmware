@@ -21,6 +21,7 @@ void heater_save_settings(void);
 void heater_set(heater_t index, uint8_t value);
 void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t target_temp);
 
+uint8_t heaters_all_zero(void);
 uint8_t heaters_all_off(void);
 
 void pid_set_p(heater_t index, int32_t p);

@@ -8,7 +8,6 @@
 #include	"sersendf.h"
 #include	"dda_queue.h"
 #include	"watchdog.h"
-#include	"temp.h"
 #include	"timer.h"
 #include	"debug.h"
 #include	"heater.h"
@@ -24,7 +23,7 @@
 */
 static void clock_250ms(void) {
 	#ifndef	NO_AUTO_IDLE
-	if (temp_all_zero())	{
+  if (heaters_all_zero()) {
 		if (psu_timeout > (30 * 4)) {
 			power_off();
 		}
