@@ -632,6 +632,7 @@ void process_gcode_command() {
 				enqueue(NULL);
 				break;
 
+      #ifdef EECONFIG
 			case 130:
 				//? --- M130: heater P factor ---
 				//? Undocumented.
@@ -682,6 +683,7 @@ void process_gcode_command() {
 				//? Undocumented.
 				heater_save_settings();
 				break;
+      #endif /* EECONFIG */
 
 			#ifdef	DEBUG
 			case 136:

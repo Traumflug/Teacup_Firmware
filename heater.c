@@ -85,6 +85,7 @@ struct {
 /// default scaled I limit
 #define		DEFAULT_I_LIMIT	384
 
+#ifdef EECONFIG
 /// this lives in the eeprom so we can save our PID settings for each heater
 typedef struct {
 	int32_t		EE_p_factor;
@@ -95,6 +96,7 @@ typedef struct {
 } EE_factor;
 
 EE_factor EEMEM EE_factors[NUM_HEATERS];
+#endif /* EECONFIG */
 
 /// \brief initialise heater subsystem
 /// Set directions, initialise PWM timers, read PID factors from eeprom, etc
@@ -243,14 +245,20 @@ void heater_init() {
 		#endif
 
 		#ifndef BANG_BANG
-			// read factors from eeprom
-			heaters_pid[i].p_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_p_factor);
-			heaters_pid[i].i_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_i_factor);
-			heaters_pid[i].d_factor = eeprom_read_dword((uint32_t *) &EE_factors[i].EE_d_factor);
-			heaters_pid[i].i_limit = eeprom_read_word((uint16_t *) &EE_factors[i].EE_i_limit);
+      #ifdef EECONFIG
+        // read factors from eeprom
+        heaters_pid[i].p_factor =
+          eeprom_read_dword((uint32_t *) &EE_factors[i].EE_p_factor);
+        heaters_pid[i].i_factor =
+          eeprom_read_dword((uint32_t *) &EE_factors[i].EE_i_factor);
+        heaters_pid[i].d_factor =
+          eeprom_read_dword((uint32_t *) &EE_factors[i].EE_d_factor);
+        heaters_pid[i].i_limit =
+          eeprom_read_word((uint16_t *) &EE_factors[i].EE_i_limit);
 
-// 			if ((heaters_pid[i].p_factor == 0) && (heaters_pid[i].i_factor == 0) && (heaters_pid[i].d_factor == 0) && (heaters_pid[i].i_limit == 0)) {
-			if (crc_block(&heaters_pid[i].p_factor, 14) != eeprom_read_word((uint16_t *) &EE_factors[i].crc)) {
+			if (crc_block(&heaters_pid[i].p_factor, 14) != eeprom_read_word((uint16_t *) &EE_factors[i].crc))
+      #endif /* EECONFIG */
+      {
 				heaters_pid[i].p_factor = DEFAULT_P;
 				heaters_pid[i].i_factor = DEFAULT_I;
 				heaters_pid[i].d_factor = DEFAULT_D;
@@ -266,20 +274,6 @@ void heater_init() {
 			#include "config.h"
 		#undef DEFINE_HEATER
 	} while (0);
-}
-
-/// \brief Write PID factors to eeprom
-void heater_save_settings() {
-	#ifndef BANG_BANG
-		heater_t i;
-		for (i = 0; i < NUM_HEATERS; i++) {
-			eeprom_write_dword((uint32_t *) &EE_factors[i].EE_p_factor, heaters_pid[i].p_factor);
-			eeprom_write_dword((uint32_t *) &EE_factors[i].EE_i_factor, heaters_pid[i].i_factor);
-			eeprom_write_dword((uint32_t *) &EE_factors[i].EE_d_factor, heaters_pid[i].d_factor);
-			eeprom_write_word((uint16_t *) &EE_factors[i].EE_i_limit, heaters_pid[i].i_limit);
-			eeprom_write_word((uint16_t *) &EE_factors[i].crc, crc_block(&heaters_pid[i].p_factor, 14));
-		}
-	#endif /* BANG_BANG */
 }
 
 /** \brief run heater PID algorithm
@@ -468,6 +462,7 @@ uint8_t heaters_all_off() {
 	return 255;
 }
 
+#ifdef EECONFIG
 /** \brief set heater P factor
 	\param index heater to change factor for
 	\param p scaled P factor
@@ -519,6 +514,21 @@ void pid_set_i_limit(heater_t index, int32_t i_limit) {
 		heaters_pid[index].i_limit = i_limit;
 	#endif /* BANG_BANG */
 }
+
+/// \brief Write PID factors to eeprom
+void heater_save_settings() {
+  #ifndef BANG_BANG
+    heater_t i;
+    for (i = 0; i < NUM_HEATERS; i++) {
+      eeprom_write_dword((uint32_t *) &EE_factors[i].EE_p_factor, heaters_pid[i].p_factor);
+      eeprom_write_dword((uint32_t *) &EE_factors[i].EE_i_factor, heaters_pid[i].i_factor);
+      eeprom_write_dword((uint32_t *) &EE_factors[i].EE_d_factor, heaters_pid[i].d_factor);
+      eeprom_write_word((uint16_t *) &EE_factors[i].EE_i_limit, heaters_pid[i].i_limit);
+      eeprom_write_word((uint16_t *) &EE_factors[i].crc, crc_block(&heaters_pid[i].p_factor, 14));
+    }
+  #endif /* BANG_BANG */
+}
+#endif /* EECONFIG */
 
 #ifndef	EXTRUDER
 /** \brief send heater debug info to host
