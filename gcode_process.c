@@ -566,8 +566,6 @@ void process_gcode_command() {
 				break;
 			#endif
 
-			// M113- extruder PWM
-
 			case 114:
 				//? --- M114: Get Current Position ---
 				//?
