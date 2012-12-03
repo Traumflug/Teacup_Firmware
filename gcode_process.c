@@ -478,8 +478,11 @@ void process_gcode_command() {
         //?
 				if ( ! next_target.seen_S)
 					break;
-				if ( ! next_target.seen_P)
-					next_target.P = HEATER_EXTRUDER;
+        #ifdef HEATER_EXTRUDER
+          if ( ! next_target.seen_P)
+            next_target.P = HEATER_EXTRUDER;
+        // else use the first available device
+        #endif
 				temp_set(next_target.P, next_target.S);
 				break;
 
@@ -524,9 +527,7 @@ void process_gcode_command() {
         #ifdef HEATER_FAN
           if ( ! next_target.seen_P)
             next_target.P = HEATER_FAN;
-        #else
-          if ( ! next_target.seen_P)
-            break;
+        // else use the first available device
         #endif
 				if ( ! next_target.seen_S)
 					break;
@@ -636,8 +637,11 @@ void process_gcode_command() {
 			case 130:
 				//? --- M130: heater P factor ---
 				//? Undocumented.
-				if ( ! next_target.seen_P)
-					next_target.P = HEATER_EXTRUDER;
+        #ifdef HEATER_EXTRUDER
+          if ( ! next_target.seen_P)
+            next_target.P = HEATER_EXTRUDER;
+        // else use the first available device
+        #endif
 				if (next_target.seen_S)
 					pid_set_p(next_target.P, next_target.S);
 				break;
@@ -645,8 +649,10 @@ void process_gcode_command() {
 			case 131:
 				//? --- M131: heater I factor ---
 				//? Undocumented.
-				if ( ! next_target.seen_P)
-					next_target.P = HEATER_EXTRUDER;
+        #ifdef HEATER_EXTRUDER
+          if ( ! next_target.seen_P)
+            next_target.P = HEATER_EXTRUDER;
+        #endif
 				if (next_target.seen_S)
 					pid_set_i(next_target.P, next_target.S);
 				break;
@@ -654,8 +660,10 @@ void process_gcode_command() {
 			case 132:
 				//? --- M132: heater D factor ---
 				//? Undocumented.
-				if ( ! next_target.seen_P)
-					next_target.P = HEATER_EXTRUDER;
+        #ifdef HEATER_EXTRUDER
+          if ( ! next_target.seen_P)
+            next_target.P = HEATER_EXTRUDER;
+        #endif
 				if (next_target.seen_S)
 					pid_set_d(next_target.P, next_target.S);
 				break;
@@ -663,8 +671,10 @@ void process_gcode_command() {
 			case 133:
 				//? --- M133: heater I limit ---
 				//? Undocumented.
-				if ( ! next_target.seen_P)
-					next_target.P = HEATER_EXTRUDER;
+        #ifdef HEATER_EXTRUDER
+          if ( ! next_target.seen_P)
+            next_target.P = HEATER_EXTRUDER;
+        #endif
 				if (next_target.seen_S)
 					pid_set_i_limit(next_target.P, next_target.S);
 				break;
