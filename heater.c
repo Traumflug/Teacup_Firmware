@@ -438,9 +438,8 @@ void heater_set(heater_t index, uint8_t value) {
 			*(heaters[index].heater_port) &= ~MASK(heaters[index].heater_pin);
 	}
 
-  // Do this even when the heater is set to
-  // zero to deal with long cool down phases.
-  power_on();
+  if (value)
+    power_on();
 }
 
 /** \brief check wether all heaters are off

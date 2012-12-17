@@ -22,7 +22,6 @@
 	called from clock_10ms(), do not call directly
 */
 static void clock_250ms(void) {
-	#ifndef	NO_AUTO_IDLE
   if (heaters_all_zero()) {
 		if (psu_timeout > (30 * 4)) {
 			power_off();
@@ -36,7 +35,6 @@ static void clock_250ms(void) {
 			SREG = save_reg;
 		}
 	}
-	#endif
 
 	ifclock(clock_flag_1s) {
 		if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
