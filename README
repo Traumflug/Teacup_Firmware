@@ -1,246 +1,37 @@
+##############################################################################
+#                                                                            #
+# Teacup - lean and efficient firmware for RepRap printers                   #
+#                                                                            #
+# by Triffid Hunter, Traumflug, jakepoz, Markus Hitter, many others          #
+#                                                                            #
+##############################################################################
 
 For installation instructions, see
-http://reprap.org/wiki/Teacup_Firmware#Simple_Installation
+http://reprap.org/wiki/Teacup_Firmware#Simple_Installation and/or
+http://reprap.org/wiki/Teacup_Firmware#Developer_Installation
 
-##############################################################################
-#                                                                            #
-# Teacup (formely FiveD on Arduino) firmware                                 #
-#                                                                            #
-##############################################################################
-
-Rewrite of Reprap Mendel firmware:
-
-* 100% integer computations
-* serial transmit buffer
-* can fit onto atmega168 depending on selected options
-* works on atmega328p
-* works on atmega644p
-* works on at90usb1287 with direct USB serial
-* porting to atmega1280 in progress
-* will work on larger atmegas with minor porting
-
-Forum Thread: http://forums.reprap.org/read.php?147
-Post all queries, comments, etc here
-
-Github: http://github.com/triffid/Teacup_Firmware
-patches, issues go here
-
-##############################################################################
-#                                                                            #
-# How to use                                                                 #
-#                                                                            #
-##############################################################################
-
-1) COPY config.YOURBOARDHERE.h to config.h and edit to suit your electronics
-2) check programming settings in Makefile (chip type, avrdude settings, etc)
-3) make
-4) make program
-4a) if programming blank chip, make program-fuses
-5) ./sender.sh (or use a GUI G-code sender, like Pronterface)
-6) have a play, go to 1) if not right
-7) try printing something!
-
-##############################################################################
-#                                                                            #
-# Requirements                                                               #
-#                                                                            #
-##############################################################################
-
-Compile:
-	gnu make
-	binutils, gcc, etc built for avr target (avr-gcc, avr-as, etc)
-	avr-libc
-Program:
-	avrdude
-	something that avrdude supports: bootloader, separate programmer, whatever
-
-##############################################################################
-#                                                                            #
-# License                                                                    #
-#                                                                            #
-##############################################################################
-
-This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-##############################################################################
-#                                                                            #
-# Rationale and History                                                      #
-#                                                                            #
-##############################################################################
-
-I started building my electronics with only a regular arduino to test with.
-This was perfectly sufficient for playing with the pololu stepper controllers and the max6675 I bought after reading about all the issues with thermistors that people were having. After a while I decided to check out the official firmware but it required an atmega644. I wondered why.
-So, I decided to skim through the code to see what took up so much space. From what I could see, it was written by someone who was familiar with programming desktop systems and larger embedded devices, but didn't have much experience with small devices such as the atmega168 and atmega644.
-This showed in the use of C++ which served only to make the code harder to read, and the prolific use of floating-point math, with some appearing even in interrupt context!
-I came to the conclusion that there was no reason that the main body of code couldn't fit onto an atmega168 except for the burdensome and unnecessary overheads from object-oriented code and floating point math. A quick count assured me that the atmega168 had enough pins, but only barely, and I started reading the official firmware properly, with an eye to rewriting as much as possible in a fashion suitable for small microcontrollers.
-
-Starting with an arduino skeleton library I had assembled over time, some of my test code and the official firmware, I hacked up a passable integer-only, straight C implementation of the dda, and wrote my own gcode parser from scratch which processed each character as it arrived (with some buffering of course) instead of waiting for a whole line and then trying to process it all at once.
-
-As soon as my new firmware was able to run a few consecutive moves, I released it for peer review.
-
-The forum thread http://forums.reprap.org/read.php?147,33082 has much of the history from this point on.
-
-Markus Hitter was the first to send patches, and has done a significant amount of work on a number of different parts of this firmware, particularly math and sequencing.
-Jake Poznanski did the initial port to official gen3 electronics with separate extruder board
-Cefiar posted me some thermistors to sponsor addition of thermistor-reading code
-Markus Amsler has done a significant amount of work on the new intercom protocol and the latest timer code, as well as tons of test results in the forum
-Stephen Walter provided the excellent simulation code, plus some fascinating preprocessor abuse which makes configuration significantly easier
-
-Many others have given patches, encouragement and suggestions without which this firmware may never be what it is today.
+For documentation, see
+http://reprap.org/wiki/Teacup_Firmware
 
 
 ##############################################################################
 #                                                                            #
-# Architectural Overview                                                     #
+# This firmware is Copyright (c) ...                                         #
+#   2009 - 2010 Michael Moon aka Triffid_Hunter                              #
+#   2010 - 2013 Markus "Traumflug" Hitter <mah@jump-ing.de>                  #
+#                                                                            #
+# This program is free software; you can redistribute it and/or modify       #
+# it under the terms of the GNU General Public License as published by       #
+# the Free Software Foundation; either version 2 of the License, or          #
+# (at your option) any later version.                                        #
+#                                                                            #
+# This program is distributed in the hope that it will be useful,            #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of             #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              #
+# GNU General Public License for more details.                               #
+#                                                                            #
+# You should have received a copy of the GNU General Public License          #
+# along with this program; if not, write to the Free Software                #
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA #
 #                                                                            #
 ##############################################################################
-
-Teacup is quite similar to the official FiveD firmware in some ways, and markedly different in others. Teacup has as much modularity as I could get away with without sacrificing efficiency.
-
-// FIXME: make next paragraph easier to read
-At startup, the code in mendel.c is run first. This initialises all the modules that need it, then starts polling the clock flags and feeding incoming serial characters to the gcode parser. The gcode parser processes each character individually, keeping track via internal state rather than buffering a line and skipping back and forth. The gcode parser converts floating values to integer or fixed-point representations as soon as it encounters a non-numeric character. It calls many module functions directly, but the most interesting part is move creation, where it passes a target position and speed to enqueue()[dda_queue.c] which adds it to the queue, and fires up dda_start()[dda.c] if the queue was empty. dda_start initialises the dda, figures out the stepper directions and first step timeout and a few other bits of housekeeping, then sets the timer for the appropriate timeout. When the timer fires, it calls dda_step()[dda.c] which sends all the step signals then figures out the next step timeout based on acceleration and speed settings. When the last step has been made, the dda "dies" (sets 'live' property to 0) after which queue_step[dda_queue.c] advances the queue read pointer and starts the next dda.
-
-It is necessary to keep interrupts very short on small microcontrollers, and I have endeavoured to keep them all as short as possible. Unfortunately, dda_step[dda.c] is fairly large. I simply hope that it doesn't take so much time that it interferes with the other interrupts too much.
-
-
-##############################################################################
-#                                                                            #
-# Interesting code sections                                                  #
-#                                                                            #
-##############################################################################
-
-The serial ringbuffers are critical for good communication, but for some reason the official arduino libraries don't implement a tx queue, all but preventing sending stuff from interrupt context. As long as the queues have a length of 2^n, we can use bitwise operations rather than numerical comparison to trim the read and write pointers. The serial send function (serial_writechar[serial.c]) is necessarily careful about checking if it's in an interrupt and only waiting for space in the queue if it's not.
-The dda queue is also a ringbuffer, although its implementation is harder to see as it's embedded in lots of other stuff.
-
-The gcode parser shows how to parse each character as it comes in, so 99% of a command can be processed before the EOL is even received. It started off as a simple state machine, which then grew and shrank and morphed until it was both smaller and more functional. (FIXME: obsoleted by input-float branch if we ever merge it)
-
-The fixed-point stuff is fun, although we have to manually ensure that the decimal point stays in the right spot. decfloat_to_int[gcode.h] is used to convert incoming floats to integer implementations by starting off with a (very!) crude floating point implementation, then choosing appropriate scaling factors within the gcode parser itself. This allows us to do a little stuff that looks like floating-point math without the burdensome overhead of a full fp implementation.
-
-The PID code in heater.c is probably quite generalisable, and seems to work well when tuned. Google knows of plenty of PID tuning guides.
-
-##############################################################################
-#                                                                            #
-# Resources                                                                  #
-#                                                                            #
-##############################################################################
-
-Forum thread: http://forums.reprap.org/read.php?147,33082
-Source Repository: http://github.com/triffid/Teacup_Firmware
-Wiki Page: http://objects.reprap.org/wiki/Teacup_Firmware
-
-##############################################################################
-#                                                                            #
-# File descriptions                                                          #
-#                                                                            #
-##############################################################################
-
-*** analog.[ch]
-This is the analog subsystem. Only used if you have a thermistor or ad595
-
-*** arduino.h, arduino_[chip].h
-Pin mappings and helper functions for various atmegas
-
-*** clock.[ch]
-Regular functions that run in main loop rather than an interrupt
-
-*** config.h, config.*.h
-Configuration for your electronics and hardware and a bunch of templates to create your own. Copy the template closest to your hardware to config.h and edit it further
-
-*** copier.[ch]
-A totally untested and currently unused chunk of code for copying firmware to another identical chip
-
-*** crc.[ch]
-block crc16 routine
-
-*** createTemperatureLookup.py
-A python script to generate your TemperatureTable.h
-
-*** dda.[ch]
-A rather complex block of math that figures out when to step each axis according to speed and acceleration profiles and received moves
-
-*** dda_queue.[ch]
-The queue of moves received from the host.
-
-*** debug.[ch]
-Debugging aids
-
-*** delay.h
-Delay functions
-
-*** Teacup.pde
-Allows firmware to be built in arduino ide
-
-*** func.sh
-Lots of host-side shell scripts for talking to firmware
-
-*** gcode_parse.[ch]
-Gcode parser. Scaling of factors to internally used integer or fixed point happens here too.
-
-*** gcode_process.[ch]
-Gcodes actually get executed here after being parsed.
-
-*** graycode.c
-routines to drive stepper h-bridges directly instead of step/dir
-
-*** heater.[ch]
-Heater management, including PID and PWM algorithms, and some configuration parameters
-
-*** home.[ch]
-Home using endstop routines
-
-*** intercom.[ch]
-Gen3 serial link control and communication
-
-*** LICENSE
-Gnu GPL2 license
-
-*** Makefile
-instructions for make on how to build firmware. has a list of modules to build which may need to be updated every so often
-
-*** mendel.c
-Firmware startup and main loop code
-
-*** pinio.h
-A few I/O primitives
-
-*** README
-this file
-
-*** sender.sh
-A simple talker
-
-*** serial.[ch]
-Serial management and buffers
-
-*** sermsg.[ch]
-Functions for sending primitive messages and values to host
-
-*** sersendf.[ch]
-A small, crude printf implementation
-
-*** temp.[ch]
-Temperature sensor management, includes some configuration parameters
-
-*** ThermistorTable.h
-linear interpolation table for your thermistor, maps analog reading -> temperature
-
-*** timer.[ch]
-Timer management, used primarily by dda.c for timing steps
-
-*** watchdog.[ch]
-Watchdog management. resets chip if firmware locks up or does something strange
-
