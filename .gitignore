@@ -18,5 +18,6 @@ temporal.png
 temporal_data
 config.h
 ThermistorTable.h
+Makefile
 sim
 doc

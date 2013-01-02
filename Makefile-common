@@ -1,0 +1,96 @@
+##############################################################################
+#                                                                            #
+# Teacup - Lean and efficient firmware for RepRap printers                   #
+#                                                                            #
+# by Triffid Hunter, Traumflug, jakepoz, Markus Hitter, many others          #
+#                                                                            #
+# This firmware is Copyright (c) ...                                         #
+#   2009 - 2010 Michael Moon aka Triffid_Hunter                              #
+#   2010 - 2013 Markus "Traumflug" Hitter <mah@jump-ing.de>                  #
+#                                                                            #
+# This program is free software; you can redistribute it and/or modify       #
+# it under the terms of the GNU General Public License as published by       #
+# the Free Software Foundation; either version 2 of the License, or          #
+# (at your option) any later version.                                        #
+#                                                                            #
+# This program is distributed in the hope that it will be useful,            #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of             #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              #
+# GNU General Public License for more details.                               #
+#                                                                            #
+# You should have received a copy of the GNU General Public License          #
+# along with this program; if not, write to the Free Software                #
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA #
+#                                                                            #
+##############################################################################
+
+##############################################################################
+#                                                                            #
+# This file isn't sufficient on its own. Use the target-specific Makefile    #
+# instead, which -includes this file.                                        #
+#                                                                            #
+##############################################################################
+
+CFLAGS += -save-temps
+
+OBJ = $(patsubst %.c,%.o,$(SOURCES))
+
+CC = $(TOOLCHAIN)gcc
+OBJDUMP = $(TOOLCHAIN)objdump
+OBJCOPY = $(TOOLCHAIN)objcopy
+
+
+.PHONY: all clean doc functionsbysize depend
+.PRECIOUS: %.o %.elf
+
+all: config.h $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
+
+clean:
+	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~ .depend
+
+config.h: config.default.h
+	@echo "config.default.h is more recent than config.h. You likely want to"
+	@echo "review (edit) config.h to match new features in config.default.h."
+	@echo "To view the differences, run: diff -bBEu config.h config.default.h"
+	@echo "If you just want to get rid of this message, run: touch config.h"
+	@false
+
+doc: Doxyfile *.c *.h
+	doxygen $<
+
+functionsbysize: $(OBJ)
+	@$(OBJDUMP) -h $^ | grep '\.text\.' | perl -ne '/\.text\.(\S+)\s+([0-9a-f]+)/ && printf "%u\t%s\n", eval("0x$$2"), $$1;' | sort -n
+
+depend: .depend
+	@true
+
+.depend: $(SOURCES)
+	rm -f .depend
+	$(CC) $(CFLAGS) -MM $^ > .depend;
+
+# pull in dependency info
+-include .depend
+
+%.o: %.c config.h Makefile
+	@echo "  CC        $@"
+	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(<:.c=.al) -o $@ $(subst .o,.c,$@)
+
+%.elf: $(OBJ)
+	@echo "  LINK      $@"
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+%.lst: %.elf
+	@echo "  OBJDUMP   $@"
+	@$(OBJDUMP) -h -S $< > $@
+
+%.hex: %.elf
+	@echo "  OBJCOPY   $@"
+	@$(OBJCOPY) -j .text -j .data -O ihex -R .eeprom -R .fuse -R .lock $< $@
+
+%.bin: %.elf
+	@echo "  OBJCOPY   $@"
+	@$(OBJCOPY) -j .text -j .data -O binary $< $@
+
+%.sym: %.elf
+	@echo "  SYM       $@"
+	@$(OBJDUMP) -t $< | perl -ne 'BEGIN { printf "  ADDR  NAME                  SIZE\n"; } /([0-9a-f]+)\s+(\w+)\s+O\s+\.(bss|data)\s+([0-9a-f]+)\s+(\w+)/ && printf "0x%04x  %-20s +%d\n", eval("0x$$1") & 0xFFFF, $$5, eval("0x$$4")' | sort -k1 > $@
