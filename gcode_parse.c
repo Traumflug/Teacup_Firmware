@@ -211,101 +211,104 @@ void gcode_parse_char(uint8_t c) {
 		}
 
 		// process character
-		switch (c) {
-			// each currently known command is either G or M, so preserve previous G/M unless a new one has appeared
-			// FIXME: same for T command
-			case 'G':
-				next_target.seen_G = 1;
-				next_target.seen_M = 0;
-				next_target.M = 0;
-				break;
-			case 'M':
-				next_target.seen_M = 1;
-				next_target.seen_G = 0;
-				next_target.G = 0;
-				break;
-			case 'X':
-				next_target.seen_X = 1;
-				break;
-			case 'Y':
-				next_target.seen_Y = 1;
-				break;
-			case 'Z':
-				next_target.seen_Z = 1;
-				break;
-			case 'E':
-				next_target.seen_E = 1;
-				break;
-			case 'F':
-				next_target.seen_F = 1;
-				break;
-			case 'S':
-				next_target.seen_S = 1;
-				break;
-			case 'P':
-				next_target.seen_P = 1;
-				break;
-			case 'T':
-				next_target.seen_T = 1;
-				break;
-			case 'N':
-				next_target.seen_N = 1;
-				break;
-			case '*':
-				next_target.seen_checksum = 1;
-				break;
+    // Can't do ranges in switch..case, so process actual digits here.
+    // Do it early, as there are many more digits than characters expected.
+    if (c >= '0' && c <= '9') {
+      if (read_digit.exponent < DECFLOAT_EXP_MAX + 1 &&
+          ((next_target.option_inches == 0 &&
+          read_digit.mantissa < DECFLOAT_MANT_MM_MAX) ||
+          (next_target.option_inches &&
+          read_digit.mantissa < DECFLOAT_MANT_IN_MAX))) {
+        // this is simply mantissa = (mantissa * 10) + atoi(c) in different clothes
+        read_digit.mantissa = (read_digit.mantissa << 3) +
+                              (read_digit.mantissa << 1) + (c - '0');
+        if (read_digit.exponent)
+          read_digit.exponent++;
+      }
+    }
+    else {
+      switch (c) {
+        // Each currently known command is either G or M, so preserve
+        // previous G/M unless a new one has appeared.
+        // FIXME: same for T command
+        case 'G':
+          next_target.seen_G = 1;
+          next_target.seen_M = 0;
+          next_target.M = 0;
+          break;
+        case 'M':
+          next_target.seen_M = 1;
+          next_target.seen_G = 0;
+          next_target.G = 0;
+          break;
+        case 'X':
+          next_target.seen_X = 1;
+          break;
+        case 'Y':
+          next_target.seen_Y = 1;
+          break;
+        case 'Z':
+          next_target.seen_Z = 1;
+          break;
+        case 'E':
+          next_target.seen_E = 1;
+          break;
+        case 'F':
+          next_target.seen_F = 1;
+          break;
+        case 'S':
+          next_target.seen_S = 1;
+          break;
+        case 'P':
+          next_target.seen_P = 1;
+          break;
+        case 'T':
+          next_target.seen_T = 1;
+          break;
+        case 'N':
+          next_target.seen_N = 1;
+          break;
+        case '*':
+          next_target.seen_checksum = 1;
+          break;
 
-			// comments
-			case ';':
-				next_target.seen_semi_comment = 1;
-				break;
-			case '(':
-				next_target.seen_parens_comment = 1;
-				break;
+        // comments
+        case ';':
+          next_target.seen_semi_comment = 1;
+          break;
+        case '(':
+          next_target.seen_parens_comment = 1;
+          break;
 
-			// now for some numeracy
-			case '-':
-				read_digit.sign = 1;
-				// force sign to be at start of number, so 1-2 = -2 instead of -12
-				read_digit.exponent = 0;
-				read_digit.mantissa = 0;
-				break;
-			case '.':
-				if (read_digit.exponent == 0)
-					read_digit.exponent = 1;
-				break;
-			#ifdef	DEBUG
-			case ' ':
-			case '\t':
-			case 10:
-			case 13:
-				// ignore
-				break;
-			#endif
+        // now for some numeracy
+        case '-':
+          read_digit.sign = 1;
+          // force sign to be at start of number, so 1-2 = -2 instead of -12
+          read_digit.exponent = 0;
+          read_digit.mantissa = 0;
+          break;
+        case '.':
+          if (read_digit.exponent == 0)
+            read_digit.exponent = 1;
+          break;
+        #ifdef	DEBUG
+          case ' ':
+          case '\t':
+          case 10:
+          case 13:
+            // ignore
+            break;
+        #endif
 
-			default:
-				// can't do ranges in switch..case, so process actual digits here.
-				if (c >= '0' && c <= '9') {
-					if (read_digit.exponent < DECFLOAT_EXP_MAX + 1 &&
-							((next_target.option_inches == 0 &&
-							read_digit.mantissa < DECFLOAT_MANT_MM_MAX) ||
-							(next_target.option_inches &&
-							read_digit.mantissa < DECFLOAT_MANT_IN_MAX)))
-					{
-						// this is simply mantissa = (mantissa * 10) + atoi(c) in different clothes
-						read_digit.mantissa = (read_digit.mantissa << 3) + (read_digit.mantissa << 1) + (c - '0');
-						if (read_digit.exponent)
-							read_digit.exponent++;
-					}
-				}
-				#ifdef	DEBUG
-				else {
-					// invalid
-					serial_writechar('?');
-					serial_writechar(c);
-					serial_writechar('?');
-				}
-				#endif
+        default:
+          #ifdef	DEBUG
+            // invalid
+            serial_writechar('?');
+            serial_writechar(c);
+            serial_writechar('?');
+          #endif
+          break;
+      }
 		}
 	} else if ( next_target.seen_parens_comment == 1 && c == ')')
 		next_target.seen_parens_comment = 0; // recognize stuff after a (comment)
