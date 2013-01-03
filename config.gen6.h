@@ -391,6 +391,15 @@ DEFINE_HEATER(extruder, PD6,   1)
 *                                                                           *
 \***************************************************************************/
 
+/** \def EECONFIG
+  EECONFIG: Enable EEPROM configuration storage.
+
+  Enabled by default. Commenting this out makes the binary several hundred
+  bytes smaller, so you might want to disable EEPROM storage on small MCUs,
+  like the ATmega168.
+*/
+#define EECONFIG
+
 /** \def DEBUG
 	DEBUG
 		enables /heaps/ of extra output, and some extra M-codes.
