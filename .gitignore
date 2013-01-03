@@ -1,18 +1,6 @@
-*.o
-*.elf
-*.lst
-*.map
-*.sym
-*.lss
-*.eep
-*.srec
-*.bin
 *.hex
-*.al
-*.i
-*.s
+build
 *~
-.depend
 
 temporal.png
 temporal_data

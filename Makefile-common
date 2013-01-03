@@ -31,9 +31,12 @@
 #                                                                            #
 ##############################################################################
 
-CFLAGS += -save-temps
+BUILDDIR = build
+DEPEND = $(BUILDDIR)/depend
 
-OBJ = $(patsubst %.c,%.o,$(SOURCES))
+CFLAGS += -save-temps=obj
+
+OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES))
 
 CC = $(TOOLCHAIN)gcc
 OBJDUMP = $(TOOLCHAIN)objdump
@@ -43,10 +46,11 @@ OBJCOPY = $(TOOLCHAIN)objcopy
 .PHONY: all clean doc functionsbysize depend
 .PRECIOUS: %.o %.elf
 
-all: config.h $(PROGRAM).hex $(PROGRAM).lst $(PROGRAM).sym size
+all: config.h $(BUILDDIR)
+all: $(PROGRAM).hex $(BUILDDIR)/$(PROGRAM).lst $(BUILDDIR)/$(PROGRAM).sym size
 
 clean:
-	rm -rf *.o *.elf *.lst *.map *.sym *.lss *.eep *.srec *.bin *.hex *.al *.i *.s *~ .depend
+	rm -rf $(BUILDDIR) *.hex *~
 
 config.h: config.default.h
 	@echo "config.default.h is more recent than config.h. You likely want to"
@@ -61,36 +65,37 @@ doc: Doxyfile *.c *.h
 functionsbysize: $(OBJ)
 	@$(OBJDUMP) -h $^ | grep '\.text\.' | perl -ne '/\.text\.(\S+)\s+([0-9a-f]+)/ && printf "%u\t%s\n", eval("0x$$2"), $$1;' | sort -n
 
-depend: .depend
-	@true
+$(BUILDDIR):
+	mkdir $(BUILDDIR)
 
-.depend: $(SOURCES)
-	rm -f .depend
-	$(CC) $(CFLAGS) -MM $^ > .depend;
+$(DEPEND): $(SOURCES)
+	rm -f $(DEPEND)
+	mkdir -p $(BUILDDIR)
+	$(CC) $(CFLAGS) -MM $^ > $(DEPEND)
 
 # pull in dependency info
--include .depend
+-include $(DEPEND)
 
-%.o: %.c config.h Makefile
+$(BUILDDIR)/%.o: %.c config.h Makefile Makefile-common
 	@echo "  CC        $@"
-	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(<:.c=.al) -o $@ $(subst .o,.c,$@)
+	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(@:.o=.al) -o $@ $<
 
-%.elf: $(OBJ)
+$(BUILDDIR)/%.elf: $(OBJ)
 	@echo "  LINK      $@"
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-%.lst: %.elf
+$(BUILDDIR)/%.lst: $(BUILDDIR)/%.elf
 	@echo "  OBJDUMP   $@"
 	@$(OBJDUMP) -h -S $< > $@
 
-%.hex: %.elf
+%.hex: $(BUILDDIR)/%.elf
 	@echo "  OBJCOPY   $@"
 	@$(OBJCOPY) -j .text -j .data -O ihex -R .eeprom -R .fuse -R .lock $< $@
 
-%.bin: %.elf
+$(BUILDDIR)/%.bin: $(BUILDDIR)/%.elf
 	@echo "  OBJCOPY   $@"
 	@$(OBJCOPY) -j .text -j .data -O binary $< $@
 
-%.sym: %.elf
+$(BUILDDIR)/%.sym: $(BUILDDIR)/%.elf
 	@echo "  SYM       $@"
 	@$(OBJDUMP) -t $< | perl -ne 'BEGIN { printf "  ADDR  NAME                  SIZE\n"; } /([0-9a-f]+)\s+(\w+)\s+O\s+\.(bss|data)\s+([0-9a-f]+)\s+(\w+)/ && printf "0x%04x  %-20s +%d\n", eval("0x$$1") & 0xFFFF, $$5, eval("0x$$4")' | sort -k1 > $@
