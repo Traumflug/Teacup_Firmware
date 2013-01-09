@@ -76,7 +76,7 @@ $(DEPEND): $(SOURCES)
 # pull in dependency info
 -include $(DEPEND)
 
-$(BUILDDIR)/%.o: %.c config.h Makefile Makefile-common
+$(BUILDDIR)/%.o: %.c config.h $(MAKEFILE_LIST)
 	@echo "  CC        $@"
 	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(@:.o=.al) -o $@ $<
 
