@@ -32,7 +32,7 @@ volatile uint8_t	intercom_flags;
 
 void intercom_init(void)
 {
-#ifdef HOST
+#ifdef MOTHERBOARD
 	#if INTERCOM_BAUD > 38401
 		UCSR1A = MASK(U2X1);
 		UBRR1 = (((F_CPU / 8) / INTERCOM_BAUD) - 0.5);
@@ -69,7 +69,7 @@ uint16_t read_temperature(uint8_t index) {
 	return rx.packet.temp[index];
 }
 
-#ifdef HOST
+#ifdef MOTHERBOARD
 void set_dio(uint8_t index, uint8_t value) {
 	if (value)
 		tx.packet.dio |= (1 << index);
@@ -122,7 +122,7 @@ void start_send(void) {
 	packet_pointer = 0;
 
 	// actually start sending the packet
-	#ifdef HOST
+	#ifdef MOTHERBOARD
 		UCSR1B |= MASK(UDRIE1);
 	#else
 		UCSR0B |= MASK(UDRIE0);
@@ -134,7 +134,7 @@ void start_send(void) {
 */
 
 // receive data interrupt- stuff into rx
-#ifdef HOST
+#ifdef MOTHERBOARD
 ISR(USART1_RX_vect)
 #else
 ISR(USART_RX_vect)
@@ -146,7 +146,7 @@ ISR(USART_RX_vect)
 	// pull character
 	static uint8_t c;
 
-	#ifdef HOST
+	#ifdef MOTHERBOARD
 		c = UDR1;
 		UCSR1A &= ~MASK(FE1) & ~MASK(DOR1) & ~MASK(UPE1);
 	#else
@@ -172,7 +172,7 @@ ISR(USART_RX_vect)
 			// reset pointer
 			packet_pointer = 0;
 
-			#ifndef HOST
+			#ifndef MOTHERBOARD
 			if (rxcrc == _rx.packet.crc &&
 			    _rx.packet.controller_num == THIS_CONTROLLER_NUM){
 			#else
@@ -185,7 +185,7 @@ ISR(USART_RX_vect)
 				}
 			}
 
-			#ifndef HOST
+			#ifndef MOTHERBOARD
 				if (rx.packet.controller_num == THIS_CONTROLLER_NUM) {
 					if (rxcrc != _rx.packet.crc)
 						tx.packet.err = ERROR_BAD_CRC;
@@ -207,7 +207,7 @@ ISR(USART_RX_vect)
 }
 
 // finished transmitting interrupt- only enabled at end of packet
-#ifdef HOST
+#ifdef MOTHERBOARD
 ISR(USART1_TX_vect)
 #else
 ISR(USART_TX_vect)
@@ -220,7 +220,7 @@ ISR(USART_TX_vect)
 		disable_transmit();
 		packet_pointer = 0;
 		intercom_flags = (intercom_flags & ~FLAG_TX_IN_PROGRESS) | FLAG_TX_FINISHED;
-		#ifdef HOST
+		#ifdef MOTHERBOARD
 			UCSR1B &= ~MASK(TXCIE1);
 		#else
 			UCSR0B &= ~MASK(TXCIE0);
@@ -233,7 +233,7 @@ ISR(USART_TX_vect)
 }
 
 // tx queue empty interrupt- send next byte
-#ifdef HOST
+#ifdef MOTHERBOARD
 ISR(USART1_UDRE_vect)
 #else
 ISR(USART_UDRE_vect)
@@ -242,14 +242,14 @@ ISR(USART_UDRE_vect)
 	// save status register
 	uint8_t sreg_save = SREG;
 
-	#ifdef	HOST
+	#ifdef	MOTHERBOARD
 	UDR1 = _tx.data[packet_pointer++];
 	#else
 	UDR0 = _tx.data[packet_pointer++];
 	#endif
 
 	if (packet_pointer >= sizeof(intercom_packet_t)) {
-		#ifdef HOST
+		#ifdef MOTHERBOARD
 			UCSR1B &= ~MASK(UDRIE1);
 			UCSR1B |= MASK(TXCIE1);
 		#else

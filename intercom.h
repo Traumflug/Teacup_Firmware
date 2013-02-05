@@ -4,7 +4,7 @@
 #include	<stdint.h>
 #include	"config.h"
 
-#ifdef HOST
+#ifdef MOTHERBOARD
 	#define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  UCSR1B &=~MASK(RXEN1); } while(0)
 	#define disable_transmit()			do { WRITE(TX_ENABLE_PIN,0);  UCSR1B &= ~(MASK(TXCIE1) | MASK(UDRIE1)); UCSR1B |= MASK(RXEN1); } while(0)
 #else

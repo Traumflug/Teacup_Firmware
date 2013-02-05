@@ -40,10 +40,10 @@
 	#define	F_CPU	16000000UL
 #endif
 
-/** \def HOST
+/** \def MOTHERBOARD
 	This is the motherboard, as opposed to the extruder. See extruder/ directory for GEN3 extruder firmware
 */
-#define	HOST
+#define	MOTHERBOARD
 
 
 /** \def STEPS_PER_M

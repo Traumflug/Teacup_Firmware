@@ -16,7 +16,7 @@
 #include	"arduino.h"
 #include	"config.h"
 
-#ifdef	HOST
+#ifdef	MOTHERBOARD
 #include	"dda_queue.h"
 #endif
 
@@ -80,7 +80,7 @@ ISR(TIMER1_COMPB_vect) {
 	SREG = sreg_save;
 }
 
-#ifdef	HOST
+#ifdef	MOTHERBOARD
 
 /// comparator A is the step timer. It has higher priority then B.
 ISR(TIMER1_COMPA_vect) {
@@ -123,7 +123,7 @@ ISR(TIMER1_COMPA_vect) {
 	MEMORY_BARRIER();
 	SREG = sreg_save;
 }
-#endif /* ifdef HOST */
+#endif /* ifdef MOTHERBOARD */
 
 /// initialise timer and enable system clock interrupt.
 /// step interrupt is enabled later when we start using it
@@ -139,7 +139,7 @@ void timer_init()
 	TIMSK1 = MASK(OCIE1B);
 }
 
-#ifdef	HOST
+#ifdef	MOTHERBOARD
 /*! Specify how long until the step timer should fire.
 	\param delay in CPU ticks
 
@@ -230,4 +230,4 @@ void timer_stop() {
 	// disable all interrupts
 	TIMSK1 = 0;
 }
-#endif /* ifdef HOST */
+#endif /* ifdef MOTHERBOARD */
