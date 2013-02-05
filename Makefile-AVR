@@ -135,7 +135,7 @@ LIBS  = -lm
 .PHONY: program size
 
 program: $(PROGRAM).hex config.h
-	$(UPLOADER) $(UPLOADER_FLAGS) -U flash:w:$^
+	$(UPLOADER) $(UPLOADER_FLAGS) -U flash:w:$(PROGRAM).hex
 
 size: $(BUILDDIR)/$(PROGRAM).elf
 	@echo "    SIZES             ATmega...  '168    '328(P)    '644(P)    '1280"
