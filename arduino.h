@@ -82,8 +82,12 @@
 	#include	"arduino_1280.h"
 #endif
 
-#if defined (__AVR_AT90USB1287__) || defined (__AVR_AT90USB1286__)
-	#include    "arduino_usb1287.h"
+#if defined (__AVR_AT90USB1286__)
+  #include "arduino_usb1286.h"
+#endif
+
+#if defined (__AVR_AT90USB1287__)
+  #include "arduino_usb1287.h"
 #endif
 
 #if defined (__AVR_ATmega32U4__)
