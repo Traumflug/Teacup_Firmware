@@ -169,6 +169,8 @@ void dda_emergency_shutdown(PGM_P msg) {
  * last move (= 'current'); as a result a lot of small moves will still limit the speed.
  */
 void dda_join_moves(DDA *prev, DDA *current) {
+  // Run-time option: only proceed if we are enabled.
+  if(use_lookahead==0) return;
 
   // Calculating the look-ahead settings can take a while; before modifying
   // the previous move, we need to locally store any values and write them

@@ -13,6 +13,7 @@
 
 #include	"dda.h"
 #include	"dda_queue.h"
+#include	"dda_lookahead.h"
 #include	"watchdog.h"
 #include	"delay.h"
 #include	"serial.h"
@@ -33,6 +34,12 @@ uint8_t tool;
 /// the tool to be changed when we get an M6
 uint8_t next_tool;
 
+/// enable or disable lookahead movement optimisation
+#if defined(LOOKAHEAD_DEFAULT_STATE) && LOOKAHEAD_DEFAULT_STATE == 1
+uint8_t use_lookahead = 1;
+#else
+uint8_t use_lookahead = 0;
+#endif
 
 /*
 	private functions
@@ -745,6 +752,28 @@ void process_gcode_command() {
 					temp_set(HEATER_BED, next_target.S);
 				#endif
 				break;
+
+			#ifdef LOOKAHEAD
+			case 141:
+				//? --- M141: Enable look-ahead movement optimisation ---
+				//? Only available when look-ahead support is enabled. Toggling this
+				//? during printing will only apply to new moves in the queue.
+				use_lookahead = 1;
+				break;
+			case 142:
+				//? --- M142: Disable look-ahead movement optimisation ---
+				//? Only available when look-ahead support is enabled. Toggling this
+				//? during printing will only apply to new moves in the queue.
+				use_lookahead = 0;
+				break;
+			case 143:
+				//? --- M143: Show statistics about the lookahead
+				sersendf_P(PSTR("Lookahead: "));
+				if(use_lookahead) sersendf_P(PSTR("enabled"));
+				else sersendf_P(PSTR("disabled"));
+				sersendf_P(PSTR(" - Moves joined: %d - Calculations failed in time: %d"), lookahead_joined, lookahead_timeout);
+				break;
+			#endif
 
 			#ifdef	DEBUG
 			case 240:

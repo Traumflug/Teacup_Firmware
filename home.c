@@ -167,6 +167,8 @@ void home_y_positive() {
 		t.Y = 0;
 		t.F = MAXIMUM_FEEDRATE_Y;
 		enqueue(&t);
+		// Make sure the next move will start at the 0 point
+		next_target.target.Y = 0;
 	#endif
 }
 
