@@ -120,7 +120,7 @@ byte sdc_initialize(void) {
 		if (retries >= 0xFF) {
 			return(NULL); // timed out!
 		}
-		delay(5);
+		delay_ms(5);
 	}
 	// at this stage, the card is in idle mode and ready for start up
 	retries = 0;
@@ -159,7 +159,7 @@ void sdc_readRegister(byte sentCommand) {
 	byte retries=0x00;
 	byte res=sdc_cmd(sentCommand, 0);
 	while(res != 0x00) {
-		delay(1);
+		delay_ms(1);
 		retries++;
 		if (retries >= 0xFF) return; // timed out!
 		res=spi_cmd(0xFF); // retry
@@ -180,7 +180,7 @@ void sdc_readRegister(byte sentCommand) {
 void sdc_writeBlock(long blockIndex) {
 	byte retries=0;
 	while(sdc_cmd(WRITE_BLOCK, blockIndex * blockSize) != 0x00) {
-		delay(1);
+		delay_ms(1);
 		retries++;
 		if (retries >= 0xFF) return; // timed out!
 	}
@@ -196,7 +196,7 @@ void sdc_writeBlock(long blockIndex) {
 	spi_cmd(0xFF); // LSB
 	spi_cmd(0xFF); // MSB
 	// wait until write is finished
-	while (spi_cmd(0xFF) != 0xFF) delay(1); // kind of NOP
+	while (spi_cmd(0xFF) != 0xFF) delay_ms(1); // kind of NOP
 }
 
 // read block on SD card and copy data in block vector
@@ -205,7 +205,7 @@ void sdc_readBlock(long blockIndex) {
 	byte retries = 0x00;
 	byte res = sdc_cmd(READ_SINGLE_BLOCK,  (blockIndex * blockSize));
 	while(res != 0x00) {
-		delay(1);
+		delay_ms(1);
 		retries++;
 		if (retries >= 0xFF) return; // timed out!
 		res=spi_cmd(0xFF); // retry
