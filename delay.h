@@ -16,7 +16,7 @@ void delay_us(uint16_t delay);
 void _delay(uint32_t delay);
 
 // millisecond delay, does reset WDT if feature enabled
-void _delay_ms(uint32_t delay);
+void delay_ms(uint32_t delay);
 
 
 // microsecond timer, does reset WDT if feature enabled
@@ -36,14 +36,4 @@ inline void delay(uint32_t d) {
 	}
 }
 
-// millisecond timer, does reset WDT if feature enabled
-// 0 results in no real delay, but the watchdog
-// reset is called if the feature is enabled
-static void delay_ms(uint32_t) __attribute__ ((always_inline));
-inline void delay_ms(uint32_t d) {
-	if (d > 65)
-		_delay_ms(d);
-	else
-		delay(d * 1000);
- }
 #endif	/* _DELAY_H */

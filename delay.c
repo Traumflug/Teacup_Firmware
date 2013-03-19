@@ -36,7 +36,7 @@ void _delay(uint32_t delay) {
 
 /// delay milliseconds
 /// \param delay time to wait in milliseconds
-void _delay_ms(uint32_t delay) {
+void delay_ms(uint32_t delay) {
 	wd_reset();
 	while (delay > 65) {
 		delay_us(64999);

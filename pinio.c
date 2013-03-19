@@ -12,7 +12,7 @@ void power_on() {
 		#ifdef	PS_ON_PIN
 			WRITE(PS_ON_PIN, 0);
 			SET_OUTPUT(PS_ON_PIN);
-			_delay_ms(500);
+			delay_ms(500);
 		#endif
 		ps_is_on = 1;
 	}
