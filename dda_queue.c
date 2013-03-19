@@ -94,7 +94,7 @@ void queue_step() {
 void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 	// don't call this function when the queue is full, but just in case, wait for a move to complete and free up the space for the passed target
 	while (queue_full())
-		delay(WAITING_DELAY);
+		delay(100);
 
 	uint8_t h = mb_head + 1;
 	h &= (MOVEBUFFER_SIZE - 1);

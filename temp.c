@@ -11,7 +11,6 @@
 #include	<avr/pgmspace.h>
 
 #include	"arduino.h"
-#include	"delay.h"
 #include	"debug.h"
 #ifndef	EXTRUDER
 	#include	"sersendf.h"

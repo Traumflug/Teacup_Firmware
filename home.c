@@ -6,7 +6,6 @@
 
 #include	"dda.h"
 #include	"dda_queue.h"
-#include	"delay.h"
 #include	"pinio.h"
 #include	"gcode_parse.h"
 

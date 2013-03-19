@@ -5,8 +5,6 @@
 #include	<util/delay_basic.h>
 #include	"watchdog.h"
 
-#define		WAITING_DELAY		100
-
 #if F_CPU < 4000000UL
 #error Delay functions only work with F_CPU >= 4000000UL 
 #endif
