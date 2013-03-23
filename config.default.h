@@ -124,9 +124,15 @@
 *                                                                           *
 * 2. ACCELERATION                                                           *
 *                                                                           *
-* IMPORTANT: choose only one! These algorithms choose when to step, trying  *
-*            to use more than one will have undefined and probably          *
-*            disastrous results!                                            *
+* Choose optionally one of ACCELERATION_REPRAP, ACCELERATION_RAMPING or     *
+* ACCELERATION_TEMPORAL. With none of them defined, movements are done      *
+* without acceleration. Recommended is ACCELERATION_RAMPING.                *
+*                                                                           *
+* LOOKAHEAD is experimental for now and works in conjunction with           *
+* ACCELERATION_RAMPING, only. That's why it's off by default.               *
+*                                                                           *
+* Also don't forget to adjust ACCELERATION to the capabilities of your      *
+* printer. The default is very moderate to be on the safe side.             *
 *                                                                           *
 \***************************************************************************/
 
@@ -161,6 +167,31 @@
 		// TODO: figure out how to add acceleration to this algorithm
 */
 // #define ACCELERATION_TEMPORAL
+
+/** \def LOOKAHEAD
+  Define this to enable look-ahead during *ramping* acceleration to smoothly
+  transition between moves instead of performing a dead stop every move.
+  Enabling look-ahead requires about 3600 bytes of flash memory.
+*/
+// #define LOOKAHEAD
+
+/** \def LOOKAHEAD_MAX_JERK_XY
+  When performing look-ahead, we need to decide what an acceptable jerk to the
+  mechanics is when we (instantly) change direction.
+
+  Units: micrometers
+  Sane values: 5 to 200
+*/
+#define LOOKAHEAD_MAX_JERK_XY 10
+
+/** \def LOOKAHEAD_MAX_JERK_E
+  When joining moves with different extrusion rates, define the maximum jerk
+  for the extruder.
+
+  Units: micrometers
+  Sane values: 5 to 200
+*/
+#define LOOKAHEAD_MAX_JERK_E 10
 
 
 
