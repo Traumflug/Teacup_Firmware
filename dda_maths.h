@@ -63,4 +63,7 @@ uint16_t int_sqrt(uint32_t a);
 // 2 ^ msbloc(v) >= v
 const uint8_t msbloc (uint32_t v);
 
+// Note: the floating point bit is optimized away during compilation
+#define ACCELERATE_RAMP_LEN(speed) (((speed)*(speed)) / (uint32_t)((7200000.0f * ACCELERATION) / (float)STEPS_PER_M_X))
+
 #endif	/* _DDA_MATHS_H */

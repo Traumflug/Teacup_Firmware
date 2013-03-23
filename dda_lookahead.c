@@ -25,7 +25,6 @@
 #include "debug.h"
 #include "sersendf.h"
 #include "pinio.h"
-#include "config.h"
 
 extern uint8_t use_lookahead;
 
@@ -144,7 +143,7 @@ void dda_emergency_shutdown(PGM_P msg) {
   serial_writestr_P(PSTR("error: emergency stop:"));
   if(msg!=NULL) serial_writestr_P(msg);
   serial_writestr_P(PSTR("\r\n"));
-  delay(20000);   // Delay so the buffer can be flushed - otherwise the message is never sent
+  delay_ms(20);   // Delay so the buffer can be flushed - otherwise the message is never sent
   timer_stop();
   queue_flush();
   power_off();
@@ -168,8 +167,6 @@ void dda_emergency_shutdown(PGM_P msg) {
  * last move (= 'current'); as a result a lot of small moves will still limit the speed.
  */
 void dda_join_moves(DDA *prev, DDA *current) {
-  // Run-time option: only proceed if we are enabled.
-  if(use_lookahead==0) return;
 
   // Calculating the look-ahead settings can take a while; before modifying
   // the previous move, we need to locally store any values and write them
@@ -181,7 +178,6 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // Note: we assume 'current' will not be dispatched while this function runs, so we do not to
   // back up the move settings: they will remain constant.
   uint32_t this_F_start, this_rampup, this_rampdown;
-  enum axis_e prev_lead;
   int32_t jerk, jerk_e;       // Expresses the forces if we would change directions at full speed
   static uint32_t la_cnt = 0;     // Counter: how many moves did we join?
   #ifdef LOOKAHEAD_DEBUG
@@ -224,7 +220,6 @@ void dda_join_moves(DDA *prev, DDA *current) {
       prev_rampup = prev->rampup_steps;
       prev_rampdown = prev->rampdown_steps;
       prev_total_steps = prev->total_steps;
-      prev_lead = prev->lead;
     }
 
     // The initial crossing speed is the minimum between both target speeds

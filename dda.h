@@ -15,6 +15,9 @@
 	types
 */
 
+// Enum to denote an axis
+enum axis_e { X, Y, Z, E };
+
 /**
 	\struct TARGET
 	\brief target is simply a point in space/time
@@ -33,6 +36,19 @@ typedef struct {
 
 	uint8_t		e_relative				:1; ///< bool: e axis relative? Overrides all_relative
 } TARGET;
+
+/**
+ \struct VECTOR4D
+ \brief 4 dimensional vector used to describe the difference between moves.
+
+  Units are in micrometers and usually based off 'TARGET'.
+*/
+typedef struct {
+  int32_t X;
+  int32_t Y;
+  int32_t Z;
+  int32_t E;
+} VECTOR4D;
 
 /**
 	\struct MOVE_STATE
@@ -128,6 +144,21 @@ typedef struct {
 	uint32_t					rampdown_steps;
 	/// 24.8 fixed point timer value, maximum speed
 	uint32_t					c_min;
+  #ifdef LOOKAHEAD
+  // With the look-ahead functionality, it is possible to retain physical
+  // movement between G1 moves. These variables keep track of the entry and
+  // exit speeds between moves.
+  uint32_t          F_start;
+  uint32_t          F_end;
+  // Displacement vector, in um, based between the difference of the starting
+  // point and the target. Required to obtain the jerk between 2 moves.
+  // Note: x_delta and co are in steps, not um.
+  VECTOR4D          delta;
+  // Number the moves to be able to test at the end of lookahead if the moves
+  // are the same. Note: we do not need a lot of granularity here: more than
+  // MOVEBUFFER_SIZE is already enough.
+  uint8_t           id;
+  #endif
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
 	uint32_t					x_step_interval; ///< time between steps on X axis
@@ -166,7 +197,7 @@ void dda_init(void);
 void dda_new_startpoint(void);
 
 // create a DDA
-void dda_create(DDA *dda, TARGET *target);
+void dda_create(DDA *dda, TARGET *target, DDA *prev_dda);
 
 // start a created DDA (called from timer interrupt)
 void dda_start(DDA *dda)																						__attribute__ ((hot));

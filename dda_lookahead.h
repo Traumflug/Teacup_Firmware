@@ -27,8 +27,6 @@
 #error "Look-ahead requires steps per m to be identical on the X and Y axis (for now)"
 #endif
 
-// Note: the floating point bit is optimized away during compilation
-#define ACCELERATE_RAMP_LEN(speed) (((speed)*(speed)) / (uint32_t)((7200000.0f * ACCELERATION) / (float)STEPS_PER_M_X))
 // This is the same to ACCELERATE_RAMP_LEN but now the steps per m can be switched.
 // Note: use this with a macro so the float is removed by the preprocessor
 #define ACCELERATE_RAMP_SCALER(spm) (uint32_t)((7200000.0f * ACCELERATION) / (float)spm)

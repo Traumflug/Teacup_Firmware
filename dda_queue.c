@@ -100,9 +100,10 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 	h &= (MOVEBUFFER_SIZE - 1);
 
 	DDA* new_movebuffer = &(movebuffer[h]);
-	
-	if (t != NULL) {
-		dda_create(new_movebuffer, t);
+  DDA* prev_movebuffer = (queue_empty() != 0) ? NULL : &movebuffer[mb_head];
+
+  if (t != NULL) {
+    dda_create(new_movebuffer, t, prev_movebuffer);
 		new_movebuffer->endstop_check = endstop_check;
 		new_movebuffer->endstop_stop_cond = endstop_stop_cond;
 	}

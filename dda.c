@@ -10,6 +10,7 @@
 #include	<avr/interrupt.h>
 
 #include	"dda_maths.h"
+#include	"dda_lookahead.h"
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"
@@ -82,9 +83,13 @@ void dda_new_startpoint(void) {
 
 	This algorithm is probably the main limiting factor to print speed in terms of firmware limitations
 */
-void dda_create(DDA *dda, TARGET *target) {
+void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 	uint32_t	steps, x_delta_um, y_delta_um, z_delta_um, e_delta_um;
 	uint32_t	distance, c_limit, c_limit_calc;
+  #ifdef LOOKAHEAD
+  // Number the moves to identify them; allowed to overflow.
+  static uint8_t idcnt = 0;
+  #endif
 
 	// initialise DDA to a known state
 	dda->allflags = 0;
@@ -94,6 +99,15 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
+
+  #ifdef LOOKAHEAD
+  // Set the start and stop speeds to zero for now = full stops between
+  // moves. Also fallback if lookahead calculations fail to finish in time.
+  dda->F_start = 0;
+  dda->F_end = 0;
+  // Give this move an identifier.
+  dda->id = idcnt++;
+  #endif
 
 // TODO TODO: We should really make up a loop for all axes.
 //            Think of what happens when a sixth axis (multi colour extruder)
@@ -128,6 +142,14 @@ void dda_create(DDA *dda, TARGET *target) {
 		startpoint_steps.E = steps;
 		dda->e_direction = (target->E >= startpoint.E)?1:0;
 	}
+
+  #ifdef LOOKAHEAD
+  // Also displacements in micrometers, but for the lookahead alogrithms.
+  dda->delta.X = target->X - startpoint.X;
+  dda->delta.Y = target->Y - startpoint.Y;
+  dda->delta.Z = target->Z - startpoint.Z;
+  dda->delta.E = target->e_relative ? target->E : target->E - startpoint.E;
+  #endif
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 		sersendf_P(PSTR("%ld,%ld,%ld,%ld] ["), target->X - startpoint.X, target->Y - startpoint.Y, target->Z - startpoint.Z, target->E - startpoint.E);
@@ -285,13 +307,43 @@ void dda_create(DDA *dda, TARGET *target) {
 				dda->c_min = c_limit;
 // This section is plain wrong, like in it's only half of what we need. This factor 960000 is dependant on STEPS_PER_MM.
 			// overflows at target->F > 65535; factor 16. found by try-and-error; will overshoot target speed a bit
-			dda->rampup_steps = target->F * target->F / (uint32_t)(STEPS_PER_M_X * ACCELERATION / 960000.);
+      //dda->rampup_steps = target->F * target->F / (uint32_t)(STEPS_PER_M_X * ACCELERATION / 960000.);
 //sersendf_P(PSTR("rampup calc %lu\n"), dda->rampup_steps);
-			dda->rampup_steps = 100000; // replace mis-calculation by a safe value
+			//dda->rampup_steps = 100000; // replace mis-calculation by a safe value
 // End of wrong section.
-			if (dda->rampup_steps > dda->total_steps / 2)
-				dda->rampup_steps = dda->total_steps / 2;
-			dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
+      /**
+        Assuming: F is in mm/min, STEPS_PER_M_X is in steps/m, ACCELERATION is in mm/s²
+        Given:
+         - Velocity v at time t given acceleration a: v(t) = a*t
+         - Displacement s at time t given acceleration a: s(t) = 1/2 * a * t²
+         - Displacement until reaching target velocity v: s = 1/2 * (v² / a)
+         - Final result: steps needed to reach velocity v given acceleration a:
+         steps = (STEPS_PER_M_X * F^2) / (7200000 * ACCELERATION)
+         To keep precision, break up in floating point and integer part:
+           F^2 * (int)(STEPS_PER_M_X / (7200000 * ACCELERATION))
+         Note: the floating point part is static so its calculated during compilation.
+         Note 2: the floating point part will be smaller than one, invert it:
+                   steps = F^2 / (int)((7200000 * ACCELERATION) / STEPS_PER_M_X)
+         Note 3: As mentioned, setting F to 65535 or larger will overflow the
+                 calculation. Make sure this does not happen.
+         Note 4: Anyone trying to run their machine at 65535 mm/min > 1m/s is nuts
+       */
+      if (target->F > 65534) target->F = 65534;
+      dda->rampup_steps = ACCELERATE_RAMP_LEN(target->F);
+      // Quick hack: we do not do Z move joins as jerk on the Z axis is undesirable;
+      // as the ramp length is calculated for XY, its incorrect for Z: apply the original
+      // 'fix' to simply specify a large enough ramp for any speed.
+      if (x_delta_um == 0 && y_delta_um == 0) {
+        dda->rampup_steps = 100000; // replace mis-calculation by a safe value
+      }
+
+      if (dda->rampup_steps > dda->total_steps / 2)
+        dda->rampup_steps = dda->total_steps / 2;
+      dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
+
+      #ifdef LOOKAHEAD
+        dda_join_moves(prev_dda, dda);
+      #endif
 		#elif defined ACCELERATION_TEMPORAL
 			// TODO: limit speed of individual axes to MAXIMUM_FEEDRATE
 			// TODO: calculate acceleration/deceleration for each axis
@@ -617,6 +669,8 @@ void dda_step(DDA *dda) {
 			move_state.n += 4;
 			// be careful of signedness!
 			move_state.c = (int32_t)move_state.c - ((int32_t)(move_state.c * 2) / (int32_t)move_state.n);
+      //sersendf_P(PSTR("n:%ld; c:%ld; steps: %ld / %lu\n"), move_state.n,
+      //           move_state.c, move_state.step_no, move_state.y_steps);
 		}
 		move_state.step_no++;
 // Print the number of steps actually needed for ramping up
@@ -687,6 +741,11 @@ void dda_step(DDA *dda) {
 	if (move_state.x_steps == 0 && move_state.y_steps == 0 &&
 	    move_state.z_steps == 0 && move_state.e_steps == 0) {
 		dda->live = 0;
+    #ifdef LOOKAHEAD
+    // If look-ahead was using this move, it could have missed our activation:
+    // make sure the ids do not match.
+    dda->id--;
+    #endif
 		#ifdef	DC_EXTRUDER
 			heater_set(DC_EXTRUDER, 0);
 		#endif
