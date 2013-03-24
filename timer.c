@@ -57,6 +57,8 @@ ISR(TIMER1_COMPB_vect) {
 	/*
 	clock stuff
 	*/
+  dda_clock();
+
 	clock_counter_10ms += TICK_TIME_MS;
 	if (clock_counter_10ms >= 10) {
 		clock_counter_10ms -= 10;

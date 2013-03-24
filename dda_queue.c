@@ -56,6 +56,20 @@ uint8_t queue_empty() {
 	return result;
 }
 
+/// Return the current movement, or NULL, if there's no movement going on.
+DDA *queue_current_movement() {
+  DDA* current;
+
+  ATOMIC_START
+    current = &movebuffer[mb_tail];
+
+    if ( ! current->live || current->waitfor_temp || current->nullmove)
+      current = NULL;
+  ATOMIC_END
+
+  return current;
+}
+
 // -------------------------------------------------------
 // This is the one function called by the timer interrupt.
 // It calls a few other functions, though.

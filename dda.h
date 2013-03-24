@@ -205,6 +205,9 @@ void dda_start(DDA *dda)																						__attribute__ ((hot));
 // DDA takes one step (called from timer interrupt)
 void dda_step(DDA *dda)																							__attribute__ ((hot));
 
+// regular movement maintenance
+void dda_clock(void);
+
 // update current_position
 void update_current_position(void);
 

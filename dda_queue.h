@@ -22,6 +22,7 @@ extern DDA movebuffer[MOVEBUFFER_SIZE];
 // queue status methods
 uint8_t queue_full(void);
 uint8_t queue_empty(void);
+DDA *queue_current_movement(void);
 
 // take one step
 void queue_step(void);
