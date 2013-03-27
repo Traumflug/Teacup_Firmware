@@ -99,6 +99,10 @@
 #endif
 #endif /* SIMULATOR */
 
+#if defined (_mk20dx128_h_) // Teensy 3.0 uses a MK20DX128 32 bit ARM Cortex-M4 48 MHz Test on this for config.h
+	#include    "arduino_teensy3.h"
+#endif
+
 #ifndef	DIO0_PIN
 #error pins for this chip not defined in arduino.h! If you write an appropriate pin definition and have this firmware work on your chip, please tell us via the forum thread
 #endif

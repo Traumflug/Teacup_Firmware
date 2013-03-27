@@ -15,7 +15,9 @@
 
 #else
 #include <util/atomic.h>
-#include <avr/version.h>
+#ifdef __AVR__
+#include <avr/io.h>
+#endif
 
 // Provide a memory barrier to the compiler. This informs
 // the compiler that is should write any cached values that
@@ -41,14 +43,26 @@
 	#define CLI_SEI_BUG_MEMORY_BARRIER()
 #endif
 
-#define ATOMIC_START { \
-                       uint8_t save_reg = SREG; \
-                       cli(); \
-                       CLI_SEI_BUG_MEMORY_BARRIER();
-
-#define ATOMIC_END   MEMORY_BARRIER(); \
-                     SREG = save_reg; \
-                   }
-
+#if defined __AVR__
+  #define ATOMIC_START { \
+                         uint8_t save_reg = SREG; \
+                         cli(); \
+                         CLI_SEI_BUG_MEMORY_BARRIER();
+#elif ! defined SIMULATOR
+  #define ATOMIC_START cli();
+#else
+  #define ATOMIC_START
 #endif
+
+#if defined __AVR__
+  #define ATOMIC_END   MEMORY_BARRIER(); \
+                       SREG = save_reg; \
+                     }
+#elif ! defined SIMULATOR
+  #define ATOMIC_END sei();
+#else
+  #define ATOMIC_END
 #endif
+
+#endif /* SIMULATOR */
+#endif /* _MEMORY_BARRIER_H_ */

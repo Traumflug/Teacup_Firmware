@@ -5,7 +5,9 @@
 */
 
 #include	<stdint.h>
+#if defined(__AVR__)
 #include	<util/delay_basic.h>
+#endif
 #include	"watchdog.h"
 
 #if F_CPU < 4000000UL
@@ -17,11 +19,24 @@
 void delay_us(uint16_t delay) {
 	wd_reset();
 	while (delay > (65536L / (F_CPU / 4000000L))) {
-		_delay_loop_2(65534); // we use 65534 here to compensate for the time that the surrounding loop takes. TODO: exact figure needs tuning
+    #ifdef __AVR__
+      // We use 65534 here to compensate for the time the
+      // surrounding loop takes.
+      // TODO: exact figure needs tuning.
+      _delay_loop_2(65534);
+    #else
+      delayMicroseconds(65534);
+    #endif
 		delay -= (65536L / (F_CPU / 4000000L));
 		wd_reset();
 	}
-	_delay_loop_2(delay * (F_CPU / 4000000L));
+
+  #ifdef __AVR__
+    _delay_loop_2(delay * (F_CPU / 4000000L));
+  #else
+    delayMicroseconds(delay);
+  #endif
+
 	wd_reset();
 }
 

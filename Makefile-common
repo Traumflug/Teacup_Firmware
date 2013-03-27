@@ -88,7 +88,7 @@ $(BUILDDIR)/%.o: %.c | $(BUILDDIR)
 	@$(CC) -c $(CFLAGS) -MMD -o $@ $<
 	@$(call CCPOST)
 
-$(BUILDDIR)/%.elf: $(OBJ)
+$(BUILDDIR)/%.elf: $(OBJ) 
 	@echo "  LINK      $@"
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
@@ -98,7 +98,8 @@ $(BUILDDIR)/%.lst: $(BUILDDIR)/%.elf
 
 %.hex: $(BUILDDIR)/%.elf
 	@echo "  OBJCOPY   $@"
-	@$(OBJCOPY) -j .text -j .data -O ihex -R .eeprom -R .fuse -R .lock $< $@
+	@$(OBJCOPY)  -O ihex -R .eeprom  $< $@
+#	@$(OBJCOPY) -j .text -j .data -O ihex -R .eeprom -R .fuse -R .lock $< $@
 
 $(BUILDDIR)/%.bin: $(BUILDDIR)/%.elf
 	@echo "  OBJCOPY   $@"

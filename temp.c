@@ -382,7 +382,7 @@ void temp_print(temp_sensor_t index) {
 	else {
 		if (index >= NUM_TEMP_SENSORS)
 			return;
-		sersendf_P(PSTR("T[%su]:"), index);
+		sersendf_P(PSTR("T[%u]:"), index);
 		single_temp_print(index);
 	}
 }

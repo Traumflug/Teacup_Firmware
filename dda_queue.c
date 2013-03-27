@@ -144,6 +144,7 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 		// Compensate for the cli() in setTimer().
 		sei();
 	}
+	sei();
 }
 
 /// go to the next move.

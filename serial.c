@@ -215,6 +215,7 @@ void serial_writechar(uint8_t data)
 	// enable TX interrupt so we can send this character
 	UCSR0B |= MASK(UDRIE0);
 }
+#else
 #endif /* USB_SERIAL */
 
 /// send a whole block
