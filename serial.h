@@ -11,6 +11,7 @@
 
 #ifdef USB_SERIAL
   #include "usb_serial.h"
+  #include "usb_dev.h"
   #define serial_init() usb_init()
   #define serial_rxchars() usb_serial_available()
   #define serial_popchar() usb_serial_getchar()

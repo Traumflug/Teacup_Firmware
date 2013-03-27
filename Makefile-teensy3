@@ -1,0 +1,148 @@
+##############################################################################
+#                                                                            #
+# Teacup - Lean and efficient firmware for RepRap printers                   #
+#                                                                            #
+# by Triffid Hunter, Traumflug, jakepoz, Markus Hitter, many others          #
+#                                                                            #
+# This firmware is Copyright (c) ...                                         #
+#   2009 - 2010 Michael Moon aka Triffid_Hunter                              #
+#   2010 - 2013 Markus "Traumflug" Hitter <mah@jump-ing.de>                  #
+#                                                                            #
+# This program is free software; you can redistribute it and/or modify       #
+# it under the terms of the GNU General Public License as published by       #
+# the Free Software Foundation; either version 2 of the License, or          #
+# (at your option) any later version.                                        #
+#                                                                            #
+# This program is distributed in the hope that it will be useful,            #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of             #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              #
+# GNU General Public License for more details.                               #
+#                                                                            #
+# You should have received a copy of the GNU General Public License          #
+# along with this program; if not, write to the Free Software                #
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA #
+#                                                                            #
+##############################################################################
+
+##############################################################################
+#                                                                            #
+# Makefile for AVR (ATmega-based) targets. Use it with                       #
+#                                                                            #
+#   make -f Makefile-AVR                                                     #
+#                                                                            #
+# or copy/link it to Makefile for convenience.                               #
+#                                                                            #
+##############################################################################
+
+##############################################################################
+#                                                                            #
+# Change these to suit your hardware                                         #
+#                                                                            #
+##############################################################################
+
+MCU_TARGET = cortex-m4
+
+# CPU clock rate
+F_CPU = 48000000L
+# F_CPU = 8000000L
+
+##############################################################################
+#                                                                            #
+# Where to find your compiler and linker. Later, this is completed like      #
+#   CC = $(TOOLCHAIN)gcc                                                     #
+#                                                                            #
+##############################################################################
+
+TOOLCHAIN = avr-
+# TOOLCHAIN = /usr/bin/avr-
+# TOOLCHAIN = <path-to-arduino-folder>/hardware/tools/avr/bin/avr-
+TOOLCHAIN = /Applications/Arduino.app/Contents/Resources/Java/hardware/tools/arm-none-eabi/bin/arm-none-eabi-
+TOOLSPATH =  /Applications/Arduino.app/Contents/Resources/Java/hardware/tools
+
+##############################################################################
+#                                                                            #
+# Programmer settings for "make program"                                     #
+#                                                                            #
+##############################################################################
+
+# avrdude, typical for AVR-based architectures.
+#
+# Flags:
+#   -c <programmer-type>      Typically stk500 or stk500v2.
+#   -b <baudrate>             Upload baud rate. Depends on the bootloader in
+#                             use. Not used for USB programmers.
+#   -p <mcu type>             See MCU_TARGET above.
+#   -P <port>                 Serial port the electronics is connected to.
+#   -C <config file>          Optional, default is /etc/avrdude.conf.
+
+UPLOADER = avrdude
+# UPLOADER = <path-to-arduino-folder>/hardware/tools/avrdude
+
+UPLOADER_FLAGS  = -c stk500v2
+# UPLOADER_FLAGS += -b 19200
+# UPLOADER_FLAGS += -b 57600
+UPLOADER_FLAGS += -b 115200
+UPLOADER_FLAGS += -p $(MCU_TARGET)
+# UPLOADER_FLAGS += -P COM1
+# UPLOADER_FLAGS += -P /dev/ttyACM0
+UPLOADER_FLAGS += -P /dev/ttyUSB0
+# UPLOADER_FLAGS += -C <path-to-arduino-folder>/hardware/tools/avrdude.conf
+
+
+##############################################################################
+#                                                                            #
+# Below here, defaults should be ok.                                         #
+#                                                                            #
+##############################################################################
+
+PROGRAM = teacup
+
+# Arduino IDE takes the "compile everything available"-approach, so we have
+# to keep this working and can take a shortcut:
+SOURCES = $(wildcard *.c)
+
+CFLAGS  = -DF_CPU=$(F_CPU)
+CFLAGS += -mcpu=$(MCU_TARGET) -mthumb -D__MK20DX128__
+CFLAGS += -g
+CFLAGS += -Wall
+CFLAGS += -Wstrict-prototypes
+CFLAGS += -std=gnu99
+CFLAGS += -funsigned-char
+CFLAGS += -funsigned-bitfields
+CFLAGS += -fpack-struct
+CFLAGS += -fshort-enums
+CFLAGS += -Winline
+CFLAGS += -fno-move-loop-invariants
+CFLAGS += -fno-tree-scev-cprop
+CFLAGS += -Os
+CFLAGS += -ffunction-sections
+CFLAGS += -finline-functions-called-once
+#CFLAGS += -mcall-prologues
+CFLAGS += -I/Applications/Arduino.app/Contents/Resources/Java/hardware/teensy/cores/teensy3
+#CFLAGS += -S --save-temps
+CFLAGS += -DUSB_SERIAL 
+CFLAGS += -MMD -I.
+
+LDFLAGS  = -Wl,--as-needed
+LDFLAGS += -Wl,--gc-sections
+LDFLAGS += -mcpu=cortex-m4 -mthumb -Tmk20dx128.ld
+
+LIBS  = -lm 
+
+-include Makefile-common
+
+# Architecture specific targets
+
+.PHONY: program size
+
+program: $(PROGRAM).hex config.h
+#	$(UPLOADER) $(UPLOADER_FLAGS) -U flash:w:$(PROGRAM).hex
+	$(abspath $(TOOLSPATH))/teensy_post_compile -file=$(PROGRAM) -path=$(shell pwd) -tools=$(abspath $(TOOLSPATH))
+	-$(abspath $(TOOLSPATH))/teensy_reboot
+
+
+size: $(BUILDDIR)/$(PROGRAM).elf
+	@echo "    SIZES             ATmega...  '168    '328(P)    '644(P)    '1280"
+	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    FLASH : %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (14 * 1024)), ceil($$a * 100 / (30 * 1024)),ceil($$a * 100 / (62 * 1024)), ceil($$a * 100 / (126 * 1024)) }' 
+	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(data|bss)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    RAM   : %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (1 * 1024)), ceil($$a * 100 / (2 * 1024)),ceil($$a * 100 / (4 * 1024)), ceil($$a * 100 / (8 * 1024)) }'
+	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(eeprom)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    EEPROM: %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (1 * 1024)), ceil($$a * 100 / (2 * 1024)), ceil($$a * 100 / (2 * 1024)), ceil($$a * 100 / (4 * 1024)) }'

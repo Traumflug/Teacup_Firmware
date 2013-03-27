@@ -27,7 +27,11 @@
 #endif
 #endif /* SIMULATOR */
 
-void 			analog_init(void);
+#if defined __AVR__ || defined SIMULATOR
+  void analog_init(void);
+#else
+  void analog_initialize(void);
+#endif
 
 uint16_t	analog_read(uint8_t index);
 

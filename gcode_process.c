@@ -561,6 +561,7 @@ void process_gcode_command() {
 					queue_wait();
 				#endif
 				update_current_position();
+#pragma GCC diagnostic ignored "-Wformat"
 				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%lu"),
                         current_position.axis[X], current_position.axis[Y],
                         current_position.axis[Z], current_position.axis[E],
@@ -581,7 +582,6 @@ void process_gcode_command() {
 						print_queue();
 					}
 				#endif /* DEBUG */
-
 				// newline is sent from gcode_parse after we return
 				break;
 
