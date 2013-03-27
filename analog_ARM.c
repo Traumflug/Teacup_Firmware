@@ -6,9 +6,9 @@
 
 #include "temp.h"
 
-#ifdef __AVR__
-  #include <avr/interrupt.h>
-#endif
+#if defined (__ARMEL__)  // test ARM versus others
+
+#include	<avr/interrupt.h>
 #include	"memory_barrier.h"
 
 /* OR-combined mask of all channels */
@@ -26,7 +26,7 @@
 #undef DEFINE_TEMP_SENSOR
 
 static uint8_t adc_counter;
-static volatile uint16_t BSS adc_result[NUM_TEMP_SENSORS];
+static volatile uint16_t adc_result[NUM_TEMP_SENSORS] __attribute__ ((__section__ (".bss")));
 
 #define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
 	((type == TT_THERMISTOR) || (type == TT_AD595)) ? (pin ## _ADC) : 255,
@@ -36,56 +36,45 @@ static uint8_t adc_channel[NUM_TEMP_SENSORS] =
 };
 #undef DEFINE_TEMP_SENSOR
 
+// copied from /Applications/Arduino.app/Contents/Resources/Java/hardware/teensy/cores/teensy3/analog.c
+// mapping from AIOn to ADCx_SC1n ADCH register
+static const uint8_t channel2sc1a[] = {
+  5, 14, 8, 9, 13, 12, 6, 7, 15, 4,
+  0, 19, 3, 21, 26, 22
+};
+
 //! Configure all registers, start interrupt loop
-void analog_init() {
-#ifndef _mk20dx128_h_  // teensy3.0
+void analog_initialize() {
+  uint8_t i;
+
 	if (analog_mask > 0) {
-		// clear ADC bit in power reduction register because of ADC use.
-		#ifdef	PRR
-			PRR &= ~MASK(PRADC);
-		#elif defined PRR0
-			PRR0 &= ~MASK(PRADC);
-		#endif
+    analogReference(EXTERNAL);
+    analogReadRes(10);  // bits
+    analogReadAveraging(32); // hardware averaging
 
-		// select reference signal to use, set right adjusted results and select ADC input 0
-		ADMUX = REFERENCE;
+    for (i = sizeof(adc_counter); i >= 0; i--) {
+      pinMode(adc_channel[i], INPUT);
+    }
 
-		// ADC frequency must be less than 200khz or we lose precision. At 16MHz system clock, we must use the full prescale value of 128 to get an ADC clock of 125khz.
-		ADCSRA = MASK(ADEN) | MASK(ADPS2) | MASK(ADPS1) | MASK(ADPS0);
-		#ifdef	ADCSRB
-			ADCSRB = 0;
-		#endif
+    adc_counter = 0;
 
-		adc_counter = 0;
-
-		// clear analog inputs in the data direction register(s)
-		AIO0_DDR &= ~analog_mask;
-		#ifdef	AIO8_DDR
-			AIO8_DDR &= ~(analog_mask >> 8);
-		#endif
-
-		// disable the analog inputs for digital use.
-		DIDR0 = analog_mask & 0xFF;
-		#ifdef	DIDR2
-			DIDR2 = (analog_mask >> 8) & 0xFF;
-		#endif
+    adc_result[adc_counter] = analogRead(adc_channel[adc_counter]);
+    adc_counter++;
 
 		// now we start the first conversion and leave the rest to the interrupt
-		ADCSRA |= MASK(ADIE) | MASK(ADSC);
+    ADC0_SC1A = channel2sc1a[adc_channel[adc_counter]];
 	} /* analog_mask > 0 */
-#endif
 }
 
 /*! Analog Interrupt
 
 	This is where we read our analog value and store it in an array for later retrieval
 */
-ISR(ADC_vect, ISR_NOBLOCK) {
-#ifndef _mk20dx128_h_
+ISR(ADC_vect) {
 	// emulate free-running mode but be more deterministic about exactly which result we have, since this project has long-running interrupts
 	if (analog_mask > 0) { // at least one temp sensor uses an analog channel
 		// store next result
-		adc_result[adc_counter] = ADC;
+    adc_result[adc_counter] = ADC0_RA;
 
 		// next channel
 		do {
@@ -95,18 +84,8 @@ ISR(ADC_vect, ISR_NOBLOCK) {
 		} while (adc_channel[adc_counter] == 255);
 
 		// start next conversion
-		ADMUX = (adc_channel[adc_counter] & 0x07) | REFERENCE;
-		#ifdef	MUX5
-			if (adc_channel[adc_counter] & 0x08)
-				ADCSRB |= MASK(MUX5);
-			else
-				ADCSRB &= ~MASK(MUX5);
-		#endif
-
-		// After the mux has been set, start a new conversion 
-		ADCSRA |= MASK(ADSC);
+    ADC0_SC1A = channel2sc1a[adc_channel[adc_counter]];
 	}
-#endif
 }
 
 /*! Read analog value from saved result array
@@ -118,7 +97,6 @@ uint16_t	analog_read(uint8_t index) {
 		uint16_t r;
 
     ATOMIC_START
-      // atomic 16-bit copy
       r = adc_result[index];
     ATOMIC_END
 
@@ -127,3 +105,5 @@ uint16_t	analog_read(uint8_t index) {
 		return 0;
 	}
 }
+
+#endif

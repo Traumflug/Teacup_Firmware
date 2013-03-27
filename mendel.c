@@ -25,8 +25,12 @@
 */
 
 #ifndef SIMULATOR
+#if defined (__AVR__)
 #include	<avr/io.h>
 #include	<avr/interrupt.h>
+#else
+  #include "WProgram.h"
+#endif
 #endif
 
 #include	"config_wrapper.h"
@@ -49,6 +53,9 @@
 #include	"clock.h"
 #include	"intercom.h"
 #include "simulator.h"
+#ifdef __ARMEL__
+  #include "usb_dev.h"
+#endif
 
 #ifdef SIMINFO
   #include "../simulavr/src/simulavr_info.h"
@@ -64,6 +71,7 @@
 
 /// initialise all I/O - set pins as input or output, turn off unused subsystems, etc
 void io_init(void) {
+#if defined (__AVR__)
 	// disable modules we don't use
 	#ifdef PRR
 		PRR = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
@@ -78,8 +86,9 @@ void io_init(void) {
 			PRR1 |= MASK(PRUSART2);
 		#endif
 	#endif
-	ACSR = MASK(ACD);
-
+	ACSR = MASK(ACD);  // enable analog comparator
+#else
+#endif
 	// setup I/O pins
 
 	// X Stepper
@@ -203,11 +212,18 @@ void io_init(void) {
 
 /// Startup code, run when we come out of reset
 void init(void) {
+  
 	// set up watchdog
 	wd_init();
 
+
 	// set up serial
+
+	#ifdef USB_SERIAL
+	//	usb_init(); not needed.
+	#else 
 	serial_init();
+	#endif
 
 	// set up G-code parsing
 	gcode_init();
@@ -219,6 +235,7 @@ void init(void) {
 	timer_init();
 
 	// read PID settings from EEPROM
+
 	heater_init();
 
 	// set up dda
@@ -226,7 +243,11 @@ void init(void) {
 
 	// start up analog read interrupt loop,
 	// if any of the temp sensors in your config.h use analog interface
-	analog_init();
+  #ifdef __AVR__
+    analog_init();
+  #else
+    analog_initialize();
+  #endif
 
 	// set up temperature inputs
 	temp_init();

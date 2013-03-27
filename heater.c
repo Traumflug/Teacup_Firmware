@@ -20,10 +20,15 @@
 
 /// \struct heater_definition_t
 /// \brief simply holds pinout data- port, pin, pwm channel if used
+#if defined (__AVR__)
+  #define REGISTER_T uint8_t
+#else  // Assume ARM
+  #define REGISTER_T uint32_t
+#endif
 typedef struct {
-	volatile uint8_t *heater_port; ///< pointer to port. DDR is inferred from this pointer too
+  volatile REGISTER_T *heater_port; ///< pointer to port. DDR is inferred from this pointer too
 	uint8_t						heater_pin;  ///< heater pin, not masked. eg for PB3 enter '3' here, or PB3_PIN or similar
-	volatile uint8_t *heater_pwm;  ///< pointer to 8-bit PWM register, eg OCR0A (8-bit) or ORC3L (low byte, 16-bit)
+  volatile REGISTER_T *heater_pwm;  ///< pointer to 8-bit PWM register, eg OCR0A (8-bit) or ORC3L (low byte, 16-bit)
 } heater_definition_t;
 
 #undef DEFINE_HEATER
@@ -103,6 +108,7 @@ EE_factor EEMEM EE_factors[NUM_HEATERS];
 void heater_init() {
 	heater_t i;
 
+#if defined (__AVR__) 
 	// setup PWM timers: fast PWM
 	// Warning 2012-01-11: these are not consistent across all AVRs
 	TCCR0A = MASK(WGM01) | MASK(WGM00);
@@ -167,11 +173,16 @@ void heater_init() {
 		OCR5A = 0;
 		OCR5B = 0;
 	#endif
+#else // not AVR
+      // rely on Teensy 3.0 defaults, set by pins_teensy.c:_init_Teensyduino_internal_()  
+      // 488.28 Hz, edge aligned, active high: FTMxCNT=0, FTMxMOD=49152, FTMx_CnSC= 0x28 
+#endif
 
 	// setup pins
-	for (i = 0; i < NUM_HEATERS; i++) {
+		for (i = 0; i < NUM_HEATERS; i++) {  // setup pins
 		if (heaters[i].heater_pwm) {
 			*heaters[i].heater_pwm = 0;
+#if defined (__AVR__)
 			// this is somewhat ugly too, but switch() won't accept pointers for reasons unknown
 			switch((uint16_t) heaters[i].heater_pwm) {
 				case (uint16_t) &OCR0A:
@@ -236,8 +247,12 @@ void heater_init() {
 					TCCR5A |= MASK(COM5C1);
 					break;
 				#endif
-			}
-		}
+			} // end switch
+#else // non __AVR__
+                        analogWriteRes(8);  // scales analogWrite() per FTMx_MOD value
+			//       analogWriteFrequency(heaters[i].heater_pin,256); // adjusts  
+#endif
+		} // end if
 
 		#ifdef	HEATER_SANITY_CHECK
 			// 0 is a "sane" temperature when we're trying to cool down

@@ -12,6 +12,9 @@
 #include	"debug.h"
 #include	"heater.h"
 #include	"serial.h"
+#ifdef __ARMEL__
+  #include <wiring.h>
+#endif
 #ifdef	TEMP_INTERCOM
 	#include	"intercom.h"
 #endif
@@ -36,11 +39,15 @@ static void clock_250ms(void) {
 	ifclock(clock_flag_1s) {
 		if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
 			// current position
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
+#pragma GCC diagnostic ignored "-Wformat-extra-args"
 			update_current_position();
       sersendf_P(PSTR("Pos: %lq,%lq,%lq,%lq,%lu\n"), current_position.axis[X], current_position.axis[Y], current_position.axis[Z], current_position.axis[E], current_position.F);
 
 			// target position
       sersendf_P(PSTR("Dst: %lq,%lq,%lq,%lq,%lu\n"), movebuffer[mb_tail].endpoint.axis[X], movebuffer[mb_tail].endpoint.axis[Y], movebuffer[mb_tail].endpoint.axis[Z], movebuffer[mb_tail].endpoint.axis[E], movebuffer[mb_tail].endpoint.F);
+#pragma GCC diagnostic pop
 
 			// Queue
 			print_queue();
