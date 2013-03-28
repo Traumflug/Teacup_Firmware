@@ -1,7 +1,9 @@
 MEMORY
 {
-	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 128K
-	RAM  (rwx) : ORIGIN = 0x1FFFE000, LENGTH = 16K
+	FLASH (rx)     : ORIGIN = 0x00000000, LENGTH = 128K
+	FLEXNVM (rx)   : ORIGIN = 0x10000000, LENGTH = 32K
+	FLEXRAM (rw!x) : ORIGIN = 0x14000000, LENGTH = 2K
+	RAM  (rwx)     : ORIGIN = 0x1FFFE000, LENGTH = 16K
 }
 
 
@@ -45,6 +47,14 @@ SECTIONS
 		. = ALIGN(4);
 		*(.dmabuffers*)
 	} > RAM
+
+	.eeprom  : {
+		. = 0;
+		*(.eeprom*)
+		. = ALIGN(4);
+		_eeeprom = . ;
+
+	} > FLEXRAM
 
 	.usbbuffers (NOLOAD) : {
 		. = ALIGN(4);
