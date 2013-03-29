@@ -672,8 +672,11 @@ void dda_step(DDA *dda) {
 
   // If there are no steps left or an endstop stop happened, we have finished.
   if ((move_state.x_steps == 0 && move_state.y_steps == 0 &&
-       move_state.z_steps == 0 && move_state.e_steps == 0) ||
-      (dda->endstop_check && move_state.n == -3)) {
+       move_state.z_steps == 0 && move_state.e_steps == 0)
+    #ifdef ACCELERATION_RAMPING
+      || (dda->endstop_check && move_state.n == -3)
+    #endif
+      ) {
 		dda->live = 0;
     #ifdef LOOKAHEAD
     // If look-ahead was using this move, it could have missed our activation:
@@ -808,12 +811,16 @@ void dda_clock() {
 
     // If an endstop is definitely triggered, stop the movement.
     if (endstop_stop) {
+      #ifdef ACCELERATION_RAMPING
       // For always smooth operations, don't halt apruptly,
       // but start deceleration here.
       ATOMIC_START
         dda->rampdown_steps = move_state.step_no;
         dda->rampup_steps = 0; // in case we're still accelerating
       ATOMIC_END
+      #else
+      dda->live = 0;
+      #endif
 
       endstops_off();
     }
