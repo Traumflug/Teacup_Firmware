@@ -105,6 +105,7 @@ ISR(TICKER_ISR){ // Periodic Interrupt Timer 0
 }
 #endif /* __ARMEL__ */
 
+
 #ifdef	MOTHERBOARD
 
 //process the step timer.
@@ -327,5 +328,3 @@ void timer_stop() {
   #endif
 }
 #endif /* ifdef MOTHERBOARD */
-
-
