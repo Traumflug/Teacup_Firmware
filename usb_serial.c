@@ -309,7 +309,9 @@ static uint8_t transmit_previous_timeout=0;
 
 // serial port settings (baud rate, control signals, etc) set
 // by the PC.  These are ignored, but kept in RAM.
-static uint8_t cdc_line_coding[7]={0x00, 0xE1, 0x00, 0x00, 0x00, 0x00, 0x08};
+static union{ 
+  uint8_t bytes[7];
+  uint32_t baud; } cdc_line_coding={{0x00, 0xE1, 0x00, 0x00, 0x00, 0x00, 0x08}};
 static uint8_t cdc_line_rtsdtr=0;
 
 
@@ -652,19 +654,19 @@ void usb_serial_flush_output(void)
 // communication
 uint32_t usb_serial_get_baud(void)
 {
-	return *(uint32_t *)cdc_line_coding;
+	return cdc_line_coding.baud;
 }
 uint8_t usb_serial_get_stopbits(void)
 {
-	return cdc_line_coding[4];
+	return cdc_line_coding.bytes[4];
 }
 uint8_t usb_serial_get_paritytype(void)
 {
-	return cdc_line_coding[5];
+	return cdc_line_coding.bytes[5];
 }
 uint8_t usb_serial_get_numbits(void)
 {
-	return cdc_line_coding[6];
+	return cdc_line_coding.bytes[6];
 }
 uint8_t usb_serial_get_control(void)
 {
@@ -753,7 +755,7 @@ ISR(USB_GEN_vect)
 
 
 // Misc functions to wait for ready and send/receive packets
-static inline void usb_wait_in_ready(void)
+inline void usb_wait_in_ready(void)
 {
 	while (!(UEINTX & (1<<TXINI))) ;
 }
@@ -879,7 +881,7 @@ ISR(USB_COM_vect)
 		}
 		if (bRequest == CDC_GET_LINE_CODING && bmRequestType == 0xA1) {
 			usb_wait_in_ready();
-			p = cdc_line_coding;
+			p = cdc_line_coding.bytes;
 			for (i=0; i<7; i++) {
 				UEDATX = *p++;
 			}
@@ -888,7 +890,7 @@ ISR(USB_COM_vect)
 		}
 		if (bRequest == CDC_SET_LINE_CODING && bmRequestType == 0x21) {
 			usb_wait_receive_out();
-			p = cdc_line_coding;
+			p = cdc_line_coding.bytes;
 			for (i=0; i<7; i++) {
 				*p++ = UEDATX;
 			}
