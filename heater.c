@@ -438,7 +438,7 @@ void heater_set(heater_t index, uint8_t value) {
 		*(heaters[index].heater_pwm) = value;
 		#ifdef	DEBUG
 		if (DEBUG_PID && (debug_flags & DEBUG_PID))
-			sersendf_P(PSTR("PWM{%u = %u}\n"), index, *heaters[index].heater_pwm);
+			sersendf_P(PSTR("PWM{%u = %lu}\n"), index, *heaters[index].heater_pwm);
 		#endif
 	}
 	else {
