@@ -6,11 +6,25 @@
 #                                                                            #
 # teensy 3.0/ARM/Cortex-m4/mk20dx128 development branch by drf 2013-04-01    #
 #                                                                            #
+# For the teensy 3.0 from http://www.pjrc.com/teensy/index.html              #
+#   2013-04-02 Status: Compiles on Mac, communicates, untested w/hardware    #
+#                                                                            #
+#                                                                            #
 ##############################################################################
 
 For installation instructions, see
 http://reprap.org/wiki/Teacup_Firmware#Simple_Installation and/or
 http://reprap.org/wiki/Teacup_Firmware#Developer_Installation
+
+Additional install hints for this branch:
+
+ 1) Install Teensyduino per http://www.pjrc.com/teensy/td_download.html for 
+    Arduino extentions and arm-none-eabi-gcc compiler and friends
+ 2) Modify Makefile-teensy3 TOOLCHAIN= and TOOLSPATH= as needed
+ 3) Modify Makefile-teensy3 CFLAGS += -I.... for Teensyduino headers
+ 4) cp config.teensy3.h  config.h                  # and adjust for your hardware
+ 5) cp ThermistorTable.double.h ThermistorTable.h  # and adjust
+ 6) make -f Makefile-teensy3
 
 For documentation, see
 http://reprap.org/wiki/Teacup_Firmware
