@@ -20,11 +20,12 @@
 #include	"temp.h"
 #include	"heater.h"
 #include	"timer.h"
-#include	"sersendf.h"
 #include	"pinio.h"
 #include	"debug.h"
 #include	"clock.h"
+#include	"config.h"
 #include	"config_wrapper.h"
+#include	"sersendf.h"
 #include	"home.h"
 
 /// the current tool

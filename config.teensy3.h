@@ -92,11 +92,13 @@ MXL 2.032 mm/tooth, 29
     Units are mm/min
 */
 
+#define MAXIMUM_STEPRATE (38400 * 0.9)
+
 /// used for G0 rapid moves and as a cap for all other feedrates
-#define MAXIMUM_FEEDRATE_X    6881
-#define MAXIMUM_FEEDRATE_Y    6881
-#define MAXIMUM_FEEDRATE_Z    233
-#define MAXIMUM_FEEDRATE_E    680
+#define MAXIMUM_FEEDRATE_X    ((long)(MAXIMUM_STEPRATE /STEPS_PER_M_X *1000 *60))
+#define MAXIMUM_FEEDRATE_Y    ((long)(MAXIMUM_STEPRATE /STEPS_PER_M_Y *1000 *60))
+#define MAXIMUM_FEEDRATE_Z    ((long)(MAXIMUM_STEPRATE /STEPS_PER_M_Z *1000 *60))
+#define MAXIMUM_FEEDRATE_E    ((long)(MAXIMUM_STEPRATE /STEPS_PER_M_E *1000 *60))
 
 /// Used when doing precision endstop search and as default feedrate.
 #define SEARCH_FEEDRATE_X     50
@@ -258,17 +260,28 @@ Stepper -ENABLE xPWM   4 |b7     A11=* f6| 21 A7  PWM       Fan PWM
          DIR E        12 |d7 * * * * * d6| 13     (led)
                          --------------------
 
-
       Back Side Surface Mount:
-        24, 25, 26, 27, 28, 29, 30, 31, 32, 33, +3V, GND
-        A12, A13
+        29, 30, 31, 32, 33, +3V, A13
+        28, 27, 26, 25, 24, GND, A12
 
 Since FTM1_CH1 is used for the stepper timer, normal PWM on 4 is impossible,
 and PWM on 3 is awkward.
 
+
+Testing connections:
+
+AGND A0 100K Thermistor
+AGND A1 100K thermistor
+3.3V A0 4K7
+3.3V A1 4K7
+
+
+
+I=V/R 3.3/(104700,4K7) = (0.03,0.7)mA
+
 */
 
-#include  "arduino.h"
+#include "arduino.h"
 
 /** \def USE_INTERNAL_PULLUPS
   internal pullup resistors
@@ -521,6 +534,12 @@ DEFINE_HEATER(fan,      DIO21,  1)
 * 7. MISCELLANEOUS OPTIONS                                                  *
 *                                                                           *
 \***************************************************************************/
+
+/** \def DO_NOT_CHECK_FORMATS
+     DO_NOT_CHECK_FORMATS: ignore format checking which seems to fail on %q and %lq formats (float=int/1000 format)
+*/
+//#define DO_NOT_CHECK_FORMATS // ignore sprintf("%q and %lq",...)  warnings
+
 
 /** \def EECONFIG
   EECONFIG: Enable EEPROM configuration storage.
