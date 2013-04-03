@@ -320,7 +320,8 @@ void _exit(int status)
 	while (1);
 }
 
-void __cxa_pure_virtual()
+
+void __cxa_pure_virtual(void)
 {
 	while (1);
 }
