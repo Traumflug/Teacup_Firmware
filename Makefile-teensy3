@@ -116,10 +116,10 @@ CFLAGS += -Os
 CFLAGS += -ffunction-sections
 CFLAGS += -finline-functions-called-once
 #CFLAGS += -mcall-prologues
-CFLAGS += -I/Applications/Arduino.app/Contents/Resources/Java/hardware/teensy/cores/teensy3
+CFLAGS += -idirafter /Applications/Arduino.app/Contents/Resources/Java/hardware/teensy/cores/teensy3
 CFLAGS += --save-temps
 CFLAGS += -DUSB_SERIAL 
-CFLAGS += -MMD -I.
+#CFLAGS += -MMD -I.
 
 LDFLAGS  = -Wl,--as-needed
 LDFLAGS += -Wl,--gc-sections

@@ -8,8 +8,10 @@
 #ifndef	_ARDUINO_H
 #define	_ARDUINO_H
 
-#ifndef SIMULATOR
+#if defined __AVR__
 #include	<avr/io.h>
+#elif defined __ARMEL__
+#include "avr_emulation.h"
 #endif
 
 /*
