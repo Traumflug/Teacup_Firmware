@@ -433,6 +433,7 @@ for x in range(0,14):
 #define AIO{x}_ADC        ADC_SC1_ADCH({ch})
 #define AIO{x}_DIO        {dio}
 #define AIO{x}_CONFIG    CORE_PIN{dio}_CONFIG
+#define AIO{x}_CHANNEL   {ch}
 """.format(x=x,y=y,ch=channel[x],dio=dio )
 ####  end python code
 
@@ -450,6 +451,8 @@ for x in range(0,14):
 #define AIO0_DDR        
 #define AIO0_ADC        ADC_SC1_ADCH(5)
 #define AIO0_DIO        14
+#define AIO0_CONFIG    CORE_PIN14_CONFIG
+#define AIO0_CHANNEL   5
 
 // ADC 1: 
 #define AIO1_PIN        CORE_ADC1_PIN    
@@ -459,6 +462,8 @@ for x in range(0,14):
 #define AIO1_DDR        
 #define AIO1_ADC        ADC_SC1_ADCH(14)
 #define AIO1_DIO        15
+#define AIO1_CONFIG    CORE_PIN15_CONFIG
+#define AIO1_CHANNEL   14
 
 // ADC 2: 
 #define AIO2_PIN        CORE_ADC2_PIN    
@@ -468,6 +473,8 @@ for x in range(0,14):
 #define AIO2_DDR        
 #define AIO2_ADC        ADC_SC1_ADCH(8)
 #define AIO2_DIO        16
+#define AIO2_CONFIG    CORE_PIN16_CONFIG
+#define AIO2_CHANNEL   8
 
 // ADC 3: 
 #define AIO3_PIN        CORE_ADC3_PIN    
@@ -477,6 +484,8 @@ for x in range(0,14):
 #define AIO3_DDR        
 #define AIO3_ADC        ADC_SC1_ADCH(9)
 #define AIO3_DIO        17
+#define AIO3_CONFIG    CORE_PIN17_CONFIG
+#define AIO3_CHANNEL   9
 
 // ADC 4: 
 #define AIO4_PIN        CORE_ADC4_PIN    
@@ -486,6 +495,8 @@ for x in range(0,14):
 #define AIO4_DDR        
 #define AIO4_ADC        ADC_SC1_ADCH(13)
 #define AIO4_DIO        18
+#define AIO4_CONFIG    CORE_PIN18_CONFIG
+#define AIO4_CHANNEL   13
 
 // ADC 5: 
 #define AIO5_PIN        CORE_ADC5_PIN    
@@ -495,6 +506,8 @@ for x in range(0,14):
 #define AIO5_DDR        
 #define AIO5_ADC        ADC_SC1_ADCH(12)
 #define AIO5_DIO        19
+#define AIO5_CONFIG    CORE_PIN19_CONFIG
+#define AIO5_CHANNEL   12
 
 // ADC 6: 
 #define AIO6_PIN        CORE_ADC6_PIN    
@@ -504,6 +517,8 @@ for x in range(0,14):
 #define AIO6_DDR        
 #define AIO6_ADC        ADC_SC1_ADCH(6)
 #define AIO6_DIO        20
+#define AIO6_CONFIG    CORE_PIN20_CONFIG
+#define AIO6_CHANNEL   6
 
 // ADC 7: 
 #define AIO7_PIN        CORE_ADC7_PIN    
@@ -513,6 +528,8 @@ for x in range(0,14):
 #define AIO7_DDR        
 #define AIO7_ADC        ADC_SC1_ADCH(7)
 #define AIO7_DIO        21
+#define AIO7_CONFIG    CORE_PIN21_CONFIG
+#define AIO7_CHANNEL   7
 
 // ADC 8: 
 #define AIO8_PIN        CORE_ADC8_PIN    
@@ -522,6 +539,8 @@ for x in range(0,14):
 #define AIO8_DDR        
 #define AIO8_ADC        ADC_SC1_ADCH(15)
 #define AIO8_DIO        22
+#define AIO8_CONFIG    CORE_PIN22_CONFIG
+#define AIO8_CHANNEL   15
 
 // ADC 9: 
 #define AIO9_PIN        CORE_ADC9_PIN    
@@ -531,6 +550,8 @@ for x in range(0,14):
 #define AIO9_DDR        
 #define AIO9_ADC        ADC_SC1_ADCH(4)
 #define AIO9_DIO        23
+#define AIO9_CONFIG    CORE_PIN23_CONFIG
+#define AIO9_CHANNEL   4
 
 // ADC 10:   (not a digital IO pin)
 #define AIO10_PIN        CORE_ADC10_PIN    
@@ -540,6 +561,8 @@ for x in range(0,14):
 #define AIO10_DDR        
 #define AIO10_ADC        ADC_SC1_ADCH(0)
 #define AIO10_DIO        
+#define AIO10_CONFIG    CORE_PIN_CONFIG
+#define AIO10_CHANNEL   0
 
 // ADC 11:   (not a digital IO pin)
 #define AIO11_PIN        CORE_ADC11_PIN    
@@ -549,6 +572,8 @@ for x in range(0,14):
 #define AIO11_DDR        
 #define AIO11_ADC        ADC_SC1_ADCH(19)
 #define AIO11_DIO        
+#define AIO11_CONFIG    CORE_PIN_CONFIG
+#define AIO11_CHANNEL   19
 
 // ADC 12:   (not a digital IO pin)
 #define AIO12_PIN        CORE_ADC12_PIN    
@@ -558,6 +583,8 @@ for x in range(0,14):
 #define AIO12_DDR        
 #define AIO12_ADC        ADC_SC1_ADCH(3)
 #define AIO12_DIO        
+#define AIO12_CONFIG    CORE_PIN_CONFIG
+#define AIO12_CHANNEL   3
 
 // ADC 13:   (not a digital IO pin)
 #define AIO13_PIN        CORE_ADC13_PIN    
@@ -567,6 +594,9 @@ for x in range(0,14):
 #define AIO13_DDR        
 #define AIO13_ADC        ADC_SC1_ADCH(21)
 #define AIO13_DIO        
+#define AIO13_CONFIG    CORE_PIN_CONFIG
+#define AIO13_CHANNEL   21
+
 
 
 
