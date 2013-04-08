@@ -7,7 +7,8 @@
 # teensy 3.0/ARM/Cortex-m4/mk20dx128 development branch by drf 2013-04-01    #
 #                                                                            #
 # For the teensy 3.0 from http://www.pjrc.com/teensy/index.html              #
-#   2013-04-02 Status: Compiles on Mac, communicates, untested w/hardware    #
+#   2013-04-08 Status: Compiles on Mac, communicates, ADC, PWM,              #
+#        untested w/hardware, but ADC->PID->PWM   works                      #
 #                                                                            #
 #                                                                            #
 ##############################################################################
