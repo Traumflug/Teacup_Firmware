@@ -285,7 +285,11 @@ void heater_init() {
 	// set all heater pins to output
 	do {
 		#undef	DEFINE_HEATER
-		#define	DEFINE_HEATER(name, pin, pwm) WRITE(pin, 0); SET_OUTPUT(pin);
+      #ifdef __AVR__
+        #define DEFINE_HEATER(name, pin, pwm) WRITE(pin, 0); SET_OUTPUT(pin);
+      #else
+        #define DEFINE_HEATER(name, pin, pwm) WRITE(pin, 0); SET_OUTPUT(pin); (pin ## _CONFIG) = PORT_PCR_MUX(4) | PORT_PCR_DSE | PORT_PCR_SRE;
+      #endif
 			#include "config_wrapper.h"
 		#undef DEFINE_HEATER
 	} while (0);
