@@ -38,7 +38,7 @@
   CPU clock rate
 */
 #ifndef F_CPU
-  #define F_CPU 16000000UL
+  #define F_CPU 96000000UL
 #endif
 
 /** \def MOTHERBOARD
@@ -239,6 +239,7 @@ MXL 2.032 mm/tooth, 29
   Machine Pin Definitions
   - make sure to avoid duplicate usage of a pin
   - comment out pins not in use, as this drops the corresponding code and makes operations faster
+  - Note that the logic levels are +3.3V rather than +5V, so
 
 Teensy 3.0 http://www.pjrc.com/teensy Frescale MK20DX128 carrier:
 
@@ -246,7 +247,7 @@ DaveX plan for Wallace:
                                USB
            GND       GND |-----#####-----| Vin              ATX +5SB
      ATX PS_ON         0 |0     VUSB=* F0| AGND
-         X_MIN         1 |b1           f1| 3.3V
+         X_MIN         1 |b1           f1| 3.3V             3.3V out, 100mA
          Y_MIN         2 |b2    AREF=* f4| 23 A9  PWM       Bed Heat
          Z_MIN  xPWM   3 |b3     A10=* f5| 22 A8  PWM       Extruder Heat
 Stepper -ENABLE xPWM   4 |b7     A11=* f6| 21 A7  PWM       Fan PWM
@@ -267,17 +268,46 @@ Stepper -ENABLE xPWM   4 |b7     A11=* f6| 21 A7  PWM       Fan PWM
 Since FTM1_CH1 is used for the stepper timer, normal PWM on 4 is impossible,
 and PWM on 3 is awkward.
 
-
 Testing connections:
 
 AGND A0 100K Thermistor
-AGND A1 100K thermistor
+AGND A1 100K Thermistor
 3.3V A0 4K7
 3.3V A1 4K7
 
+# NPN transistor circuit to control PS_ON
+# 3.3V output through resitor to base
+# PS_ON is 4.7V open circuit, 0.5mA short circuit current
+D0 DP0 1K5 resistor # protect and invert driver of PS_ON
+GND DP0 PS_ON  NPN-2N3904 (E,B,C)
+
+# PWM controllers
+# MOSFET VNP49N04 fully protected MOSFET/OMNIFET
+# 49A, DC-50kHZ frequency, 0.02 Ohm R_DS
+# R_fault=100ohm I_input=500nA
+# (330-100)< Rprot < (6600-100), choose 1k5
+# 3.3V /(R_fault+Rprot) = ~2mA during fault, 500nA normal, so 3.29V V_in
+# 12V/6.8ohms = ~2A, so ~50mOhm R_DS, Pdiss=2Amps^2*.05ohm = 0.2W
+# input, drain, source
+D23 D23P 1k5 resistor -- protect bed output
+D22 D22P 1k5 resistor -- protect extruder output
+
+D23P BedHeat GND MOSFET VNP49N04 (input, drain, source)
+D22P ExtHeat GND MOSFET VNP49N04 (input, drain, source)
+D21P ExtFan GND     MOSFET VNP49N04 (input, drain, source)
+
+# heaters
+12VDC ExtHeat 6R8 resistor
+12VDC BedHeat 3R0 MK1 Heatbed
+12VDC ExtFan  12VDC fan
+
+# endstops
+# Microswitches Normally closed(?)
+# Enable internal pullup?
 
 
-I=V/R 3.3/(104700,4K7) = (0.03,0.7)mA
+
+
 
 */
 
@@ -307,7 +337,7 @@ I=V/R 3.3/(104700,4K7) = (0.03,0.7)mA
 #define STEPPER_ENABLE_PIN    DIO4
 #define STEPPER_INVERT_ENABLE
 
-#define X_STEP_PIN            DIO13 //DIO5
+#define X_STEP_PIN            DIO5
 #define X_DIR_PIN             DIO6
 #define X_MIN_PIN             DIO1
 //#define X_MAX_PIN             xxxx
@@ -563,7 +593,7 @@ BANG_BANG
 drops PID loop from heater control, reduces code size significantly (1300 bytes!)
 may allow DEBUG on '168
 */
-#define BANG_BANG
+//#define BANG_BANG
 /** \def BANG_BANG_ON
 BANG_BANG_ON
 PWM value for 'on'
