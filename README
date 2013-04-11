@@ -10,6 +10,7 @@
 #   2013-04-08 Status: Compiles on Mac, communicates, ADC, PWM,              #
 #        untested w/hardware, but ADC->PID->PWM   works                      #
 #                                                                            #
+#  BUGS: EECONFIG, USE_INTERNAL_PULLUPS                                      #
 #                                                                            #
 ##############################################################################
 
