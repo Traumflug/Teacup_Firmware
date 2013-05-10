@@ -349,6 +349,7 @@ void process_gcode_command() {
 				//?
 
 			case 2:
+      case 84: // For compatibility with slic3rs default end G-code.
 				//? --- M2: program end ---
 				//?
 				//? Example: M2
@@ -408,15 +409,6 @@ void process_gcode_command() {
 
 				// No wait_queue() needed.
 				next_target.option_e_relative = 1;
-				break;
-
-			// M84- stop idle hold
-			case 84:
-				stepper_disable();
-				x_disable();
-				y_disable();
-				z_disable();
-				e_disable();
 				break;
 
 			// M3/M101- extruder on
