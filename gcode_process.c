@@ -624,6 +624,39 @@ void process_gcode_command() {
 				enqueue(NULL);
 				break;
 
+      case 119:
+        //? --- M119: report endstop status ---
+        //? Report the current status of the endstops configured in the
+        //? firmware to the host.
+        power_on();
+        endstops_on();
+        delay_ms(10); // allow the signal to stabilize
+        #if defined(X_MIN_PIN)
+          sersendf_P(PSTR("x_min:%d "), x_min());
+        #endif
+        #if defined(X_MAX_PIN)
+          sersendf_P(PSTR("x_max:%d "), x_max());
+        #endif
+        #if defined(Y_MIN_PIN)
+          sersendf_P(PSTR("y_min:%d "), y_min());
+        #endif
+        #if defined(Y_MAX_PIN)
+          sersendf_P(PSTR("y_max:%d "), y_max());
+        #endif
+        #if defined(Z_MIN_PIN)
+          sersendf_P(PSTR("z_min:%d "), z_min());
+        #endif
+        #if defined(Z_MAX_PIN)
+          sersendf_P(PSTR("z_max:%d "), z_max());
+        #endif
+        #if ! (defined(X_MIN_PIN) || defined(X_MAX_PIN) || \
+               defined(Y_MIN_PIN) || defined(Y_MAX_PIN) || \
+               defined(Z_MIN_PIN) || defined(Z_MAX_PIN))
+          sersendf_P(PSTR("no endstops defined"));
+        #endif
+        endstops_off();
+        break;
+
       #ifdef EECONFIG
 			case 130:
 				//? --- M130: heater P factor ---
@@ -696,36 +729,6 @@ void process_gcode_command() {
 						break;
 					temp_set(HEATER_BED, next_target.S);
 				#endif
-				break;
-
-			case 200:
-				//? --- M200: report endstop status ---
-				//? Report the current status of the endstops configured in the firmware to the host.
-				power_on();
-				endstops_on();
-				delay_ms(10); // allow the signal to stabilize
-				#if defined(X_MIN_PIN)
-					sersendf_P(PSTR("x_min:%d "), x_min());
-				#endif
-				#if defined(X_MAX_PIN)
-					sersendf_P(PSTR("x_max:%d "), x_max());
-				#endif
-				#if defined(Y_MIN_PIN)
-					sersendf_P(PSTR("y_min:%d "), y_min());
-				#endif
-				#if defined(Y_MAX_PIN)
-					sersendf_P(PSTR("y_max:%d "), y_max());
-				#endif
-				#if defined(Z_MIN_PIN)
-					sersendf_P(PSTR("z_min:%d "), z_min());
-				#endif
-				#if defined(Z_MAX_PIN)
-					sersendf_P(PSTR("z_max:%d "), z_max());
-				#endif
-				#if !(defined(X_MIN_PIN) || defined(X_MAX_PIN) || defined(Y_MIN_PIN) || defined(Y_MAX_PIN) || defined(Z_MIN_PIN) || defined(Z_MAX_PIN))
-					sersendf_P(PSTR("no endstops defined"));
-				#endif
-				endstops_off();
 				break;
 
 			#ifdef	DEBUG
