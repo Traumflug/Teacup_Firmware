@@ -261,6 +261,8 @@
 //#define	E_INVERT_DIR
 #define	E_INVERT_ENABLE
 
+//#define PS_ON_PIN             DIO9
+//#define PS_MOSFET_PIN         xxxx
 //#define	SD_CARD_DETECT				DIO2
 //#define	SD_WRITE_PROTECT			DIO3
 

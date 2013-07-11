@@ -217,6 +217,9 @@ void init(void) {
 	// reset watchdog
 	wd_reset();
 
+  // prepare the power supply
+  power_init();
+
 	// say hi to host
 	serial_writestr_P(PSTR("start\nok\n"));
 

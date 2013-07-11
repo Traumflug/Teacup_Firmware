@@ -14,6 +14,10 @@ void power_on() {
 			SET_OUTPUT(PS_ON_PIN);
 			delay_ms(500);
 		#endif
+    #ifdef PS_MOSFET_PIN
+      WRITE(PS_MOSFET_PIN, 1);
+      delay_ms(10);
+    #endif
 		ps_is_on = 1;
 	}
 
@@ -31,6 +35,10 @@ void power_off() {
 	#ifdef	PS_ON_PIN
 		SET_INPUT(PS_ON_PIN);
 	#endif
+
+  #ifdef PS_MOSFET_PIN
+    WRITE(PS_MOSFET_PIN, 0);
+  #endif
 
 	ps_is_on = 0;
 }

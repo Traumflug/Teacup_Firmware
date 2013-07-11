@@ -18,6 +18,14 @@ Power
 /// It is used inside and outside of interrupts, which is why it has been made volatile
 extern volatile uint8_t psu_timeout;
 
+static void power_init(void);
+inline void power_init(void) {
+  #ifdef PS_MOSFET_PIN
+    WRITE(PS_MOSFET_PIN, 0);
+    SET_OUTPUT(PS_MOSFET_PIN);
+  #endif
+}
+
 void power_on(void);
 void power_off(void);
 

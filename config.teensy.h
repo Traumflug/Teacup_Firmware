@@ -271,10 +271,6 @@ to use the other 6 PWMs instead.
 /* starting down the left side for digital, and later down the right for analog */
 /* General layout: ccw from upper left: stops, heaters,  E,Z,Y,X,  temp sensors */
 
-//#define	PS_ON_PIN							DIO0
-#define	STEPPER_ENABLE_PIN		DIO19
-#define	STEPPER_INVERT_ENABLE
-
 #define	X_STEP_PIN						DIO18
 #define	X_DIR_PIN							DIO17
 #define	X_MIN_PIN							DIO1
@@ -311,8 +307,11 @@ to use the other 6 PWMs instead.
 #define	E_INVERT_DIR
 //#define	E_INVERT_ENABLE
 
+//#define PS_ON_PIN             DIO0
+//#define PS_MOSFET_PIN         xxxx
+#define STEPPER_ENABLE_PIN    DIO19
+#define STEPPER_INVERT_ENABLE
 
-//#define	PS_ON_PIN							xxxx
 //#define	SD_CARD_DETECT		 		DIO2
 //#define	SD_WRITE_PROTECT			DIO3
 
