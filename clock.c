@@ -27,12 +27,9 @@ static void clock_250ms(void) {
 			power_off();
 		}
 		else {
-			uint8_t save_reg = SREG;
-			cli();
-			CLI_SEI_BUG_MEMORY_BARRIER();
-			psu_timeout++;
-			MEMORY_BARRIER();
-			SREG = save_reg;
+      ATOMIC_START
+        psu_timeout++;
+      ATOMIC_END
 		}
 	}
 

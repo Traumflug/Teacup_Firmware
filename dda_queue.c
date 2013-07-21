@@ -113,18 +113,15 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 	// make certain all writes to global memory
 	// are flushed before modifying mb_head.
 	MEMORY_BARRIER();
-	
-	mb_head = h;
-	
-	uint8_t save_reg = SREG;
-	cli();
-	CLI_SEI_BUG_MEMORY_BARRIER();
 
-	uint8_t isdead = (movebuffer[mb_tail].live == 0);
-	
-	MEMORY_BARRIER();
-	SREG = save_reg;
-	
+	mb_head = h;
+
+  uint8_t isdead;
+
+  ATOMIC_START
+    isdead = (movebuffer[mb_tail].live == 0);
+  ATOMIC_END
+
 	if (isdead) {
 		next_move();
 		// Compensate for the cli() in setTimer().
@@ -173,19 +170,16 @@ void queue_flush() {
 	// Since the timer interrupt is disabled before this function
 	// is called it is not strictly necessary to write the variables
 	// inside an interrupt disabled block...
-	uint8_t save_reg = SREG;
-	cli();
-	CLI_SEI_BUG_MEMORY_BARRIER();
-	
-	// flush queue
-	mb_tail = mb_head;
-	movebuffer[mb_head].live = 0;
+  ATOMIC_START
 
-	// disable timer
-	setTimer(0);
-	
-	MEMORY_BARRIER();
-	SREG = save_reg;
+    // flush queue
+    mb_tail = mb_head;
+    movebuffer[mb_head].live = 0;
+
+    // disable timer
+    setTimer(0);
+
+  ATOMIC_END
 }
 
 /// wait for queue to empty
