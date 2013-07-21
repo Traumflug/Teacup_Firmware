@@ -47,14 +47,11 @@ uint8_t queue_full() {
 
 /// check if the queue is completely empty
 uint8_t queue_empty() {
-	uint8_t save_reg = SREG;
-	cli();
-	CLI_SEI_BUG_MEMORY_BARRIER();
-	
-	uint8_t result = ((mb_tail == mb_head) && (movebuffer[mb_tail].live == 0))?255:0;
+  uint8_t result;
 
-	MEMORY_BARRIER();
-	SREG = save_reg;
+  ATOMIC_START
+    result = ((mb_tail == mb_head) && (movebuffer[mb_tail].live == 0))?255:0;
+  ATOMIC_END
 
 	return result;
 }

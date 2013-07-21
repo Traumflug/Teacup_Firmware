@@ -28,4 +28,13 @@
 	#define CLI_SEI_BUG_MEMORY_BARRIER()
 #endif
 
+#define ATOMIC_START { \
+                       uint8_t save_reg = SREG; \
+                       cli(); \
+                       CLI_SEI_BUG_MEMORY_BARRIER();
+
+#define ATOMIC_END   MEMORY_BARRIER(); \
+                     SREG = save_reg; \
+                   }
+
 #endif
