@@ -12,7 +12,6 @@
 #include <stddef.h>
 #include <math.h>
 #include <avr/interrupt.h>
-#include <util/atomic.h>
 
 #include "dda_maths.h"
 #include "dda.h"
@@ -25,6 +24,7 @@
 #include "debug.h"
 #include "sersendf.h"
 #include "pinio.h"
+#include "memory_barrier.h"
 
 extern uint8_t use_lookahead;
 
@@ -212,7 +212,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // Make sure we have 2 moves and the previous move is not already active
   if(prev!=NULL && prev->live==0) {
     // Perform an atomic copy to preserve volatile parameters during the calculations
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    ATOMIC_START
       prev_id = prev->id;
       prev_F = prev->endpoint.F;
       prev_F_start = prev->F_start;
@@ -220,7 +220,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
       prev_rampup = prev->rampup_steps;
       prev_rampdown = prev->rampdown_steps;
       prev_total_steps = prev->total_steps;
-    }
+    ATOMIC_END
 
     // The initial crossing speed is the minimum between both target speeds
     // Note: this is a given: the start speed and end speed can NEVER be
@@ -453,7 +453,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
 
     uint8_t timeout = 0;
 
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    ATOMIC_START
       // Evaluation: determine how we did...
       lookahead_joined++;
 
@@ -471,7 +471,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
         la_cnt++;
       } else
         timeout = 1;
-    }
+    ATOMIC_END
 
     // If we were not fast enough, any feedback will happen outside the atomic block:
     if(timeout) {
