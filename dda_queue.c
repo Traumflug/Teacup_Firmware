@@ -165,21 +165,15 @@ void print_queue() {
 }
 
 /// dump queue for emergency stop.
+/// Make sure to have all timers stopped with timer_stop() or
+/// unexpected things might happen.
 /// \todo effect on startpoint is undefined!
 void queue_flush() {
-	// Since the timer interrupt is disabled before this function
-	// is called it is not strictly necessary to write the variables
-	// inside an interrupt disabled block...
-  ATOMIC_START
 
-    // flush queue
-    mb_tail = mb_head;
-    movebuffer[mb_head].live = 0;
-
-    // disable timer
-    setTimer(0);
-
-  ATOMIC_END
+  // if the timer were running, this would require
+  // wrapping in ATOMIC_START ... ATOMIC_END.
+  mb_tail = mb_head;
+  movebuffer[mb_head].live = 0;
 }
 
 /// wait for queue to empty
