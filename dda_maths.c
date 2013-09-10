@@ -135,27 +135,47 @@ uint32_t approx_distance_3(uint32_t dx, uint32_t dy, uint32_t dz) {
   \param a find square root of this number
   \return sqrt(a - 1) < returnvalue <= sqrt(a)
 
-  see http://www.embedded-systems.com/98/9802fe2.htm
+  This is a binary search but it uses only the minimum required bits for
+  each step.
 */
-// courtesy of http://www.embedded-systems.com/98/9802fe2.htm
 uint16_t int_sqrt(uint32_t a) {
-  uint32_t rem = 0;
-  uint32_t root = 0;
+  uint16_t b = a >> 16;
+  uint8_t c = b >> 8;
+  uint16_t x = 0;
+  uint8_t z = 0;
   uint16_t i;
+  uint8_t j;
 
-  for (i = 0; i < 16; i++) {
-    root <<= 1;
-    rem = ((rem << 2) + (a >> 30));
-    a <<= 2;
-    root++;
-    if (root <= rem) {
-      rem -= root;
-      root++;
-    }
-    else
-      root--;
+  for (j = 0x8; j; j >>= 1) {
+    uint8_t y2;
+
+    z |= j;
+    y2 = z * z;
+    if (y2 > c)
+      z ^= j;
   }
-  return (uint16_t) ((root >> 1) & 0xFFFFL);
+  
+  x = z << 4;
+  for(i = 0x8; i; i >>= 1) {
+    uint16_t y2;
+
+    x |= i;
+    y2 = x * x;
+    if (y2 > b)
+      x ^= i;
+  }
+  
+  x <<= 8;
+  for(i = 0x80; i; i >>= 1) {
+    uint32_t y2;
+
+    x |= i;
+    y2 = (uint32_t)x * x;
+    if (y2 > a)
+      x ^= i;
+  }
+
+  return x;
 }
 
 // this is an ultra-crude pseudo-logarithm routine, such that:
