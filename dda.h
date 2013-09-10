@@ -150,9 +150,7 @@ typedef struct {
   uint32_t          distance;
   uint32_t          crossF;
   // These two are based on the "fast" axis, the axis with the most steps.
-  uint32_t          F_start;
   uint32_t          start_steps; ///< would be required to reach start feedrate
-  uint32_t          F_end;
   uint32_t          end_steps; ///< would be required to stop from end feedrate
   // Displacement vector, in um, based between the difference of the starting
   // point and the target. Required to obtain the jerk between 2 moves.
