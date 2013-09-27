@@ -105,6 +105,8 @@ void serial_init()
 /// receive interrupt
 ///
 /// we have received a character, stuff it in the rx buffer if we can, or drop it if we can't
+// Using the pragma inside the function is incompatible with Arduinos' gcc.
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #ifdef	USART_RX_vect
 ISR(USART_RX_vect)
 #else
@@ -117,9 +119,12 @@ ISR(USART0_RX_vect)
 	if (buf_canwrite(rx))
 		buf_push(rx, UDR0);
 	else {
+    // Not reading the character makes the interrupt logic to swamp us with
+    // retries, so better read it and throw it away.
+    // #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 		uint8_t trash;
+    // #pragma GCC diagnostic pop
 
-		// not reading the character makes the interrupt logic to swamp us with retries, so better read it and throw it away
 		trash = UDR0;
 	}
 
@@ -137,6 +142,7 @@ ISR(USART0_RX_vect)
 	MEMORY_BARRIER();
 	SREG = sreg_save;
 }
+#pragma GCC diagnostic pop
 
 /// transmit buffer ready interrupt
 ///
