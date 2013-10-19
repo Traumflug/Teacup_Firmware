@@ -118,17 +118,10 @@ uint16_t	analog_read(uint8_t index) {
 	if (analog_mask > 0) {
 		uint16_t r;
 
-		uint8_t sreg;
-		// save interrupt flag
-		sreg = SREG;
-		// disable interrupts
-		cli();
-
-		// atomic 16-bit copy
-		r = adc_result[index];
-
-		// restore interrupt flag
-		SREG = sreg;
+    ATOMIC_START
+      // atomic 16-bit copy
+      r = adc_result[index];
+    ATOMIC_END
 
 		return r;
 	} else {
