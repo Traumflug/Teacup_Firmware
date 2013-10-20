@@ -20,12 +20,6 @@
 #include	"dda_queue.h"
 #endif
 
-
-/// how often we overflow and update our clock; with F_CPU=16MHz, max is < 4.096ms (TICK_TIME = 65535)
-#define		TICK_TIME			2 MS
-/// convert back to ms from cpu ticks so our system clock runs properly if you change TICK_TIME
-#define		TICK_TIME_MS	(TICK_TIME / (F_CPU / 1000))
-
 /// time until next step, as output compare register is too small for long step times
 uint32_t	next_step_time;
 
