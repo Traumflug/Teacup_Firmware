@@ -151,10 +151,6 @@ void setTimer(uint32_t delay)
 	// as from one step interrupt to the next one. The last step interrupt happend
 	// at OCR1A, so start delay from there.
 	step_start = OCR1A;
-	if (next_step_time == 0) {
-		// new move, take current time as start value
-		step_start = TCNT1;
-	}
 	next_step_time = delay;
 
 	#ifdef ACCELERATION_TEMPORAL
