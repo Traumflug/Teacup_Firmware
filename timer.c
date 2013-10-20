@@ -42,9 +42,6 @@ volatile uint8_t	clock_flag_1s = 0;
 
 /// comparator B is the system clock, happens every TICK_TIME
 ISR(TIMER1_COMPB_vect) {
-	// save status register
-	uint8_t sreg_save = SREG;
-
 	// set output compare register to the next clock tick
 	OCR1B = (OCR1B + TICK_TIME) & 0xFFFF;
 
@@ -70,19 +67,12 @@ ISR(TIMER1_COMPB_vect) {
 	}
 
   dda_clock();
-
-	// restore status register
-	MEMORY_BARRIER();
-	SREG = sreg_save;
 }
 
 #ifdef	MOTHERBOARD
 
 /// comparator A is the step timer. It has higher priority then B.
 ISR(TIMER1_COMPA_vect) {
-	// save status register
-	uint8_t sreg_save = SREG;
-
 	// Check if this is a real step, or just a next_step_time "overflow"
 	if (next_step_time < 65536) {
 		// step!
@@ -114,10 +104,6 @@ ISR(TIMER1_COMPA_vect) {
 		next_step_time += 10000;
 	}
 	// leave OCR1A as it was
-
-	// restore status register
-	MEMORY_BARRIER();
-	SREG = sreg_save;
 }
 #endif /* ifdef MOTHERBOARD */
 

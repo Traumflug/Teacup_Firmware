@@ -140,9 +140,6 @@ ISR(USART1_RX_vect)
 ISR(USART_RX_vect)
 #endif
 {
-	// save status register
-	uint8_t sreg_save = SREG;
-
 	// pull character
 	static uint8_t c;
 
@@ -200,10 +197,6 @@ ISR(USART_RX_vect)
 			#endif
 		}
 	}
-
-	// restore status register
-	MEMORY_BARRIER();
-	SREG = sreg_save;
 }
 
 // finished transmitting interrupt- only enabled at end of packet
@@ -213,9 +206,6 @@ ISR(USART1_TX_vect)
 ISR(USART_TX_vect)
 #endif
 {
-	// save status register
-	uint8_t sreg_save = SREG;
-
 	if (packet_pointer >= sizeof(intercom_packet_t)) {
 		disable_transmit();
 		packet_pointer = 0;
@@ -226,10 +216,6 @@ ISR(USART_TX_vect)
 			UCSR0B &= ~MASK(TXCIE0);
 		#endif
 	}
-
-	// restore status register
-	MEMORY_BARRIER();
-	SREG = sreg_save;
 }
 
 // tx queue empty interrupt- send next byte
@@ -239,9 +225,6 @@ ISR(USART1_UDRE_vect)
 ISR(USART_UDRE_vect)
 #endif
 {
-	// save status register
-	uint8_t sreg_save = SREG;
-
 	#ifdef	MOTHERBOARD
 	UDR1 = _tx.data[packet_pointer++];
 	#else
@@ -257,10 +240,6 @@ ISR(USART_UDRE_vect)
 			UCSR0B |= MASK(TXCIE0);
 		#endif
 	}
-
-	// restore status register
-	MEMORY_BARRIER();
-	SREG = sreg_save;
 }
 
 #endif	/* TEMP_INTERCOM */

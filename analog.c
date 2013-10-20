@@ -77,9 +77,6 @@ void analog_init() {
 	This is where we read our analog value and store it in an array for later retrieval
 */
 ISR(ADC_vect, ISR_NOBLOCK) {
-	// save status register
-	uint8_t sreg_save = SREG;
-
 	// emulate free-running mode but be more deterministic about exactly which result we have, since this project has long-running interrupts
 	if (analog_mask > 0) { // at least one temp sensor uses an analog channel
 		// store next result
@@ -104,10 +101,6 @@ ISR(ADC_vect, ISR_NOBLOCK) {
 		// After the mux has been set, start a new conversion 
 		ADCSRA |= MASK(ADSC);
 	}
-
-	// restore status register
-	MEMORY_BARRIER();
-	SREG = sreg_save;
 }
 
 /*! Read analog value from saved result array
