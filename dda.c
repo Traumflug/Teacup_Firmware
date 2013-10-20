@@ -305,12 +305,7 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 			dda->c_min = (move_duration / target->F) << 8;
 			if (dda->c_min < c_limit)
 				dda->c_min = c_limit;
-// This section is plain wrong, like in it's only half of what we need. This factor 960000 is dependant on STEPS_PER_MM.
-			// overflows at target->F > 65535; factor 16. found by try-and-error; will overshoot target speed a bit
-      //dda->rampup_steps = target->F * target->F / (uint32_t)(STEPS_PER_M_X * ACCELERATION / 960000.);
-//sersendf_P(PSTR("rampup calc %lu\n"), dda->rampup_steps);
-			//dda->rampup_steps = 100000; // replace mis-calculation by a safe value
-// End of wrong section.
+
       /**
         Assuming: F is in mm/min, STEPS_PER_M_X is in steps/m, ACCELERATION is in mm/s²
         Given:
@@ -329,6 +324,14 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
          Note 4: Anyone trying to run their machine at 65535 mm/min > 1m/s is nuts
        */
       if (target->F > 65534) target->F = 65534;
+      // Note: this is inaccurate for several reasons:
+      // - target->F isn't reverse-calculated from c_limit, so speed
+      //   reductions due to slow axes are ignored.
+      // - target->F means the speed of all axes combined, not the speed
+      //   of the fast axis, which is taken into account here.
+      // The good thing: taking target->F means rampup_steps is always
+      // equal or larger than the number of steps required for acceleration,
+      // so we can use it when also limiting max speed according to c_limit.
       dda->rampup_steps = ACCELERATE_RAMP_LEN(target->F);
       // Quick hack: we do not do Z move joins as jerk on the Z axis is undesirable;
       // as the ramp length is calculated for XY, its incorrect for Z: apply the original
