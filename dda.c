@@ -728,6 +728,7 @@ void dda_clock() {
     move_state.debounce_count_zmin = move_state.debounce_count_xmax =
     move_state.debounce_count_ymax = move_state.debounce_count_zmax = 0;
     endstop_stop = 0;
+    last_dda = dda;
   }
 
   if (dda == NULL)
@@ -814,8 +815,6 @@ void dda_clock() {
       endstops_off();
     }
   } /* if (endstop_stop == 0) */
-
-  last_dda = dda;
 
   cli(); // Compensate sei() above.
   busy = 0;
