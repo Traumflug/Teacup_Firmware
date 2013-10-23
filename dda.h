@@ -72,10 +72,6 @@ typedef struct {
 	#ifdef ACCELERATION_RAMPING
 	/// counts actual steps done
 	uint32_t					step_no;
-	/// time until next step
-	uint32_t					c;
-	/// tracking variable
-	int32_t						n;
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
 	uint32_t					x_time; ///< time of the last x step
@@ -136,9 +132,10 @@ typedef struct {
 
 	#ifdef ACCELERATION_REPRAP
 	uint32_t					end_c; ///< time between 2nd last step and last step
-	int32_t						n; ///< precalculated step time offset variable. At every step we calculate \f$c = c - (2 c / n)\f$; \f$n+=4\f$. See http://www.embedded.com/columns/technicalinsights/56800129?printable=true for full description
 	#endif
 	#ifdef ACCELERATION_RAMPING
+  /// precalculated step time offset variable
+  int32_t           n;
 	/// number of steps accelerating
 	uint32_t					rampup_steps;
 	/// number of last step before decelerating
