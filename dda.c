@@ -318,7 +318,9 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
                  calculation. Make sure this does not happen.
          Note 4: Anyone trying to run their machine at 65535 mm/min > 1m/s is nuts
        */
-      if (target->F > 65534) target->F = 65534;
+      if (target->F > 65534)
+        target->F = 65534;
+
       // Note: this is inaccurate for several reasons:
       // - target->F isn't reverse-calculated from c_limit, so speed
       //   reductions due to slow axes are ignored.
@@ -328,6 +330,7 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
       // equal or larger than the number of steps required for acceleration,
       // so we can use it when also limiting max speed according to c_limit.
       dda->rampup_steps = ACCELERATE_RAMP_LEN(target->F);
+
       // Quick hack: we do not do Z move joins as jerk on the Z axis is undesirable;
       // as the ramp length is calculated for XY, its incorrect for Z: apply the original
       // 'fix' to simply specify a large enough ramp for any speed.
@@ -342,6 +345,10 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
       #ifdef LOOKAHEAD
         dda_join_moves(prev_dda, dda);
       #endif
+
+      dda->n = 0;
+      dda->c = C0;
+
 		#elif defined ACCELERATION_TEMPORAL
 			// TODO: limit speed of individual axes to MAXIMUM_FEEDRATE
 			// TODO: calculate acceleration/deceleration for each axis
@@ -425,8 +432,6 @@ void dda_start(DDA *dda) {
     move_state.endstop_stop = 0;
 		#ifdef ACCELERATION_RAMPING
 			move_state.step_no = 0;
-      move_state.n = 0;
-      move_state.c = C0;
 		#endif
 		#ifdef ACCELERATION_TEMPORAL
 		move_state.x_time = move_state.y_time = \
@@ -437,11 +442,7 @@ void dda_start(DDA *dda) {
 		dda->live = 1;
 
 		// set timeout for first step
-		#ifdef ACCELERATION_RAMPING
-			setTimer(move_state.c >> 8);
-		#else
-      setTimer(dda->c >> 8);
-		#endif
+    setTimer(dda->c >> 8);
 	}
 	// else just a speed change, keep dda->live = 0
 
@@ -618,7 +619,7 @@ void dda_step(DDA *dda) {
   if ((move_state.x_steps == 0 && move_state.y_steps == 0 &&
        move_state.z_steps == 0 && move_state.e_steps == 0)
     #ifdef ACCELERATION_RAMPING
-      || (move_state.endstop_stop && move_state.n == 0)
+      || (move_state.endstop_stop && dda->n == 0)
     #endif
       ) {
 		dda->live = 0;
@@ -636,11 +637,7 @@ void dda_step(DDA *dda) {
 	else
 		psu_timeout = 0;
 
-	#ifdef ACCELERATION_RAMPING
-    setTimer(move_state.c >> 8);
-	#else
-		setTimer(dda->c >> 8);
-	#endif
+  setTimer(dda->c >> 8);
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something.
@@ -786,20 +783,20 @@ void dda_clock() {
 
     recalc_speed = 0;
     if (move_step_no < dda->rampup_steps) {
-      move_state.n = move_step_no;
+      dda->n = move_step_no;
       recalc_speed = 1;
     }
     else if (move_step_no >= dda->rampdown_steps) {
-      move_state.n = dda->total_steps - move_step_no;
+      dda->n = dda->total_steps - move_step_no;
       recalc_speed = 1;
     }
     if (recalc_speed) {
-      if (move_state.n == 0)
+      if (dda->n == 0)
         move_c = C0;
       else
         // Explicit formula: sqrt(n + 1) - sqrt(n),
         // approximation here: 1 / (2 * sqrt(n)).
-        move_c = ((C0 >> 8) * int_inv_sqrt(move_state.n)) >> 5;
+        move_c = ((C0 >> 8) * int_inv_sqrt(dda->n)) >> 5;
 
       if (move_c < dda->c_min) {
         // We hit max speed not always exactly.
@@ -816,7 +813,7 @@ void dda_clock() {
 
       // Write results.
       ATOMIC_START
-        move_state.c = move_c;
+        dda->c = move_c;
       ATOMIC_END
     }
   #endif
