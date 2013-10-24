@@ -11,7 +11,9 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <math.h>
+#ifndef SIMULATOR
 #include <avr/interrupt.h>
+#endif
 
 #include "dda_maths.h"
 #include "dda.h"

@@ -10,7 +10,9 @@
 	Teacup has tried numerous timer management methods, and this is the best so far.
 */
 
+#ifndef SIMULATOR
 #include	<avr/interrupt.h>
+#endif
 #include	"memory_barrier.h"
 
 #include	"arduino.h"
@@ -119,6 +121,10 @@ void timer_init()
 	OCR1B = TICK_TIME & 0xFFFF;
 	// enable interrupt
 	TIMSK1 = MASK(OCIE1B);
+  #ifdef SIMULATOR
+    // Tell simulator
+    sim_timer_init();
+  #endif
 }
 
 #ifdef	MOTHERBOARD
@@ -201,11 +207,19 @@ void setTimer(uint32_t delay)
 	// timer1a interrupt to the far side of the return, protecting the 
 	// stack from recursively clobbering memory.
 	TIMSK1 |= MASK(OCIE1A);
+  #ifdef SIMULATOR
+    // Tell simulator
+    sim_setTimer();
+  #endif
 }
 
 /// stop timers - emergency stop
 void timer_stop() {
 	// disable all interrupts
 	TIMSK1 = 0;
+  #ifdef SIMULATOR
+    // Tell simulator
+    sim_timer_stop();
+  #endif
 }
 #endif /* ifdef MOTHERBOARD */

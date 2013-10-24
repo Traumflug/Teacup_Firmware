@@ -1,0 +1,28 @@
+##############################################################################
+#                                                                            #
+# Simulator of AVR-targetted code on a PC                                    #
+#                                                                            #
+##############################################################################
+
+To compile the simulation code, use
+
+  $ make -f Makefile-AVR sim
+
+The simulator will open a serial port for communication. If you don't want to
+connect a null modem cable, you can use 'socat' to connect two serial ports:
+
+  socat -d -d PTY,raw,echo=0 PTY,raw,echo=0
+  2013/10/24 17:42:04 socat[3375] N PTY is /dev/pts/12
+  2013/10/24 17:42:04 socat[3375] N PTY is /dev/pts/13
+  2013/10/24 17:42:04 socat[3375] N starting data transfer loop with FDs [3,3] and [5,5]
+
+On the first line of output, socat will tell you the name of the virtual serial
+port. Pass this as an argument to the simulator (in another terminal):
+
+  $ ./sim /dev/pts/12
+
+Give the other virtual serial port to an application like pronterface.
+
+Now you can send G-codes from the socat terminal. The simulation code will
+print any data sent via the firmware's serial interface. Stepper positions
+will be shown in green, counting a rising slope on the pin as one step.
