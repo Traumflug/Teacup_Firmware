@@ -715,9 +715,11 @@ void process_gcode_command() {
 				//? --- M136: PRINT PID settings to host ---
 				//? Undocumented.
 				//? This comand is only available in DEBUG builds.
+        #ifdef HEATER_EXTRUDER
 				if ( ! next_target.seen_P)
 					next_target.P = HEATER_EXTRUDER;
 				heater_print(next_target.P);
+        #endif
 				break;
 			#endif
 
