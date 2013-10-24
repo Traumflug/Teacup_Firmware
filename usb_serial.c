@@ -32,6 +32,7 @@
 // 2012-10-17: Import to Teacup firmware
 
 #include "config.h"
+#include "simulator.h"
 
 /* protect this file from Arduino IDE */
 #ifdef USB_SERIAL

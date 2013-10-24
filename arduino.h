@@ -8,7 +8,9 @@
 #ifndef	_ARDUINO_H
 #define	_ARDUINO_H
 
+#ifndef SIMULATOR
 #include	<avr/io.h>
+#endif
 
 /*
 	utility functions
@@ -66,7 +68,9 @@
 
 	added as necessary or if I feel like it- not a comprehensive list!
 */
-
+#ifdef SIMULATOR
+  #include "simulator.h"
+#else
 #if defined (__AVR_ATmega168__) || defined (__AVR_ATmega328__) || \
     defined (__AVR_ATmega328P__)
 	#include	"arduino_168_328p.h"
@@ -93,6 +97,7 @@
 #if defined (__AVR_ATmega32U4__)
 	#include    "arduino_32U4.h"
 #endif
+#endif /* SIMULATOR */
 
 #ifndef	DIO0_PIN
 #error pins for this chip not defined in arduino.h! If you write an appropriate pin definition and have this firmware work on your chip, please tell us via the forum thread

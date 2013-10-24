@@ -5,7 +5,9 @@
 */
 
 #include	<string.h>
+#ifndef SIMULATOR
 #include	<avr/interrupt.h>
+#endif
 
 #include	"config.h"
 #include	"timer.h"
