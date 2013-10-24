@@ -5,8 +5,10 @@
 */
 
 #include	<stdlib.h>
+#ifndef SIMULATOR
 #include	<avr/eeprom.h>
 #include	<avr/pgmspace.h>
+#endif
 
 #include	"arduino.h"
 #include	"debug.h"
@@ -170,6 +172,7 @@ void heater_init() {
 
 	// setup pins
 	for (i = 0; i < NUM_HEATERS; i++) {
+    #ifndef SIMULATOR
 		if (heaters[i].heater_pwm) {
 			*heaters[i].heater_pwm = 0;
 			// this is somewhat ugly too, but switch() won't accept pointers for reasons unknown
@@ -238,6 +241,7 @@ void heater_init() {
 				#endif
 			}
 		}
+    #endif /* SIMULATOR */
 
 		#ifdef	HEATER_SANITY_CHECK
 			// 0 is a "sane" temperature when we're trying to cool down
