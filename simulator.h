@@ -24,32 +24,45 @@
 #undef X_STEP_PIN
 #undef X_DIR_PIN
 #undef X_MIN_PIN
+#undef X_ENABLE_PIN
 #undef Y_STEP_PIN
 #undef Y_DIR_PIN
 #undef Y_MIN_PIN
+#undef Y_ENABLE_PIN
 #undef Z_STEP_PIN
 #undef Z_DIR_PIN
 #undef Z_MIN_PIN
+#undef Z_ENABLE_PIN
 #undef E_STEP_PIN
 #undef E_DIR_PIN
+#undef E_ENABLE_PIN
 #undef STEPPER_ENABLE_PIN
-#undef HEATER_PIN
-#undef FAN_PIN
-#undef HEATER_PWM
-#undef FAN_PWM
+
+#undef PS_MOSFET_PIN
+#undef PS_ON_PIN
+#undef RX_ENABLE_PIN
+#undef TX_ENABLE_PIN
+#undef X_MAX_PIN
+#undef Y_MAX_PIN
+#undef Z_MAX_PIN
 
 typedef enum {
+        // Define pins used
         X_STEP_PIN,
         X_DIR_PIN,
         X_MIN_PIN,
+        X_ENABLE_PIN,
         Y_STEP_PIN,
         Y_DIR_PIN,
         Y_MIN_PIN,
+        Y_ENABLE_PIN,
         Z_STEP_PIN,
         Z_DIR_PIN,
         Z_MIN_PIN,
+        Z_ENABLE_PIN,
         E_STEP_PIN,
         E_DIR_PIN,
+        E_ENABLE_PIN,
 
         STEPPER_ENABLE_PIN,
 
@@ -58,10 +71,21 @@ typedef enum {
         MISO,
         SS,
 
-        PIN_NB,
+/*
+ * Not used in the simulator.  Add them to this list to enable them if needed.
+  PS_MOSFET_PIN,
+  PS_ON_PIN,
+  RX_ENABLE_PIN,
+  TX_ENABLE_PIN,
+  X_MAX_PIN,
+  Y_MAX_PIN,
+  Z_MAX_PIN,
+  */
+    PIN_NB     /* End of PINS marker; Put all new pins before this one */
+} pin_t;
 
-
-    // Define pins used
+// AVR stand-ins
+typedef enum {
     WGM00 = 0,
     WGM01,
     WGM20,
@@ -71,34 +95,7 @@ typedef enum {
     CS20,
     CS21,
     CS22,
-    DIO1,
-    DIO18,
-    DIO19,
-    DIO22,
-    DIO23,
-    DIO24,
-    DIO25,
-    DIO26,
-    DIO27,
-    DIO28,
-    DIO5,
-    PB3,
-    PB4,
-    PINA1,
-    PINA2,
-    DIO0_PIN,
-    AIO1_ADC,
-    AIO2_ADC,
-    COM0A1,
-    COM0B1,
-    COM2A1,
-    COM2B1,
-    DIO15,
-    DIO3_PIN,
-    DIO3,
-    DIO4_PIN,
-    DIO4,
-} pin_t;
+} masks_t;
 
 #undef TEMP_PIN_CHANNEL
 #define TEMP_PIN_CHANNEL 0
@@ -106,27 +103,6 @@ typedef enum {
 extern uint8_t ACSR;
 extern uint8_t TIMSK1;
 extern volatile bool sim_interrupts;
-extern uint16_t    TCCR0A,
-    TCCR0B,
-    TCCR2A,
-    TCCR2B,
-    OCR0A,
-    OCR0B,
-    OCR2A,
-    OCR2B,
-    TIMSK0,
-    TIMSK2;
-
-extern volatile uint8_t
-    DIO1_WPORT,
-    DIO2_WPORT,
-    DIO3_WPORT,
-    DIO4_WPORT;
-
-#define DIO1_PWM NULL
-#define DIO2_PWM NULL
-#define DIO3_PWM NULL
-#define DIO4_PWM NULL
 
 void WRITE(pin_t pin, bool on);
 void SET_OUTPUT(pin_t pin);

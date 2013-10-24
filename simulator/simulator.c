@@ -67,11 +67,13 @@ static bool direction[PIN_NB];
 static bool state[PIN_NB];
 
 static void print_pos(void) {
+  printf("print_pos: %d, %d, %d, %d\n", x, y, z, e) ;
   sim_info("x:%5d       y:%5d       z:%5d       e:%5d", x, y, z, e);
 }
 
 void WRITE(pin_t pin, bool s) {
   bool old_state = state[pin];
+  sim_assert(pin < PIN_NB, "Pin number out of range");
 
   if (direction[pin] == out) {
     state[pin] = s;
@@ -101,9 +103,11 @@ void WRITE(pin_t pin, bool s) {
 }
 
 void SET_OUTPUT(pin_t pin) {
+  sim_assert(pin < PIN_NB, "Pin number out of range");
   direction[pin] = out;
 }
 
 void SET_INPUT(pin_t pin) {
+  sim_assert(pin < PIN_NB, "Pin number out of range");
   direction[pin] = in;
 }
