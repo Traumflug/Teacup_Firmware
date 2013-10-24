@@ -422,6 +422,7 @@ void dda_start(DDA *dda) {
 		move_state.x_counter = move_state.y_counter = move_state.z_counter = \
 			move_state.e_counter = -(dda->total_steps >> 1);
 		memcpy(&move_state.x_steps, &dda->x_delta, sizeof(uint32_t) * 4);
+    move_state.endstop_stop = 0;
 		#ifdef ACCELERATION_RAMPING
 			move_state.step_no = 0;
       move_state.n = 0;
@@ -617,7 +618,7 @@ void dda_step(DDA *dda) {
   if ((move_state.x_steps == 0 && move_state.y_steps == 0 &&
        move_state.z_steps == 0 && move_state.e_steps == 0)
     #ifdef ACCELERATION_RAMPING
-      || (dda->endstop_check && move_state.n == 0)
+      || (move_state.endstop_stop && move_state.n == 0)
     #endif
       ) {
 		dda->live = 0;
@@ -668,7 +669,7 @@ void dda_clock() {
   static volatile uint8_t busy = 0;
   DDA *dda;
   static DDA *last_dda = NULL;
-  static uint8_t endstop_stop = 0; ///< Stop due to endstop trigger
+  uint8_t endstop_trigger = 0;
   uint32_t move_step_no, move_c;
   uint8_t recalc_speed;
 
@@ -677,7 +678,6 @@ void dda_clock() {
     move_state.debounce_count_xmin = move_state.debounce_count_ymin =
     move_state.debounce_count_zmin = move_state.debounce_count_xmax =
     move_state.debounce_count_ymax = move_state.debounce_count_zmax = 0;
-    endstop_stop = 0;
     last_dda = dda;
   }
 
@@ -695,7 +695,7 @@ void dda_clock() {
   //          means, we trust dda isn't changed behind our back, which could
   //          in principle (but rarely) happen if endstops are checked not as
   //          endstop search, but as part of normal operations.
-  if (endstop_stop == 0) {
+  if (dda->endstop_check && ! move_state.endstop_stop) {
     #if defined X_MIN_PIN || defined X_MAX_PIN
     if (dda->endstop_check & 0x1) {
       #if defined X_MIN_PIN
@@ -710,8 +710,8 @@ void dda_clock() {
       else
         move_state.debounce_count_xmax = 0;
       #endif
-      endstop_stop = move_state.debounce_count_xmin >= ENDSTOP_STEPS ||
-                     move_state.debounce_count_xmax >= ENDSTOP_STEPS;
+      endstop_trigger = move_state.debounce_count_xmin >= ENDSTOP_STEPS ||
+                        move_state.debounce_count_xmax >= ENDSTOP_STEPS;
     }
     #endif
 
@@ -729,8 +729,8 @@ void dda_clock() {
       else
         move_state.debounce_count_ymax = 0;
       #endif
-      endstop_stop = move_state.debounce_count_ymin >= ENDSTOP_STEPS ||
-                     move_state.debounce_count_ymax >= ENDSTOP_STEPS;
+      endstop_trigger = move_state.debounce_count_ymin >= ENDSTOP_STEPS ||
+                        move_state.debounce_count_ymax >= ENDSTOP_STEPS;
     }
     #endif
 
@@ -748,16 +748,21 @@ void dda_clock() {
       else
         move_state.debounce_count_zmax = 0;
       #endif
-      endstop_stop = move_state.debounce_count_zmin >= ENDSTOP_STEPS ||
-                     move_state.debounce_count_zmax >= ENDSTOP_STEPS;
+      endstop_trigger = move_state.debounce_count_zmin >= ENDSTOP_STEPS ||
+                        move_state.debounce_count_zmax >= ENDSTOP_STEPS;
     }
     #endif
 
     // If an endstop is definitely triggered, stop the movement.
-    if (endstop_stop) {
+    if (endstop_trigger) {
       #ifdef ACCELERATION_RAMPING
         // For always smooth operations, don't halt apruptly,
         // but start deceleration here.
+        ATOMIC_START
+          move_state.endstop_stop = 1;
+          // A "-=" would cause an overflow.
+          dda->total_steps = dda->total_steps - dda->rampdown_steps + move_state.step_no;
+        ATOMIC_END
         // Not atomic, because not used in dda_step().
         dda->rampdown_steps = move_state.step_no;
         dda->rampup_steps = 0; // in case we're still accelerating
@@ -767,7 +772,7 @@ void dda_clock() {
 
       endstops_off();
     }
-  } /* if (endstop_stop == 0) */
+  } /* ! move_state.endstop_stop */
 
   #ifdef ACCELERATION_RAMPING
     // For maths about stepper speed profiles, see
@@ -814,7 +819,6 @@ void dda_clock() {
         move_state.c = move_c;
       ATOMIC_END
     }
-
   #endif
 
   cli(); // Compensate sei() above.
