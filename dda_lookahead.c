@@ -185,9 +185,9 @@ void dda_join_moves(DDA *prev, DDA *current) {
   moveno++;
   #endif
 
-  // Sanity: if the previous move or this one has no actual movement, bail now. (e.g. G1 F1500)
-  if(prev->delta.X==0 && prev->delta.Y==0 && prev->delta.Z==0 && prev->delta.E==0) return;
-  if(current->delta.X==0 && current->delta.Y==0 && current->delta.Z==0 && current->delta.E==0) return;
+  // Bail out if there's nothing to join (e.g. G1 F1500).
+  if ( ! prev || prev->nullmove)
+    return;
 
   serprintf(PSTR("Current Delta: %ld,%ld,%ld E:%ld Live:%d\r\n"), current->delta.X, current->delta.Y, current->delta.Z, current->delta.E, current->live);
   serprintf(PSTR("Prev    Delta: %ld,%ld,%ld E:%ld Live:%d\r\n"), prev->delta.X, prev->delta.Y, prev->delta.Z, prev->delta.E, prev->live);
@@ -196,7 +196,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // Note: moves are only modified after the calculations are complete.
   // Only prepare for look-ahead if we have 2 available moves to
   // join and the Z axis is unused (for now, Z axis moves are NOT joined).
-  if(prev!=NULL && prev->live==0 && prev->delta.Z==current->delta.Z) {
+  if (prev->live == 0 && prev->delta.Z == current->delta.Z) {
     // Calculate the jerk if the previous move and this move would be joined
     // together at full speed.
     jerk = dda_jerk_size_2d(prev->delta.X, prev->delta.Y, prev->endpoint.F,
@@ -210,7 +210,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
   }
 
   // Make sure we have 2 moves and the previous move is not already active
-  if(prev!=NULL && prev->live==0) {
+  if (prev->live == 0) {
     // Perform an atomic copy to preserve volatile parameters during the calculations
     ATOMIC_START
       prev_id = prev->id;

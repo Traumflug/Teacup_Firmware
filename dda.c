@@ -382,7 +382,7 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 			if (dda->c < c_limit)
 				dda->c = c_limit;
 		#endif
-	}
+	} /* ! dda->total_steps == 0 */
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 		serial_writestr_P(PSTR("] }\n"));
