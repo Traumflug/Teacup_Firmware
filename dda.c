@@ -344,10 +344,17 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 
       #ifdef LOOKAHEAD
         dda_join_moves(prev_dda, dda);
+        dda->n = ACCELERATE_RAMP_LEN(dda->F_start);
+        if (dda->n == 0)
+          dda->c = C0;
+        else
+          dda->c = ((C0 >> 8) * int_inv_sqrt(dda->n)) >> 5;
+        if (dda->c < dda->c_min)
+          dda->c = dda->c_min;
+      #else
+        dda->n = 0;
+        dda->c = C0;
       #endif
-
-      dda->n = 0;
-      dda->c = C0;
 
 		#elif defined ACCELERATION_TEMPORAL
 			// TODO: limit speed of individual axes to MAXIMUM_FEEDRATE
@@ -659,9 +666,6 @@ void dda_step(DDA *dda) {
   movement direction 500 times a second is easily enough for smooth and
   accurate curves!
 */
-#ifdef LOOKAHEAD
-  #error Look-ahead currently not supported. Turn it off or use an earlier commit.
-#endif
 void dda_clock() {
   static volatile uint8_t busy = 0;
   DDA *dda;
