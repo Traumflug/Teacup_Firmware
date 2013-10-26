@@ -1,25 +1,4 @@
-#if !defined _SIMULATOR_H && defined SIMULATOR
-#define _SIMULATOR_H
-
-#include <stdint.h>
-#include <stdbool.h>
-
-#define PROGMEM
-#define PGM_P const char *
-#define PSTR(x) (x)
-#define pgm_read_byte(x) (*((uint8_t *)(x)))
-#define pgm_read_word(x) (*((uint16_t *)(x)))
-
-#define MASK(PIN) (1 << PIN)
-#define ACD     7
-#define OCIE1A  1
-
-// TODO: Implement simulated EEMEM persistence
-#define EEMEM
-#define eeprom_read_dword(ptr32) (*(ptr32))
-#define eeprom_read_word(ptr16) (*(ptr16))
-#define eeprom_write_dword(ptr32, i32) (*(ptr32)=i32)
-#define eeprom_write_word(ptr16, i16) (*(ptr16)=i16)
+#ifdef SIMULATOR
 
 #undef X_STEP_PIN
 #undef X_DIR_PIN
@@ -45,6 +24,29 @@
 #undef X_MAX_PIN
 #undef Y_MAX_PIN
 #undef Z_MAX_PIN
+
+#ifndef _SIMULATOR_H
+#define _SIMULATOR_H
+
+#include <stdint.h>
+#include <stdbool.h>
+
+#define PROGMEM
+#define PGM_P const char *
+#define PSTR(x) (x)
+#define pgm_read_byte(x) (*((uint8_t *)(x)))
+#define pgm_read_word(x) (*((uint16_t *)(x)))
+
+#define	MASK(PIN) (1 << PIN)
+#define ACD	7
+#define OCIE1A	1
+
+// TODO: Implement simulated EEMEM persistence
+#define EEMEM
+#define eeprom_read_dword(ptr32) (*(ptr32))
+#define eeprom_read_word(ptr16) (*(ptr16))
+#define eeprom_write_dword(ptr32, i32) (*(ptr32)=i32)
+#define eeprom_write_word(ptr16, i16) (*(ptr16)=i16)
 
 typedef enum {
         // Define pins used
@@ -124,3 +126,4 @@ inline void cli(void);
 inline void cli() { }
 
 #endif /* _SIMULATOR_H */
+#endif /* SIMULATOR */

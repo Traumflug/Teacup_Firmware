@@ -7,6 +7,10 @@
 
 #include	"config.h"
 
+#ifdef SIMULATOR
+  #include "simulator.h"
+#endif
+
 /*
 Power
 */

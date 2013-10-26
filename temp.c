@@ -50,7 +50,11 @@ typedef struct {
 
 #undef DEFINE_TEMP_SENSOR
 /// help build list of sensors from entries in config.h
+#ifndef SIMULATOR
 #define DEFINE_TEMP_SENSOR(name, type, pin, additional) { (type), (pin ## _ADC), (HEATER_ ## name), (additional) },
+#else
+#define DEFINE_TEMP_SENSOR(name, type, pin, additional) { (type), (TEMP_SENSOR_ ## name), (HEATER_ ## name), (additional) },
+#endif
 static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
 {
 	#include	"config.h"
