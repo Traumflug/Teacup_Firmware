@@ -344,7 +344,7 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 
       #ifdef LOOKAHEAD
         dda_join_moves(prev_dda, dda);
-        dda->n = ACCELERATE_RAMP_LEN(dda->F_start);
+        dda->n = dda->start_steps;
         if (dda->n == 0)
           dda->c = C0;
         else
