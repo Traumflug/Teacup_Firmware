@@ -41,8 +41,10 @@ void sim_start(int argc, char** argv) {
 
 static void fgreen(void) { fputs("\033[0;32m" , stdout); }
 static void fred(void)   { fputs("\033[0;31m" , stdout); }
+static void fcyan(void)  { fputs("\033[0;36m" , stdout); }
 static void fbreset(void) { fputs("\033[m" , stdout); }
 
+static void bred(void)   { fputs("\033[0;41m" , stdout); }
 
 void sim_info(const char fmt[], ...) {
   va_list ap;
@@ -64,6 +66,13 @@ void sim_debug(const char fmt[], ...) {
   fputc('\n', stdout);
   fbreset();
 #endif
+}
+
+void sim_tick(char ch) {
+  fcyan();
+  fprintf(stdout, "%c", ch);
+  fbreset();
+  fflush(stdout);
 }
 
 void sim_error(const char msg[]) {
@@ -118,6 +127,26 @@ void WRITE(pin_t pin, bool s) {
   if (direction[pin] == out) {
     state[pin] = s;
   }
+
+  if (old_state != s) {
+    #ifdef TRACE_ALL_PINS
+      fgreen();
+      for (int i = 0; i < PIN_NB; i++) {
+        if (state[i]) bred(); else bblack();
+        fputc('A' + i, stdout);
+      }
+      fbreset();
+      printf("\n");
+    #else
+      bred();
+      if (s)
+        sim_tick('A' + pin);
+      else
+        sim_tick('a' + pin);
+      fbreset();
+    #endif
+  }
+
   if (s && !old_state) { /* rising edge */
     switch (pin) {
     case X_STEP_PIN:
