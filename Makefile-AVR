@@ -151,8 +151,8 @@ size: $(BUILDDIR)/$(PROGRAM).elf
 ##############################################################################
 
 SIM_PATH = simulator
-SIM_SOURCES  = serial_sim.c timer_sim.c clock_sim.c analog_sim.c delay_sim.c simulator.c
-SIM_SOURCES += $(filter-out serial.c timer.c clock.c analog.c delay.c, $(SOURCES))
+SIM_SOURCES := $(subst $(SIM_PATH)/,,$(wildcard $(SIM_PATH)/*.c))
+SIM_SOURCES += $(filter-out $(subst _sim.c,.c,$(SIM_SOURCES)),$(SOURCES))
 SIM_HEADERS  = config.h serial.h dda.h timer.h clock.h temp.h sermsg.h
 SIM_HEADERS += dda_queue.h debug.h sersendf.h heater.h analog.h delay.h
 SIM_HEADERS += simulator.h
