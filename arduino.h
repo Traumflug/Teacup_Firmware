@@ -8,7 +8,9 @@
 #ifndef	_ARDUINO_H
 #define	_ARDUINO_H
 
+#ifndef SIMULATOR
 #include	<avr/io.h>
+#endif
 
 /*
 	utility functions
