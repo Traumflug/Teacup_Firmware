@@ -787,7 +787,11 @@ void dda_clock() {
 
     recalc_speed = 0;
     if (move_step_no < dda->rampup_steps) {
-      dda->n = move_step_no;
+      #ifdef LOOKAHEAD
+        dda->n = dda->start_steps + move_step_no;
+      #else
+        dda->n = move_step_no;
+      #endif
       recalc_speed = 1;
     }
     else if (move_step_no >= dda->rampdown_steps) {
