@@ -163,7 +163,7 @@ SIM_CFLAGS += -funsigned-char -funsigned-bitfields -fshort-enums -I.. -I.
 
 $(BUILDDIR)/%.sim.o: %.c $(SIM_HEADERS)
 	@echo "  CC        $@"
-	@cc -DDEBUG -DSIMULATOR -c $(SIM_CFLAGS) -o $@ $<
+	@cc -DDEBUG -DSIMULATOR -D__AVR_ATmega644__ -c $(SIM_CFLAGS) -o $@ $<
 
 sim: $(SIM_OBJ)
 	@echo "  LINK      $@"
