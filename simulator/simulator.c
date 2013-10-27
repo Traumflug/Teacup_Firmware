@@ -27,6 +27,15 @@ volatile uint8_t
   DIO3_WPORT,
   DIO4_WPORT;
 
+int g_argc;
+char** g_argv;
+void sim_start(int argc, char** argv) {
+  // TODO: Parse args here and open the serial port instead of saving them
+  //       for serial_init.
+  // Save these for the serial_init code
+  g_argc = argc;
+  g_argv = argv;
+}
 
 /* -- debugging ------------------------------------------------------------ */
 
