@@ -232,12 +232,9 @@ void init(void) {
 ///
 /// just run init(), then run an endless loop where we pass characters from the serial RX buffer to gcode_parse_char() and check the clocks
 #ifdef SIMULATOR
-int g_argc;
-char** g_argv;
 int main (int argc, char** argv)
 {
-  g_argc = argc;
-  g_argv = argv;
+  sim_start(argc, argv);
 #else
 int main (void)
 {
