@@ -177,7 +177,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // until then, we do not want to touch the current move settings.
   // Note: we assume 'current' will not be dispatched while this function runs, so we do not to
   // back up the move settings: they will remain constant.
-  uint32_t this_F_start, this_rampup, this_rampdown;
+  uint32_t this_F_start, this_start, this_rampup, this_rampdown;
   int32_t jerk, jerk_e;       // Expresses the forces if we would change directions at full speed
   static uint32_t la_cnt = 0;     // Counter: how many moves did we join?
   #ifdef LOOKAHEAD_DEBUG
@@ -400,6 +400,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
     this_rampup = up;
     this_rampdown = current->total_steps - down;
     this_F_start = crossF;
+    this_start = ACCELERATE_RAMP_LEN(this_F_start);
     serprintf(PSTR("Actual crossing speed: %lu\r\n"), crossF);
 
     // Potential reverse processing:
@@ -468,6 +469,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
         current->rampdown_steps = this_rampdown;
         current->F_end = 0;
         current->F_start = this_F_start;
+        current->start_steps = this_start;
         la_cnt++;
       } else
         timeout = 1;
