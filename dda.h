@@ -147,6 +147,7 @@ typedef struct {
   // movement between G1 moves. These variables keep track of the entry and
   // exit speeds between moves.
   uint32_t          F_start;
+  uint32_t          start_steps; ///< steps to reach F_start
   uint32_t          F_end;
   // Displacement vector, in um, based between the difference of the starting
   // point and the target. Required to obtain the jerk between 2 moves.

@@ -96,12 +96,13 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
   #ifdef LOOKAHEAD
-  // Set the start and stop speeds to zero for now = full stops between
-  // moves. Also fallback if lookahead calculations fail to finish in time.
-  dda->F_start = 0;
-  dda->F_end = 0;
-  // Give this move an identifier.
-  dda->id = idcnt++;
+    // Set the start and stop speeds to zero for now = full stops between
+    // moves. Also fallback if lookahead calculations fail to finish in time.
+    dda->F_start = 0;
+    dda->start_steps = 0;
+    dda->F_end = 0;
+    // Give this move an identifier.
+    dda->id = idcnt++;
   #endif
 
 // TODO TODO: We should really make up a loop for all axes.
@@ -787,7 +788,11 @@ void dda_clock() {
 
     recalc_speed = 0;
     if (move_step_no < dda->rampup_steps) {
-      dda->n = move_step_no;
+      #ifdef LOOKAHEAD
+        dda->n = dda->start_steps + move_step_no;
+      #else
+        dda->n = move_step_no;
+      #endif
       recalc_speed = 1;
     }
     else if (move_step_no >= dda->rampdown_steps) {
