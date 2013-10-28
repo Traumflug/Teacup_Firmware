@@ -3,6 +3,7 @@
 #include <stdarg.h>
 
 #include "simulator.h"
+#include "data_recorder.h"
 
 uint8_t ACSR;
 uint8_t TIMSK1;
@@ -35,6 +36,33 @@ void sim_start(int argc, char** argv) {
   // Save these for the serial_init code
   g_argc = argc;
   g_argv = argv;
+
+  recorder_init("datalog.out");
+
+  // Record pin names in datalog
+#define NAME_PIN(x) add_trace_var(#x , x);
+  NAME_PIN(X_STEP_PIN);
+  NAME_PIN(X_DIR_PIN);
+  NAME_PIN(X_MIN_PIN);
+  NAME_PIN(X_ENABLE_PIN);
+  NAME_PIN(Y_STEP_PIN);
+  NAME_PIN(Y_DIR_PIN);
+  NAME_PIN(Y_MIN_PIN);
+  NAME_PIN(Y_ENABLE_PIN);
+  NAME_PIN(Z_STEP_PIN);
+  NAME_PIN(Z_DIR_PIN);
+  NAME_PIN(Z_MIN_PIN);
+  NAME_PIN(Z_ENABLE_PIN);
+  NAME_PIN(E_STEP_PIN);
+  NAME_PIN(E_DIR_PIN);
+  NAME_PIN(E_ENABLE_PIN);
+
+  NAME_PIN(STEPPER_ENABLE_PIN);
+
+  NAME_PIN(SCK);
+  NAME_PIN(MOSI);
+  NAME_PIN(MISO);
+  NAME_PIN(SS);
 }
 
 /* -- debugging ------------------------------------------------------------ */
@@ -129,6 +157,8 @@ void WRITE(pin_t pin, bool s) {
   }
 
   if (old_state != s) {
+    uint32_t useconds = 0;  // TODO
+    record_pin(pin, s, useconds);
     #ifdef TRACE_ALL_PINS
       fgreen();
       for (int i = 0; i < PIN_NB; i++) {
