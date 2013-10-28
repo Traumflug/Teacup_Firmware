@@ -8,10 +8,13 @@ uint8_t ACSR;
 uint8_t TIMSK1;
 uint16_t    TCCR0A,
     TCCR0B,
+    TCCR1A,
+    TCCR1B,
     TCCR2A,
     TCCR2B,
-    OCR0A,
     OCR0B,
+    OCR1A,
+    OCR1B,
     OCR2A,
     OCR2B,
     TIMSK0,
@@ -26,17 +29,39 @@ volatile uint8_t
 
 /* -- debugging ------------------------------------------------------------ */
 
+static void fgreen(void) { fputs("\033[0;32m" , stdout); }
+static void fred(void)   { fputs("\033[0;31m" , stdout); }
+static void fbreset(void) { fputs("\033[m" , stdout); }
+
+
 void sim_info(const char fmt[], ...) {
   va_list ap;
-  fputs("\033[0;32m" , stdout);
-  va_start(ap, fmt);
-  vprintf(fmt, ap);
-  va_end(ap);
-  fputs("\033[m\n", stdout);
+	fgreen();
+	va_start(ap, fmt);
+	vprintf(fmt, ap);
+	va_end(ap);
+	fputc('\n', stdout);
+	fbreset();
+}
+
+void sim_debug(const char fmt[], ...)
+{
+#ifdef SIM_DEBUG
+    va_list ap;
+    fcyan();
+	va_start(ap, fmt);
+	vprintf(fmt, ap);
+	va_end(ap);
+    fputc('\n', stdout);
+    fbreset();
+#endif
 }
 
 void sim_error(const char msg[]) {
-  printf("\033[0;31mERROR: %s\033[m\n", msg);
+	fred();
+	printf("ERROR: %s\n", msg);
+	fputc('\n', stdout);
+	fbreset();
   exit(-1);
 }
 

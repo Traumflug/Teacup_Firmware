@@ -126,7 +126,19 @@ void WRITE(pin_t pin, bool on);
 void SET_OUTPUT(pin_t pin);
 void SET_INPUT(pin_t pin);
 
+// Simulate AVR interrupts
+#define ISR(fn) void fn (void)
+void TIMER1_COMPA_vect(void) ;
+void TIMER1_COMPB_vect(void) ;
 
+// Compare-timers for next interrupts
+extern uint16_t OCR1A, OCR1B ;
+
+// Interrupt control registers
+extern uint16_t TCCR1A, TCCR1B ;
+enum { CS10 = 1 , OCIE1B = 3 } ;
+
+#define TCNT1 (sim_tick_counter())
 void sei(void);
 
 #ifdef USE_WATCHDOG
@@ -134,9 +146,16 @@ void sei(void);
 #define wd_reset()
 #endif
 
+void sim_start( int argc , char ** argv );
 void sim_info(const char fmt[], ...);
+void sim_debug(const char fmt[], ...);
 void sim_error(const char msg[]);
 void sim_assert(bool cond, const char msg[]);
+void sim_timer_init(void);
+void sim_timer_stop(void);
+void sim_setTimer(void);
+uint16_t sim_tick_counter(void);
+
 inline void cli(void);
 inline void cli() { }
 
