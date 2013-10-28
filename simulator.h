@@ -52,9 +52,9 @@
 #define pgm_read_byte(x) (*((uint8_t *)(x)))
 #define pgm_read_word(x) (*((uint16_t *)(x)))
 
-#define	MASK(PIN) (1 << PIN)
-#define ACD	7
-#define OCIE1A	1
+#define MASK(PIN)   (1 << PIN)
+#define ACD         7
+#define OCIE1A      1
 
 // TODO: Implement simulated EEMEM persistence
 #define EEMEM
@@ -64,29 +64,29 @@
 #define eeprom_write_word(ptr16, i16) (*(ptr16)=i16)
 
 typedef enum {
-        // Define pins used
-        X_STEP_PIN,
-        X_DIR_PIN,
-        X_MIN_PIN,
-        X_ENABLE_PIN,
-        Y_STEP_PIN,
-        Y_DIR_PIN,
-        Y_MIN_PIN,
-        Y_ENABLE_PIN,
-        Z_STEP_PIN,
-        Z_DIR_PIN,
-        Z_MIN_PIN,
-        Z_ENABLE_PIN,
-        E_STEP_PIN,
-        E_DIR_PIN,
-        E_ENABLE_PIN,
+  // Define pins used
+  X_STEP_PIN,
+  X_DIR_PIN,
+  X_MIN_PIN,
+  X_ENABLE_PIN,
+  Y_STEP_PIN,
+  Y_DIR_PIN,
+  Y_MIN_PIN,
+  Y_ENABLE_PIN,
+  Z_STEP_PIN,
+  Z_DIR_PIN,
+  Z_MIN_PIN,
+  Z_ENABLE_PIN,
+  E_STEP_PIN,
+  E_DIR_PIN,
+  E_ENABLE_PIN,
 
-        STEPPER_ENABLE_PIN,
+  STEPPER_ENABLE_PIN,
 
-        SCK,
-        MOSI,
-        MISO,
-        SS,
+  SCK,
+  MOSI,
+  MISO,
+  SS,
 
   RX_ENABLE_PIN,
   TX_ENABLE_PIN,
@@ -128,15 +128,15 @@ void SET_INPUT(pin_t pin);
 
 // Simulate AVR interrupts
 #define ISR(fn) void fn (void)
-void TIMER1_COMPA_vect(void) ;
-void TIMER1_COMPB_vect(void) ;
+void TIMER1_COMPA_vect(void);
+void TIMER1_COMPB_vect(void);
 
 // Compare-timers for next interrupts
-extern uint16_t OCR1A, OCR1B ;
+extern uint16_t OCR1A, OCR1B;
 
 // Interrupt control registers
-extern uint16_t TCCR1A, TCCR1B ;
-enum { CS10 = 1 , OCIE1B = 3 } ;
+extern uint16_t TCCR1A, TCCR1B;
+enum { CS10 = 1 , OCIE1B = 3 };
 
 #define TCNT1 (sim_tick_counter())
 void sei(void);

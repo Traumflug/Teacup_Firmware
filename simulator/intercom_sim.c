@@ -1,4 +1,4 @@
-#include	"intercom.h"
+#include "intercom.h"
 
 /* Intercom stubs here to appease compiler for build testing.
  * Functionally moot.
@@ -19,7 +19,7 @@ uint16_t read_temperature(uint8_t index) {
 void set_dio(uint8_t index, uint8_t value) {
 }
 #else
-uint8_t	get_dio(uint8_t index) {
+uint8_t get_dio(uint8_t index) {
   return 0;
 }
 #endif

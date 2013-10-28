@@ -11,7 +11,7 @@
 */
 
 #ifndef SIMULATOR
-    #include <avr/interrupt.h>
+  #include <avr/interrupt.h>
 #endif
 #include	"memory_barrier.h"
 
@@ -122,8 +122,8 @@ void timer_init()
 	// enable interrupt
 	TIMSK1 = MASK(OCIE1B);
 #ifdef SIMULATOR
-	// Tell simulator
-	sim_timer_init();
+  // Tell simulator
+  sim_timer_init();
 #endif
 }
 
@@ -208,8 +208,8 @@ void setTimer(uint32_t delay)
 	// stack from recursively clobbering memory.
 	TIMSK1 |= MASK(OCIE1A);
 #ifdef SIMULATOR
-	// Tell simulator
-	sim_setTimer();
+  // Tell simulator
+  sim_setTimer();
 #endif
 }
 
@@ -218,8 +218,8 @@ void timer_stop() {
 	// disable all interrupts
 	TIMSK1 = 0;
 #ifdef SIMULATOR
-	// Tell simulator
-	sim_timer_stop();
+  // Tell simulator
+  sim_timer_stop();
 #endif
 }
 #endif /* ifdef MOTHERBOARD */

@@ -29,39 +29,38 @@ volatile uint8_t
 
 int g_argc;
 char ** g_argv;
-void sim_start( int argc , char ** argv )
-{
-	// TODO: Parse args here and open the serial port instead of saving them for serial_init
-	// Save these for the serial_init code
-	g_argc = argc;
-	g_argv = argv;
+void sim_start( int argc , char ** argv ) {
+  // TODO: Parse args here and open the serial port instead of saving them for serial_init
+  // Save these for the serial_init code
+  g_argc = argc;
+  g_argv = argv;
 
-	recorder_init( "datalog.out" ) ;
+  recorder_init( "datalog.out" );
 
-	// Record pin names in datalog
-#define NAME_PIN(x) add_trace_var( #x , x ) ;
-	NAME_PIN( X_STEP_PIN ) ;
-	NAME_PIN( X_DIR_PIN ) ;
-	NAME_PIN( X_MIN_PIN ) ;
-	NAME_PIN( X_ENABLE_PIN ) ;
-	NAME_PIN( Y_STEP_PIN ) ;
-	NAME_PIN( Y_DIR_PIN ) ;
-	NAME_PIN( Y_MIN_PIN ) ;
-	NAME_PIN( Y_ENABLE_PIN ) ;
-	NAME_PIN( Z_STEP_PIN ) ;
-	NAME_PIN( Z_DIR_PIN ) ;
-	NAME_PIN( Z_MIN_PIN ) ;
-	NAME_PIN( Z_ENABLE_PIN ) ;
-	NAME_PIN( E_STEP_PIN ) ;
-	NAME_PIN( E_DIR_PIN ) ;
-	NAME_PIN( E_ENABLE_PIN ) ;
+  // Record pin names in datalog
+#define NAME_PIN(x) add_trace_var( #x , x );
+  NAME_PIN( X_STEP_PIN );
+  NAME_PIN( X_DIR_PIN );
+  NAME_PIN( X_MIN_PIN );
+  NAME_PIN( X_ENABLE_PIN );
+  NAME_PIN( Y_STEP_PIN );
+  NAME_PIN( Y_DIR_PIN );
+  NAME_PIN( Y_MIN_PIN );
+  NAME_PIN( Y_ENABLE_PIN );
+  NAME_PIN( Z_STEP_PIN );
+  NAME_PIN( Z_DIR_PIN );
+  NAME_PIN( Z_MIN_PIN );
+  NAME_PIN( Z_ENABLE_PIN );
+  NAME_PIN( E_STEP_PIN );
+  NAME_PIN( E_DIR_PIN );
+  NAME_PIN( E_ENABLE_PIN );
 
-	NAME_PIN( STEPPER_ENABLE_PIN ) ;
+  NAME_PIN( STEPPER_ENABLE_PIN );
 
-	NAME_PIN( SCK ) ;
-	NAME_PIN( MOSI ) ;
-	NAME_PIN( MISO ) ;
-	NAME_PIN( SS ) ;
+  NAME_PIN( SCK );
+  NAME_PIN( MOSI );
+  NAME_PIN( MISO );
+  NAME_PIN( SS );
 
 }
 
@@ -76,16 +75,15 @@ static void bred(void)   { fputs("\033[0;41m" , stdout); }
 
 void sim_info(const char fmt[], ...) {
   va_list ap;
-	fgreen();
-	va_start(ap, fmt);
-	vprintf(fmt, ap);
-	va_end(ap);
-	fputc('\n', stdout);
-	fbreset();
+  fgreen();
+  va_start(ap, fmt);
+  vprintf(fmt, ap);
+  va_end(ap);
+  fputc('\n', stdout);
+  fbreset();
 }
 
-void sim_debug(const char fmt[], ...)
-{
+void sim_debug(const char fmt[], ...) {
 #ifdef SIM_DEBUG
     va_list ap;
     fcyan();
@@ -97,19 +95,18 @@ void sim_debug(const char fmt[], ...)
 #endif
 }
 
-void sim_tick(char ch )
-{
-	fcyan();
-	fprintf(stdout, "%c", ch);
-	fbreset();
-	fflush(stdout);
+void sim_tick(char ch ) {
+  fcyan();
+  fprintf(stdout, "%c", ch);
+  fbreset();
+  fflush(stdout);
 }
 
 void sim_error(const char msg[]) {
-	fred();
-	printf("ERROR: %s\n", msg);
-	fputc('\n', stdout);
-	fbreset();
+  fred();
+  printf("ERROR: %s\n", msg);
+  fputc('\n', stdout);
+  fbreset();
   exit(-1);
 }
 
@@ -140,8 +137,8 @@ static bool direction[PIN_NB];
 static bool state[PIN_NB];
 
 static void print_pos(void) {
-  printf("print_pos: %d, %d, %d, %d\n", x, y, z, e) ;
-  sim_info("x:%5d       y:%5d       z:%5d       e:%5d", x, y, z, e);
+  printf("print_pos: %d, %d, %d, %d\n", x, y, z, e);
+  sim_info("x:%5d y:%5d     z:%5d e:%5d", x, y, z, e);
 }
 
 bool READ(pin_t pin) {
@@ -158,26 +155,24 @@ void WRITE(pin_t pin, bool s) {
     state[pin] = s;
   }
 
-	if ( old_state != s )
-	{
-	    uint32_t useconds = 0 ;  // TODO
-	    record_pin( pin , s , useconds ) ;
+  if ( old_state != s ) {
+      uint32_t useconds = 0;  // TODO
+      record_pin( pin , s , useconds );
 #ifdef TRACE_ALL_PINS
-		fgreen();
-		for ( int i = 0 ; i < PIN_NB ; i++ )
-		{
-			if ( state[i] ) bred(); else bblack() ;
-			fputc('A' + i, stdout ) ;
-		}
-		fbreset();
-		printf("\n");
+    fgreen();
+    for ( int i = 0; i < PIN_NB; i++ ) {
+      if ( state[i] ) bred(); else bblack();
+      fputc('A' + i, stdout );
+    }
+    fbreset();
+    printf("\n");
 #else
-        bred();
-        if ( s ) sim_tick('A' + pin ) ;
-        else     sim_tick('a' + pin ) ;
-        fbreset();
+  bred();
+  if ( s )  sim_tick('A' + pin );
+  else      sim_tick('a' + pin );
+  fbreset();
 #endif
-	}
+  }
 
   if (s && !old_state) { /* rising edge */
     switch (pin) {

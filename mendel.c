@@ -234,7 +234,7 @@ void init(void) {
 #ifdef SIMULATOR
 int main (int argc, char ** argv)
 {
-	sim_start( argc, argv ) ;
+  sim_start( argc, argv );
 #else
 int main (void)
 {
