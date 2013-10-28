@@ -33,6 +33,13 @@
 #undef GET_INPUT
 #undef GET_OUTPUT
 
+// Compiler appeasement
+#undef disable_transmit
+#undef enable_transmit
+#define disable_transmit()
+#define enable_transmit()
+#undef USB_SERIAL
+
 #ifndef _SIMULATOR_H
 #define _SIMULATOR_H
 
@@ -81,12 +88,12 @@ typedef enum {
         MISO,
         SS,
 
+  RX_ENABLE_PIN,
+  TX_ENABLE_PIN,
 /*
  * Not used in the simulator.  Add them to this list to enable them if needed.
   PS_MOSFET_PIN,
   PS_ON_PIN,
-  RX_ENABLE_PIN,
-  TX_ENABLE_PIN,
   X_MAX_PIN,
   Y_MAX_PIN,
   Z_MAX_PIN,
