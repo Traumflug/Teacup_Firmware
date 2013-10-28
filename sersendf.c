@@ -97,7 +97,7 @@
 	\code sersendf_P(PSTR("X:%ld Y:%ld temp:%u.%d flags:%sx Q%su/%su%c\n"), target.X, target.Y, current_temp >> 2, (current_temp & 3) * 25, dda.allflags, mb_head, mb_tail, (queue_full()?'F':(queue_empty()?'E':' '))) \endcode
 */
 
-#ifdef SIMULATION
+#ifdef SIMULATOR
   #define GET_ARG(T) (va_arg(args, int))
 #else
   #define GET_ARG(T) (va_arg(args, T))

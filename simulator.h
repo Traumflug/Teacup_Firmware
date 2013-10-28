@@ -25,6 +25,14 @@
 #undef Y_MAX_PIN
 #undef Z_MAX_PIN
 
+#undef READ
+#undef WRITE
+#undef TOGGLE
+#undef SET_INPUT
+#undef SET_OUTPUT
+#undef GET_INPUT
+#undef GET_OUTPUT
+
 #ifndef _SIMULATOR_H
 #define _SIMULATOR_H
 
@@ -106,11 +114,11 @@ extern uint8_t ACSR;
 extern uint8_t TIMSK1;
 extern volatile bool sim_interrupts;
 
+bool READ(pin_t pin);
 void WRITE(pin_t pin, bool on);
 void SET_OUTPUT(pin_t pin);
 void SET_INPUT(pin_t pin);
 
-#define READ(n) 0
 
 void sei(void);
 
@@ -124,6 +132,8 @@ void sim_error(const char msg[]);
 void sim_assert(bool cond, const char msg[]);
 inline void cli(void);
 inline void cli() { }
+
+#define DIO0_PIN  "proof of life"
 
 #endif /* _SIMULATOR_H */
 #endif /* SIMULATOR */

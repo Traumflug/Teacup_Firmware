@@ -71,9 +71,15 @@ static void print_pos(void) {
   sim_info("x:%5d       y:%5d       z:%5d       e:%5d", x, y, z, e);
 }
 
+bool READ(pin_t pin) {
+  sim_assert(pin < PIN_NB, "READ: Pin number out of range");
+  // Add any necessary reactive pin-handlers here.
+  return state[pin];
+}
+
 void WRITE(pin_t pin, bool s) {
   bool old_state = state[pin];
-  sim_assert(pin < PIN_NB, "Pin number out of range");
+  sim_assert(pin < PIN_NB, "WRITE: Pin number out of range");
 
   if (direction[pin] == out) {
     state[pin] = s;
