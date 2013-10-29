@@ -42,9 +42,6 @@ SOURCES = $(wildcard *.c)
 
 SIM_SOURCES = $(subst $(SIM_PATH)/,,$(wildcard $(SIM_PATH)/*.c))
 SOURCES := $(filter-out $(subst _sim.c,.c,$(SIM_SOURCES)),$(SOURCES)) $(SIM_SOURCES)
-HEADERS  = config.h serial.h dda.h timer.h clock.h temp.h sermsg.h
-HEADERS += dda_queue.h debug.h sersendf.h heater.h analog.h delay.h
-HEADERS += simulator.h
 
 OBJ = $(patsubst %.c,$(BUILDDIR)/%.sim.o,$(SOURCES))
 CFLAGS  = -g -Wall -Wstrict-prototypes -Wno-format -Os $(DEFS) -std=gnu99
@@ -58,9 +55,10 @@ CFLAGS += -D__AVR_ATmega1280__
 
 include Makefile-common
 
-$(BUILDDIR)/%.sim.o: %.c $(HEADERS)
+$(BUILDDIR)/%.sim.o: %.c | $(BUILDDIR)
 	@echo "  CC        $@"
-	@cc -c $(CFLAGS) -o $@ $<
+	@cc -c $(CFLAGS) -MMD -o $@ $<
+	@$(call CCPOST)
 
 $(TARGET): $(OBJ)
 	@echo "  LINK      $@"
