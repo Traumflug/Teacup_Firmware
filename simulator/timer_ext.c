@@ -115,13 +115,13 @@ void sim_setTimer() {
   //-- Calculate time in clock ticks until next timer events
   if (TIMSK1 & MASK(OCIE1A)) {
     sim_debug("Timer1 Interrupt A: Enabled");
-    nextA = OCR1A - now;
+    nextA = (OCR1A - now) & 0xFFFF ;
     // 0 = No timer;  1-0x10000 = time until next occurrence
     if ( ! nextA) nextA = 0x10000;
   }
   if (TIMSK1 & MASK(OCIE1B)) {
     sim_debug("Timer1 Interrupt B: Enabled");
-    nextB = OCR1B - now;
+    nextB = (OCR1B - now) & 0xFFFF;
     // 0 = No timer;  1-0x10000 = time until next occurrence
     if ( ! nextB) nextB = 0x10000;
   }
