@@ -163,9 +163,16 @@ void dda_emergency_shutdown(PGM_P msg) {
  *
  * \return dda->crossF
  */
+// TODO: This should go into config.h.
+#define MAX_JERK_X 20
+#define MAX_JERK_Y 20
+#define MAX_JERK_Z 0
+#define MAX_JERK_E 20
 void dda_find_crossing_speed(DDA *prev, DDA *current) {
-  int32_t jerk, jerk_e;
-  uint32_t crossF;
+  uint32_t F, prev_distance, curr_distance;
+  uint32_t dv, speed_factor, max_speed_factor;
+  int32_t prevFx, prevFy, prevFz, prevFe;
+  int32_t currFx, currFy, currFz, currFe;
 
   // Bail out if there's nothing to join (e.g. G1 F1500).
   if ( ! prev || prev->nullmove) {
@@ -173,90 +180,130 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
     return;
   }
 
-  // Only prepare for look-ahead if we have 2 available moves to
-  // join and the Z axis is unused (for now, Z axis moves are NOT joined).
-  if (prev->live == 0 && prev->delta_um.Z == current->delta_um.Z) {
-    // Calculate the jerk if the previous move and this move would be joined
-    // together at full speed.
-    jerk = dda_jerk_size_2d(prev->delta_um.X, prev->delta_um.Y, prev->endpoint.F,
-        current->delta_um.X, current->delta_um.Y, current->endpoint.F);
-    jerk_e = dda_jerk_size_1d(prev->delta_um.E, prev->endpoint.F,
-                              current->delta_um.E, current->endpoint.F);
+  // We always look at the smaller of both combined speeds,
+  // else we'd interpret intended speed changes as jerk.
+  F = prev->endpoint.F;
+  if (current->endpoint.F < F)
+    F = current->endpoint.F;
 
+  // Find out movement distances.
+  // TODO: remember these from dda_start();
+  if (prev->delta_um.Z == 0)
+    prev_distance = approx_distance(
+        prev->x_direction ? prev->delta_um.X : - prev->delta_um.X,
+        prev->y_direction ? prev->delta_um.Y : - prev->delta_um.Y);
+  else if (prev->delta_um.X == 0 && prev->delta_um.Y == 0)
+    prev_distance = prev->z_direction ? prev->delta_um.Z : - prev->delta_um.Z;
+  else
+    prev_distance = approx_distance_3(
+        prev->x_direction ? prev->delta_um.X : - prev->delta_um.X,
+        prev->y_direction ? prev->delta_um.Y : - prev->delta_um.Y,
+        prev->z_direction ? prev->delta_um.Z : - prev->delta_um.Z);
+
+  if (current->delta_um.Z == 0)
+    curr_distance = approx_distance(
+        current->x_direction ? current->delta_um.X : - current->delta_um.X,
+        current->y_direction ? current->delta_um.Y : - current->delta_um.Y);
+  else if (current->delta_um.X == 0 && current->delta_um.Y == 0)
+    curr_distance = current->z_direction ? current->delta_um.Z : - current->delta_um.Z;
+  else
+    curr_distance = approx_distance_3(
+        current->x_direction ? current->delta_um.X : - current->delta_um.X,
+        current->y_direction ? current->delta_um.Y : - current->delta_um.Y,
+        current->z_direction ? current->delta_um.Z : - current->delta_um.Z);
+
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("Distance: %lu, then %lu\n"), prev_distance, curr_distance);
+
+  // Find individual axis speeds.
+  // int32_t muldiv(int32_t multiplicand, uint32_t multiplier, uint32_t divisor)
+  prevFx = muldiv(prev->delta_um.X, F, prev_distance);
+  prevFy = muldiv(prev->delta_um.Y, F, prev_distance);
+  prevFz = muldiv(prev->delta_um.Z, F, prev_distance);
+  prevFe = muldiv(prev->delta_um.E, F, prev_distance);
+
+  currFx = muldiv(current->delta_um.X, F, curr_distance);
+  currFy = muldiv(current->delta_um.Y, F, curr_distance);
+  currFz = muldiv(current->delta_um.Z, F, curr_distance);
+  currFe = muldiv(current->delta_um.E, F, curr_distance);
+
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("prevF: %ld  %ld  %ld  %ld\ncurrF: %ld  %ld  %ld  %ld\n"),
+               prevFx, prevFy, prevFz, prevFe, currFx, currFy, currFz, currFe);
+
+  /**
+   * What we want is (for each axis):
+   *
+   *   delta velocity = dv = |v1 - v2| < max_jerk
+   *
+   * In case this isn't satisfied, we can slow down by some factor x until
+   * the equitation is satisfied:
+   *
+   *   x * |v1 - v2| < max_jerk
+   *
+   * Now computation is pretty straightforward:
+   *
+   *        max_jerk
+   *   x = -----------
+   *        |v1 - v2|
+   *
+   *   if x > 1: continue full speed
+   *   if x < 1: v = v_max * x
+   *
+   * See also: https://github.com/Traumflug/Teacup_Firmware/issues/45
+   */
+  max_speed_factor = (uint32_t)2 << 8;
+
+  dv = currFx > prevFx ? currFx - prevFx : prevFx - currFx;
+  if (dv) {
+    speed_factor = ((uint32_t)MAX_JERK_X << 8) / dv;
+    if (speed_factor < max_speed_factor)
+      max_speed_factor = speed_factor;
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("Jerk %lu   Jerk_e: %lu\n"), jerk, jerk_e);
-  } else {
-    // Move already executing or Z moved: abort the join
-    current->crossF = 0;
-    return;
+      sersendf_P(PSTR("X: dv %lu of %lu   factor %lu of %lu\n"),
+                 dv, (uint32_t)MAX_JERK_X, speed_factor, (uint32_t)1 << 8);
   }
 
-  // The initial crossing speed is the minimum between both target speeds
-  // Note: this is a given: the start speed and end speed can NEVER be
-  // higher than the target speed in a move!
-  // Note 2: this provides an upper limit, if needed, the speed is lowered.
-  crossF = prev->endpoint.F;
-  if (crossF > current->endpoint.F)
-    crossF = current->endpoint.F;
-
-  // If the XY jerk is too big, scale the proposed cross speed.
-  if (jerk > LOOKAHEAD_MAX_JERK_XY) {
-
+  dv = currFy > prevFy ? currFy - prevFy : prevFy - currFy;
+  if (dv) {
+    speed_factor = ((uint32_t)MAX_JERK_Y << 8) / dv;
+    if (speed_factor < max_speed_factor)
+      max_speed_factor = speed_factor;
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("XY Jerk too big.\n"));
-
-    // Perform an exponential scaling.
-    // Use unsigned to double the range before overflowing.
-    crossF = (crossF * LOOKAHEAD_MAX_JERK_XY * LOOKAHEAD_MAX_JERK_XY) /
-             ((uint32_t)jerk * (uint32_t)jerk);
-
-    // Optimize: if the crossing speed is zero, there is no join possible.
-    if (crossF == 0) {
-      current->crossF = 0;
-      return;
-    }
-
-    // Safety: make sure we never exceed the maximum speed of a move
-    if (crossF > current->endpoint.F)
-      crossF = current->endpoint.F;
-    if (crossF > prev->endpoint.F)
-      crossF = prev->endpoint.F;
+      sersendf_P(PSTR("Y: dv %lu of %lu   factor %lu of %lu\n"),
+                 dv, (uint32_t)MAX_JERK_Y, speed_factor, (uint32_t)1 << 8);
   }
 
-  // Same to the extruder jerk: make sure we do not yank it.
-  if (jerk_e > LOOKAHEAD_MAX_JERK_E) {
-    uint32_t crossF2;
-
+  dv = currFz > prevFz ? currFz - prevFz : prevFz - currFz;
+  if (dv) {
+    speed_factor = ((uint32_t)MAX_JERK_Z << 8) / dv;
+    if (speed_factor < max_speed_factor)
+      max_speed_factor = speed_factor;
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("E Jerk too big.\n"));
-
-    crossF2 = MAX(current->endpoint.F, prev->endpoint.F);
-
-    // Perform an exponential scaling.
-    // Use unsigned to double the range before overflowing.
-    crossF2 = (crossF2 * LOOKAHEAD_MAX_JERK_E * LOOKAHEAD_MAX_JERK_E) /
-              ((uint32_t)jerk * (uint32_t)jerk);
-
-    // Only continue with joining if there is a feasible crossing speed.
-    if (crossF2 == 0) {
-      current->crossF = 0;
-      return;
-    }
-
-    // Safety: make sure the proposed speed is not higher than the target speeds of each move
-    crossF2 = MIN(crossF2, current->endpoint.F);
-    crossF2 = MIN(crossF2, prev->endpoint.F);
-
-    if (crossF2 > crossF) {
-      sersendf_P(PSTR("Jerk_e: %lu => crossF: %lu (original: %lu)\r\n"),
-                 jerk_e, crossF2, crossF);
-    }
-
-    // Pick the crossing speed for these 2 move to be within the jerk limits
-    crossF = MIN(crossF, crossF2);
+      sersendf_P(PSTR("Z: dv %lu of %lu   factor %lu of %lu\n"),
+                 dv, (uint32_t)MAX_JERK_Z, speed_factor, (uint32_t)1 << 8);
   }
 
-  current->crossF = crossF;
+  dv = currFe > prevFe ? currFe - prevFe : prevFe - currFe;
+  if (dv) {
+    speed_factor = ((uint32_t)MAX_JERK_E << 8) / dv;
+    if (speed_factor < max_speed_factor)
+      max_speed_factor = speed_factor;
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+      sersendf_P(PSTR("E: dv %lu of %lu   factor %lu of %lu\n"),
+                 dv, (uint32_t)MAX_JERK_E, speed_factor, (uint32_t)1 << 8);
+  }
+
+  if (max_speed_factor >= ((uint32_t)1 << 8))
+    current->crossF = F;
+  else
+    current->crossF = (F * max_speed_factor) >> 8;
+
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("Cross speed reduction from %lu to %lu\n"),
+               F, current->crossF);
+
+  return;
 }
 
 /**
