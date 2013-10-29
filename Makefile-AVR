@@ -101,6 +101,9 @@ UPLOADER_FLAGS += -P /dev/ttyUSB0
 
 PROGRAM = teacup
 
+# The thing we build by default, and also the thing we clean.
+TARGET = $(PROGRAM).hex
+
 # Arduino IDE takes the "compile everything available"-approach, so we have
 # to keep this working and can take a shortcut:
 SOURCES = $(wildcard *.c)
@@ -128,11 +131,15 @@ LDFLAGS += -Wl,--gc-sections
 
 LIBS  = -lm
 
+OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES))
+
 -include Makefile-common
 
 # Architecture specific targets
 
 .PHONY: program size
+
+all: $(PROGRAM).hex $(BUILDDIR)/$(PROGRAM).lst $(BUILDDIR)/$(PROGRAM).sym size
 
 program: $(PROGRAM).hex config.h
 	$(UPLOADER) $(UPLOADER_FLAGS) -U flash:w:$(PROGRAM).hex
@@ -142,35 +149,3 @@ size: $(BUILDDIR)/$(PROGRAM).elf
 	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    FLASH : %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (14 * 1024)), ceil($$a * 100 / (30 * 1024)),ceil($$a * 100 / (62 * 1024)), ceil($$a * 100 / (126 * 1024)) }' 
 	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(data|bss)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    RAM   : %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (1 * 1024)), ceil($$a * 100 / (2 * 1024)),ceil($$a * 100 / (4 * 1024)), ceil($$a * 100 / (8 * 1024)) }'
 	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(eeprom)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    EEPROM: %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (1 * 1024)), ceil($$a * 100 / (2 * 1024)), ceil($$a * 100 / (2 * 1024)), ceil($$a * 100 / (4 * 1024)) }'
-
-
-##############################################################################
-#                                                                            #
-# Simulator                                                                  #
-#                                                                            #
-##############################################################################
-
-SIM_PATH = simulator
-SIM_SOURCES := $(subst $(SIM_PATH)/,,$(wildcard $(SIM_PATH)/*.c))
-SIM_SOURCES += $(filter-out $(subst _sim.c,.c,$(SIM_SOURCES)),$(SOURCES))
-SIM_HEADERS  = config.h serial.h dda.h timer.h clock.h temp.h sermsg.h
-SIM_HEADERS += dda_queue.h debug.h sersendf.h heater.h analog.h delay.h
-SIM_HEADERS += simulator.h
-
-SIM_OBJ = $(patsubst %.c,$(BUILDDIR)/%.sim.o,$(SIM_SOURCES))
-SIM_CFLAGS  = -g -Wall -Wstrict-prototypes -Wno-format -Os $(DEFS) -std=gnu99
-SIM_CFLAGS += -funsigned-char -funsigned-bitfields -fshort-enums -I.. -I.
-
-# Satisfy all current config chip targets
-SIM_CFLAGS += -DSIMULATOR -D__AVR_ATmega644P__ -D__AVR_ATmega1280__
-SIM_CFLAGS +=-D__AVR_ATmega2560__ -D__AVR_ATmega32U4__ -D__AVR_AT90USB1286__
-
-$(BUILDDIR)/%.sim.o: %.c $(SIM_HEADERS)
-	@echo "  CC        $@"
-	@cc -DDEBUG -c $(SIM_CFLAGS) -o $@ $<
-
-sim: $(SIM_OBJ)
-	@echo "  LINK      $@"
-	@cc $(SIM_CFLAGS) -o $@ $^
-
-vpath %.c $(SIM_PATH)
