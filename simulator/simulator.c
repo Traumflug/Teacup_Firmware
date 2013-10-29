@@ -161,7 +161,7 @@ void WRITE(pin_t pin, bool s) {
   }
 
   if (old_state != s) {
-    uint32_t useconds = 0;  // TODO
+    uint32_t useconds = (uint32_t)sim_runtime_ns();
     record_pin(pin, s, useconds);
     #ifdef TRACE_ALL_PINS
       fgreen();
