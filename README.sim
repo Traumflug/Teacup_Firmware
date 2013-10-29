@@ -6,7 +6,7 @@
 
 To compile the simulation code, use
 
-  $ make -f Makefile-AVR sim
+  $ make -f Makefile-SIM
 
 The simulator will open a serial port for communication. If you don't want to
 connect a null modem cable, you can use 'socat' to connect two serial ports:
