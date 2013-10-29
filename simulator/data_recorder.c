@@ -50,7 +50,31 @@ void record_pin(int pin, bool state, uint32_t t) {
   // Naive format: each line contains all values, beginning with the time
   fprintf(file, "%u", t);
   for (int i = 0; i < pin_count; i++)
-    fprintf(file, "\t%u", values[i]);
+    fprintf(file, " %u", values[i]);
   fprintf(file, "\n");
+  fflush(file);
+}
+
+static char comment_buffer[300];
+static int comment_buffer_index;
+void record_comment_stream(char ch) {
+  // Got CR, LF or buffer full
+  if ( comment_buffer_index == sizeof(comment_buffer)-1 ||
+       ch == '\r' || ch == '\n' || ch == 0 ) {
+
+    // Terminate string, reset buffer, emit comment
+    comment_buffer[comment_buffer_index] = 0;
+    comment_buffer_index = 0;
+    record_comment(comment_buffer);
+    if (ch == '\r' || ch == '\n')
+      return;
+  }
+
+  // Acumulate char from stream
+  comment_buffer[comment_buffer_index++] = ch;
+}
+
+void record_comment(const char * msg) {
+  fprintf(file, "; %s\n", msg);
   fflush(file);
 }

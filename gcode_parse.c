@@ -14,6 +14,9 @@
 #include	"sersendf.h"
 
 #include	"gcode_process.h"
+#ifdef SIMULATOR
+  #include "simulator.h"
+#endif
 
 /// current or previous gcode word
 /// for working out what to do with data just received
@@ -102,7 +105,9 @@ void gcode_parse_char(uint8_t c) {
 	// uppercase
 	if (c >= 'a' && c <= 'z')
 		c &= ~32;
-
+#ifdef SIMULATOR
+  record_comment_stream(c);
+#endif
 	// process previous field
 	if (last_field) {
 		// check if we're seeing a new field or end of line

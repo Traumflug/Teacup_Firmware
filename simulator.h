@@ -45,6 +45,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "simulator/data_recorder.h"
 
 #define PROGMEM
 #define PGM_P const char *
