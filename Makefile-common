@@ -32,8 +32,6 @@
 ##############################################################################
 
 BUILDDIR = build
-DEPEND = $(BUILDDIR)/depend
-
 CFLAGS += -save-temps=obj
 
 CC = $(TOOLCHAIN)gcc
@@ -63,20 +61,27 @@ functionsbysize: $(OBJ)
 	@$(OBJDUMP) -h $^ | grep '\.text\.' | perl -ne '/\.text\.(\S+)\s+([0-9a-f]+)/ && printf "%u\t%s\n", eval("0x$$2"), $$1;' | sort -n
 
 $(BUILDDIR):
-	mkdir $(BUILDDIR)
-
-$(DEPEND): $(SOURCES)
-	@echo "  DEP       $@"
-	@rm -f $(DEPEND)
-	@mkdir -p $(@D)
-	@$(CC) $(CFLAGS) -MM $^ > $@
+	mkdir -p $(BUILDDIR)
 
 # pull in dependency info
--include $(DEPEND)
+-include $(OBJ:%.o=%.P)
 
-$(BUILDDIR)/%.o: %.c config.h $(MAKEFILE_LIST)
+# Everything depends on makefiles, excluding auto-built makefiles
+$(OBJ): $(filter-out %.P,$(MAKEFILE_LIST))
+
+# Auto-depends extension
+df = $(@:.o=)
+define CCPOST
+	cp $(df).d $(df).P; \
+	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+	  -e '/^$$/ d' -e 's/$$/ :/' < $(df).d >> $(df).P; \
+	rm -f $(df).d
+endef
+
+$(BUILDDIR)/%.o: %.c | $(BUILDDIR)
 	@echo "  CC        $@"
-	@$(CC) -c $(CFLAGS) -Wa,-adhlns=$(@:.o=.al) -o $@ $<
+	@$(CC) -c $(CFLAGS) -MMD -Wa,-adhlns=$(@:.o=.al) -o $@ $<
+	@$(call CCPOST)
 
 $(BUILDDIR)/%.elf: $(OBJ)
 	@echo "  LINK      $@"
