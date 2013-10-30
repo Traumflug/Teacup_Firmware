@@ -763,11 +763,15 @@ void dda_clock() {
         // but start deceleration here.
         ATOMIC_START
           move_state.endstop_stop = 1;
-          // A "-=" would cause an overflow.
-          dda->total_steps = dda->total_steps - dda->rampdown_steps + move_state.step_no;
+          if (move_state.step_no < dda->rampup_steps)  // still accelerating
+            dda->total_steps = move_state.step_no * 2;
+          else
+            // A "-=" would overflow earlier.
+            dda->total_steps = dda->total_steps - dda->rampdown_steps +
+                               move_state.step_no;
+          dda->rampdown_steps = move_state.step_no;
         ATOMIC_END
         // Not atomic, because not used in dda_step().
-        dda->rampdown_steps = move_state.step_no;
         dda->rampup_steps = 0; // in case we're still accelerating
       #else
         dda->live = 0;
