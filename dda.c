@@ -812,10 +812,17 @@ void dda_clock() {
         // We hit max speed not always exactly.
         move_c = dda->c_min;
 
-        #ifndef LOOKAHEAD
-          // This is a hack which deals with movements with an unknown number of
-          // acceleration steps. dda_create() sets a very high number, then,
-          // but we don't want to re-calculate all the time.
+        // This is a hack which deals with movements with an unknown number of
+        // acceleration steps. dda_create() sets a very high number, then,
+        // but we don't want to re-calculate all the time.
+        // This hack doesn't work with (and isn't neccessary for) movements
+        // accelerated by look-ahead.
+        #ifdef LOOKAHEAD
+          if (dda->crossF == 0) {  // For example, endstop searches.
+            dda->rampup_steps = move_step_no;
+            dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
+          }
+        #else  // Without LOOKAHEAD, there's no dda->crossF.
           dda->rampup_steps = move_step_no;
           dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
         #endif
