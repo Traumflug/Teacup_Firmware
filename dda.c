@@ -493,7 +493,7 @@ void dda_step(DDA *dda) {
 		}
 	}
 #else	// ACCELERATION_TEMPORAL
-	if ((dda->axis_to_step == 'y') && ! endstop_stop) {
+	if (dda->axis_to_step == 'y') {
 		y_step();
 		move_state.y_steps--;
 		move_state.y_time += dda->y_step_interval;
