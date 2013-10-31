@@ -183,29 +183,15 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
 
   // Find out movement distances.
   // TODO: remember these from dda_start();
-  if (prev->delta_um.Z == 0)
-    prev_distance = approx_distance(
-        prev->x_direction ? prev->delta_um.X : - prev->delta_um.X,
-        prev->y_direction ? prev->delta_um.Y : - prev->delta_um.Y);
-  else if (prev->delta_um.X == 0 && prev->delta_um.Y == 0)
-    prev_distance = prev->z_direction ? prev->delta_um.Z : - prev->delta_um.Z;
-  else
-    prev_distance = approx_distance_3(
-        prev->x_direction ? prev->delta_um.X : - prev->delta_um.X,
-        prev->y_direction ? prev->delta_um.Y : - prev->delta_um.Y,
-        prev->z_direction ? prev->delta_um.Z : - prev->delta_um.Z);
+  prev_distance = approx_distance_3(
+      prev->x_direction ? prev->delta_um.X : - prev->delta_um.X,
+      prev->y_direction ? prev->delta_um.Y : - prev->delta_um.Y,
+      prev->z_direction ? prev->delta_um.Z : - prev->delta_um.Z);
 
-  if (current->delta_um.Z == 0)
-    curr_distance = approx_distance(
-        current->x_direction ? current->delta_um.X : - current->delta_um.X,
-        current->y_direction ? current->delta_um.Y : - current->delta_um.Y);
-  else if (current->delta_um.X == 0 && current->delta_um.Y == 0)
-    curr_distance = current->z_direction ? current->delta_um.Z : - current->delta_um.Z;
-  else
-    curr_distance = approx_distance_3(
-        current->x_direction ? current->delta_um.X : - current->delta_um.X,
-        current->y_direction ? current->delta_um.Y : - current->delta_um.Y,
-        current->z_direction ? current->delta_um.Z : - current->delta_um.Z);
+  curr_distance = approx_distance_3(
+      current->x_direction ? current->delta_um.X : - current->delta_um.X,
+      current->y_direction ? current->delta_um.Y : - current->delta_um.Y,
+      current->z_direction ? current->delta_um.Z : - current->delta_um.Z);
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Distance: %lu, then %lu\n"), prev_distance, curr_distance);
