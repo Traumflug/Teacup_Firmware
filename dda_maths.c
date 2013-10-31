@@ -102,6 +102,11 @@ uint32_t approx_distance(uint32_t dx, uint32_t dy) {
 uint32_t approx_distance_3(uint32_t dx, uint32_t dy, uint32_t dz) {
   uint32_t min, med, max, approx;
 
+  if (dx == 0 && dy == 0 )
+    return dz;
+  if (dz == 0 )
+    return approx_distance(dx, dy);
+
   if ( dx < dy ) {
     min = dy;
     med = dx;
