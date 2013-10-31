@@ -186,29 +186,15 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
 
   // Find out movement distances.
   // TODO: remember these from dda_start();
-  if (prev->delta.Z == 0)
-    prev_distance = approx_distance(
-        prev->x_direction ? prev->delta.X : - prev->delta.X,
-        prev->y_direction ? prev->delta.Y : - prev->delta.Y);
-  else if (prev->delta.X == 0 && prev->delta.Y == 0)
-    prev_distance = prev->z_direction ? prev->delta.Z : - prev->delta.Z;
-  else
-    prev_distance = approx_distance_3(
-        prev->x_direction ? prev->delta.X : - prev->delta.X,
-        prev->y_direction ? prev->delta.Y : - prev->delta.Y,
-        prev->z_direction ? prev->delta.Z : - prev->delta.Z);
+  prev_distance = approx_distance_3(
+      prev->x_direction ? prev->delta.X : - prev->delta.X,
+      prev->y_direction ? prev->delta.Y : - prev->delta.Y,
+      prev->z_direction ? prev->delta.Z : - prev->delta.Z);
 
-  if (current->delta.Z == 0)
-    curr_distance = approx_distance(
-        current->x_direction ? current->delta.X : - current->delta.X,
-        current->y_direction ? current->delta.Y : - current->delta.Y);
-  else if (current->delta.X == 0 && current->delta.Y == 0)
-    curr_distance = current->z_direction ? current->delta.Z : - current->delta.Z;
-  else
-    curr_distance = approx_distance_3(
-        current->x_direction ? current->delta.X : - current->delta.X,
-        current->y_direction ? current->delta.Y : - current->delta.Y,
-        current->z_direction ? current->delta.Z : - current->delta.Z);
+  curr_distance = approx_distance_3(
+      current->x_direction ? current->delta.X : - current->delta.X,
+      current->y_direction ? current->delta.Y : - current->delta.Y,
+      current->z_direction ? current->delta.Z : - current->delta.Z);
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Distance: %lu, then %lu\n"), prev_distance, curr_distance);
