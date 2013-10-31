@@ -54,7 +54,7 @@ inline int32_t um_to_steps_e(int32_t distance) {
 uint32_t approx_distance(uint32_t dx, uint32_t dy);
 
 // approximate 3D distance
-uint32_t approx_distance_3(uint32_t dx, uint32_t dy, uint32_t dz);
+uint32_t approx_distance_3(int32_t dx, int32_t dy, int32_t dz);
 
 // integer square root algorithm
 uint16_t int_sqrt(uint32_t a);
