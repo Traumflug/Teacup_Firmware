@@ -163,11 +163,6 @@ void dda_emergency_shutdown(PGM_P msg) {
  *
  * \return dda->crossF
  */
-// TODO: This should go into config.h.
-#define MAX_JERK_X 20
-#define MAX_JERK_Y 20
-#define MAX_JERK_Z 0
-#define MAX_JERK_E 20
 void dda_find_crossing_speed(DDA *prev, DDA *current) {
   uint32_t F, prev_distance, curr_distance;
   uint32_t dv, speed_factor, max_speed_factor;

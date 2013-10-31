@@ -13,11 +13,10 @@
 #ifdef LOOKAHEAD
 
 // Sanity: make sure the defines are in place
-#ifndef LOOKAHEAD_MAX_JERK_XY
-#error Your config.h does not specify LOOKAHEAD_MAX_JERK_XY while LOOKAHEAD is enabled!
-#endif
-#ifndef LOOKAHEAD_MAX_JERK_E
-#error Your config.h does not specify LOOKAHEAD_MAX_JERK_E while LOOKAHEAD is enabled!
+#if ! defined MAX_JERK_X || ! defined MAX_JERK_Y || \
+    ! defined MAX_JERK_Z || ! defined MAX_JERK_E
+#error Your config.h does not specify one of MAX_JERK_X,
+#error MAX_JERK_Y, MAX_JERK_Z or MAX_JERK_E while LOOKAHEAD is enabled!
 #endif
 
 // Sanity: the acceleration of Teacup is not implemented properly; as such we can only
