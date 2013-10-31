@@ -175,23 +175,36 @@
 */
 // #define LOOKAHEAD
 
-/** \def LOOKAHEAD_MAX_JERK_XY
+/** \def MAX_JERK_X
+    \def MAX_JERK_Y
+    \def MAX_JERK_Z
+    \def MAX_JERK_E
+
   When performing look-ahead, we need to decide what an acceptable jerk to the
-  mechanics is when we (instantly) change direction.
+  mechanics is. Look-ahead attempts to instantly change direction at movement
+  crossings, which means instant changes in the speed of the axes participating
+  in the movement. Define here how big the speed bumps on each of the axes is
+  allowed to be.
 
-  Units: micrometers
-  Sane values: 5 to 200
+  If you want a full stop before and after moving a specific axis, define
+  MAX_JERK of this axis to 0. This is often wanted for the Z axis. If you want
+  to ignore jerk on an axis, define it to twice the maximum feedrate of this
+  axis.
+
+  Having these values too low results in more than neccessary slowdown at
+  movement crossings, but is otherwise harmless. Too high values can result
+  in stepper motors suddenly stalling. If angles between movements in your
+  G-code are small and your printer runs through entire curves full speed,
+  there's no point in raising the values.
+
+  Units: mm/min
+  Sane values: 0 to 400
+  Valid range: 0 to 65535
 */
-#define LOOKAHEAD_MAX_JERK_XY 10
-
-/** \def LOOKAHEAD_MAX_JERK_E
-  When joining moves with different extrusion rates, define the maximum jerk
-  for the extruder.
-
-  Units: micrometers
-  Sane values: 5 to 200
-*/
-#define LOOKAHEAD_MAX_JERK_E 10
+#define MAX_JERK_X 20
+#define MAX_JERK_Y 20
+#define MAX_JERK_Z 0
+#define MAX_JERK_E 20
 
 
 
