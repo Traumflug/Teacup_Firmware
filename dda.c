@@ -362,6 +362,10 @@ void dda_create(DDA *dda, TARGET *target) {
       dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
 
       #ifdef LOOKAHEAD
+        dda_find_crossing_speed(prev_dda, dda);
+        // TODO: this should become a reverse-stepping through the existing
+        //       movement queue to allow higher speeds for short moves.
+        //       dda_find_crossing_speed() is required only once.
         dda_join_moves(prev_dda, dda);
         dda->n = dda->start_steps;
         if (dda->n == 0)
