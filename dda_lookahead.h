@@ -44,21 +44,7 @@
 #define MAX(a,b)  (((a)>(b))?(a):(b))
 #define MIN(a,b)  (((a)<(b))?(a):(b))
 
-/**
- * Join 2 moves by removing the full stop between them, where possible.
- * To join the moves, the expected jerk - or force - of the change in direction is calculated.
- * The jerk is used to scale the common feed rate between both moves to obtain an acceptable speed
- * to transition between 'prev' and 'current'.
- *
- * Premise: we currently join the last move in the queue and the one before it (if any).
- * This means the feed rate at the end of the 'current' move is 0.
- *
- * Premise: the 'current' move is not dispatched in the queue: it should remain constant while this
- * function is running.
- *
- * Note: the planner always makes sure the movement can be stopped within the
- * last move (= 'current'); as a result a lot of small moves will still limit the speed.
- */
+void dda_find_crossing_speed(DDA *prev, DDA *current);
 void dda_join_moves(DDA *prev, DDA *current);
 
 // Debug counters

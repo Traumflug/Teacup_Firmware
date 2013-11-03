@@ -3,6 +3,7 @@
 
 #include	<stdint.h>
 
+#ifndef SIMULATOR
 #define	REFERENCE_AREF	0
 #define	REFERENCE_AVCC	64
 #if defined (__AVR_ATmega168__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__)
@@ -24,6 +25,7 @@
 #warning	in your config.h
 #error REFERENCE undefined
 #endif
+#endif /* SIMULATOR */
 
 void 			analog_init(void);
 

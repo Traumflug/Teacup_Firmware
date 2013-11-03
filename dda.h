@@ -72,10 +72,6 @@ typedef struct {
 	#ifdef ACCELERATION_RAMPING
 	/// counts actual steps done
 	uint32_t					step_no;
-	/// time until next step
-	uint32_t					c;
-	/// tracking variable
-	int32_t						n;
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
 	uint32_t					x_time; ///< time of the last x step
@@ -85,7 +81,8 @@ typedef struct {
 	uint32_t					all_time; ///< time of the last step of any axis
 	#endif
 
-	/// Endstop debouncing
+	/// Endstop handling.
+  uint8_t endstop_stop; ///< Stop due to endstop trigger
 	uint8_t debounce_count_xmin, debounce_count_ymin, debounce_count_zmin;
 	uint8_t debounce_count_xmax, debounce_count_ymax, debounce_count_zmax;
 } MOVE_STATE;
@@ -135,9 +132,10 @@ typedef struct {
 
 	#ifdef ACCELERATION_REPRAP
 	uint32_t					end_c; ///< time between 2nd last step and last step
-	int32_t						n; ///< precalculated step time offset variable. At every step we calculate \f$c = c - (2 c / n)\f$; \f$n+=4\f$. See http://www.embedded.com/columns/technicalinsights/56800129?printable=true for full description
 	#endif
 	#ifdef ACCELERATION_RAMPING
+  /// precalculated step time offset variable
+  int32_t           n;
 	/// number of steps accelerating
 	uint32_t					rampup_steps;
 	/// number of last step before decelerating
@@ -148,7 +146,9 @@ typedef struct {
   // With the look-ahead functionality, it is possible to retain physical
   // movement between G1 moves. These variables keep track of the entry and
   // exit speeds between moves.
+  uint32_t          crossF;
   uint32_t          F_start;
+  uint32_t          start_steps; ///< steps to reach F_start
   uint32_t          F_end;
   // Displacement vector, in um, based between the difference of the starting
   // point and the target. Required to obtain the jerk between 2 moves.

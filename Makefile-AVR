@@ -101,6 +101,9 @@ UPLOADER_FLAGS += -P /dev/ttyUSB0
 
 PROGRAM = teacup
 
+# The thing we build by default, and also the thing we clean.
+TARGET = $(PROGRAM).hex
+
 # Arduino IDE takes the "compile everything available"-approach, so we have
 # to keep this working and can take a shortcut:
 SOURCES = $(wildcard *.c)
@@ -128,11 +131,15 @@ LDFLAGS += -Wl,--gc-sections
 
 LIBS  = -lm
 
+OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES))
+
 -include Makefile-common
 
 # Architecture specific targets
 
 .PHONY: program size
+
+all: $(PROGRAM).hex $(BUILDDIR)/$(PROGRAM).lst $(BUILDDIR)/$(PROGRAM).sym size
 
 program: $(PROGRAM).hex config.h
 	$(UPLOADER) $(UPLOADER_FLAGS) -U flash:w:$(PROGRAM).hex

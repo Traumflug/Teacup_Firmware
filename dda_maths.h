@@ -54,7 +54,7 @@ inline int32_t um_to_steps_e(int32_t distance) {
 uint32_t approx_distance(uint32_t dx, uint32_t dy);
 
 // approximate 3D distance
-uint32_t approx_distance_3(uint32_t dx, uint32_t dy, uint32_t dz);
+uint32_t approx_distance_3(int32_t dx, int32_t dy, int32_t dz);
 
 // integer square root algorithm
 uint16_t int_sqrt(uint32_t a);
@@ -68,5 +68,8 @@ const uint8_t msbloc (uint32_t v);
 
 // Note: the floating point bit is optimized away during compilation
 #define ACCELERATE_RAMP_LEN(speed) (((speed)*(speed)) / (uint32_t)((7200000.0f * ACCELERATION) / (float)STEPS_PER_M_X))
+
+// Initialization constant for the ramping algorithm.
+#define C0 (((uint32_t)((double)F_CPU / sqrt((double)(STEPS_PER_M_X * ACCELERATION / 2000.)))) << 8)
 
 #endif	/* _DDA_MATHS_H */

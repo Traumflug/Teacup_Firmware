@@ -11,7 +11,9 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <math.h>
+#ifndef SIMULATOR
 #include <avr/interrupt.h>
+#endif
 
 #include "dda_maths.h"
 #include "dda.h"
@@ -152,16 +154,155 @@ void dda_emergency_shutdown(PGM_P msg) {
 }
 
 /**
- * Join 2 moves by removing the full stop between them, where possible.
- * To join the moves, the expected jerk - or force - of the change in direction is calculated.
- * The jerk is used to scale the common feed rate between both moves to obtain an acceptable speed
- * to transition between 'prev' and 'current'.
+ * \brief Find maximum corner speed between two moves.
+ * \details Find out how fast we can move around around a corner without
+ * exceeding the expected jerk. Worst case this speed is zero, which means a
+ * full stop between both moves. Best case it's the lower of the maximum speeds.
  *
- * Premise: we currently join the last move in the queue and the one before it (if any).
- * This means the feed rate at the end of the 'current' move is 0.
+ * This function is expected to be called from within dda_start().
  *
- * Premise: the 'current' move is not dispatched in the queue: it should remain constant while this
- * function is running.
+ * \param [in] prev is the DDA structure of the move previous to the current one.
+ * \param [in] current is the DDA structure of the move currently created.
+ *
+ * \return dda->crossF
+ */
+void dda_find_crossing_speed(DDA *prev, DDA *current) {
+  uint32_t F, prev_distance, curr_distance;
+  uint32_t dv, speed_factor, max_speed_factor;
+  int32_t prevFx, prevFy, prevFz, prevFe;
+  int32_t currFx, currFy, currFz, currFe;
+
+  // Bail out if there's nothing to join (e.g. G1 F1500).
+  if ( ! prev || prev->nullmove) {
+    current->crossF = 0;
+    return;
+  }
+
+  // We always look at the smaller of both combined speeds,
+  // else we'd interpret intended speed changes as jerk.
+  F = prev->endpoint.F;
+  if (current->endpoint.F < F)
+    F = current->endpoint.F;
+
+  // Find out movement distances.
+  // TODO: remember these from dda_start();
+  prev_distance = approx_distance_3(prev->delta.X, prev->delta.Y, prev->delta.Z);
+  curr_distance = approx_distance_3(current->delta.X, current->delta.Y, current->delta.Z);
+
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("Distance: %lu, then %lu\n"), prev_distance, curr_distance);
+
+  // Find individual axis speeds.
+  // int32_t muldiv(int32_t multiplicand, uint32_t multiplier, uint32_t divisor)
+  prevFx = muldiv(prev->delta.X, F, prev_distance);
+  prevFy = muldiv(prev->delta.Y, F, prev_distance);
+  prevFz = muldiv(prev->delta.Z, F, prev_distance);
+  prevFe = muldiv(prev->delta.E, F, prev_distance);
+
+  currFx = muldiv(current->delta.X, F, curr_distance);
+  currFy = muldiv(current->delta.Y, F, curr_distance);
+  currFz = muldiv(current->delta.Z, F, curr_distance);
+  currFe = muldiv(current->delta.E, F, curr_distance);
+
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("prevF: %ld  %ld  %ld  %ld\ncurrF: %ld  %ld  %ld  %ld\n"),
+               prevFx, prevFy, prevFz, prevFe, currFx, currFy, currFz, currFe);
+
+  /**
+   * What we want is (for each axis):
+   *
+   *   delta velocity = dv = |v1 - v2| < max_jerk
+   *
+   * In case this isn't satisfied, we can slow down by some factor x until
+   * the equitation is satisfied:
+   *
+   *   x * |v1 - v2| < max_jerk
+   *
+   * Now computation is pretty straightforward:
+   *
+   *        max_jerk
+   *   x = -----------
+   *        |v1 - v2|
+   *
+   *   if x > 1: continue full speed
+   *   if x < 1: v = v_max * x
+   *
+   * See also: https://github.com/Traumflug/Teacup_Firmware/issues/45
+   */
+  max_speed_factor = (uint32_t)2 << 8;
+
+  dv = currFx > prevFx ? currFx - prevFx : prevFx - currFx;
+  if (dv) {
+    speed_factor = ((uint32_t)MAX_JERK_X << 8) / dv;
+    if (speed_factor < max_speed_factor)
+      max_speed_factor = speed_factor;
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+      sersendf_P(PSTR("X: dv %lu of %lu   factor %lu of %lu\n"),
+                 dv, (uint32_t)MAX_JERK_X, speed_factor, (uint32_t)1 << 8);
+  }
+
+  dv = currFy > prevFy ? currFy - prevFy : prevFy - currFy;
+  if (dv) {
+    speed_factor = ((uint32_t)MAX_JERK_Y << 8) / dv;
+    if (speed_factor < max_speed_factor)
+      max_speed_factor = speed_factor;
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+      sersendf_P(PSTR("Y: dv %lu of %lu   factor %lu of %lu\n"),
+                 dv, (uint32_t)MAX_JERK_Y, speed_factor, (uint32_t)1 << 8);
+  }
+
+  dv = currFz > prevFz ? currFz - prevFz : prevFz - currFz;
+  if (dv) {
+    speed_factor = ((uint32_t)MAX_JERK_Z << 8) / dv;
+    if (speed_factor < max_speed_factor)
+      max_speed_factor = speed_factor;
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+      sersendf_P(PSTR("Z: dv %lu of %lu   factor %lu of %lu\n"),
+                 dv, (uint32_t)MAX_JERK_Z, speed_factor, (uint32_t)1 << 8);
+  }
+
+  dv = currFe > prevFe ? currFe - prevFe : prevFe - currFe;
+  if (dv) {
+    speed_factor = ((uint32_t)MAX_JERK_E << 8) / dv;
+    if (speed_factor < max_speed_factor)
+      max_speed_factor = speed_factor;
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+      sersendf_P(PSTR("E: dv %lu of %lu   factor %lu of %lu\n"),
+                 dv, (uint32_t)MAX_JERK_E, speed_factor, (uint32_t)1 << 8);
+  }
+
+  if (max_speed_factor >= ((uint32_t)1 << 8))
+    current->crossF = F;
+  else
+    current->crossF = (F * max_speed_factor) >> 8;
+
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("Cross speed reduction from %lu to %lu\n"),
+               F, current->crossF);
+
+  return;
+}
+
+/**
+ * \brief Join 2 moves by removing the full stop between them, where possible.
+ * \details To join the moves, the deceleration ramp of the previous move and
+ * the acceleration ramp of the current move are shortened, resulting in a
+ * non-zero speed at that point. The target speed at the corner is already to
+ * be found in dda->crossF. See dda_find_corner_speed().
+ *
+ * Ideally, both ramps can be reduced to actually have Fcorner at the corner,
+ * but the surrounding movements might no be long enough to achieve this speed.
+ * Analysing both moves to find the best result is done here.
+ *
+ * TODO: to achieve better results with short moves (move distance < both ramps),
+ *       this function should be able to enhance the corner speed on repeated
+ *       calls when reverse-stepping through the movement queue.
+ *
+ * \param [in] prev is the DDA structure of the move previous to the current one.
+ * \param [in] current is the DDA structure of the move currently created.
+ *
+ * Premise: the 'current' move is not dispatched in the queue: it should remain
+ * constant while this function is running.
  *
  * Note: the planner always makes sure the movement can be stopped within the
  * last move (= 'current'); as a result a lot of small moves will still limit the speed.
@@ -172,42 +313,24 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // the previous move, we need to locally store any values and write them
   // when we are done (and the previous move is not already active).
   uint32_t prev_F, prev_F_start, prev_F_end, prev_rampup, prev_rampdown, prev_total_steps;
+  uint32_t crossF;
   uint8_t prev_id;
   // Similarly, we only want to modify the current move if we have the results of the calculations;
   // until then, we do not want to touch the current move settings.
   // Note: we assume 'current' will not be dispatched while this function runs, so we do not to
   // back up the move settings: they will remain constant.
-  uint32_t this_F_start, this_rampup, this_rampdown;
-  int32_t jerk, jerk_e;       // Expresses the forces if we would change directions at full speed
+  uint32_t this_F_start, this_start, this_rampup, this_rampdown;
   static uint32_t la_cnt = 0;     // Counter: how many moves did we join?
   #ifdef LOOKAHEAD_DEBUG
   static uint32_t moveno = 0;     // Debug counter to number the moves - helps while debugging
   moveno++;
   #endif
 
+  dda_find_crossing_speed(prev, current);
+
   // Bail out if there's nothing to join (e.g. G1 F1500).
-  if ( ! prev || prev->nullmove)
+  if ( ! prev || prev->nullmove || current->crossF == 0)
     return;
-
-  serprintf(PSTR("Current Delta: %ld,%ld,%ld E:%ld Live:%d\r\n"), current->delta.X, current->delta.Y, current->delta.Z, current->delta.E, current->live);
-  serprintf(PSTR("Prev    Delta: %ld,%ld,%ld E:%ld Live:%d\r\n"), prev->delta.X, prev->delta.Y, prev->delta.Z, prev->delta.E, prev->live);
-
-  // Look-ahead: attempt to join moves into smooth movements
-  // Note: moves are only modified after the calculations are complete.
-  // Only prepare for look-ahead if we have 2 available moves to
-  // join and the Z axis is unused (for now, Z axis moves are NOT joined).
-  if (prev->live == 0 && prev->delta.Z == current->delta.Z) {
-    // Calculate the jerk if the previous move and this move would be joined
-    // together at full speed.
-    jerk = dda_jerk_size_2d(prev->delta.X, prev->delta.Y, prev->endpoint.F,
-        current->delta.X, current->delta.Y, current->endpoint.F);
-    serprintf(PSTR("Jerk: %lu\r\n"), jerk);
-    jerk_e = dda_jerk_size_1d(prev->delta.E, prev->endpoint.F, current->delta.E, current->endpoint.F);
-    serprintf(PSTR("Jerk_e: %lu\r\n"), jerk_e);
-  } else {
-    // Move already executing or Z moved: abort the join
-    return;
-  }
 
   // Make sure we have 2 moves and the previous move is not already active
   if (prev->live == 0) {
@@ -220,65 +343,12 @@ void dda_join_moves(DDA *prev, DDA *current) {
       prev_rampup = prev->rampup_steps;
       prev_rampdown = prev->rampdown_steps;
       prev_total_steps = prev->total_steps;
+      crossF = current->crossF;
     ATOMIC_END
 
-    // The initial crossing speed is the minimum between both target speeds
-    // Note: this is a given: the start speed and end speed can NEVER be
-    // higher than the target speed in a move!
-    // Note 2: this provides an upper limit, if needed, the speed is lowered.
-    uint32_t crossF = prev_F;
-    if(crossF > current->endpoint.F) crossF = current->endpoint.F;
-
-    //sersendf_P(PSTR("j:%lu - XF:%lu"), jerk, crossF);
-
-    // If the XY jerk is too big, scale the proposed cross speed
-    if(jerk > LOOKAHEAD_MAX_JERK_XY) {
-      serprintf(PSTR("Jerk too big: scale cross speed between moves\r\n"));
-      // Get the highest speed between both moves
-      if(crossF < prev_F)
-        crossF = prev_F;
-
-      // Perform an exponential scaling
-      uint32_t ujerk = (uint32_t)jerk;  // Use unsigned to double the range before overflowing
-      crossF = (crossF*LOOKAHEAD_MAX_JERK_XY*LOOKAHEAD_MAX_JERK_XY)/(ujerk*ujerk);
-
-      // Optimize: if the crossing speed is zero, there is no join possible between these
-      // two (fast) moves. Stop calculating and leave the full stop that is currently between
-      // them.
-      if(crossF == 0)
-        return;
-
-      // Safety: make sure we never exceed the maximum speed of a move
-      if(crossF > current->endpoint.F) crossF = current->endpoint.F;
-      if(crossF > prev_F) crossF = prev_F;
-      sersendf_P(PSTR("=>F:%lu"), crossF);
-    }
-    // Same to the extruder jerk: make sure we do not yank it
-    if(jerk_e > LOOKAHEAD_MAX_JERK_E) {
-      sersendf_P(PSTR("Jerk_e too big: scale cross speed between moves\r\n"));
-      uint32_t crossF2 = MAX(current->endpoint.F, prev_F);
-
-      // Perform an exponential scaling
-      uint32_t ujerk = (uint32_t)jerk_e;  // Use unsigned to double the range before overflowing
-      crossF2 = (crossF2*LOOKAHEAD_MAX_JERK_E*LOOKAHEAD_MAX_JERK_E)/(ujerk*ujerk);
-
-      // Only continue with joining if there is a feasible crossing speed
-      if(crossF2 == 0) return;
-
-      // Safety: make sure the proposed speed is not higher than the target speeds of each move
-      crossF2 = MIN(crossF2, current->endpoint.F);
-      crossF2 = MIN(crossF2, prev_F);
-
-      if(crossF2 > crossF) {
-        sersendf_P(PSTR("Jerk_e: %lu => crossF: %lu (original: %lu)\r\n"), jerk_e, crossF2, crossF);
-      }
-
-      // Pick the crossing speed for these 2 move to be within the jerk limits
-      crossF = MIN(crossF, crossF2);
-    }
-
     // Show the proposed crossing speed - this might get adjusted below
-    serprintf(PSTR("Initial crossing speed: %lu\r\n"), crossF);
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+      sersendf_P(PSTR("Initial crossing speed: %lu\n"), crossF);
 
     // Forward check: test if we can actually reach the target speed in the previous move
     // If not: we need to determine the obtainable speed and adjust crossF accordingly.
@@ -400,6 +470,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
     this_rampup = up;
     this_rampdown = current->total_steps - down;
     this_F_start = crossF;
+    this_start = ACCELERATE_RAMP_LEN(this_F_start);
     serprintf(PSTR("Actual crossing speed: %lu\r\n"), crossF);
 
     // Potential reverse processing:
@@ -468,6 +539,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
         current->rampdown_steps = this_rampdown;
         current->F_end = 0;
         current->F_start = this_F_start;
+        current->start_steps = this_start;
         la_cnt++;
       } else
         timeout = 1;
