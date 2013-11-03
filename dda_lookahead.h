@@ -43,7 +43,7 @@
 #define MAX(a,b)  (((a)>(b))?(a):(b))
 #define MIN(a,b)  (((a)<(b))?(a):(b))
 
-void dda_find_crossing_speed(DDA *prev, DDA *current);
+void dda_find_crossing_speed(DDA *prev, DDA *current, uint32_t curr_distance);
 void dda_join_moves(DDA *prev, DDA *current);
 
 // Debug counters
