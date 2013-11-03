@@ -164,13 +164,14 @@ void dda_emergency_shutdown(PGM_P msg) {
  * \return dda->crossF
  */
 void dda_find_crossing_speed(DDA *prev, DDA *current, uint32_t curr_distance) {
-  uint32_t F, prev_distance;
-  uint32_t dv, speed_factor, max_speed_factor;
+  static uint32_t prev_distance;
+  uint32_t F, dv, speed_factor, max_speed_factor;
   int32_t prevFx, prevFy, prevFz, prevFe;
   int32_t currFx, currFy, currFz, currFe;
 
   // Bail out if there's nothing to join (e.g. G1 F1500).
   if ( ! prev || prev->nullmove) {
+    prev_distance = curr_distance;
     current->crossF = 0;
     return;
   }
@@ -180,13 +181,6 @@ void dda_find_crossing_speed(DDA *prev, DDA *current, uint32_t curr_distance) {
   F = prev->endpoint.F;
   if (current->endpoint.F < F)
     F = current->endpoint.F;
-
-  // Find out movement distance of the previous move.
-  // TODO: remember this from the previous call of dda_find_crossing_speed().
-  prev_distance = approx_distance_3(
-      prev->x_direction ? prev->delta_um.X : - prev->delta_um.X,
-      prev->y_direction ? prev->delta_um.Y : - prev->delta_um.Y,
-      prev->z_direction ? prev->delta_um.Z : - prev->delta_um.Z);
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Distance: %lu, then %lu\n"), prev_distance, curr_distance);
@@ -279,6 +273,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current, uint32_t curr_distance) {
     sersendf_P(PSTR("Cross speed reduction from %lu to %lu\n"),
                F, current->crossF);
 
+  prev_distance = curr_distance;
   return;
 }
 
