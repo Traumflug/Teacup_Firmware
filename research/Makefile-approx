@@ -1,0 +1,2 @@
+approx_dist:
+	gcc -DSIMULATOR -D__AVR_ATmega644__ approx_distance.c ../dda_maths.c -I.. -lm -o $@

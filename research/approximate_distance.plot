@@ -19,7 +19,7 @@ reset
 # But it has an extra sine component for some reason.  The following
 # phase correction works well for points=8, but it was hand-tuned.
 #
-phase(x) = x + 0.7 + 0.55 * sin(10.0*x/octantPoints/octantPoints*pi-0.1)
+phase(x) = x + 0.65 + 0.5 * sin(x/5.9*pi-x*.05 )
 
 # Discrete angle values (p values per circle)
 dv(x,p) = phase(floor(x*p/2.0/pi + 0.5))*2*pi/p
@@ -49,7 +49,7 @@ theta(n) = 2*pi/totalPoints
   cr(n,t) = sqrt( cx(n,t)**2 + cy(n,t)**2 )
 
   # target is the (fudged/weighted) average of the ideal radius (1.0) and the chord radius
-  tr(n) = ( 5.0 + cr(n,0)) / 6
+  tr(n) = ( 1 + cr(n,0)) / 2
 
   # Reach the target by scaling the chosen point radius out by tr/cr
   sf(n) = tr(n)/cr(n,0)
@@ -67,14 +67,15 @@ c(x,y) = (x>y?y:x)  # min
 scaler(x,y,n) = floor(int(c(x,y)/b(x,y) * n))
 
 # Find the multipliers to use for a given octant-segment
-xscaler(p,n) = floor(sc(p*pi/4/n,n) * 1024)
-yscaler(p,n) = floor(ss(p*pi/4/n,n) * 1024)
+xscaler(p,n) = floor(sc(p*pi/4/n,n) * 1024+0.5)
+yscaler(p,n) = floor(ss(p*pi/4/n,n) * 1024+0.5)
 
 n = octantPoints
 # Graph the resulting ratio of approx-distance to actual-distance
-mx(x,y,p) = (xscaler(p,n)*b(x,y)/1024.0 + yscaler(p,n)*c(x,y)/1024.0 )
+mx(x,y,p) = ((xscaler(p,n)*b(x,y)+512)/1024.0 + (yscaler(p,n)*c(x,y)+512)/1024.0 )
 lx(x,y) = mx(x,y,scaler(x,y,n))
-m(x,y) = lx(x,y)/a(x,y)
+mr(x,y) = lx(x,y)/a(x,y)
+md(x,y) = lx(x,y)-a(x,y)
 
 fx(x,y) = (p = scaler(x,y,n) , xscaler( p, n))
 fy(x,y) = (p = scaler(x,y,n) , yscaler( p, n))
@@ -103,19 +104,19 @@ set term wxt 1
 set samples 1000
 set ylabel "Percent error (actual)"
 set xlabel "Smaller leg (when larger leg=10000)"
-plot [0:10000] [0:0.4] 100*abs(1.0-m(10000,x)) with lines t "Distance approximation error (percent)"
+plot [0:10000] [0:0.4] 100*abs(1.0-mr(10000,x)) with lines t "Distance approximation error (percent)"
 
 set ylabel ""
 set xlabel ""
 set term wxt 2
 set isosamples 50
-splot [0:2000] [0:2000] [0.99:1.01] m(x,y) with pm3d t "Approximate/Actual"
+splot [0:2000] [0:2000] [0.9:1.1] mr(x,y) with pm3d t "Approximate/Actual (ratio)"
 
 set ylabel ""
 set xlabel ""
 set term wxt 3
-set isosamples 50
-splot [0:2000] [0:2000] [0.80:1.20] m(x,y) with pm3d t "Approximate/Actual (zoomed out)"
+set isosamples 100
+splot [0:2000] [0:2000] [-50:50] md(x,y) with pm3d t "Approximate-Actual (difference)"
 
 #----------------------------------------------------------
 # Graph unit-circle derivation coordinates
@@ -129,7 +130,7 @@ set samples 1000
 #plot [0:pi*2] [-1.5:1.5] [-1.5:1.5] cos(t),sin(t)
 set arrow 1 from 0,0 to cos(0),sin(0)  nofilled linetype 1
 set arrow 2 from 0,0 to cos(pi/4),sin(pi/4)  nofilled linetype 1
-plot [0:pi/4] [0.2:1.1] [-0.1:0.8] cos(t),sin(t) t "Ideal circle"
+plot [0:pi/4] [0.5:1.3] [0:0.8] cos(t),sin(t) t "Ideal circle"
 
 x=cx(octantPoints, 0)
 y=cy(octantPoints, 0)
