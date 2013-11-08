@@ -93,8 +93,7 @@ void queue_step() {
 		}
 	}
 
-	// fall directly into dda_start instead of waiting for another step
-	// the dda dies not directly after its last step, but when the timer fires and there's no steps to do
+  // Start the next move if this one is done.
 	if (current_movebuffer->live == 0)
 		next_move();
 }
