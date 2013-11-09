@@ -23,7 +23,7 @@ enum {
 
 static volatile uint8_t timer_reason;  // Who scheduled this timer
 
-static uint64_t now_us(void) {
+static uint64_t now_ns(void) {
   struct timespec tv;
 
   int n = clock_gettime(CLOCK_MONOTONIC, &tv);
@@ -33,9 +33,12 @@ static uint64_t now_us(void) {
   uint64_t nsec = tv.tv_sec;
   nsec *= 1000 * 1000 * 1000;
   nsec += tv.tv_nsec;
+  return nsec;
+}
 
+static uint64_t now_us(void) {
   // nanoseconds to microseconds
-  return nsec / 1000;
+  return now_ns() / 1000;
 }
 
 uint16_t sim_tick_counter(void) {
@@ -47,7 +50,7 @@ extern uint8_t clock_counter_10ms, clock_counter_250ms, clock_counter_1s;
 static uint64_t begin;
 static uint64_t then;
 void sim_timer_init(void) {
-  then = begin = now_us();
+  then = begin = now_ns();
   sim_info("timer_init");
   timer_initialised = true;
 
@@ -59,6 +62,10 @@ void sim_timer_stop(void) {
   timer_reason = 0;  // Cancel pending timer;
 }
 
+uint64_t sim_runtime_ns(void) {
+  return (now_ns() - begin) / TIME_SLOW_FACTOR;
+}
+
 static void timer1_isr(int cause, siginfo_t *HowCome, void *ucontext) {
   if ( ! sim_interrupts) {
     // Interrupts disabled. Schedule another callback in 10us.
@@ -66,17 +73,17 @@ static void timer1_isr(int cause, siginfo_t *HowCome, void *ucontext) {
     return;
   }
 
-  sim_interrupts = false;
+  cli();
 
   #ifdef SIM_DEBUG
-    uint64_t now = now_us();
+    uint64_t now = now_ns();
     static unsigned int cc_1s = 0, prev_1s = 0;
 
     if ( ! clock_counter_1s && prev_1s) ++cc_1s;
     prev_1s = clock_counter_1s;
 
     //uint16_t now = sim_tick_counter();
-    uint64_t real = now-begin;
+    uint64_t real = (now-begin) / 1000;
     uint64_t avr = cc_1s * 4 + clock_counter_1s;
     avr *= 250;
     avr += clock_counter_250ms * 10;
@@ -86,7 +93,7 @@ static void timer1_isr(int cause, siginfo_t *HowCome, void *ucontext) {
            real / 1000000 , (real % 1000000)/1000 , real % 1000 ,
            avr / 1000000  , (avr  % 1000000)/1000 , avr  % 1000 ,
            real / (avr?avr:1) );
-    printf("test: 10ms=%u 250ms=%u 1s=%u  total=%lu actual=%lu\n",
+    printf("test: 10ms=%u 250ms=%u 1s=%u  total=%luns actual=%luns\n",
            clock_counter_10ms, clock_counter_250ms, clock_counter_1s,
            now - begin , now - then);
     //printf("          timer1_isr    tick_time=%04X  now=%04X  delta=%u  total=%u\n",
@@ -98,13 +105,12 @@ static void timer1_isr(int cause, siginfo_t *HowCome, void *ucontext) {
   if (timer_reason & TIMER_OCR1B) TIMER1_COMPB_vect();
   timer_reason = 0;
 
-  sim_interrupts = true;
+  sei();
 
   // Setup next timer
   sim_setTimer();
 }
 
-// TODO: Remove 'delay' value and use AVR regs instead
 void sim_setTimer() {
   // Set callbacks for COMPA and COMPB timers
   uint32_t nextA = 0, nextB = 0;

@@ -139,6 +139,7 @@ extern uint16_t TCCR1A, TCCR1B;
 enum { CS10 = 1 , OCIE1B = 3 };
 
 #define TCNT1 (sim_tick_counter())
+void cli(void);
 void sei(void);
 
 #ifdef USE_WATCHDOG
@@ -155,9 +156,7 @@ void sim_timer_init(void);
 void sim_timer_stop(void);
 void sim_setTimer(void);
 uint16_t sim_tick_counter(void);
-
-inline void cli(void);
-inline void cli() { }
+uint64_t sim_runtime_ns(void); ///< Simulated run-time in nanoseconds
 
 #define DIO0_PIN "proof of life"
 
