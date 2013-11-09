@@ -4,8 +4,15 @@
 #ifdef SIMULATOR
   #define CLI_SEI_BUG_MEMORY_BARRIER()
   #define MEMORY_BARRIER()
-  #define ATOMIC_START
-  #define ATOMIC_END
+
+  #define ATOMIC_START { \
+                         uint8_t save_reg = sim_interrupts; \
+                         cli();
+
+  #define ATOMIC_END     MEMORY_BARRIER(); \
+                         if (save_reg) sei(); \
+                       }
+
 #else
 #include <util/atomic.h>
 #include <avr/version.h>

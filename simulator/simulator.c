@@ -126,6 +126,10 @@ void sei(void) {
   sim_interrupts = true;
 }
 
+void cli(void) {
+  sim_interrupts = false;
+}
+
 
 /* -- PIN I/O ------------------------------------------------------------ */
 
