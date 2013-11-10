@@ -172,7 +172,6 @@ void dda_find_crossing_speed(DDA *prev, DDA *current, uint32_t curr_distance) {
   // Bail out if there's nothing to join (e.g. G1 F1500).
   if ( ! prev || prev->nullmove) {
     prev_distance = curr_distance;
-    current->crossF = 0;
     return;
   }
 

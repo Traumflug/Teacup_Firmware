@@ -113,6 +113,7 @@ void dda_create(DDA *dda, TARGET *target) {
   #ifdef LOOKAHEAD
     // Set the start and stop speeds to zero for now = full stops between
     // moves. Also fallback if lookahead calculations fail to finish in time.
+    dda->crossF = 0;
     dda->F_start = 0;
     dda->start_steps = 0;
     dda->F_end = 0;
