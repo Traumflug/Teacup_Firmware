@@ -155,6 +155,9 @@ void sim_setTimer() {
 
   //-- Convert ticks to microseconds
   long actual = ((unsigned long)next) * TIME_SLOW_FACTOR / (1 US);
+  if ( next && !actual)
+    actual++;
+
   if (next) {
     sim_debug("OCR1A:%04X   OCR1B:%04X    now=%04X", OCR1A, OCR1B, now );
     sim_debug("              next=%u   real=%u", next, actual);
