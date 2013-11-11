@@ -50,6 +50,14 @@
 #include	"intercom.h"
 #include "simulator.h"
 
+#ifdef SIMINFO
+  #include "../simulavr/src/simulavr_info.h"
+  SIMINFO_DEVICE("atmega644");
+  SIMINFO_CPUFREQUENCY(F_CPU);
+  SIMINFO_SERIAL_IN("D0", "-", BAUD);
+  SIMINFO_SERIAL_OUT("D1", "-", BAUD);
+#endif
+
 /// initialise all I/O - set pins as input or output, turn off unused subsystems, etc
 void io_init(void) {
 	// disable modules we don't use
