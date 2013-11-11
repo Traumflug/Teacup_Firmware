@@ -9,7 +9,7 @@
 #include <stdio.h> // printf
 #include <unistd.h> // usleep
 
-#define TIME_SLOW_FACTOR 1
+#define TIME_SLOW_FACTOR 10
 
 static void schedule_timer(uint32_t useconds);
 
