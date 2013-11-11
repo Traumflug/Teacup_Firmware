@@ -47,9 +47,9 @@ uint8_t queue_full() {
   #endif
   MEMORY_BARRIER();
   if (mb_tail > mb_head) {
-    return ((mb_tail - mb_head - 1 - SLOTS) >= 0) ? 255 : 0;
+    return (mb_tail - mb_head > SLOTS) ? 255 : 0;
   } else {
-    return ((mb_tail + MOVEBUFFER_SIZE - mb_head - 1 - SLOTS) >= 0) ? 255 : 0;
+    return (mb_tail + MOVEBUFFER_SIZE - mb_head > SLOTS ) ? 255 : 0;
   }
   #undef SLOTS
 }
