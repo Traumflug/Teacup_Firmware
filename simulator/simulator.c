@@ -28,6 +28,12 @@ volatile uint8_t
   DIO3_WPORT,
   DIO4_WPORT;
 
+#define AXES 4
+enum {
+  TRACE_POS    = 0,  /* 0..AXES-1 */
+  TRACE_PINS   = AXES,
+};
+
 int g_argc;
 char** g_argv;
 void sim_start(int argc, char** argv) {
@@ -40,7 +46,14 @@ void sim_start(int argc, char** argv) {
   recorder_init("datalog.out");
 
   // Record pin names in datalog
-#define NAME_PIN(x) add_trace_var(#x , x);
+#define NAME_PIN_AXES(x) \
+  add_trace_var(#x "_X" , TRACE_##x + 0); \
+  add_trace_var(#x "_Y" , TRACE_##x + 1); \
+  add_trace_var(#x "_Z" , TRACE_##x + 2); \
+  add_trace_var(#x "_E" , TRACE_##x + 3);
+  NAME_PIN_AXES(POS);
+
+#define NAME_PIN(x) add_trace_var(#x , TRACE_PINS + x);
   NAME_PIN(X_STEP_PIN);
   NAME_PIN(X_DIR_PIN);
   NAME_PIN(X_MIN_PIN);
@@ -58,11 +71,6 @@ void sim_start(int argc, char** argv) {
   NAME_PIN(E_ENABLE_PIN);
 
   NAME_PIN(STEPPER_ENABLE_PIN);
-
-  NAME_PIN(SCK);
-  NAME_PIN(MOSI);
-  NAME_PIN(MISO);
-  NAME_PIN(SS);
 }
 
 /* -- debugging ------------------------------------------------------------ */
@@ -74,14 +82,24 @@ static void fbreset(void) { fputs("\033[m" , stdout); }
 
 static void bred(void)   { fputs("\033[0;41m" , stdout); }
 
-void sim_info(const char fmt[], ...) {
-  va_list ap;
+static void vsim_info_cont(const char fmt[], va_list ap) {
   fgreen();
-  va_start(ap, fmt);
   vprintf(fmt, ap);
   va_end(ap);
-  fputc('\n', stdout);
   fbreset();
+}
+
+static void sim_info_cont(const char fmt[], ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vsim_info_cont(fmt, ap);
+}
+
+void sim_info(const char fmt[], ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vsim_info_cont(fmt, ap);
+  fputc('\n', stdout);
 }
 
 void sim_debug(const char fmt[], ...) {
@@ -130,20 +148,29 @@ void cli(void) {
   sim_interrupts = false;
 }
 
+/** Maximum time (ns) between steps which we still consider "movement"
+ *  Must be less than 0x20000000, MAXINT/2 */
+#define MAX_IDLE_TIME_NS (2*1000*1000*1000)
+#define NS_PER_SEC       (1000*1000*1000)  // Token for "1 billion"
 
 /* -- PIN I/O ------------------------------------------------------------ */
 
 #define out true
 #define in  false
 
-static int x = 0, y = 0, z = 0, e = 0;
+enum { X_AXIS, Y_AXIS, Z_AXIS, E_AXIS , AXIS_MAX , AXIS_NONE };
+static int pos[AXIS_MAX];            ///< Current position in steps
 
 static bool direction[PIN_NB];
 static bool state[PIN_NB];
 
 static void print_pos(void) {
-  printf("print_pos: %d, %d, %d, %d\n", x, y, z, e);
-  sim_info("x:%5d    y:%5d    z:%5d    e:%5d", x, y, z, e);
+  char * axis = "xyze";
+  int i;
+  for ( i = X_AXIS ; i < AXIS_MAX ; i++ ) {
+    sim_info_cont("%c:%5d   ", axis[i], pos[i]);
+  }
+  sim_info("");
 }
 
 bool READ(pin_t pin) {
@@ -154,6 +181,7 @@ bool READ(pin_t pin) {
 
 void WRITE(pin_t pin, bool s) {
   bool old_state = state[pin];
+  uint64_t nseconds = sim_runtime_ns();
   sim_assert(pin < PIN_NB, "WRITE: Pin number out of range");
 
   if (direction[pin] == out) {
@@ -161,8 +189,7 @@ void WRITE(pin_t pin, bool s) {
   }
 
   if (old_state != s) {
-    uint32_t useconds = (uint32_t)sim_runtime_ns();
-    record_pin(pin, s, useconds);
+    record_pin(TRACE_PINS + pin, s, nseconds);
     #ifdef TRACE_ALL_PINS
       fgreen();
       for (int i = 0; i < PIN_NB; i++) {
@@ -182,25 +209,32 @@ void WRITE(pin_t pin, bool s) {
   }
 
   if (s && !old_state) { /* rising edge */
+    int axis = AXIS_NONE;
+    int dir;
     switch (pin) {
     case X_STEP_PIN:
-      x += state[X_DIR_PIN] ? 1 : -1;
-      print_pos();
+      dir = state[X_DIR_PIN] ? 1 : -1;
+      axis = X_AXIS;
       break;
     case Y_STEP_PIN:
-      y += state[Y_DIR_PIN] ? 1 : -1;
-      print_pos();
+      dir = state[Y_DIR_PIN] ? 1 : -1;
+      axis = Y_AXIS;
       break;
     case Z_STEP_PIN:
-      z += state[Z_DIR_PIN] ? 1 : -1;
-      print_pos();
+      dir = state[Z_DIR_PIN] ? 1 : -1;
+      axis = Z_AXIS;
       break;
     case E_STEP_PIN:
-      e += state[E_DIR_PIN] ? 1 : -1;
-      print_pos();
+      dir = state[E_DIR_PIN] ? 1 : -1;
+      axis = E_AXIS;
       break;
     default:
       break;
+    }
+    if ( axis != AXIS_NONE ) {
+      pos[axis] += dir;
+      record_pin(TRACE_POS + axis, pos[axis], nseconds);
+      print_pos();
     }
   }
 }

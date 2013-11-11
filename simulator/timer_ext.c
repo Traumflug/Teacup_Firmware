@@ -95,7 +95,7 @@ static void timer1_isr(int cause, siginfo_t *HowCome, void *ucontext) {
            real / (avr?avr:1) );
     printf("test: 10ms=%u 250ms=%u 1s=%u  total=%luns actual=%luns\n",
            clock_counter_10ms, clock_counter_250ms, clock_counter_1s,
-           now - begin , now - then);
+           now - begin, now - then, sim_runtime_ns());
     //printf("          timer1_isr    tick_time=%04X  now=%04X  delta=%u  total=%u\n",
     //       TICK_TIME , now, now_us() - then, (now_us() - begin)/1000000 ) ;
     then = now;
