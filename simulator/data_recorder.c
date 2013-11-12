@@ -19,10 +19,12 @@ static int pin_count;                  ///< Number of pins we emit
 static void emit_log_data(void);
 
 static void recorder_close(int code, void*x ) {
+  if (!file) return;
   // force last line to emit
   emit_log_data();
   fflush(file);
   fclose(file);
+  file = NULL;
 }
 
 void recorder_init(const char* filename) {
@@ -39,17 +41,20 @@ void recorder_init(const char* filename) {
 }
 
 void add_trace_var(const char* name, int pin) {
-  sim_assert(file, "add_trace_var: Recorder not initialized");
   sim_assert(pin < MAX_PINS, "pin number invalid");
 
-  fprintf(file, "# %d - %s\n", pin, name);
+  if (file) {
+    fprintf(file, "# %d - %s\n", pin+1, name);
+    fflush(file);
+  }
+
   if (pin >= pin_count)
     pin_count = pin + 1;
-  fflush(file);
 }
 
 static uint64_t prev_t;
 static void emit_log_data(void) {
+  if (!file) return;
   // Naive format: each line contains all values, beginning with the time
   fprintf(file, "%lu", prev_t/1000); // microseconds
   for (int i = 0; i < pin_count; i++)
@@ -62,7 +67,6 @@ static void emit_log_data(void) {
 void record_pin(int pin, int32_t state, uint64_t t) {
   if (state == values[pin] && t == prev_t ) return;
 
-  sim_assert(file , "record_pin: Recorder not initialized");
   sim_assert(pin < MAX_PINS, "pin number invalid");
 
   // Record previous state when new state value appears
@@ -73,26 +77,8 @@ void record_pin(int pin, int32_t state, uint64_t t) {
   values[pin] = state;
 }
 
-static char comment_buffer[300];
-static int comment_buffer_index;
-void record_comment_stream(char ch) {
-  // Got CR, LF or buffer full
-  if ( comment_buffer_index == sizeof(comment_buffer)-1 ||
-       ch == '\r' || ch == '\n' || ch == 0 ) {
-
-    // Terminate string, reset buffer, emit comment
-    comment_buffer[comment_buffer_index] = 0;
-    comment_buffer_index = 0;
-    record_comment(comment_buffer);
-    if (ch == '\r' || ch == '\n')
-      return;
-  }
-
-  // Acumulate char from stream
-  comment_buffer[comment_buffer_index++] = ch;
-}
-
 void record_comment(const char * msg) {
+  if (!file) return;
   fprintf(file, "# %s\n", msg);
   fflush(file);
 }
