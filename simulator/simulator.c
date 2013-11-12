@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
+#include <getopt.h>
 
 #include "simulator.h"
 #include "data_recorder.h"
@@ -34,16 +36,61 @@ enum {
   TRACE_PINS   = AXES,
 };
 
+int verbose = 1;                ///< 0=quiet, 1=normal, 2=noisy, 3=debug, etc.
+int trace_gcode = 0;            ///< show gcode on the console
+int trace_pos = 0;              ///< show print head position on the console
+
+const char * shortopts = "qvo::";
+struct option opts[] = {
+  { "quiet", no_argument, &verbose , 0 },
+  { "verbose", no_argument, NULL, 'v' },
+  { "gcode", no_argument, NULL, 'g' },
+  { "pos", no_argument, NULL, 'p' },
+  { "tracefile", optional_argument, NULL, 'o' }
+};
+
+static void usage(const char *name) {
+  printf("Usage:  %s [-q || --quiet] [-v [-v] || --verbose[=n]] [-g || --gcode]  [-p || --pos] [-o[outfile] || --tracefile[=outfile]] gcode-file || UART-tty\n", name);
+  printf("\n\n");
+  printf("   -g || --gcode        show gcode on console as it is processed\n");
+  printf("   -p || --pos          show head position on console\n");
+  printf("   -o || --tracefile    write simulator pin trace to 'outfile' (default filename=datalog.out)\n");
+  printf("\n");
+  exit(1);
+}
+
 int g_argc;
 char** g_argv;
 void sim_start(int argc, char** argv) {
-  // TODO: Parse args here and open the serial port instead of saving them
-  //       for serial_init.
-  // Save these for the serial_init code
-  g_argc = argc;
-  g_argv = argv;
+  int c;
+  int index;
 
-  recorder_init("datalog.out");
+  while ((c = getopt_long (argc, argv, "qgpvo::", opts, &index)) != -1)
+    switch (c) {
+    case 'q':
+      verbose = 0;
+      break;
+    case 'g':
+      trace_gcode = 1;
+      break;
+    case 'p':
+      trace_pos = 1;
+      break;
+    case 'v':
+      verbose += 1;
+      break;
+    case 'o':
+      recorder_init(optarg ? optarg : "datalog.out");
+      break;
+    default:
+      sim_error("Unexpected result in getopt_long handler");
+    }
+
+  // Store remaining arguments list for serial sim
+  g_argc = argc - optind + 1;
+  g_argv = argv + optind - 1;
+
+  if (argc < 2) usage(argv[0]);
 
   // Record pin names in datalog
 #define NAME_PIN_AXES(x) \
@@ -78,50 +125,102 @@ void sim_start(int argc, char** argv) {
 static void fgreen(void) { fputs("\033[0;32m" , stdout); }
 static void fred(void)   { fputs("\033[0;31m" , stdout); }
 static void fcyan(void)  { fputs("\033[0;36m" , stdout); }
+static void fyellow(void){ fputs("\033[0;33;1m" , stdout); }
 static void fbreset(void) { fputs("\033[m" , stdout); }
 
 static void bred(void)   { fputs("\033[0;41m" , stdout); }
 
 static void vsim_info_cont(const char fmt[], va_list ap) {
+  if (verbose < 1) return;
   fgreen();
   vprintf(fmt, ap);
-  va_end(ap);
   fbreset();
+}
+
+static int sameline = 0;
+static void clearline(void) {
+  if (sameline)
+    fputc('\n', stdout);
+  sameline = 0;
 }
 
 static void sim_info_cont(const char fmt[], ...) {
   va_list ap;
   va_start(ap, fmt);
   vsim_info_cont(fmt, ap);
+  va_end(ap);
+  sameline = 1;
 }
 
 void sim_info(const char fmt[], ...) {
   va_list ap;
+  clearline();
   va_start(ap, fmt);
   vsim_info_cont(fmt, ap);
+  va_end(ap);
+  if (verbose < 1) return;
   fputc('\n', stdout);
 }
 
 void sim_debug(const char fmt[], ...) {
-#ifdef SIM_DEBUG
   va_list ap;
+  if (verbose < 3) return;
+  clearline();
   fcyan();
   va_start(ap, fmt);
   vprintf(fmt, ap);
   va_end(ap);
   fputc('\n', stdout);
   fbreset();
-#endif
 }
 
 void sim_tick(char ch) {
+  if (verbose < 2) return;
   fcyan();
   fprintf(stdout, "%c", ch);
   fbreset();
   fflush(stdout);
 }
 
+static char gcode_buffer[300]; 
+static int gcode_buffer_index;
+void sim_gcode_ch(char ch) {
+  // Got CR, LF or buffer full
+  if ( gcode_buffer_index == sizeof(gcode_buffer)-1 ||
+       ch == '\r' || ch == '\n' || ch == 0 ) {
+
+    // Terminate string, reset buffer, emit gcode
+    if (gcode_buffer_index) {
+      gcode_buffer[gcode_buffer_index] = 0;
+      gcode_buffer_index = 0;
+
+      if (trace_gcode) {
+        clearline();
+        fyellow();
+        printf("%s\n", gcode_buffer);
+        fbreset();
+        fflush(stdout);
+      }
+
+      // Send gcode to data_recorder
+      record_comment(gcode_buffer);
+    }
+
+    if (ch == '\r' || ch == '\n' || ch == 0)
+      return;
+  }
+
+  // Acumulate char from stream
+  gcode_buffer[gcode_buffer_index++] = ch;
+}
+
+void sim_gcode(const char msg[]) {
+  for ( ; *msg ; msg++ ) sim_gcode_ch(*msg);
+  sim_gcode_ch(0);
+}
+
 void sim_error(const char msg[]) {
+  clearline();
   fred();
   printf("ERROR: %s\n", msg);
   fputc('\n', stdout);
@@ -167,10 +266,15 @@ static bool state[PIN_NB];
 static void print_pos(void) {
   char * axis = "xyze";
   int i;
-  for ( i = X_AXIS ; i < AXIS_MAX ; i++ ) {
-    sim_info_cont("%c:%5d   ", axis[i], pos[i]);
+  if (trace_pos) {
+    for ( i = X_AXIS ; i < AXIS_MAX ; i++ ) {
+      sim_info_cont("%c:%5d   ", axis[i], pos[i]);
+    }
+    if (verbose > 1)
+      clearline();
+    else
+      sim_info_cont("               \r");
   }
-  sim_info("");
 }
 
 bool READ(pin_t pin) {
