@@ -8,6 +8,21 @@ To compile the simulation code, use
 
   $ make -f Makefile-SIM
 
+The simulator can run in one of two modes.  It can connect to a serial port
+in order to simulate a real printer or it can read in a file of gcodes as if
+they were provided over the serial port.
+
+=== Gcode file ===
+
+Run the simulator with the name of one or more the gcode files as the command
+arguments. The simulator will read gcodes from each file in turn until all
+commands are exhausted. Responses normally sent to the serial port will only
+be written to the console.
+
+  $ ./sim testcases/curves.gcode
+
+=== Serial port ===
+
 The simulator will open a serial port for communication. If you don't want to
 connect a null modem cable, you can use 'socat' to connect two serial ports:
 
