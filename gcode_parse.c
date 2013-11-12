@@ -106,7 +106,7 @@ void gcode_parse_char(uint8_t c) {
 	if (c >= 'a' && c <= 'z')
 		c &= ~32;
 #ifdef SIMULATOR
-  record_comment_stream(c);
+  sim_gcode_ch(c);
 #endif
 	// process previous field
 	if (last_field) {

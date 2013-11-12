@@ -153,6 +153,9 @@ void sim_info(const char fmt[], ...);
 void sim_debug(const char fmt[], ...);
 void sim_error(const char msg[]);
 void sim_assert(bool cond, const char msg[]);
+void sim_gcode_ch(char ch);
+void sim_gcode(const char msg[]);
+
 void sim_timer_init(void);
 void sim_timer_stop(void);
 void sim_setTimer(void);
