@@ -28,6 +28,9 @@
 	#include	"heater.h"
 #endif
 
+/* 32-bit-specific abs fn coerces argument to 32-bit signed value first */
+#define abs32(x) labs((int32_t)(x))
+
 /*
 	position tracking
 */
@@ -109,18 +112,18 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 // TODO TODO: We should really make up a loop for all axes.
 //            Think of what happens when a sixth axis (multi colour extruder)
 //            appears?
-	x_delta_um = (uint32_t)labs(target->X - startpoint.X);
-	y_delta_um = (uint32_t)labs(target->Y - startpoint.Y);
-	z_delta_um = (uint32_t)labs(target->Z - startpoint.Z);
+	x_delta_um = (uint32_t)abs32(target->X - startpoint.X);
+	y_delta_um = (uint32_t)abs32(target->Y - startpoint.Y);
+	z_delta_um = (uint32_t)abs32(target->Z - startpoint.Z);
 
 	steps = um_to_steps_x(target->X);
-	dda->x_delta = labs(steps - startpoint_steps.X);
+	dda->x_delta = abs32(steps - startpoint_steps.X);
 	startpoint_steps.X = steps;
 	steps = um_to_steps_y(target->Y);
-	dda->y_delta = labs(steps - startpoint_steps.Y);
+	dda->y_delta = abs32(steps - startpoint_steps.Y);
 	startpoint_steps.Y = steps;
 	steps = um_to_steps_z(target->Z);
-	dda->z_delta = labs(steps - startpoint_steps.Z);
+	dda->z_delta = abs32(steps - startpoint_steps.Z);
 	startpoint_steps.Z = steps;
 
 	dda->x_direction = (target->X >= startpoint.X)?1:0;
@@ -128,14 +131,14 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 	dda->z_direction = (target->Z >= startpoint.Z)?1:0;
 
 	if (target->e_relative) {
-		e_delta_um = labs(target->E);
-		dda->e_delta = labs(um_to_steps_e(target->E));
+		e_delta_um = abs32(target->E);
+		dda->e_delta = abs32(um_to_steps_e(target->E));
 		dda->e_direction = (target->E >= 0)?1:0;
 	}
 	else {
-		e_delta_um = (uint32_t)labs(target->E - startpoint.E);
+		e_delta_um = (uint32_t)abs32(target->E - startpoint.E);
 		steps = um_to_steps_e(target->E);
-		dda->e_delta = labs(steps - startpoint_steps.E);
+		dda->e_delta = abs32(steps - startpoint_steps.E);
 		startpoint_steps.E = steps;
 		dda->e_direction = (target->E >= startpoint.E)?1:0;
 	}
