@@ -144,9 +144,6 @@ void setTimer(uint32_t delay)
 	uint32_t earliest_time, actual_time;
 	#endif /* ACCELERATION_TEMPORAL */
 
-	// re-enable clock interrupt in case we're recovering from emergency stop
-	TIMSK1 |= MASK(OCIE1B);
-
 	// An interrupt would make all our timing calculations invalid,
 	// so stop that here.
 	cli();
