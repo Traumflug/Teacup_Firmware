@@ -35,7 +35,7 @@
 // Must be the same for all tables.
 #define NUMTEMPS 20
 
-uint16_t const temptable[NUMTABLES][NUMTEMPS][2] PROGMEM = {
+const uint16_t temptable[NUMTABLES][NUMTEMPS][2] PROGMEM = {
 
 // Table for the Extruder.
 // Thermistor: unknown

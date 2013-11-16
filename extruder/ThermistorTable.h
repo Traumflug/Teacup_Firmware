@@ -24,7 +24,7 @@
 // max adc: 1023
 #define NUMTEMPS 20
 // {ADC, temp*4 }, // temp
-uint16_t temptable[NUMTABLES][NUMTEMPS][2] PROGMEM = {
+const uint16_t temptable[NUMTABLES][NUMTEMPS][2] PROGMEM = {
 {
    {1, 3364}, // 841.027617469 C
    {21, 1329}, // 332.486789769 C

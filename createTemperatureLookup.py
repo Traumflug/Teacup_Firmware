@@ -183,7 +183,7 @@ def main(argv):
 		print "{ //" + " Table 0 chunk for B={b}, R0={r0}, R1={r1}, R2={r2}, Vref={v}".format(par="{",b=beta,r0=r0,r1=r1,r2=r2,v=vadc) 
 	else:
 		print "#define NUMTEMPS  %s " %  (len(adcs))
-		print "uint16_t temptable[NUMTEMPS][2] PROGMEM = {"
+		print "const uint16_t temptable[NUMTEMPS][2] PROGMEM = {"
 	print "// {ADC, temp*%s }, // temp         Rtherm     Vtherm      resolution   power" % (mult)
 
 	counter = 0
