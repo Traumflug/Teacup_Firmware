@@ -109,7 +109,12 @@ void io_init(void) {
 		WRITE(E_STEP_PIN, 0);	SET_OUTPUT(E_STEP_PIN);
 		WRITE(E_DIR_PIN,  0);	SET_OUTPUT(E_DIR_PIN);
 	#endif
-
+	
+  #if defined E1_STEP_PIN && defined E1_DIR_PIN  // Second extreder pins (E1 - numbered from 0)
+		WRITE(E1_STEP_PIN, 0);	SET_OUTPUT(E1_STEP_PIN);
+		WRITE(E1_DIR_PIN,  0);	SET_OUTPUT(E1_DIR_PIN);
+	#endif
+	
 	// Common Stepper Enable
 	#ifdef STEPPER_ENABLE_PIN
 		#ifdef STEPPER_INVERT_ENABLE
@@ -160,6 +165,16 @@ void io_init(void) {
 		SET_OUTPUT(E_ENABLE_PIN);
 	#endif
 
+// E1 Stepper Enable
+	#ifdef E1_ENABLE_PIN
+		#ifdef E1_INVERT_ENABLE
+			WRITE(E1_ENABLE_PIN, 0);
+		#else
+			WRITE(E1_ENABLE_PIN, 1);
+		#endif
+		SET_OUTPUT(E1_ENABLE_PIN);
+	#endif
+	
 	#ifdef	STEPPER_ENABLE_PIN
 		power_off();
 	#endif

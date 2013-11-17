@@ -26,6 +26,8 @@
 	#include	"heater.h"
 #endif
 
+extern uint8_t next_tool;
+
 /*
 	position tracking
 */
@@ -176,6 +178,7 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 		y_enable();
 		// Z is enabled in dda_start()
 		e_enable();
+		e1_enable(); // EXTR 2 
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
 		if (z_delta_um == 0)
@@ -416,7 +419,7 @@ void dda_start(DDA *dda) {
 		x_direction(dda->x_direction);
 		y_direction(dda->y_direction);
 		z_direction(dda->z_direction);
-		e_direction(dda->e_direction);
+		if (next_tool == 1) e1_direction(dda->e_direction); else e_direction(dda->e_direction);   //  EXTR 2 support
 
 		#ifdef	DC_EXTRUDER
 		if (dda->e_delta)
@@ -523,14 +526,14 @@ void dda_step(DDA *dda) {
 	if (move_state.e_steps) {
 		move_state.e_counter -= dda->e_delta;
 		if (move_state.e_counter < 0) {
-			e_step();
+			if (next_tool == 1) {e1_step();} else e_step();	// EXTR2 support
 			move_state.e_steps--;
 			move_state.e_counter += dda->total_steps;
 		}
 	}
 #else	// ACCELERATION_TEMPORAL
 	if (dda->axis_to_step == 'e') {
-		e_step();
+		if (next_tool == 1) e1_step(); else e_step();	// EXTR2 support
 		move_state.e_steps--;
 		move_state.e_time += dda->e_step_interval;
 		move_state.all_time = move_state.e_time;

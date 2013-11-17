@@ -11,6 +11,7 @@
 // Names for our tables, so you can use them in config.h.
 // Table numbering starts at 0.
 #define THERMISTOR_EXTRUDER   0
+//#define THERMISTOR_EXTRUDER_1   0   // Extr 2 support
 #define THERMISTOR_BED        1
 
 /*
