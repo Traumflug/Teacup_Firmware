@@ -371,6 +371,10 @@ void temp_print(temp_sensor_t index) {
 			sersendf_P(PSTR("T:"));
 			single_temp_print(HEATER_EXTRUDER);
 		#endif
+    #ifdef HEATER_EXTRUDER_1
+      sersendf_P(PSTR(" T:"));
+      single_temp_print(HEATER_EXTRUDER_1);
+    #endif
 		#ifdef HEATER_BED
 			sersendf_P(PSTR(" B:"));
 			single_temp_print(HEATER_BED);

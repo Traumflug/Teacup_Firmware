@@ -110,8 +110,12 @@ void process_gcode_command() {
 	    //? Example: T1
 	    //?
 	    //? Select extruder number 1 to build with.  Extruder numbering starts at 0.
+      // wait for all moves to complete
 
-	    next_tool = next_target.T;
+      //wait before Extruders changes
+      queue_wait();
+
+      next_tool = next_target.T;
 	}
 
 	if (next_target.seen_G) {
@@ -472,10 +476,13 @@ void process_gcode_command() {
         //?
 				if ( ! next_target.seen_S)
 					break;
-        #ifdef HEATER_EXTRUDER
-          if ( ! next_target.seen_P)
-            next_target.P = HEATER_EXTRUDER;
-        // else use the first available device
+        #if (defined(HEATER_EXTRUDER) || defined(HEATER_EXTRUDER_1))
+          if ( ! next_target.seen_P ) {
+              if ( next_target.seen_T )
+                next_target.P = next_target.T;
+              else
+                next_target.P = next_tool;
+          }   
         #endif
 				temp_set(next_target.P, next_target.S);
 				break;
@@ -674,10 +681,9 @@ void process_gcode_command() {
 			case 130:
 				//? --- M130: heater P factor ---
 				//? Undocumented.
-        #ifdef HEATER_EXTRUDER
+        #if (defined(HEATER_EXTRUDER) || defined(HEATER_EXTRUDER_1))
           if ( ! next_target.seen_P)
-            next_target.P = HEATER_EXTRUDER;
-        // else use the first available device
+            next_target.P = next_tool; 
         #endif
 				if (next_target.seen_S)
 					pid_set_p(next_target.P, next_target.S);
@@ -686,9 +692,9 @@ void process_gcode_command() {
 			case 131:
 				//? --- M131: heater I factor ---
 				//? Undocumented.
-        #ifdef HEATER_EXTRUDER
+        #if (defined(HEATER_EXTRUDER) || defined(HEATER_EXTRUDER_1))
           if ( ! next_target.seen_P)
-            next_target.P = HEATER_EXTRUDER;
+            next_target.P = next_tool; 
         #endif
 				if (next_target.seen_S)
 					pid_set_i(next_target.P, next_target.S);
@@ -697,9 +703,9 @@ void process_gcode_command() {
 			case 132:
 				//? --- M132: heater D factor ---
 				//? Undocumented.
-        #ifdef HEATER_EXTRUDER
+        #if (defined(HEATER_EXTRUDER) || defined(HEATER_EXTRUDER_1))
           if ( ! next_target.seen_P)
-            next_target.P = HEATER_EXTRUDER;
+            next_target.P = next_tool; 
         #endif
 				if (next_target.seen_S)
 					pid_set_d(next_target.P, next_target.S);
@@ -708,9 +714,9 @@ void process_gcode_command() {
 			case 133:
 				//? --- M133: heater I limit ---
 				//? Undocumented.
-        #ifdef HEATER_EXTRUDER
+        #if (defined(HEATER_EXTRUDER) || defined(HEATER_EXTRUDER_1))
           if ( ! next_target.seen_P)
-            next_target.P = HEATER_EXTRUDER;
+            next_target.P = next_tool; 
         #endif
 				if (next_target.seen_S)
 					pid_set_i_limit(next_target.P, next_target.S);
@@ -728,9 +734,9 @@ void process_gcode_command() {
 				//? --- M136: PRINT PID settings to host ---
 				//? Undocumented.
 				//? This comand is only available in DEBUG builds.
-        #ifdef HEATER_EXTRUDER
+        #if (defined(HEATER_EXTRUDER) || defined(HEATER_EXTRUDER_1))
 				if ( ! next_target.seen_P)
-					next_target.P = HEATER_EXTRUDER;
+          next_target.P = next_tool; 
 				heater_print(next_target.P);
         #endif
 				break;
