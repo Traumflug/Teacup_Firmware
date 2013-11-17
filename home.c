@@ -93,10 +93,12 @@ void home_x_positive() {
 		// set position to MAX
 		startpoint.X = next_target.target.X = (int32_t)(X_MAX * 1000.);
 		dda_new_startpoint();
-		// go to zero
-		t.X = 0;
-		t.F = MAXIMUM_FEEDRATE_X;
-		enqueue(&t);
+		#ifndef X_HOME_MAX
+			// go to zero
+			t.X = 0;
+			t.F = MAXIMUM_FEEDRATE_X;
+			enqueue(&t);
+		#endif
 	#endif
 }
 
@@ -163,10 +165,12 @@ void home_y_positive() {
 		// set position to MAX
 		startpoint.Y = next_target.target.Y = (int32_t)(Y_MAX * 1000.);
 		dda_new_startpoint();
-		// go to zero
-		t.Y = 0;
-		t.F = MAXIMUM_FEEDRATE_Y;
-		enqueue(&t);
+		#ifndef Y_HOME_MAX
+			// go to zero
+			t.Y = 0;
+			t.F = MAXIMUM_FEEDRATE_Y;
+			enqueue(&t);
+		#endif
 		// Make sure the next move will start at the 0 point
 		next_target.target.Y = 0;
 	#endif
@@ -236,9 +240,11 @@ void home_z_positive() {
 		// set position to MAX
 		startpoint.Z = next_target.target.Z = (int32_t)(Z_MAX * 1000.);
 		dda_new_startpoint();
-		// go to zero
-		t.Z = 0;
-		t.F = MAXIMUM_FEEDRATE_Z;
-		enqueue(&t);
+		#ifndef Z_HOME_MAX
+			// go to zero
+			t.Z = 0;
+			t.F = MAXIMUM_FEEDRATE_Z;
+			enqueue(&t);
+		#endif
 	#endif
 }

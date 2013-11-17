@@ -100,16 +100,23 @@
 /**
 	Soft axis limits, in mm.
 	Define them to your machine's size relative to what your host considers to be the origin.
+	Define the _HOME_MAX for the axis you want to home to the maximum if you have max endstops.
+	(Mendel 90 for example has Z-endstop at max, defining Z_HOME_MAX here has the effect that the
+	Z-axis stays at the endstop when homing, else the axis would home to Z-max and then lower the
+	print head to zero again, leading to 2 complete length runs of the Z-axis which is slow)
 */
 
 //#define	X_MIN			0.0
 //#define	X_MAX			200.0
+//#define   X_HOME_MAX
 
 //#define	Y_MIN			0.0
 //#define	Y_MAX			200.0
+//#define   Y_HOME_MAX
 
 //#define	Z_MIN			0.0
 //#define	Z_MAX			140.0
+//#define   Z_HOME_MAX
 
 /**	\def E_ABSOLUTE
 	Some G-Code creators produce relative length commands for the extruder, others absolute ones. G-Code using absolute lengths can be recognized when there are G92 E0 commands from time to time. If you have G92 E0 in your G-Code, define this flag.
