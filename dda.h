@@ -157,6 +157,8 @@ typedef struct {
   // are the same. Note: we do not need a lot of granularity here: more than
   // MOVEBUFFER_SIZE is already enough.
   uint8_t           id;
+  uint8_t			lead;
+  uint8_t			crossF;
   #endif
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
