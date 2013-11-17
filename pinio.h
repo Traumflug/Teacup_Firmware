@@ -143,12 +143,28 @@ Extruder
 	#define	e_direction(dir)		do { } while (0)
 #endif
 
+// Second extruder 
+
+#if defined E1_STEP_PIN && defined E1_DIR_PIN
+	#define	_e1_step(st)					WRITE(E1_STEP_PIN, st)
+	#define	e1_step()						_e1_step(1);
+	#ifndef	E1_INVERT_DIR
+		#define	e1_direction(dir)	WRITE(E1_DIR_PIN, dir)
+	#else
+		#define	e1_direction(dir)	WRITE(E1_DIR_PIN, (dir)^1)
+	#endif
+#else
+	#define	_e1_step(st)					do { } while (0)
+	#define	e1_step()						do { } while (0)
+	#define	e1_direction(dir)		do { } while (0)
+#endif
+
 /*
 End Step - All Steppers
 (so we don't have to delay in interrupt context)
 */
 
-#define unstep() 							do { _x_step(0); _y_step(0); _z_step(0); _e_step(0); } while (0)
+#define unstep() 							do { _x_step(0); _y_step(0); _z_step(0); _e_step(0); _e1_step(0); } while (0)
 
 /*
 Stepper Enable Pins
@@ -217,6 +233,21 @@ Stepper Enable Pins
 #else
 	#define	e_enable()					do { } while (0)
 	#define	e_disable()					do { } while (0)
+#endif
+
+// Second extruder 
+
+#ifdef	E1_ENABLE_PIN
+	#ifdef	E1_INVERT_ENABLE
+		#define	e1_enable()				do { WRITE(E1_ENABLE_PIN, 0); } while (0)
+		#define	e1_disable()				do { WRITE(E1_ENABLE_PIN, 1); } while (0)
+	#else
+		#define	e1_enable()				do { WRITE(E1_ENABLE_PIN, 1); } while (0)
+		#define	e1_disable()				do { WRITE(E1_ENABLE_PIN, 0); } while (0)
+	#endif
+#else
+	#define	e1_enable()					do { } while (0)
+	#define	e1_disable()					do { } while (0)
 #endif
 
 /*
