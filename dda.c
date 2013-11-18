@@ -147,10 +147,10 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 
   #ifdef LOOKAHEAD
   // Also displacements in micrometers, but for the lookahead alogrithms.
-  dda->delta.X = target->X - startpoint.X;
-  dda->delta.Y = target->Y - startpoint.Y;
-  dda->delta.Z = target->Z - startpoint.Z;
-  dda->delta.E = target->e_relative ? target->E : target->E - startpoint.E;
+  dda->delta_um.X = target->X - startpoint.X;
+  dda->delta_um.Y = target->Y - startpoint.Y;
+  dda->delta_um.Z = target->Z - startpoint.Z;
+  dda->delta_um.E = target->e_relative ? target->E : target->E - startpoint.E;
   #endif
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
