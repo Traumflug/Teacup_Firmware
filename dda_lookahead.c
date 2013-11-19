@@ -184,15 +184,15 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
 
   // Find individual axis speeds.
   // int32_t muldiv(int32_t multiplicand, uint32_t multiplier, uint32_t divisor)
-  prevFx = muldiv(prev->delta_um.X, F, prev->distance);
-  prevFy = muldiv(prev->delta_um.Y, F, prev->distance);
-  prevFz = muldiv(prev->delta_um.Z, F, prev->distance);
-  prevFe = muldiv(prev->delta_um.E, F, prev->distance);
+  prevFx = muldiv(prev->delta_um[X], F, prev->distance);
+  prevFy = muldiv(prev->delta_um[Y], F, prev->distance);
+  prevFz = muldiv(prev->delta_um[Z], F, prev->distance);
+  prevFe = muldiv(prev->delta_um[E], F, prev->distance);
 
-  currFx = muldiv(current->delta_um.X, F, current->distance);
-  currFy = muldiv(current->delta_um.Y, F, current->distance);
-  currFz = muldiv(current->delta_um.Z, F, current->distance);
-  currFe = muldiv(current->delta_um.E, F, current->distance);
+  currFx = muldiv(current->delta_um[X], F, current->distance);
+  currFy = muldiv(current->delta_um[Y], F, current->distance);
+  currFz = muldiv(current->delta_um[Z], F, current->distance);
+  currFe = muldiv(current->delta_um[E], F, current->distance);
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("prevF: %ld  %ld  %ld  %ld\ncurrF: %ld  %ld  %ld  %ld\n"),

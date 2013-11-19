@@ -48,19 +48,6 @@ typedef struct {
 } TARGET;
 
 /**
- \struct VECTOR4D
- \brief 4 dimensional vector used to describe the difference between moves.
-
-  Units are in micrometers and usually based off 'TARGET'.
-*/
-typedef struct {
-  int32_t X;
-  int32_t Y;
-  int32_t Z;
-  int32_t E;
-} VECTOR4D;
-
-/**
 	\struct MOVE_STATE
 	\brief this struct is made for tracking the current state of the movement
 
@@ -68,26 +55,17 @@ typedef struct {
 */
 typedef struct {
 	// bresenham counters
-	int32_t						x_counter; ///< counter for total_steps vs this axis
-	int32_t						y_counter; ///< counter for total_steps vs this axis
-	int32_t						z_counter; ///< counter for total_steps vs this axis
-	int32_t						e_counter; ///< counter for total_steps vs this axis
+  axes_int32_t      counter; ///< counter for total_steps vs each axis
 
 	// step counters
-	uint32_t					x_steps; ///< number of steps on X axis
-	uint32_t					y_steps; ///< number of steps on Y axis
-	uint32_t					z_steps; ///< number of steps on Z axis
-	uint32_t					e_steps; ///< number of steps on E axis
+  axes_uint32_t     steps;   ///< number of steps on each axis
 
 	#ifdef ACCELERATION_RAMPING
 	/// counts actual steps done
 	uint32_t					step_no;
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
-	uint32_t					x_time; ///< time of the last x step
-	uint32_t					y_time; ///< time of the last y step
-	uint32_t					z_time; ///< time of the last z step
-	uint32_t					e_time; ///< time of the last e step
+  axes_uint32_t     time;   ///< time of the last step on each axis
 	uint32_t					all_time; ///< time of the last step of any axis
 	#endif
 
@@ -131,10 +109,7 @@ typedef struct {
 	};
 
 	// distances
-	uint32_t					x_delta; ///< number of steps on X axis
-	uint32_t					y_delta; ///< number of steps on Y axis
-	uint32_t					z_delta; ///< number of steps on Z axis
-	uint32_t					e_delta; ///< number of steps on E axis
+  axes_uint32_t     delta;       ///< number of steps on each axis
 
   uint32_t          total_steps; ///< steps of the "fast" axis
   uint32_t          fast_um;     ///< movement length of this fast axis
@@ -166,7 +141,7 @@ typedef struct {
   // Displacement vector, in um, based between the difference of the starting
   // point and the target. Required to obtain the jerk between 2 moves.
   // Note: x_delta and co are in steps, not um.
-  VECTOR4D          delta_um;
+  axes_int32_t      delta_um;
   // Number the moves to be able to test at the end of lookahead if the moves
   // are the same. Note: we do not need a lot of granularity here: more than
   // MOVEBUFFER_SIZE is already enough.
@@ -174,10 +149,7 @@ typedef struct {
   #endif
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
-	uint32_t					x_step_interval; ///< time between steps on X axis
-	uint32_t					y_step_interval; ///< time between steps on Y axis
-	uint32_t					z_step_interval; ///< time between steps on Z axis
-	uint32_t					e_step_interval; ///< time between steps on E axis
+  axes_uint32_t     step_interval;   ///< time between steps on each axis
 	uint8_t						axis_to_step;    ///< axis to be stepped on the next interrupt
 	#endif
 
