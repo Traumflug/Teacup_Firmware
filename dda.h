@@ -11,6 +11,12 @@
 	#endif
 #endif
 
+#ifndef SIMULATOR
+  #include <avr/pgmspace.h>
+#else
+  #define PROGMEM
+#endif
+
 /*
 	types
 */

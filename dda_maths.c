@@ -9,6 +9,26 @@
 #include <stdint.h>
 
 /*!
+  Pre-calculated constant values for axis um <=> steps conversions.
+
+  These should be calculated at run-time once in dda_init() if the
+  STEPS_PER_M_* constants are ever replaced with run-time options.
+*/
+const axes_uint32_t PROGMEM axis_qn = {
+  (uint32_t)STEPS_PER_M_X / UM_PER_METER,
+  (uint32_t)STEPS_PER_M_Y / UM_PER_METER,
+  (uint32_t)STEPS_PER_M_Z / UM_PER_METER,
+  (uint32_t)STEPS_PER_M_E / UM_PER_METER
+};
+
+const axes_uint32_t PROGMEM axis_qr = {
+  (uint32_t)STEPS_PER_M_X % UM_PER_METER,
+  (uint32_t)STEPS_PER_M_Y % UM_PER_METER,
+  (uint32_t)STEPS_PER_M_Z % UM_PER_METER,
+  (uint32_t)STEPS_PER_M_E % UM_PER_METER
+};
+
+/*!
   Integer multiply-divide algorithm. Returns the same as muldiv(multiplicand, multiplier, divisor), but also allowing to use precalculated quotients and remainders.
 
   \param multiplicand
