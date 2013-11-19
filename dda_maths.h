@@ -34,26 +34,6 @@ inline int32_t um_to_steps(int32_t distance, enum axis_e a) {
                   pgm_read_dword(&axis_qr[a]), UM_PER_METER);
 }
 
-static int32_t um_to_steps_x(int32_t) __attribute__ ((always_inline));
-inline int32_t um_to_steps_x(int32_t distance) {
-  return um_to_steps(distance, X);
-}
-
-static int32_t um_to_steps_y(int32_t) __attribute__ ((always_inline));
-inline int32_t um_to_steps_y(int32_t distance) {
-  return um_to_steps(distance, Y);
-}
-
-static int32_t um_to_steps_z(int32_t) __attribute__ ((always_inline));
-inline int32_t um_to_steps_z(int32_t distance) {
-  return um_to_steps(distance, Z);
-}
-
-static int32_t um_to_steps_e(int32_t) __attribute__ ((always_inline));
-inline int32_t um_to_steps_e(int32_t distance) {
-  return um_to_steps(distance, E);
-}
-
 // approximate 2D distance
 uint32_t approx_distance(uint32_t dx, uint32_t dy);
 
