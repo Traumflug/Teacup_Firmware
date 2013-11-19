@@ -187,6 +187,12 @@ extern TARGET startpoint_steps;
 /// current_position holds the machine's current position. this is only updated when we step, or when G92 (set home) is received.
 extern TARGET current_position;
 
+/// maximum_feedrate values in an indexable array
+extern const axes_uint32_t maximum_feedrate;
+
+/// search_feedrate values in an indexable array
+extern const axes_uint32_t search_feedrate;
+
 /*
 	methods
 */
