@@ -122,35 +122,35 @@ void gcode_parse_char(uint8_t c) {
 					break;
 				case 'X':
 					if (next_target.option_inches)
-						next_target.target.X = decfloat_to_int(&read_digit, 25400);
+            next_target.target.axis[X] = decfloat_to_int(&read_digit, 25400);
 					else
-						next_target.target.X = decfloat_to_int(&read_digit, 1000);
+            next_target.target.axis[X] = decfloat_to_int(&read_digit, 1000);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-						serwrite_int32(next_target.target.X);
+            serwrite_int32(next_target.target.axis[X]);
 					break;
 				case 'Y':
 					if (next_target.option_inches)
-						next_target.target.Y = decfloat_to_int(&read_digit, 25400);
+            next_target.target.axis[Y] = decfloat_to_int(&read_digit, 25400);
 					else
-						next_target.target.Y = decfloat_to_int(&read_digit, 1000);
+            next_target.target.axis[Y] = decfloat_to_int(&read_digit, 1000);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-						serwrite_int32(next_target.target.Y);
+            serwrite_int32(next_target.target.axis[Y]);
 					break;
 				case 'Z':
 					if (next_target.option_inches)
-						next_target.target.Z = decfloat_to_int(&read_digit, 25400);
+            next_target.target.axis[Z] = decfloat_to_int(&read_digit, 25400);
 					else
-						next_target.target.Z = decfloat_to_int(&read_digit, 1000);
+            next_target.target.axis[Z] = decfloat_to_int(&read_digit, 1000);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-						serwrite_int32(next_target.target.Z);
+            serwrite_int32(next_target.target.axis[Z]);
 					break;
 				case 'E':
 					if (next_target.option_inches)
-						next_target.target.E = decfloat_to_int(&read_digit, 25400);
+            next_target.target.axis[E] = decfloat_to_int(&read_digit, 25400);
 					else
-						next_target.target.E = decfloat_to_int(&read_digit, 1000);
+            next_target.target.axis[E] = decfloat_to_int(&read_digit, 1000);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-						serwrite_uint32(next_target.target.E);
+            serwrite_uint32(next_target.target.axis[E]);
 					break;
 				case 'F':
 					// just use raw integer, we need move distance and n_steps to convert it to a useful value, so wait until we have those to convert it
@@ -375,10 +375,10 @@ void gcode_parse_char(uint8_t c) {
 		// last_field and read_digit are reset above already
 
 		if (next_target.option_all_relative) {
-			next_target.target.X = next_target.target.Y = next_target.target.Z = 0;
+      next_target.target.axis[X] = next_target.target.axis[Y] = next_target.target.axis[Z] = 0;
 		}
 		if (next_target.option_all_relative || next_target.option_e_relative) {
-			next_target.target.E = 0;
+      next_target.target.axis[E] = 0;
 		}
 	}
 }

@@ -65,10 +65,10 @@ void dda_init(void) {
 	This is needed for example after homing or a G92. The new location must be in startpoint already.
 */
 void dda_new_startpoint(void) {
-	startpoint_steps.X = um_to_steps_x(startpoint.X);
-	startpoint_steps.Y = um_to_steps_y(startpoint.Y);
-	startpoint_steps.Z = um_to_steps_z(startpoint.Z);
-	startpoint_steps.E = um_to_steps_e(startpoint.E);
+  startpoint_steps.axis[X] = um_to_steps_x(startpoint.axis[X]);
+  startpoint_steps.axis[Y] = um_to_steps_y(startpoint.axis[Y]);
+  startpoint_steps.axis[Z] = um_to_steps_z(startpoint.axis[Z]);
+  startpoint_steps.axis[E] = um_to_steps_e(startpoint.axis[E]);
 }
 
 /*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
@@ -117,8 +117,8 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("\nCreate: X %lq  Y %lq  Z %lq  F %lu\n"),
-               dda->endpoint.X, dda->endpoint.Y,
-               dda->endpoint.Z, dda->endpoint.F);
+               dda->endpoint.axis[X], dda->endpoint.axis[Y],
+               dda->endpoint.axis[Z], dda->endpoint.F);
 
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
@@ -136,49 +136,50 @@ void dda_create(DDA *dda, TARGET *target) {
 // TODO TODO: We should really make up a loop for all axes.
 //            Think of what happens when a sixth axis (multi colour extruder)
 //            appears?
-	x_delta_um = (uint32_t)abs32(target->X - startpoint.X);
-	y_delta_um = (uint32_t)abs32(target->Y - startpoint.Y);
-	z_delta_um = (uint32_t)abs32(target->Z - startpoint.Z);
+  x_delta_um = (uint32_t)abs32(target->axis[X] - startpoint.axis[X]);
+  y_delta_um = (uint32_t)abs32(target->axis[Y] - startpoint.axis[Y]);
+  z_delta_um = (uint32_t)abs32(target->axis[Z] - startpoint.axis[Z]);
 
-	steps = um_to_steps_x(target->X);
-	dda->x_delta = abs32(steps - startpoint_steps.X);
-	startpoint_steps.X = steps;
-	steps = um_to_steps_y(target->Y);
-	dda->y_delta = abs32(steps - startpoint_steps.Y);
-	startpoint_steps.Y = steps;
-	steps = um_to_steps_z(target->Z);
-	dda->z_delta = abs32(steps - startpoint_steps.Z);
-	startpoint_steps.Z = steps;
+  steps = um_to_steps_x(target->axis[X]);
+  dda->x_delta = abs32(steps - startpoint_steps.axis[X]);
+  startpoint_steps.axis[X] = steps;
+  steps = um_to_steps_y(target->axis[Y]);
+  dda->y_delta = abs32(steps - startpoint_steps.axis[Y]);
+  startpoint_steps.axis[Y] = steps;
+  steps = um_to_steps_z(target->axis[Z]);
+  dda->z_delta = abs32(steps - startpoint_steps.axis[Z]);
+  startpoint_steps.axis[Z] = steps;
 
-	dda->x_direction = (target->X >= startpoint.X)?1:0;
-	dda->y_direction = (target->Y >= startpoint.Y)?1:0;
-	dda->z_direction = (target->Z >= startpoint.Z)?1:0;
+  dda->x_direction = (target->axis[X] >= startpoint.axis[X])?1:0;
+  dda->y_direction = (target->axis[Y] >= startpoint.axis[Y])?1:0;
+  dda->z_direction = (target->axis[Z] >= startpoint.axis[Z])?1:0;
 
 	if (target->e_relative) {
-		e_delta_um = abs32(target->E);
-		dda->e_delta = abs32(um_to_steps_e(target->E));
-		dda->e_direction = (target->E >= 0)?1:0;
+    e_delta_um = abs32(target->axis[E]);
+    dda->e_delta = abs32(um_to_steps_e(target->axis[E]));
+    dda->e_direction = (target->axis[E] >= 0)?1:0;
 	}
 	else {
-		e_delta_um = (uint32_t)abs32(target->E - startpoint.E);
-		steps = um_to_steps_e(target->E);
-		dda->e_delta = abs32(steps - startpoint_steps.E);
-		startpoint_steps.E = steps;
-		dda->e_direction = (target->E >= startpoint.E)?1:0;
+    e_delta_um = (uint32_t)abs32(target->axis[E] - startpoint.axis[E]);
+    steps = um_to_steps_e(target->axis[E]);
+    dda->e_delta = abs32(steps - startpoint_steps.axis[E]);
+    startpoint_steps.axis[E] = steps;
+    dda->e_direction = (target->axis[E] >= startpoint.axis[E])?1:0;
 	}
 
   #ifdef LOOKAHEAD
   // Also displacements in micrometers, but for the lookahead alogrithms.
-  dda->delta_um.X = target->X - startpoint.X;
-  dda->delta_um.Y = target->Y - startpoint.Y;
-  dda->delta_um.Z = target->Z - startpoint.Z;
-  dda->delta_um.E = target->e_relative ? target->E : target->E - startpoint.E;
+  dda->delta_um.X = target->axis[X] - startpoint.axis[X];
+  dda->delta_um.Y = target->axis[Y] - startpoint.axis[Y];
+  dda->delta_um.Z = target->axis[Z] - startpoint.axis[Z];
+  dda->delta_um.E = target->e_relative ? target->axis[E] :
+                                         target->axis[E] - startpoint.axis[E];
   #endif
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("[%ld,%ld,%ld,%ld]"),
-               target->X - startpoint.X, target->Y - startpoint.Y,
-               target->Z - startpoint.Z, target->E - startpoint.E);
+               target->axis[X] - startpoint.axis[X], target->axis[Y] - startpoint.axis[Y],
+               target->axis[Z] - startpoint.axis[Z], target->axis[E] - startpoint.axis[E]);
 
 	dda->total_steps = dda->x_delta;
   dda->fast_um = x_delta_um;
@@ -444,8 +445,8 @@ void dda_start(DDA *dda) {
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Start: X %lq  Y %lq  Z %lq  F %lu\n"),
-               dda->endpoint.X, dda->endpoint.Y,
-               dda->endpoint.Z, dda->endpoint.F);
+               dda->endpoint.axis[X], dda->endpoint.axis[Y],
+               dda->endpoint.axis[Z], dda->endpoint.F);
 
 	if ( ! dda->nullmove) {
 		// get ready to go
@@ -885,45 +886,45 @@ void update_current_position() {
 	DDA *dda = &movebuffer[mb_tail];
 
 	if (queue_empty()) {
-		current_position.X = startpoint.X;
-		current_position.Y = startpoint.Y;
-		current_position.Z = startpoint.Z;
-		current_position.E = startpoint.E;
+    current_position.axis[X] = startpoint.axis[X];
+    current_position.axis[Y] = startpoint.axis[Y];
+    current_position.axis[Z] = startpoint.axis[Z];
+    current_position.axis[E] = startpoint.axis[E];
 	}
 	else if (dda->live) {
 		if (dda->x_direction)
 			// (STEPS_PER_M_X / 1000) is a bit inaccurate for low STEPS_PER_M numbers
-			current_position.X = dda->endpoint.X -
+      current_position.axis[X] = dda->endpoint.axis[X] -
 			                     // should be: move_state.x_steps * 1000000 / STEPS_PER_M_X)
 			                     // but x_steps can be like 1000000 already, so we'd overflow
 			                     move_state.x_steps * 1000 / ((STEPS_PER_M_X + 500) / 1000);
 		else
-			current_position.X = dda->endpoint.X +
+      current_position.axis[X] = dda->endpoint.axis[X] +
 			                     move_state.x_steps * 1000 / ((STEPS_PER_M_X + 500) / 1000);
 
 		if (dda->y_direction)
-			current_position.Y = dda->endpoint.Y -
+      current_position.axis[Y] = dda->endpoint.axis[Y] -
 			                     move_state.y_steps * 1000 / ((STEPS_PER_M_Y + 500) / 1000);
 		else
-			current_position.Y = dda->endpoint.Y +
+      current_position.axis[Y] = dda->endpoint.axis[Y] +
 			                     move_state.y_steps * 1000 / ((STEPS_PER_M_Y + 500) / 1000);
 
 		if (dda->z_direction)
-			current_position.Z = dda->endpoint.Z -
+      current_position.axis[Z] = dda->endpoint.axis[Z] -
 			                     move_state.z_steps * 1000 / ((STEPS_PER_M_Z + 500) / 1000);
 		else
-			current_position.Z = dda->endpoint.Z +
+      current_position.axis[Z] = dda->endpoint.axis[Z] +
 			                     move_state.z_steps * 1000 / ((STEPS_PER_M_Z + 500) / 1000);
 
 		if (dda->endpoint.e_relative) {
-			current_position.E = move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
+      current_position.axis[E] = move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
 		}
 		else {
 			if (dda->e_direction)
-				current_position.E = dda->endpoint.E -
+        current_position.axis[E] = dda->endpoint.axis[E] -
 				                     move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
 			else
-				current_position.E = dda->endpoint.E +
+        current_position.axis[E] = dda->endpoint.axis[E] +
 				                     move_state.e_steps * 1000 / ((STEPS_PER_M_E + 500) / 1000);
 		}
 

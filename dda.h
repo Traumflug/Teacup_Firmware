@@ -16,7 +16,23 @@
 */
 
 // Enum to denote an axis
-enum axis_e { X, Y, Z, E };
+enum axis_e { X = 0, Y, Z, E, AXIS_COUNT };
+
+/**
+  \typedef axes_uint32_t
+  \brief n-dimensional vector used to describe uint32_t axis information.
+
+  Stored value can be anything unsigned. Units should be specified when declared.
+*/
+typedef uint32_t axes_uint32_t[AXIS_COUNT];
+
+/**
+  \typedef axes_int32_t
+  \brief n-dimensional vector used to describe int32_t axis information.
+
+  Stored value can be anything unsigned. Units should be specified when declared.
+*/
+typedef int32_t axes_int32_t[AXIS_COUNT];
 
 /**
 	\struct TARGET
@@ -25,16 +41,10 @@ enum axis_e { X, Y, Z, E };
 	X, Y, Z and E are in micrometers unless explcitely stated. F is in mm/min.
 */
 typedef struct {
-// TODO TODO: We should really make up a loop for all axes.
-//            Think of what happens when a sixth axis (multi colour extruder)
-//            appears?
-	int32_t						X;
-	int32_t						Y;
-	int32_t						Z;
-	int32_t						E;
-	uint32_t					F;
+  axes_int32_t axis;
+  uint32_t  F;
 
-	uint8_t		e_relative				:1; ///< bool: e axis relative? Overrides all_relative
+  uint8_t   e_relative        :1; ///< bool: e axis relative? Overrides all_relative
 } TARGET;
 
 /**
