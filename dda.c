@@ -177,13 +177,7 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 		// Z is enabled in dda_start()
 		e_enable();
 
-		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
-		if (z_delta_um == 0)
-			distance = approx_distance(x_delta_um, y_delta_um);
-		else if (x_delta_um == 0 && y_delta_um == 0)
-			distance = z_delta_um;
-		else
-			distance = approx_distance_3(x_delta_um, y_delta_um, z_delta_um);
+		distance = approx_distance_3(x_delta_um, y_delta_um, z_delta_um);
 
 		if (distance < 2)
 			distance = e_delta_um;

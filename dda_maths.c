@@ -8,6 +8,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#ifndef SIMULATOR
+  #include <avr/pgmspace.h>
+#else
+  #define PROGMEM
+#endif
+
 /*!
   Integer multiply-divide algorithm. Returns the same as muldiv(multiplicand, multiplier, divisor), but also allowing to use precalculated quotients and remainders.
 
@@ -63,16 +69,25 @@ const int32_t muldivQR(int32_t multiplicand, uint32_t qn, uint32_t rn,
   return negative_flag ? -((int32_t)quotient) : (int32_t)quotient;
 }
 
-// courtesy of http://www.flipcode.com/archives/Fast_Approximate_Distance_Functions.shtml
+// Original idea: http://www.flipcode.com/archives/Fast_Approximate_Distance_Functions.shtml
 /*! linear approximation 2d distance formula
   \param dx distance in X plane
   \param dy distance in Y plane
-  \return 3-part linear approximation of \f$\sqrt{\Delta x^2 + \Delta y^2}\f$
+  \return linear approximation of \f$\sqrt{\Delta x^2 + \Delta y^2}\f$
 
-  see http://www.flipcode.com/archives/Fast_Approximate_Distance_Functions.shtml
+  \note Scalar values calculated in research/approximate_distance.plot
+  \note Accuracy is > 99.75%, and usually better than 99.9%.
 */
 uint32_t approx_distance(uint32_t dx, uint32_t dy) {
   uint32_t min, max, approx;
+  uint32_t minx, max_2, max_4, max_8;
+  int n;
+
+  static const uint16_t xscale[8] PROGMEM = { 1023, 1007, 979, 938, 893, 845, 794, 742 };
+  static const uint16_t yscale[8] PROGMEM = { 58, 189, 302, 412, 502, 579, 647, 706 };
+
+  // If either axis is zero, return the other one
+  if ( dx == 0 || dy == 0 ) return dx + dy;
 
   if ( dx < dy ) {
     min = dx;
@@ -82,52 +97,39 @@ uint32_t approx_distance(uint32_t dx, uint32_t dy) {
     max = dx;
   }
 
-  approx = ( max * 1007 ) + ( min * 441 );
-  if ( max < ( min << 4 ))
-    approx -= ( max * 40 );
+  // Quickie divide: n = min(7 , 8 * ( min / max ) )
+  n = 0;
+  minx = min;
+  max_2 = (  max + 1) >> 1;  /* max/2 */
+  max_4 = (max_2 + 1) >> 1;  /* max/4 */
+  max_8 = (max_4 + 1) >> 1;  /* max/8 */
+  if (minx > max_2) {
+    minx -= max_2;
+    n += 4;
+  }
+  if (minx > max_4) {
+    minx -= max_4;
+    n += 2;
+  }
+  if (minx > max_8) {
+    n += 1;
+  }
 
-  // add 512 for proper rounding
+  approx = ( max * xscale[n] ) + ( min * yscale[n] );
+
+  // add 512 for proper rounding, then divide by 1024
   return (( approx + 512 ) >> 10 );
 }
 
-// courtesy of http://www.oroboro.com/rafael/docserv.php/index/programming/article/distance
 /*! linear approximation 3d distance formula
   \param dx distance in X plane
   \param dy distance in Y plane
   \param dz distance in Z plane
   \return 3-part linear approximation of \f$\sqrt{\Delta x^2 + \Delta y^2 + \Delta z^2}\f$
-
-  see http://www.oroboro.com/rafael/docserv.php/index/programming/article/distance
 */
 uint32_t approx_distance_3(uint32_t dx, uint32_t dy, uint32_t dz) {
-  uint32_t min, med, max, approx;
-
-  if ( dx < dy ) {
-    min = dy;
-    med = dx;
-  } else {
-    min = dx;
-    med = dy;
-  }
-
-  if ( dz < min ) {
-    max = med;
-    med = min;
-    min = dz;
-  } else if ( dz < med ) {
-    max = med;
-    med = dz;
-  } else {
-    max = dz;
-  }
-
-  approx = ( max * 860 ) + ( med * 851 ) + ( min * 520 );
-  if ( max < ( med << 1 )) approx -= ( max * 294 );
-  if ( max < ( min << 2 )) approx -= ( max * 113 );
-  if ( med < ( min << 2 )) approx -= ( med *  40 );
-
-  // add 512 for proper rounding
-  return (( approx + 512 ) >> 10 );
+  /* sqrt( x^2 + y^2 + z^2 ) == sqrt( sqrt( x^2 + y^2)^2 + z^2 ) */
+  return approx_distance(approx_distance(dx,dy), dz);
 }
 
 /*!
