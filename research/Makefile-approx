@@ -1,0 +1,7 @@
+all: approx_dist tuner
+
+approx_dist: approx_distance.c ../dda_maths.c ../dda_maths.h
+	gcc -DSIMULATOR -D__AVR_ATmega644__ approx_distance.c ../dda_maths.c -I.. -lm -o $@
+
+tuner: approx_distance_tuner.c ../dda_maths.h
+	gcc -ggdb -DSIMULATOR -D__AVR_ATmega644__ approx_distance_tuner.c -I.. -lm -o $@
