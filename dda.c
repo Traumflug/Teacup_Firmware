@@ -847,12 +847,12 @@ void dda_clock() {
 /// update global current_position struct
 void update_current_position() {
 	DDA *dda = &movebuffer[mb_tail];
+  enum axis_e i;
 
 	if (queue_empty()) {
-    current_position.axis[X] = startpoint.axis[X];
-    current_position.axis[Y] = startpoint.axis[Y];
-    current_position.axis[Z] = startpoint.axis[Z];
-    current_position.axis[E] = startpoint.axis[E];
+    for (i = X; i < AXIS_COUNT; i++) {
+      current_position.axis[i] = startpoint.axis[i];
+    }
 	}
 	else if (dda->live) {
 		if (dda->x_direction)
