@@ -651,7 +651,7 @@ void dda_step(DDA *dda) {
 		dda->c = 0xFFFFFFFF;
     for (i = X; i < AXIS_COUNT; i++) {
       if (move_state.steps[i]) {
-        c_candidate = move_state.time[i] + dda->step_interval[i] - move_state.all_time;
+        c_candidate = move_state.time[i] + dda->step_interval[i] - move_state.last_time;
         if (c_candidate < dda->c) {
           dda->axis_to_step = i;
           dda->c = c_candidate;
