@@ -63,7 +63,7 @@ static void emit_log_data(void) {
   // Naive format: each line contains all values, beginning with the time
   fprintf(file, "%lu", prev_t/1000); // microseconds
   for (int i = 0; i < pin_count; i++)
-    fprintf(file, " %u", values[i]);
+    fprintf(file, " %d", values[i]);
   fprintf(file, "\n");
   fflush(file);
 }
