@@ -235,23 +235,18 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",ds:%lu"), distance);
 
-		#ifdef	ACCELERATION_TEMPORAL
-			// bracket part of this equation in an attempt to avoid overflow: 60 * 16MHz * 5mm is >32 bits
-			uint32_t move_duration, md_candidate;
+    #ifdef	ACCELERATION_TEMPORAL
+      // bracket part of this equation in an attempt to avoid overflow:
+      // 60 * 16 MHz * 5 mm is > 32 bits
+      uint32_t move_duration, md_candidate;
 
-			move_duration = distance * ((60 * F_CPU) / (target->F * 1000UL));
-      md_candidate = dda->delta[X] * ((60 * F_CPU) / (MAXIMUM_FEEDRATE_X * 1000UL));
-			if (md_candidate > move_duration)
-				move_duration = md_candidate;
-      md_candidate = dda->delta[Y] * ((60 * F_CPU) / (MAXIMUM_FEEDRATE_Y * 1000UL));
-			if (md_candidate > move_duration)
-				move_duration = md_candidate;
-      md_candidate = dda->delta[Z] * ((60 * F_CPU) / (MAXIMUM_FEEDRATE_Z * 1000UL));
-			if (md_candidate > move_duration)
-				move_duration = md_candidate;
-      md_candidate = dda->delta[E] * ((60 * F_CPU) / (MAXIMUM_FEEDRATE_E * 1000UL));
-			if (md_candidate > move_duration)
-				move_duration = md_candidate;
+      move_duration = distance * ((60 * F_CPU) / (target->F * 1000UL));
+      for (i = X; i < AXIS_COUNT; i++) {
+        md_candidate = dda->delta[i] * ((60 * F_CPU) /
+                       (pgm_read_dword(&maximum_feedrate[i]) * 1000UL));
+        if (md_candidate > move_duration)
+          move_duration = md_candidate;
+      }
 		#else
 			// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 			// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
