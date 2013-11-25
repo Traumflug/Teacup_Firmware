@@ -2,6 +2,8 @@
 (the look-ahead algorithm)
 G21
 G90
+G1 X5 F400
+G1 X0
 G1 X10 F200
 G1 X20 F400
 G1 X100 F1500
