@@ -101,8 +101,10 @@ void dda_new_startpoint(void) {
  *    already.
  */
 void dda_create(DDA *dda, TARGET *target) {
-	uint32_t	steps, x_delta_um, y_delta_um, z_delta_um, e_delta_um;
+  uint32_t steps;
+  axes_uint32_t delta_um;
 	uint32_t	distance, c_limit, c_limit_calc;
+  enum axis_e i;
   #ifdef LOOKAHEAD
   // Number the moves to identify them; allowed to overflow.
   static uint8_t idcnt = 0;
@@ -133,48 +135,40 @@ void dda_create(DDA *dda, TARGET *target) {
     dda->id = idcnt++;
   #endif
 
-// TODO TODO: We should really make up a loop for all axes.
-//            Think of what happens when a sixth axis (multi colour extruder)
-//            appears?
-  x_delta_um = (uint32_t)abs32(target->axis[X] - startpoint.axis[X]);
-  y_delta_um = (uint32_t)abs32(target->axis[Y] - startpoint.axis[Y]);
-  z_delta_um = (uint32_t)abs32(target->axis[Z] - startpoint.axis[Z]);
+  for (i = X; i < (target->e_relative ? E : AXIS_COUNT); i++) {
+    delta_um[i] = (uint32_t)abs32(target->axis[i] - startpoint.axis[i]);
 
-  steps = um_to_steps_x(target->axis[X]);
-  dda->delta[X] = abs32(steps - startpoint_steps.axis[X]);
-  startpoint_steps.axis[X] = steps;
-  steps = um_to_steps_y(target->axis[Y]);
-  dda->delta[Y] = abs32(steps - startpoint_steps.axis[Y]);
-  startpoint_steps.axis[Y] = steps;
-  steps = um_to_steps_z(target->axis[Z]);
-  dda->delta[Z] = abs32(steps - startpoint_steps.axis[Z]);
-  startpoint_steps.axis[Z] = steps;
+    steps = um_to_steps(target->axis[i], i);
+    dda->delta[i] = abs32(steps - startpoint_steps.axis[i]);
+    startpoint_steps.axis[i] = steps;
+
+    #ifdef LOOKAHEAD
+      // Also displacements in micrometers, but for the lookahead alogrithms.
+      // TODO: this is redundant. delta_um[] and dda->delta_um[] differ by
+      //       just signedness and storage location. Ideally, dda is used
+      //       as storage place only if neccessary (LOOKAHEAD turned on?)
+      //       because this space is multiplied by the movement queue size.
+      dda->delta_um[i] = target->axis[i] - startpoint.axis[i];
+    #endif
+  }
 
   dda->x_direction = (target->axis[X] >= startpoint.axis[X])?1:0;
   dda->y_direction = (target->axis[Y] >= startpoint.axis[Y])?1:0;
   dda->z_direction = (target->axis[Z] >= startpoint.axis[Z])?1:0;
 
 	if (target->e_relative) {
-    e_delta_um = abs32(target->axis[E]);
-    dda->delta[E] = abs32(um_to_steps_e(target->axis[E]));
+    // When we get more extruder axes:
+    // for (i = E; i < AXIS_COUNT; i++) { ...
+    delta_um[E] = abs32(target->axis[E]);
+    dda->delta[E] = abs32(um_to_steps(target->axis[E], E));
+    #ifdef LOOKAHEAD
+      dda->delta_um[E] = target->axis[E];
+    #endif
     dda->e_direction = (target->axis[E] >= 0)?1:0;
 	}
 	else {
-    e_delta_um = (uint32_t)abs32(target->axis[E] - startpoint.axis[E]);
-    steps = um_to_steps_e(target->axis[E]);
-    dda->delta[E] = abs32(steps - startpoint_steps.axis[E]);
-    startpoint_steps.axis[E] = steps;
     dda->e_direction = (target->axis[E] >= startpoint.axis[E])?1:0;
 	}
-
-  #ifdef LOOKAHEAD
-  // Also displacements in micrometers, but for the lookahead alogrithms.
-  dda->delta_um[X] = target->axis[X] - startpoint.axis[X];
-  dda->delta_um[Y] = target->axis[Y] - startpoint.axis[Y];
-  dda->delta_um[Z] = target->axis[Z] - startpoint.axis[Z];
-  dda->delta_um[E] = target->e_relative ? target->axis[E] :
-                                          target->axis[E] - startpoint.axis[E];
-  #endif
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("[%ld,%ld,%ld,%ld]"),
@@ -182,21 +176,21 @@ void dda_create(DDA *dda, TARGET *target) {
                target->axis[Z] - startpoint.axis[Z], target->axis[E] - startpoint.axis[E]);
 
   dda->total_steps = dda->delta[X];
-  dda->fast_um = x_delta_um;
+  dda->fast_um = delta_um[X];
   dda->fast_spm = STEPS_PER_M_X;
   if (dda->delta[Y] > dda->total_steps) {
     dda->total_steps = dda->delta[Y];
-    dda->fast_um = y_delta_um;
+    dda->fast_um = delta_um[Y];
     dda->fast_spm = STEPS_PER_M_Y;
   }
   if (dda->delta[Z] > dda->total_steps) {
     dda->total_steps = dda->delta[Z];
-    dda->fast_um = z_delta_um;
+    dda->fast_um = delta_um[Z];
     dda->fast_spm = STEPS_PER_M_Z;
   }
   if (dda->delta[E] > dda->total_steps) {
     dda->total_steps = dda->delta[E];
-    dda->fast_um = e_delta_um;
+    dda->fast_um = delta_um[E];
     dda->fast_spm = STEPS_PER_M_E;
   }
 
@@ -216,15 +210,15 @@ void dda_create(DDA *dda, TARGET *target) {
 		e_enable();
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
-		if (z_delta_um == 0)
-			distance = approx_distance(x_delta_um, y_delta_um);
-		else if (x_delta_um == 0 && y_delta_um == 0)
-			distance = z_delta_um;
+		if (delta_um[Z] == 0)
+			distance = approx_distance(delta_um[X], delta_um[Y]);
+		else if (delta_um[X] == 0 && delta_um[Y] == 0)
+			distance = delta_um[Z];
 		else
-			distance = approx_distance_3(x_delta_um, y_delta_um, z_delta_um);
+			distance = approx_distance_3(delta_um[X], delta_um[Y], delta_um[Z]);
 
 		if (distance < 2)
-			distance = e_delta_um;
+			distance = delta_um[E];
 
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",ds:%lu"), distance);
@@ -273,19 +267,19 @@ void dda_create(DDA *dda, TARGET *target) {
     //       allowed F easier.
 		c_limit = 0;
 		// check X axis
-		c_limit_calc = ((x_delta_um * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_X) << 8;
+    c_limit_calc = ((delta_um[X] * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_X) << 8;
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
 		// check Y axis
-		c_limit_calc = ((y_delta_um * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Y) << 8;
+    c_limit_calc = ((delta_um[Y] * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Y) << 8;
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
 		// check Z axis
-		c_limit_calc = ((z_delta_um * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Z) << 8;
+    c_limit_calc = ((delta_um[Z] * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Z) << 8;
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
 		// check E axis
-		c_limit_calc = ((e_delta_um * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_E) << 8;
+    c_limit_calc = ((delta_um[E] * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_E) << 8;
 		if (c_limit_calc > c_limit)
 			c_limit = c_limit_calc;
 
