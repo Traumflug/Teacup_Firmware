@@ -70,6 +70,19 @@ static const axes_uint32_t PROGMEM maximum_feedrate_P = {
   MAXIMUM_FEEDRATE_E
 };
 
+/*! Set the direction of the 'n' axis
+*/
+static void set_direction(DDA *dda, enum axis_e n, int dir) {
+  if (n == X)
+    dda->x_direction = dir;
+  else if (n == Y)
+    dda->y_direction = dir;
+  else if (n == Z)
+    dda->z_direction = dir;
+  else if (n == E)
+    dda->e_direction = dir;
+}
+
 /*! Find the direction of the 'n' axis
 */
 static int8_t get_direction(DDA *dda, enum axis_e n) {
@@ -172,6 +185,7 @@ void dda_create(DDA *dda, TARGET *target) {
     dda->delta[i] = abs32(steps - startpoint_steps.axis[i]);
     startpoint_steps.axis[i] = steps;
 
+    set_direction(dda, i, (target->axis[i] >= startpoint.axis[i])?1:0);
     #ifdef LOOKAHEAD
       // Also displacements in micrometers, but for the lookahead alogrithms.
       // TODO: this is redundant. delta_um[] and dda->delta_um[] differ by
@@ -182,10 +196,6 @@ void dda_create(DDA *dda, TARGET *target) {
     #endif
   }
 
-  dda->x_direction = (target->axis[X] >= startpoint.axis[X])?1:0;
-  dda->y_direction = (target->axis[Y] >= startpoint.axis[Y])?1:0;
-  dda->z_direction = (target->axis[Z] >= startpoint.axis[Z])?1:0;
-
 	if (target->e_relative) {
     // When we get more extruder axes:
     // for (i = E; i < AXIS_COUNT; i++) { ...
@@ -195,9 +205,6 @@ void dda_create(DDA *dda, TARGET *target) {
       dda->delta_um[E] = target->axis[E];
     #endif
     dda->e_direction = (target->axis[E] >= 0)?1:0;
-	}
-	else {
-    dda->e_direction = (target->axis[E] >= startpoint.axis[E])?1:0;
 	}
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
