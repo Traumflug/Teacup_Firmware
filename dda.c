@@ -625,15 +625,27 @@ void dda_step(DDA *dda) {
 		move_state.step_no++;
 	#endif
 
-	#ifdef ACCELERATION_TEMPORAL
-		/** How is this ACCELERATION TEMPORAL expected to work?
+  #ifdef ACCELERATION_TEMPORAL
+    /** How is this ACCELERATION TEMPORAL expected to work?
 
-			All axes work independently of each other, as if they were on four different, synchronized timers. As we have not enough suitable timers, we have to share one for all axes.
+      All axes work independently of each other, as if they were on four
+      different, synchronized timers. As we have not enough suitable timers,
+      we have to share one for all axes.
 
-			To do this, each axis maintains the time of its last step in move_state.{xyze}_time. This time is updated as the step is done, see early in dda_step(). To find out which axis is the next one to step, the time of each axis' next step is compared to the time of the step just done. Zero means this actually is the axis just stepped, the smallest value > 0 wins.
+      To do this, each axis maintains the time of its last step in
+      move_state.time[]. This time is updated as the step is done, see early
+      in dda_step(). To find out which axis is the next one to step, the time
+      of each axis' next step is compared to the time of the step just done.
+      Zero means this actually is the axis just stepped, the smallest value > 0
+      wins.
 
-			One problem undoubtly arising is, steps should sometimes be done at {almost,exactly} the same time. We trust the timer to deal properly with very short or even zero periods. If a step can't be done in time, the timer shall do the step as soon as possible and compensate for the delay later. In turn we promise here to send a maximum of four such short-delays consecutively and to give sufficient time on average.
-		*/
+      One problem undoubtedly arising is, steps should sometimes be done at
+      {almost,exactly} the same time. We trust the timer to deal properly with
+      very short or even zero periods. If a step can't be done in time, the
+      timer shall do the step as soon as possible and compensate for the delay
+      later. In turn we promise here to send a maximum of four such
+      short-delays consecutively and to give sufficient time on average.
+   */
 		uint32_t c_candidate;
 
 		dda->c = 0xFFFFFFFF;
@@ -685,7 +697,7 @@ void dda_step(DDA *dda) {
 
 /*! Do regular movement maintenance.
 
-  This should be called pretty often, like once every 1 ot 2 milliseconds.
+  This should be called pretty often, like once every 1 or 2 milliseconds.
 
   Currently, this is checking the endstops and doing acceleration maths. These
   don't need to be checked/recalculated on every single step, so this code
@@ -702,8 +714,10 @@ void dda_clock() {
   DDA *dda;
   static DDA *last_dda = NULL;
   uint8_t endstop_trigger = 0;
+  #ifdef ACCELERATION_RAMPING
   uint32_t move_step_no, move_c;
   uint8_t recalc_speed;
+  #endif
 
   dda = queue_current_movement();
   if (dda != last_dda) {
