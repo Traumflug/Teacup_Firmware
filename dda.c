@@ -52,6 +52,15 @@ TARGET BSS current_position;
 /// \brief numbers for tracking the current state of movement
 MOVE_STATE BSS move_state;
 
+/// \var steps_per_m
+/// \brief motor steps required to advance one meter on each axis
+static const axes_uint32_t PROGMEM steps_per_m = {
+  STEPS_PER_M_X,
+  STEPS_PER_M_Y,
+  STEPS_PER_M_Z,
+  STEPS_PER_M_E
+};
+
 /// \var maximum_feedrate
 /// \brief maximum allowed feedrate on each axis
 static const axes_uint32_t PROGMEM maximum_feedrate = {
@@ -184,23 +193,17 @@ void dda_create(DDA *dda, TARGET *target) {
                target->axis[X] - startpoint.axis[X], target->axis[Y] - startpoint.axis[Y],
                target->axis[Z] - startpoint.axis[Z], target->axis[E] - startpoint.axis[E]);
 
-  dda->total_steps = dda->delta[X];
-  dda->fast_um = delta_um[X];
-  dda->fast_spm = STEPS_PER_M_X;
-  if (dda->delta[Y] > dda->total_steps) {
-    dda->total_steps = dda->delta[Y];
-    dda->fast_um = delta_um[Y];
-    dda->fast_spm = STEPS_PER_M_Y;
-  }
-  if (dda->delta[Z] > dda->total_steps) {
-    dda->total_steps = dda->delta[Z];
-    dda->fast_um = delta_um[Z];
-    dda->fast_spm = STEPS_PER_M_Z;
-  }
-  if (dda->delta[E] > dda->total_steps) {
-    dda->total_steps = dda->delta[E];
-    dda->fast_um = delta_um[E];
-    dda->fast_spm = STEPS_PER_M_E;
+  // Admittedly, this looks like it's overcomplicated. Why store three 32-bit
+  // values if storing an axis number would be fully sufficient? Well, I'm not
+  // sure, but my feeling says that when we achieve true circles and Beziers,
+  // we'll have total_steps which matches neither of X, Y, Z or E. Accordingly,
+  // keep it for now. --Traumflug
+  for (i = X; i < AXIS_COUNT; i++) {
+    if (i == X || dda->delta[i] > dda->total_steps) {
+      dda->total_steps = dda->delta[i];
+      dda->fast_um = delta_um[i];
+      dda->fast_spm = pgm_read_dword(&steps_per_m[i]);
+    }
   }
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
