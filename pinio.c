@@ -42,3 +42,16 @@ void power_off() {
 
 	ps_is_on = 0;
 }
+
+// step the 'n' axis
+void do_step(enum axis_e n) {
+  if (n == X)
+    x_step();
+  else if (n == Y)
+    y_step();
+  else if (n == Z)
+    z_step();
+  else if (n == E)
+    e_step();
+}
+

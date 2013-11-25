@@ -6,6 +6,7 @@
 #define	_PINIO_H
 
 #include	"config_wrapper.h"
+#include "dda.h"
 
 #ifdef SIMULATOR
   #include "simulator.h"
@@ -32,6 +33,8 @@ inline void power_init(void) {
 
 void power_on(void);
 void power_off(void);
+
+void do_step(enum axis_e n);
 
 /*
 X Stepper
