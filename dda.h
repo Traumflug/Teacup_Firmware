@@ -71,8 +71,8 @@ typedef struct {
 	uint32_t					step_no;
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
-  axes_uint32_t     time;   ///< time of the last step on each axis
-	uint32_t					all_time; ///< time of the last step of any axis
+  axes_uint32_t     time;       ///< time of the last step on each axis
+  uint32_t          last_time;  ///< time of the last step of any axis
 	#endif
 
 	/// Endstop handling.
