@@ -52,6 +52,15 @@ TARGET BSS current_position;
 /// \brief numbers for tracking the current state of movement
 MOVE_STATE BSS move_state;
 
+/// \var maximum_feedrate
+/// \brief maximum allowed feedrate on each axis
+static const axes_uint32_t PROGMEM maximum_feedrate = {
+  MAXIMUM_FEEDRATE_X,
+  MAXIMUM_FEEDRATE_Y,
+  MAXIMUM_FEEDRATE_Z,
+  MAXIMUM_FEEDRATE_E
+};
+
 /*! Inititalise DDA movement structures
 */
 void dda_init(void) {
@@ -265,23 +274,14 @@ void dda_create(DDA *dda, TARGET *target) {
     //       to calculate (maximum) move_duration for each axis, like done for
     //       ACCELERATION_TEMPORAL above. This should make re-calculating the
     //       allowed F easier.
-		c_limit = 0;
-		// check X axis
-    c_limit_calc = ((delta_um[X] * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_X) << 8;
-		if (c_limit_calc > c_limit)
-			c_limit = c_limit_calc;
-		// check Y axis
-    c_limit_calc = ((delta_um[Y] * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Y) << 8;
-		if (c_limit_calc > c_limit)
-			c_limit = c_limit_calc;
-		// check Z axis
-    c_limit_calc = ((delta_um[Z] * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_Z) << 8;
-		if (c_limit_calc > c_limit)
-			c_limit = c_limit_calc;
-		// check E axis
-    c_limit_calc = ((delta_um[E] * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_E) << 8;
-		if (c_limit_calc > c_limit)
-			c_limit = c_limit_calc;
+    c_limit = 0;
+    for (i = X; i < AXIS_COUNT; i++) {
+      c_limit_calc = ((delta_um[i] * 2400L) /
+                      dda->total_steps * (F_CPU / 40000) /
+                      pgm_read_dword(&maximum_feedrate[i])) << 8;
+      if (c_limit_calc > c_limit)
+        c_limit = c_limit_calc;
+    }
 
 		#ifdef ACCELERATION_REPRAP
 		// c is initial step time in IOclk ticks
