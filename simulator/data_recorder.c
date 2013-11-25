@@ -36,6 +36,11 @@ void recorder_init(const char* filename) {
   time_t t = time(NULL);
   fprintf(file, "# Teacup_Firmware simulator v1.0\n");
   fprintf(file, "# Recorded %s\n", asctime(localtime(&t)));
+  fprintf(file, "#\n# Tips:\n");
+  fprintf(file, "# * Plot the actual points traveled with gnuplot\n");
+  fprintf(file, "#   gnuplot --persist -e \"set pointsize 0.01; plot '%s' u 2:3:1 with points\"\n", filename);
+  fprintf(file, "#\n");
+
   fflush(file);
   on_exit(recorder_close, NULL);
 }
