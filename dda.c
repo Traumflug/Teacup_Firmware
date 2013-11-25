@@ -70,6 +70,20 @@ static const axes_uint32_t PROGMEM maximum_feedrate_P = {
   MAXIMUM_FEEDRATE_E
 };
 
+/*! Find the direction of the 'n' axis
+*/
+static char get_direction(DDA *dda, enum axis_e n) {
+  if (n == X)
+    return dda->x_direction;
+  if (n == Y)
+    return dda->y_direction;
+  if (n == Z)
+    return dda->z_direction;
+  if (n == E)
+    return dda->e_direction;
+  return 0;
+}
+
 /*! Inititalise DDA movement structures
 */
 void dda_init(void) {
@@ -849,48 +863,35 @@ void update_current_position() {
 	DDA *dda = &movebuffer[mb_tail];
   enum axis_e i;
 
+  // Use smaller values to adjust to avoid overflow in later calculations,
+  // (STEPS_PER_M_X / 1000) is a bit inaccurate for low STEPS_PER_M numbers.
+  static const axes_uint32_t PROGMEM steps_per_mm_P = {
+    ((STEPS_PER_M_X + 500) / 1000),
+    ((STEPS_PER_M_Y + 500) / 1000),
+    ((STEPS_PER_M_Z + 500) / 1000),
+    ((STEPS_PER_M_E + 500) / 1000)
+  };
+
 	if (queue_empty()) {
     for (i = X; i < AXIS_COUNT; i++) {
       current_position.axis[i] = startpoint.axis[i];
     }
 	}
 	else if (dda->live) {
-		if (dda->x_direction)
-			// (STEPS_PER_M_X / 1000) is a bit inaccurate for low STEPS_PER_M numbers
-      current_position.axis[X] = dda->endpoint.axis[X] -
-              // should be: move_state.steps[X] * 1000000 / STEPS_PER_M_X)
-              // but steps[X] can be like 1000000 already, so we'd overflow
-              move_state.steps[X] * 1000 / ((STEPS_PER_M_X + 500) / 1000);
-		else
-      current_position.axis[X] = dda->endpoint.axis[X] +
-              move_state.steps[X] * 1000 / ((STEPS_PER_M_X + 500) / 1000);
+    for (i = X; i < AXIS_COUNT; i++) {
+      if (get_direction(dda, i))
+        current_position.axis[i] = dda->endpoint.axis[i] -
+            // Should be: move_state.steps[i] * 1000000 / steps_per_m_P[i])
+            // but steps[i] can be like 1000000 already, so we'd overflow.
+            move_state.steps[i] * 1000 / pgm_read_dword(&steps_per_mm_P[i]);
+      else
+        current_position.axis[i] = dda->endpoint.axis[i] +
+            move_state.steps[i] * 1000 / pgm_read_dword(&steps_per_mm_P[i]);
+    }
 
-		if (dda->y_direction)
-      current_position.axis[Y] = dda->endpoint.axis[Y] -
-              move_state.steps[Y] * 1000 / ((STEPS_PER_M_Y + 500) / 1000);
-		else
-      current_position.axis[Y] = dda->endpoint.axis[Y] +
-              move_state.steps[Y] * 1000 / ((STEPS_PER_M_Y + 500) / 1000);
-
-		if (dda->z_direction)
-      current_position.axis[Z] = dda->endpoint.axis[Z] -
-              move_state.steps[Z] * 1000 / ((STEPS_PER_M_Z + 500) / 1000);
-		else
-      current_position.axis[Z] = dda->endpoint.axis[Z] +
-              move_state.steps[Z] * 1000 / ((STEPS_PER_M_Z + 500) / 1000);
-
-		if (dda->endpoint.e_relative) {
-      current_position.axis[E] = move_state.steps[E] * 1000 /
-                                 ((STEPS_PER_M_E + 500) / 1000);
-		}
-		else {
-			if (dda->e_direction)
-        current_position.axis[E] = dda->endpoint.axis[E] -
-              move_state.steps[E] * 1000 / ((STEPS_PER_M_E + 500) / 1000);
-			else
-        current_position.axis[E] = dda->endpoint.axis[E] +
-              move_state.steps[E] * 1000 / ((STEPS_PER_M_E + 500) / 1000);
-		}
+    if (dda->endpoint.e_relative)
+      current_position.axis[E] =
+          move_state.steps[E] * 1000 / pgm_read_dword(&steps_per_mm_P[E]);
 
 		// current_position.F is updated in dda_start()
 	}
