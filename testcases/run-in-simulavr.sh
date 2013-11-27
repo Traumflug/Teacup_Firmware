@@ -8,6 +8,16 @@ if [ ! -x "${SIMULAVR}" ]; then
   exit 1;
 fi
 
+if [ $# -eq 0 ]; then
+  BASE=$(basename $0)
+  echo "Usage: ${BASE} <gcode file> ..."
+  echo
+  echo "${BASE} runs each G-code file in the simulator, limited to 60 seconds"
+  echo "simulation time (can take much more wall clock time) and processes the"
+  echo "results into a PNG picture and a .vcd file with calculated velocities."
+  exit 1
+fi
+
 
 # Prepare a pin tracing file, assuming a Gen7-v1.4 configuration. See
 # http://reprap.org/wiki/SimulAVR#Putting_things_together:_an_example
@@ -21,7 +31,12 @@ echo "# Y Step"            >> /tmp/tracein.txt
 echo "+ PORTA.A4-Out"      >> /tmp/tracein.txt
 
 
-for GCODE_FILE in "triangle.gcode" "straight-speeds.gcode"; do
+for GCODE_FILE in $*; do
+
+  if [ ! -r "${GCODE_FILE}" ]; then
+    echo "${GCODE_FILE} not readable, skipping."
+    continue
+  fi
 
   FILE="${GCODE_FILE%.gcode}"
   VCD_FILE="${FILE}.vcd"
