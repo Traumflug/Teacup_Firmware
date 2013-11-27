@@ -88,10 +88,6 @@ static int32_t decfloat_to_int(decfloat *df, uint16_t multiplicand) {
 void gcode_init(void) {
 	// gcc guarantees us all variables are initialised to 0.
 
-	// assume a G1 by default
-	next_target.seen_G = 1;
-	next_target.G = 1;
-
 	#ifndef E_ABSOLUTE
 		next_target.option_e_relative = 1;
 	#endif
@@ -327,6 +323,14 @@ void gcode_parse_char(uint8_t c) {
 		if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
 			serial_writechar(c);
 
+    // Assume G1 for unspecified movements.
+    if ( ! next_target.seen_G &&
+        (next_target.seen_X || next_target.seen_Y || next_target.seen_Z ||
+         next_target.seen_E || next_target.seen_F)) {
+      next_target.seen_G = 1;
+      next_target.G = 1;
+    }
+
 		if (
 		#ifdef	REQUIRE_LINENUMBER
 			((next_target.N >= next_target.N_expected) && (next_target.seen_N == 1)) ||
@@ -365,14 +369,10 @@ void gcode_parse_char(uint8_t c) {
 		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
 			next_target.seen_E = next_target.seen_F = next_target.seen_S = \
 			next_target.seen_P = next_target.seen_T = next_target.seen_N = \
-			next_target.seen_M = next_target.seen_checksum = next_target.seen_semi_comment = \
-			next_target.seen_parens_comment = next_target.checksum_read = \
-			next_target.checksum_calculated = 0;
+      next_target.seen_G = next_target.seen_M = next_target.seen_checksum = \
+      next_target.seen_semi_comment = next_target.seen_parens_comment = \
+      next_target.checksum_read = next_target.checksum_calculated = 0;
 		// last_field and read_digit are reset above already
-
-		// assume a G1 by default
-		next_target.seen_G = 1;
-		next_target.G = 1;
 
 		if (next_target.option_all_relative) {
 			next_target.target.X = next_target.target.Y = next_target.target.Z = 0;
