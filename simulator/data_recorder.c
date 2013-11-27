@@ -74,10 +74,7 @@ void record_pin(int pin, int32_t state, uint64_t t) {
 
   sim_assert(pin < MAX_PINS, "pin number invalid");
 
-  // Record previous state when new state value appears
-  if ( t != prev_t ) {
-    emit_log_data();
-  }
+  emit_log_data();
   prev_t = t;
   values[pin] = state;
 }
@@ -85,5 +82,11 @@ void record_pin(int pin, int32_t state, uint64_t t) {
 void record_comment(const char * msg) {
   if (!file) return;
   fprintf(file, "# %s\n", msg);
+  fflush(file);
+}
+
+void record_raw(const char * msg) {
+  if (!file) return;
+  fprintf(file, "%s", msg);
   fflush(file);
 }

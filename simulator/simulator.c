@@ -4,6 +4,9 @@
 #include <ctype.h>
 #include <getopt.h>
 
+// If no time scale specified, use 1/10th real-time for simulator
+#define DEFAULT_TIME_SCALE 10
+
 #include "simulator.h"
 #include "data_recorder.h"
 
@@ -40,21 +43,25 @@ int verbose = 1;                ///< 0=quiet, 1=normal, 2=noisy, 3=debug, etc.
 int trace_gcode = 0;            ///< show gcode on the console
 int trace_pos = 0;              ///< show print head position on the console
 
-const char * shortopts = "qvo::";
+const char * shortopts = "qgpvt:o::";
 struct option opts[] = {
   { "quiet", no_argument, &verbose , 0 },
   { "verbose", no_argument, NULL, 'v' },
   { "gcode", no_argument, NULL, 'g' },
   { "pos", no_argument, NULL, 'p' },
+  { "time-scale", required_argument, NULL, 't' },
   { "tracefile", optional_argument, NULL, 'o' }
 };
 
 static void usage(const char *name) {
-  printf("Usage:  %s [-q || --quiet] [-v [-v] || --verbose[=n]] [-g || --gcode]  [-p || --pos] [-o[outfile] || --tracefile[=outfile]] gcode-file || UART-tty\n", name);
+  printf("Usage:  %s [options] [gcode_file || uart_device_name]\n", name);
   printf("\n\n");
-  printf("   -g || --gcode        show gcode on console as it is processed\n");
-  printf("   -p || --pos          show head position on console\n");
-  printf("   -o || --tracefile    write simulator pin trace to 'outfile' (default filename=datalog.out)\n");
+  printf("   -q || --quiet                 show less output\n");
+  printf("   -v || --verbose               show more output\n");
+  printf("   -g || --gcode                 show gcode on console as it is processed\n");
+  printf("   -p || --pos                   show head position on console\n");
+  printf("   -t || --time-scale=n          set time-scale; 0=warp-speed, 1=real-time, 2=half-time, etc.\n");
+  printf("   -o || --tracefile[=filename]  write simulator pin trace to 'outfile' (default filename=datalog.out)\n");
   printf("\n");
   exit(1);
 }
@@ -64,8 +71,9 @@ char** g_argv;
 void sim_start(int argc, char** argv) {
   int c;
   int index;
+  uint8_t time_scale = DEFAULT_TIME_SCALE;
 
-  while ((c = getopt_long (argc, argv, "qgpvo::", opts, &index)) != -1)
+  while ((c = getopt_long (argc, argv, shortopts, opts, &index)) != -1)
     switch (c) {
     case 'q':
       verbose = 0;
@@ -79,6 +87,9 @@ void sim_start(int argc, char** argv) {
     case 'v':
       verbose += 1;
       break;
+    case 't':
+      time_scale = (uint8_t) atoi(optarg);
+      break;
     case 'o':
       recorder_init(optarg ? optarg : "datalog.out");
       break;
@@ -86,11 +97,22 @@ void sim_start(int argc, char** argv) {
       sim_error("Unexpected result in getopt_long handler");
     }
 
+  // Record the command line arguments to the datalog, if active
+  record_raw("# commandline:   ");
+  for (index = 0; index < argc; index++) {
+    record_raw(argv[index]);
+    record_raw(" ") ;
+  }
+  record_raw("\n");
+
   // Store remaining arguments list for serial sim
   g_argc = argc - optind + 1;
   g_argv = argv + optind - 1;
 
   if (argc < 2) usage(argv[0]);
+
+  // Initialize timer
+  sim_timer_init(time_scale);
 
   // Record pin names in datalog
 #define NAME_PIN_AXES(x) \

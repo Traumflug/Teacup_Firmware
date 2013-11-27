@@ -156,11 +156,18 @@ void sim_assert(bool cond, const char msg[]);
 void sim_gcode_ch(char ch);
 void sim_gcode(const char msg[]);
 
-void sim_timer_init(void);
+/**
+ * Initialize simulator timer and set time scale.
+ *
+ * @param scale time slow-down factor; 0=warp-speed, 1=real-time, 2-half-time, etc.
+ */
+void sim_timer_init(uint8_t scale);
+
 void sim_timer_stop(void);
 void sim_setTimer(void);
 uint16_t sim_tick_counter(void);
 uint64_t sim_runtime_ns(void); ///< Simulated run-time in nanoseconds
+void sim_time_warp(void); ///< skip ahead to next timer interrupt, when time_scale==0
 
 #define DIO0_PIN "proof of life"
 

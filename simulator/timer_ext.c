@@ -9,9 +9,12 @@
 #include <stdio.h> // printf
 #include <unistd.h> // usleep
 
-#define TIME_SLOW_FACTOR 10
+#define TICKS_TO_US(t) (t / (F_CPU / 1000000))
+
+static uint16_t time_scale = 1;
 
 static void schedule_timer(uint32_t useconds);
+static void timer1_isr(void);
 
 static bool timer_initialised = false;
 
@@ -22,6 +25,8 @@ enum {
 };
 
 static volatile uint8_t timer_reason;  // Who scheduled this timer
+static uint64_t ticks;
+static uint32_t warpTarget;
 
 static uint64_t now_ns(void) {
   struct timespec tv;
@@ -41,20 +46,40 @@ static uint64_t now_us(void) {
   return now_ns() / 1000;
 }
 
-uint16_t sim_tick_counter(void) {
-  // microseconds to 16-bit clock ticks
-  return (now_us() / TIME_SLOW_FACTOR) US;
+void sim_time_warp(void) {
+  if (time_scale || timer_reason == 0)
+    return;
+
+  ticks += warpTarget;
+  warpTarget = 0;
+
+  timer1_isr();
 }
 
+uint16_t sim_tick_counter(void) {
+  if (time_scale) {
+    // microseconds to 16-bit clock ticks
+    return (now_us() / time_scale) US;
+  }
+  return (uint16_t)(ticks % 0xFFFF);
+}
+
+#ifdef SIM_DEBUG
 extern uint8_t clock_counter_10ms, clock_counter_250ms, clock_counter_1s;
+#endif
+
 static uint64_t begin;
 static uint64_t then;
-void sim_timer_init(void) {
+void sim_timer_init(uint8_t scale) {
+  time_scale = scale;
   then = begin = now_ns();
-  sim_info("timer_init");
+  if (scale==0)
+    sim_info("timer_init: warp-speed");
+  else if (scale==1)
+    sim_info("timer_init: real-time");
+  else
+    sim_info("timer_init: 1/%u time", scale);
   timer_initialised = true;
-
-  sim_setTimer();
 }
 
 void sim_timer_stop(void) {
@@ -63,15 +88,23 @@ void sim_timer_stop(void) {
 }
 
 uint64_t sim_runtime_ns(void) {
-  return (now_ns() - begin) / TIME_SLOW_FACTOR;
+  if (time_scale)
+    return (now_ns() - begin) / time_scale;
+  return TICKS_TO_US(ticks) * 1000 ;
 }
 
-static void timer1_isr(int cause, siginfo_t *HowCome, void *ucontext) {
+static void timer1_callback(int cause, siginfo_t *HowCome, void *ucontext) {
+  timer1_isr();
+}
+
+static void timer1_isr(void) {
+  const uint8_t tr = timer_reason;
   if ( ! sim_interrupts) {
     // Interrupts disabled. Schedule another callback in 10us.
     schedule_timer(10);
     return;
   }
+  timer_reason = 0;
 
   cli();
 
@@ -101,9 +134,8 @@ static void timer1_isr(int cause, siginfo_t *HowCome, void *ucontext) {
     then = now;
   #endif
 
-  if (timer_reason & TIMER_OCR1A) TIMER1_COMPA_vect();
-  if (timer_reason & TIMER_OCR1B) TIMER1_COMPB_vect();
-  timer_reason = 0;
+  if (tr & TIMER_OCR1A) TIMER1_COMPA_vect();
+  if (tr & TIMER_OCR1B) TIMER1_COMPB_vect();
 
   sei();
 
@@ -125,6 +157,7 @@ void sim_setTimer() {
     // 0 = No timer;  1-0x10000 = time until next occurrence
     if ( ! nextA) nextA = 0x10000;
   }
+
   if (TIMSK1 & MASK(OCIE1B)) {
     sim_debug("Timer1 Interrupt B: Enabled");
     nextB = (OCR1B - now) & 0xFFFF;
@@ -134,37 +167,40 @@ void sim_setTimer() {
 
   //-- Find the nearest event
   uint32_t next = nextA;
-  if (nextB && ( ! next || (nextB < next))) {
+  if (nextB && ( ! next || (nextB < next)))
     next = nextB;
-    timer_reason = TIMER_OCR1B;
-  }
 
   //-- Flag the reasons for the next event
   timer_reason = 0;
-  if (next == nextA) timer_reason |= TIMER_OCR1A;
-  if (next == nextB) timer_reason |= TIMER_OCR1B;
+  if (next && next == nextA) timer_reason |= TIMER_OCR1A;
+  if (next && next == nextB) timer_reason |= TIMER_OCR1B;
 
-  // FIXME: We will miss events if they occur like this:
-  //    nextA = 0x1000
-  //    nextB = 0x1001
-  //    timer_reason = TIMER_OCR1A
-  //    ISR is triggered and finishes at 0x1002
-  //      => Next trigger for B will not occur until NEXT 0x1001 comes around
-  //    Need some way to notice a missed trigger.
-  //    Maybe store 32-bit tick value for next trigger time for each timer.
+  warpTarget = next ;
 
-  //-- Convert ticks to microseconds
-  long actual = ((unsigned long)next) * TIME_SLOW_FACTOR / (1 US);
-  if ( next && !actual)
-    actual++;
+  if (time_scale) {
+    // FIXME: We will miss events if they occur like this:
+    //    nextA = 0x1000
+    //    nextB = 0x1001
+    //    timer_reason = TIMER_OCR1A
+    //    ISR is triggered and finishes at 0x1002
+    //      => Next trigger for B will not occur until NEXT 0x1001 comes around
+    //    Need some way to notice a missed trigger.
+    //    Maybe store 32-bit tick value for next trigger time for each timer.
 
-  if (next) {
-    sim_debug("OCR1A:%04X   OCR1B:%04X    now=%04X", OCR1A, OCR1B, now );
-    sim_debug("              next=%u   real=%u", next, actual);
+    //-- Convert ticks to microseconds
+    long actual = ((unsigned long)next) * time_scale / (1 US);
+    if ( next && !actual)
+      actual++;
+
+
+    if (next) {
+      sim_debug("OCR1A:%04X   OCR1B:%04X    now=%04X", OCR1A, OCR1B, now );
+      sim_debug("              next=%u   real=%u", next, actual);
+    }
+
+    //-- Schedule the event
+    schedule_timer(actual);
   }
-
-  //-- Schedule the event
-  schedule_timer(actual);
 }
 
 // Schedule Timer1 callback useconds from now.
@@ -173,15 +209,17 @@ static void schedule_timer(uint32_t useconds) {
   struct itimerval itimer;
   struct sigaction sa;
 
-  sa.sa_sigaction = timer1_isr;
-  sigemptyset(&sa.sa_mask);
-  sa.sa_flags = SA_SIGINFO;
-  if (sigaction(SIGALRM, &sa, 0)) {
-    sim_error("sigaction");
+  if (time_scale) {
+    sa.sa_sigaction = timer1_callback;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_SIGINFO;
+    if (sigaction(SIGALRM, &sa, 0)) {
+      sim_error("sigaction");
+    }
+    itimer.it_interval.tv_sec = 0;
+    itimer.it_interval.tv_usec = 0;  // If signal occurs , trigger again in 10us
+    itimer.it_value.tv_sec = useconds / 1000000;
+    itimer.it_value.tv_usec = useconds % 1000000;
+    setitimer(ITIMER_REAL, &itimer, NULL);
   }
-  itimer.it_interval.tv_sec = 0;
-  itimer.it_interval.tv_usec = 0;  // If signal occurs , trigger again in 10us
-  itimer.it_value.tv_sec = useconds / 1000000;
-  itimer.it_value.tv_usec = useconds % 1000000;
-  setitimer(ITIMER_REAL, &itimer, NULL);
 }

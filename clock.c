@@ -80,6 +80,9 @@ void clock() {
 	ifclock(clock_flag_10ms) {
 		clock_10ms();
 	}
+#ifdef SIMULATOR
+  sim_time_warp();
+#endif
 }
 
 

@@ -121,10 +121,10 @@ void timer_init()
 	OCR1B = TICK_TIME & 0xFFFF;
 	// enable interrupt
 	TIMSK1 = MASK(OCIE1B);
-  #ifdef SIMULATOR
-    // Tell simulator
-    sim_timer_init();
-  #endif
+#ifdef SIMULATOR
+  // Tell simulator
+  sim_setTimer();
+#endif
 }
 
 #ifdef	MOTHERBOARD
