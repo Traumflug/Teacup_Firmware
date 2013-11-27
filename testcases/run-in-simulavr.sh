@@ -25,6 +25,7 @@ for GCODE_FILE in "triangle.gcode" "straight-speeds.gcode"; do
 
   FILE="${GCODE_FILE%.gcode}"
   VCD_FILE="${FILE}.vcd"
+  DATA_FILE="${FILE}.data"
   VEL_FILE="${FILE}.processed.vcd"
   
 
@@ -41,8 +42,7 @@ for GCODE_FILE in "triangle.gcode" "straight-speeds.gcode"; do
   # is assumed to match the order in tracein.txt and starting at "0".
   awk '
     BEGIN {
-      dataFile = "'"${FILE}"'.data";
-      print "0 0 0 0 0" > dataFile;
+      print "0 0 0 0 0";
       xDir = yDir = 0;
       xPos = yPos = 0;
       xVel = yVel = 0;
@@ -69,7 +69,7 @@ for GCODE_FILE in "triangle.gcode" "straight-speeds.gcode"; do
         if (bit == 1) {
           xPos += xDir;
           xVel = 1000000000 / (time - lastxTime);
-          print time " " xPos " " yPos " " xVel " " yVel >> dataFile;
+          print time " " xPos " " yPos " " xVel " " yVel;
           lastxTime = time;
         }
       }
@@ -77,12 +77,12 @@ for GCODE_FILE in "triangle.gcode" "straight-speeds.gcode"; do
         if (bit == 1) {
           yPos += yDir;
           yVel = 1000000000 / (time - lastyTime);
-          print time " " xPos " " yPos " " xVel " " yVel >> dataFile;
+          print time " " xPos " " yPos " " xVel " " yVel;
           lastyTime = time;
         }
       }
     }
-  ' < "${VCD_FILE}"
+  ' < "${VCD_FILE}" > "${DATA_FILE}"
 
 
   # Create a plot.
