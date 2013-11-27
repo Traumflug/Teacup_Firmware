@@ -114,15 +114,14 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 	DDA* new_movebuffer = &(movebuffer[h]);
 
   if (t != NULL) {
-    dda_create(new_movebuffer, t);
 		new_movebuffer->endstop_check = endstop_check;
 		new_movebuffer->endstop_stop_cond = endstop_stop_cond;
 	}
 	else {
 		// it's a wait for temp
 		new_movebuffer->waitfor_temp = 1;
-		new_movebuffer->nullmove = 0;
 	}
+  dda_create(new_movebuffer, t);
 
 	// make certain all writes to global memory
 	// are flushed before modifying mb_head.

@@ -91,9 +91,12 @@ void dda_create(DDA *dda, TARGET *target) {
   static uint8_t idcnt = 0;
   static DDA* prev_dda = NULL;
 
-  if (prev_dda && prev_dda->done)
+  if ((prev_dda && prev_dda->done) || dda->waitfor_temp)
     prev_dda = NULL;
   #endif
+
+  if (dda->waitfor_temp)
+    return;
 
 	// initialise DDA to a known state
 	dda->allflags = 0;
