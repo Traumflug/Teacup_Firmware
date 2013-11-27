@@ -29,6 +29,22 @@ echo "# Y Dir"             >> /tmp/tracein.txt
 echo "+ PORTA.A5-Out"      >> /tmp/tracein.txt
 echo "# Y Step"            >> /tmp/tracein.txt
 echo "+ PORTA.A4-Out"      >> /tmp/tracein.txt
+echo "Assuming pin configuration for a Gen7-v1.4."
+
+STEPS_PER_M_X=$(grep STEPS_PER_M_X ../config.h | \
+                grep -v ^// | awk '{ print $3; }')
+if [ "${STEPS_PER_M_X}"0 -eq 0 ]; then
+  echo "STEPS_PER_M_X not found, assuming 80'000."
+  STEPS_PER_M_X=80000
+fi
+STEPS_PER_M_Y=$(grep STEPS_PER_M_Y ../config.h | \
+                grep -v ^// | awk '{ print $3; }')
+if [ "${STEPS_PER_M_Y}"0 -eq 0 ]; then
+  echo "STEPS_PER_M_Y not found, assuming 80'000."
+  STEPS_PER_M_Y=80000
+fi
+echo "Taking STEPS_PER_M_X = ${STEPS_PER_M_X} and"
+echo "       STEPS_PER_M_Y = ${STEPS_PER_M_Y} for mm/min calculation."
 
 
 for GCODE_FILE in $*; do
@@ -141,13 +157,11 @@ EOF
     BEGIN {
       # These lines must match the ones after the sort.
       intLen = 16;
-      xStepID = "0"; xVelID = "1";
-      yStepID = "2"; yVelID = "3";
+      xStepID = "0"; xVelID = "1"; xMmmID = "3"
+      yStepID = "4"; yVelID = "5"; yMmmID = "6"
 
       xDir = yDir = 0;
       xPos = yPos = 0;
-      xVel = yVel = 0;
-      yAcc = yAcc = 0;
       lastxTime = lastyTime = 0;
     }
     /^#/ {
@@ -174,8 +188,10 @@ EOF
       if ($2 == "1") { # X Step
         if (bit == 1) { # raising flange
           xPos += xDir;
-          xVel = 1000000000 / (time - lastxTime);
-          print lastxTime " b" print_binary(xVel, intLen) " " xVelID;
+          vel = 1000000000 / (time - lastxTime);
+          print lastxTime " b" print_binary(vel, intLen) " " xVelID;
+          vel = vel * 60000 / '"${STEPS_PER_M_X}"';
+          print lastxTime " b" print_binary(vel, intLen) " " xMmmID;
           print time " b" bit " " xStepID;
           lastxTime = time;
         } else { # falling flange
@@ -185,8 +201,10 @@ EOF
       if ($2 == "3") { # Y Step
         if (bit == 1) { # raising flange
           yPos += yDir;
-          yVel = 1000000000 / (time - lastyTime);
-          print lastyTime " b" print_binary(yVel, intLen) " " yVelID;
+          vel = 1000000000 / (time - lastyTime);
+          print lastyTime " b" print_binary(vel, intLen) " " yVelID;
+          vel = vel * 60000 / '"${STEPS_PER_M_Y}"';
+          print lastyTime " b" print_binary(vel, intLen) " " yMmmID;
           print time " b" bit " " yStepID;
           lastyTime = time;
         } else { # falling flange
@@ -200,24 +218,29 @@ EOF
     BEGIN {
       # These lines must match the ones before the sort.
       intLen = 16;
-      xStepID = "0"; xVelID = "1";
-      yStepID = "2"; yVelID = "3";
+      xStepID = "0"; xVelID = "1"; xMmmID = "3"
+      yStepID = "4"; yVelID = "5"; yMmmID = "6"
+
       lastTime = "";
 
       print "$timescale 1ns $end";
       print "$scope module Steppers $end";
       print "$var wire 1 " xStepID " X_step $end";
       print "$var integer " intLen " " xVelID " X_steps/s $end";
+      print "$var integer " intLen " " xMmmID " X_mm/min $end";
       print "$var wire 1 " yStepID " Y_step $end";
       print "$var integer " intLen " " yVelID " Y_steps/s $end";
+      print "$var integer " intLen " " yMmmID " Y_mm/min $end";
       print "$upscope $end";
       print "$enddefinitions $end";
       print "#0";
       print "$dumpvars";
       print "b0 " xStepID;
       print "b0 " xVelID;
+      print "b0 " xMmmID;
       print "b0 " yStepID;
       print "b0 " yVelID;
+      print "b0 " yMmmID;
       print "$end";
     }
     {
