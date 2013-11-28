@@ -84,7 +84,7 @@ void queue_step() {
 		if (current_movebuffer->waitfor_temp) {
 			setTimer(HEATER_WAIT_TIMEOUT);
 			if (temp_achieved()) {
-				current_movebuffer->live = current_movebuffer->waitfor_temp = 0;
+				current_movebuffer->live = current_movebuffer->done = 0;
 				serial_writestr_P(PSTR("Temp achieved\n"));
 			}
 		}
@@ -112,10 +112,9 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 	h &= (MOVEBUFFER_SIZE - 1);
 
 	DDA* new_movebuffer = &(movebuffer[h]);
-  DDA* prev_movebuffer = (queue_empty() != 0) ? NULL : &movebuffer[mb_head];
 
   if (t != NULL) {
-    dda_create(new_movebuffer, t, prev_movebuffer);
+    dda_create(new_movebuffer, t);
 		new_movebuffer->endstop_check = endstop_check;
 		new_movebuffer->endstop_stop_cond = endstop_stop_cond;
 	}

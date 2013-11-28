@@ -83,12 +83,16 @@ void dda_new_startpoint(void) {
 
 	This algorithm is probably the main limiting factor to print speed in terms of firmware limitations
 */
-void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
+void dda_create(DDA *dda, TARGET *target) {
 	uint32_t	steps, x_delta_um, y_delta_um, z_delta_um, e_delta_um;
 	uint32_t	distance, c_limit, c_limit_calc;
   #ifdef LOOKAHEAD
   // Number the moves to identify them; allowed to overflow.
   static uint8_t idcnt = 0;
+  static DDA* prev_dda = NULL;
+
+  if (prev_dda && prev_dda->done)
+    prev_dda = NULL;
   #endif
 
 	// initialise DDA to a known state
@@ -405,6 +409,9 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
 
 	// next dda starts where we finish
 	memcpy(&startpoint, target, sizeof(TARGET));
+  #ifdef LOOKAHEAD
+    prev_dda = dda;
+  #endif
 }
 
 /*! Start a prepared DDA
@@ -637,6 +644,7 @@ void dda_step(DDA *dda) {
     #endif
       ) {
 		dda->live = 0;
+    dda->done = 1;
     #ifdef LOOKAHEAD
     // If look-ahead was using this move, it could have missed our activation:
     // make sure the ids do not match.

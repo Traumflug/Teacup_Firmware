@@ -103,6 +103,7 @@ typedef struct {
 			// status fields
 			uint8_t						nullmove			:1; ///< bool: no axes move, maybe we wait for temperatures or change speed
 			uint8_t						live					:1; ///< bool: this DDA is running and still has steps to do
+      uint8_t           done          :1; ///< bool: this DDA is done.
 			#ifdef ACCELERATION_REPRAP
 			uint8_t						accel					:1; ///< bool: speed changes during this move, run accel code
 			#endif
@@ -116,7 +117,7 @@ typedef struct {
 			uint8_t						z_direction		:1; ///< direction flag for Z axis
 			uint8_t						e_direction		:1; ///< direction flag for E axis
 		};
-		uint8_t							allflags;	///< used for clearing all flags
+    uint16_t            allflags; ///< used for clearing all flags
 	};
 
 	// distances
@@ -198,7 +199,7 @@ void dda_init(void);
 void dda_new_startpoint(void);
 
 // create a DDA
-void dda_create(DDA *dda, TARGET *target, DDA *prev_dda);
+void dda_create(DDA *dda, TARGET *target);
 
 // start a created DDA (called from timer interrupt)
 void dda_start(DDA *dda)																						__attribute__ ((hot));
