@@ -74,6 +74,9 @@ const int32_t muldivQR(int32_t multiplicand, uint32_t qn, uint32_t rn,
 uint32_t approx_distance(uint32_t dx, uint32_t dy) {
   uint32_t min, max, approx;
 
+  // If either axis is zero, return the other one.
+  if (dx == 0 || dy == 0) return dx + dy;
+
   if ( dx < dy ) {
     min = dx;
     max = dy;
