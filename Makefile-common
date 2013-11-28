@@ -42,17 +42,10 @@ OBJCOPY = $(TOOLCHAIN)objcopy
 .PHONY: all clean doc functionsbysize
 .PRECIOUS: %.o %.elf
 
-all: config.h $(BUILDDIR) $(TARGET)
+all: $(BUILDDIR) $(TARGET)
 
 clean:
 	rm -rf $(BUILDDIR) $(TARGET) *~
-
-config.h: config.default.h
-	@echo "config.default.h is more recent than config.h. You likely want to"
-	@echo "review (edit) config.h to match new features in config.default.h."
-	@echo "To view the differences, run: diff -bBEu config.h config.default.h"
-	@echo "If you just want to get rid of this message, run: touch config.h"
-	@false
 
 doc: Doxyfile *.c *.h
 	doxygen $<
