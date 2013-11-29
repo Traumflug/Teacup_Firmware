@@ -82,7 +82,24 @@ void dda_new_startpoint(void) {
 	It also pre-fills any data that the selected accleration algorithm needs, and can be pre-computed for the whole move.
 
 	This algorithm is probably the main limiting factor to print speed in terms of firmware limitations
-*/
+ *
+ * Regarding lookahead, we can distinguish everything into these cases:
+ *
+ * 1. Standard movement. To be joined with the previous move.
+ * 2. Movement after a pause. This interrupts lookahead, and invalidates
+ *    prev_dda and prev_distance.
+ * 3. Non-move, e.g. a wait for temp. This also interrupts lookahead and makes
+ *    prev_dda and prev_distance invalid. There might be more such cases in the
+ *    future, e.g. when heater or fan changes are queued up, too.
+ * 4. Nullmove due to no movement expected, e.g. a pure speed change. This
+ *    shouldn't interrupt lookahead and be handled af if the change would come
+ *    with the next movement.
+ * 5. Nullmove due to movement smaller than a single step. Shouldn't interrupt
+ *    lookahead either, but this small distance should be added to the next
+ *    movement.
+ * 6. Lookahead calculation too slow. This is handled in dda_join_moves()
+ *    already.
+ */
 void dda_create(DDA *dda, TARGET *target) {
 	uint32_t	steps, x_delta_um, y_delta_um, z_delta_um, e_delta_um;
 	uint32_t	distance, c_limit, c_limit_calc;
@@ -98,7 +115,8 @@ void dda_create(DDA *dda, TARGET *target) {
   if (dda->waitfor_temp)
     return;
 
-	// initialise DDA to a known state
+  // Initialise DDA to a known state. This also clears flags like
+  // dda->live, dda->done and dda->wait_for_temp.
 	dda->allflags = 0;
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
