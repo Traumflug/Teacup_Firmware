@@ -256,9 +256,9 @@
 
 #define	E_STEP_PIN  					DIO26
 #define	E_DIR_PIN   					DIO28
-//#define	E_ENABLE_PIN					DIO24
+#define E_ENABLE_PIN          DIO24
 //#define	E_INVERT_DIR
-//#define	E_INVERT_ENABLE
+#define E_INVERT_ENABLE
 
 //#define	PS_ON_PIN							xxxx
 //#define PS_MOSFET_PIN         xxxx
