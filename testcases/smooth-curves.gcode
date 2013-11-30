@@ -1,5 +1,3 @@
-(This is test code for)
-(the look-ahead algorithm)
 G21
 G90
 G0 X69.0909 Y11.6477 Z1.0
@@ -169,4 +167,5 @@ G0 Z1.0
 G4
 M106 S0
 M2
-
+(This is test code for)
+(the look-ahead algorithm)

@@ -1,5 +1,3 @@
-(run this with STEPS_PER_M_X < 500000)
-(for example, the typical 80000)
 G21
 G90
 G1 X5 F400
@@ -14,3 +12,5 @@ G1 X20.003
 G1 X25
 G1 X0
 M2
+(run this with STEPS_PER_M_X < 500000)
+(for example, the typical 80000)
