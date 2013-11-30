@@ -163,17 +163,14 @@ void dda_emergency_shutdown(PGM_P msg) {
  *
  * \return dda->crossF
  */
-void dda_find_crossing_speed(DDA *prev, DDA *current, uint32_t curr_distance) {
-  static uint32_t prev_distance;
+void dda_find_crossing_speed(DDA *prev, DDA *current) {
   uint32_t F, dv, speed_factor, max_speed_factor;
   int32_t prevFx, prevFy, prevFz, prevFe;
   int32_t currFx, currFy, currFz, currFe;
 
   // Bail out if there's nothing to join (e.g. G1 F1500).
-  if ( ! prev || prev->nullmove) {
-    prev_distance = curr_distance;
+  if ( ! prev || prev->nullmove)
     return;
-  }
 
   // We always look at the smaller of both combined speeds,
   // else we'd interpret intended speed changes as jerk.
@@ -182,19 +179,20 @@ void dda_find_crossing_speed(DDA *prev, DDA *current, uint32_t curr_distance) {
     F = current->endpoint.F;
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-    sersendf_P(PSTR("Distance: %lu, then %lu\n"), prev_distance, curr_distance);
+    sersendf_P(PSTR("Distance: %lu, then %lu\n"),
+               prev->distance, current->distance);
 
   // Find individual axis speeds.
   // int32_t muldiv(int32_t multiplicand, uint32_t multiplier, uint32_t divisor)
-  prevFx = muldiv(prev->delta_um.X, F, prev_distance);
-  prevFy = muldiv(prev->delta_um.Y, F, prev_distance);
-  prevFz = muldiv(prev->delta_um.Z, F, prev_distance);
-  prevFe = muldiv(prev->delta_um.E, F, prev_distance);
+  prevFx = muldiv(prev->delta_um.X, F, prev->distance);
+  prevFy = muldiv(prev->delta_um.Y, F, prev->distance);
+  prevFz = muldiv(prev->delta_um.Z, F, prev->distance);
+  prevFe = muldiv(prev->delta_um.E, F, prev->distance);
 
-  currFx = muldiv(current->delta_um.X, F, curr_distance);
-  currFy = muldiv(current->delta_um.Y, F, curr_distance);
-  currFz = muldiv(current->delta_um.Z, F, curr_distance);
-  currFe = muldiv(current->delta_um.E, F, curr_distance);
+  currFx = muldiv(current->delta_um.X, F, current->distance);
+  currFy = muldiv(current->delta_um.Y, F, current->distance);
+  currFz = muldiv(current->delta_um.Z, F, current->distance);
+  currFe = muldiv(current->delta_um.E, F, current->distance);
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("prevF: %ld  %ld  %ld  %ld\ncurrF: %ld  %ld  %ld  %ld\n"),
@@ -272,7 +270,6 @@ void dda_find_crossing_speed(DDA *prev, DDA *current, uint32_t curr_distance) {
     sersendf_P(PSTR("Cross speed reduction from %lu to %lu\n"),
                F, current->crossF);
 
-  prev_distance = curr_distance;
   return;
 }
 

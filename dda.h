@@ -147,6 +147,7 @@ typedef struct {
   // With the look-ahead functionality, it is possible to retain physical
   // movement between G1 moves. These variables keep track of the entry and
   // exit speeds between moves.
+  uint32_t          distance;
   uint32_t          crossF;
   uint32_t          F_start;
   uint32_t          start_steps; ///< steps to reach F_start
