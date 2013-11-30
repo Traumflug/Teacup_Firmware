@@ -368,13 +368,6 @@ void dda_create(DDA *dda, TARGET *target) {
       }
       dda->rampup_steps = ACCELERATE_RAMP_LEN(muldiv(fast_um, dda->endpoint.F, distance));
 
-      // Quick hack: we do not do Z move joins as jerk on the Z axis is undesirable;
-      // as the ramp length is calculated for XY, its incorrect for Z: apply the original
-      // 'fix' to simply specify a large enough ramp for any speed.
-      if (x_delta_um == 0 && y_delta_um == 0) {
-        dda->rampup_steps = 1000000; // replace mis-calculation by a safe value
-      }
-
       if (dda->rampup_steps > dda->total_steps / 2)
         dda->rampup_steps = dda->total_steps / 2;
       dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
@@ -867,6 +860,9 @@ void dda_clock() {
         // approximation here: c0 * (1 / (2 * sqrt(n))).
         move_c = ((C0 >> 8) * int_inv_sqrt(dda->n)) >> 5;
 
+      // TODO: most likely this whole check is obsolete. It was left as a
+      //       safety margin, only. Rampup steps calculation should be accurate
+      //       now and give the requested target speed within a few percent.
       if (move_c < dda->c_min) {
         // We hit max speed not always exactly.
         move_c = dda->c_min;
@@ -874,14 +870,8 @@ void dda_clock() {
         // This is a hack which deals with movements with an unknown number of
         // acceleration steps. dda_create() sets a very high number, then,
         // but we don't want to re-calculate all the time.
-        // This hack doesn't work with (and isn't neccessary for) movements
-        // accelerated by look-ahead.
-        #ifdef LOOKAHEAD
-          if (dda->crossF == 0) {  // For example, endstop searches.
-            dda->rampup_steps = move_step_no;
-            dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
-          }
-        #else  // Without LOOKAHEAD, there's no dda->crossF.
+        // This hack doesn't work with lookahead.
+        #ifndef LOOKAHEAD
           dda->rampup_steps = move_step_no;
           dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
         #endif
