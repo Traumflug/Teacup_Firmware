@@ -659,10 +659,11 @@ void dda_step(DDA *dda) {
 		// z stepper is only enabled while moving
 		z_disable();
 	}
-	else
+  else {
 		psu_timeout = 0;
-
-  setTimer(dda->c >> 8);
+    // After having finished, dda_start() will set the timer.
+    setTimer(dda->c >> 8);
+  }
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something.
