@@ -16,7 +16,7 @@
 #include	"arduino.h"
 
 /// size of TX and RX buffers. MUST be a \f$2^n\f$ value
-#define		BUFSIZE			64
+#define		BUFSIZE			128
 
 /// ascii XOFF character
 #define		ASCII_XOFF	19
