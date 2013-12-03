@@ -349,15 +349,24 @@ void dda_create(DDA *dda, TARGET *target) {
       if (dda->endpoint.F > 65535)
         dda->endpoint.F = 65535;
 
-      // Note: this is inaccurate for several reasons:
+      // Note: this is inaccurate:
       // - ACCELERATE_RAMP_LEN() uses STEPS_PER_M_X, so axes not matching
       //   this get too much or not enough rampup steps.
-      // - target->F means the speed of all axes combined, not the speed
-      //   of the fast axis, which is taken into account here.
-      // The good thing: taking dda->endpoint.F means rampup_steps is always
-      // equal or larger than the number of steps required for acceleration,
-      // so we can use it when also limiting max speed according to c_limit.
-      dda->rampup_steps = ACCELERATE_RAMP_LEN(dda->endpoint.F);
+      uint32_t fast_um;
+      
+      if (dda->total_steps == dda->x_delta)
+        fast_um = x_delta_um;
+      else if (dda->total_steps == dda->y_delta)
+        fast_um = y_delta_um;
+      else if (dda->total_steps == dda->z_delta)
+        fast_um = z_delta_um;
+      else if (dda->total_steps == dda->e_delta)
+        fast_um = e_delta_um;
+      else {
+        fast_um = 0;
+        sersendf_P(PSTR("WTF? No prev fast axis found\n"));
+      }
+      dda->rampup_steps = ACCELERATE_RAMP_LEN(muldiv(fast_um, dda->endpoint.F, distance));
 
       // Quick hack: we do not do Z move joins as jerk on the Z axis is undesirable;
       // as the ramp length is calculated for XY, its incorrect for Z: apply the original
