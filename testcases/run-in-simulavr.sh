@@ -157,8 +157,8 @@ EOF
     BEGIN {
       # These lines must match the ones after the sort.
       intLen = 16;
-      xStepID = "0"; xVelID = "1"; xMmmID = "3"
-      yStepID = "4"; yVelID = "5"; yMmmID = "6"
+      xStepID = "0"; xPosID = "1"; xVelID = "2"; xMmmID = "3"
+      yStepID = "4"; yPosID = "5"; yVelID = "6"; yMmmID = "7"
 
       xDir = yDir = 0;
       xPos = yPos = 0;
@@ -188,6 +188,7 @@ EOF
       if ($2 == "1") { # X Step
         if (bit == 1) { # raising flange
           xPos += xDir;
+          print time " b" print_binary(xPos, intLen) " " xPosID;
           vel = 1000000000 / (time - lastxTime);
           print lastxTime " b" print_binary(vel, intLen) " " xVelID;
           vel = vel * 60000 / '"${STEPS_PER_M_X}"';
@@ -201,6 +202,7 @@ EOF
       if ($2 == "3") { # Y Step
         if (bit == 1) { # raising flange
           yPos += yDir;
+          print time " b" print_binary(yPos, intLen) " " yPosID;
           vel = 1000000000 / (time - lastyTime);
           print lastyTime " b" print_binary(vel, intLen) " " yVelID;
           vel = vel * 60000 / '"${STEPS_PER_M_Y}"';
@@ -218,17 +220,19 @@ EOF
     BEGIN {
       # These lines must match the ones before the sort.
       intLen = 16;
-      xStepID = "0"; xVelID = "1"; xMmmID = "3"
-      yStepID = "4"; yVelID = "5"; yMmmID = "6"
+      xStepID = "0"; xPosID = "1"; xVelID = "2"; xMmmID = "3"
+      yStepID = "4"; yPosID = "5"; yVelID = "6"; yMmmID = "7"
 
       lastTime = "";
 
       print "$timescale 1ns $end";
       print "$scope module Steppers $end";
       print "$var wire 1 " xStepID " X_step $end";
+      print "$var integer " intLen " " xPosID " X_pos_steps $end";
       print "$var integer " intLen " " xVelID " X_steps/s $end";
       print "$var integer " intLen " " xMmmID " X_mm/min $end";
       print "$var wire 1 " yStepID " Y_step $end";
+      print "$var integer " intLen " " yPosID " Y_pos_steps $end";
       print "$var integer " intLen " " yVelID " Y_steps/s $end";
       print "$var integer " intLen " " yMmmID " Y_mm/min $end";
       print "$upscope $end";
@@ -236,9 +240,11 @@ EOF
       print "#0";
       print "$dumpvars";
       print "b0 " xStepID;
+      print "b0 " xPosID;
       print "b0 " xVelID;
       print "b0 " xMmmID;
       print "b0 " yStepID;
+      print "b0 " yPosID;
       print "b0 " yVelID;
       print "b0 " yMmmID;
       print "$end";
