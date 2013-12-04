@@ -149,7 +149,7 @@ EOF
         else
           string = string "0";
         n *= 2;
-        if (n > (2 ^ e))
+        if (n >= (2 ^ e))
           n -= (2 ^ e);
       }
       return string;
