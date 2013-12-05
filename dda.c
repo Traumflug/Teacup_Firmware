@@ -101,6 +101,7 @@ void dda_create(DDA *dda, TARGET *target, DDA *prev_dda) {
     dda->F_start = 0;
     dda->start_steps = 0;
     dda->F_end = 0;
+    dda->end_steps = 0;
     // Give this move an identifier.
     dda->id = idcnt++;
   #endif
@@ -796,7 +797,11 @@ void dda_clock() {
       recalc_speed = 1;
     }
     else if (move_step_no >= dda->rampdown_steps) {
-      dda->n = dda->total_steps - move_step_no;
+      #ifdef LOOKAHEAD
+        dda->n = dda->total_steps - move_step_no + dda->end_steps;
+      #else
+        dda->n = dda->total_steps - move_step_no;
+      #endif
       recalc_speed = 1;
     }
     if (recalc_speed) {

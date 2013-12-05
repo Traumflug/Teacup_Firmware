@@ -171,7 +171,8 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // Calculating the look-ahead settings can take a while; before modifying
   // the previous move, we need to locally store any values and write them
   // when we are done (and the previous move is not already active).
-  uint32_t prev_F, prev_F_start, prev_F_end, prev_rampup, prev_rampdown, prev_total_steps;
+  uint32_t prev_F, prev_F_start, prev_F_end, prev_end;
+  uint32_t prev_rampup, prev_rampdown, prev_total_steps;
   uint8_t prev_id;
   // Similarly, we only want to modify the current move if we have the results of the calculations;
   // until then, we do not want to touch the current move settings.
@@ -341,6 +342,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
     prev_rampup = up;
     prev_rampdown = prev_total_steps - down;
     prev_F_end = crossF;
+    prev_end = ACCELERATE_RAMP_LEN(prev_F_end);
 
     #ifdef LOOKAHEAD_DEBUG
     // Sanity check: make sure the speed limits are maintained
@@ -437,6 +439,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
       prev_rampup = up2;
       prev_rampdown = prev_total_steps - down2;
       prev_F_end = crossF;
+      prev_end = ACCELERATE_RAMP_LEN(prev_F_end);
     }
 
     #ifdef LOOKAHEAD_DEBUG
@@ -463,11 +466,13 @@ void dda_join_moves(DDA *prev, DDA *current) {
       // move, we compare the DDA id.
       if(prev->live == 0 && prev->id == prev_id) {
         prev->F_end = prev_F_end;
+        prev->end_steps = prev_end;
         prev->rampup_steps = prev_rampup;
         prev->rampdown_steps = prev_rampdown;
         current->rampup_steps = this_rampup;
         current->rampdown_steps = this_rampdown;
         current->F_end = 0;
+        current->end_steps = 0;
         current->F_start = this_F_start;
         current->start_steps = this_start;
         la_cnt++;
