@@ -262,6 +262,10 @@ void dda_create(DDA *dda, TARGET *target) {
 
 		// similarly, find out how fast we can run our axes.
 		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
+    // TODO: instead of calculating c_min directly, it's probably more simple
+    //       to calculate (maximum) move_duration for each axis, like done for
+    //       ACCELERATION_TEMPORAL above. This should make re-calculating the
+    //       allowed F easier.
 		c_limit = 0;
 		// check X axis
 		c_limit_calc = ((x_delta_um * 2400L) / dda->total_steps * (F_CPU / 40000) / MAXIMUM_FEEDRATE_X) << 8;
@@ -336,22 +340,24 @@ void dda_create(DDA *dda, TARGET *target) {
 		#elif defined ACCELERATION_RAMPING
 			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
 			dda->c_min = (move_duration / target->F) << 8;
-			if (dda->c_min < c_limit)
+      if (dda->c_min < c_limit) {
 				dda->c_min = c_limit;
+        dda->endpoint.F = move_duration / (dda->c_min >> 8);
+      }
 
       // Lookahead can deal with 16 bits ( = 1092 mm/s), only.
-      if (target->F > 65535)
-        target->F = 65535;
+      if (dda->endpoint.F > 65535)
+        dda->endpoint.F = 65535;
 
       // Note: this is inaccurate for several reasons:
-      // - target->F isn't reverse-calculated from c_limit, so speed
-      //   reductions due to slow axes are ignored.
+      // - ACCELERATE_RAMP_LEN() uses STEPS_PER_M_X, so axes not matching
+      //   this get too much or not enough rampup steps.
       // - target->F means the speed of all axes combined, not the speed
       //   of the fast axis, which is taken into account here.
-      // The good thing: taking target->F means rampup_steps is always
+      // The good thing: taking dda->endpoint.F means rampup_steps is always
       // equal or larger than the number of steps required for acceleration,
       // so we can use it when also limiting max speed according to c_limit.
-      dda->rampup_steps = ACCELERATE_RAMP_LEN(target->F);
+      dda->rampup_steps = ACCELERATE_RAMP_LEN(dda->endpoint.F);
 
       // Quick hack: we do not do Z move joins as jerk on the Z axis is undesirable;
       // as the ramp length is calculated for XY, its incorrect for Z: apply the original
