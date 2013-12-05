@@ -304,7 +304,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // when we are done (and the previous move is not already active).
   uint32_t prev_F, prev_F_start, prev_F_end, prev_end;
   uint32_t prev_rampup, prev_rampdown, prev_total_steps;
-  uint32_t crossF;
+  uint32_t crossF, currF;
   uint8_t prev_id;
   // Similarly, we only want to modify the current move if we have the results of the calculations;
   // until then, we do not want to touch the current move settings.
@@ -335,6 +335,47 @@ void dda_join_moves(DDA *prev, DDA *current) {
       crossF = current->crossF;
     ATOMIC_END
 
+    // Here we have to distinguish between feedrate along the movement
+    // direction and feedrate of the fast axis. They can differ by a factor
+    // of 2.
+    // Along direction: F, crossF.
+    // Fast axis already: F_start, F_end.
+    //
+    // All calculations here are done along the fast axis, so recalculate
+    // F and crossF to match this, too.
+    uint32_t fast_um;
+
+    // TODO: instead of reconstructing the fast axis distance, it
+    //       could be stored right in dda_create().
+    if (prev->total_steps == prev->x_delta)
+      fast_um = prev->delta_um.X;
+    else if (prev->total_steps == prev->y_delta)
+      fast_um = prev->delta_um.Y;
+    else if (prev->total_steps == prev->z_delta)
+      fast_um = prev->delta_um.Z;
+    else if (prev->total_steps == prev->e_delta)
+      fast_um = prev->delta_um.E;
+    else {
+      fast_um = 0;
+      sersendf_P(PSTR("WTF? No prev fast axis found\n"));
+    }
+    prev_F = muldiv(fast_um, prev_F, prev->distance);
+
+    if (current->total_steps == current->x_delta)
+      fast_um = current->delta_um.X;
+    else if (current->total_steps == current->y_delta)
+      fast_um = current->delta_um.Y;
+    else if (current->total_steps == current->z_delta)
+      fast_um = current->delta_um.Z;
+    else if (current->total_steps == current->e_delta)
+      fast_um = current->delta_um.E;
+    else {
+      fast_um = 0;
+      sersendf_P(PSTR("WTF? No current fast axis found\n"));
+    }
+    crossF = muldiv(fast_um, crossF, current->distance);
+    currF = muldiv(fast_um, current->endpoint.F, current->distance);
+
     // Show the proposed crossing speed - this might get adjusted below
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
       sersendf_P(PSTR("Initial crossing speed: %lu\n"), crossF);
@@ -359,7 +400,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
         crossF = dda_steps_to_velocity(prestep+prev_total_steps);
         // Make sure we do not exceed the target speeds
         if(crossF > prev_F) crossF = prev_F;
-        if(crossF > current->endpoint.F) crossF = current->endpoint.F;
+        if(crossF > currF) crossF = currF;
         // The problem with the 'dda_steps_to_velocity' is that it will produce a
         // rounded result. Use it to obtain an exact amount of steps needed to reach
         // that speed and set that as the ramp up; we might stop accelerating for a
@@ -404,8 +445,8 @@ void dda_join_moves(DDA *prev, DDA *current) {
 
     #ifdef LOOKAHEAD_DEBUG
     // Sanity check: make sure the speed limits are maintained
-    if(crossF > current->endpoint.F) {
-      serprintf(PSTR("This target speed exceeded!: F_start:%lu ; F:%lu ; prev_F_end:%lu\r\n"), crossF, current->endpoint.F);
+    if(crossF > currF) {
+      serprintf(PSTR("This target speed exceeded!: F_start:%lu ; F:%lu ; prev_F_end:%lu\r\n"), crossF, currF);
       dda_emergency_shutdown(PSTR("This target speed exceeded"));
     }
     #endif
@@ -414,8 +455,8 @@ void dda_join_moves(DDA *prev, DDA *current) {
     // If not: determine obtainable speed and adjust crossF accordingly. If that
     // happens, a third (reverse) pass is needed to lower the speeds in the previous move...
     //ramp_scaler = ACCELERATE_SCALER(current->lead); // Use scaler for current leading axis
-    up = ACCELERATE_RAMP_LEN(current->endpoint.F) - ACCELERATE_RAMP_LEN(crossF);
-    down = ACCELERATE_RAMP_LEN(current->endpoint.F);
+    up = ACCELERATE_RAMP_LEN(currF) - ACCELERATE_RAMP_LEN(crossF);
+    down = ACCELERATE_RAMP_LEN(currF);
     // Test if both the ramp up and ramp down fit within the move
     if(up+down > current->total_steps) {
       // Test if we can reach the crossF rate
@@ -429,7 +470,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
         // Calculate what crossing rate we can reach: total/down * F
         crossF = dda_steps_to_velocity(current->total_steps);
         // Speed limit: never exceed the target rate
-        if(crossF > current->endpoint.F) crossF = current->endpoint.F;
+        if(crossF > currF) crossF = currF;
         // crossF will be conservative: calculate the actual ramp down length
         down = ACCELERATE_RAMP_LEN(crossF);
 
