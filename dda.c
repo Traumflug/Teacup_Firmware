@@ -102,7 +102,10 @@ void dda_create(DDA *dda, TARGET *target) {
 	dda->allflags = 0;
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-		serial_writestr_P(PSTR("\n{DDA_CREATE: ["));
+    sersendf_P(PSTR("\nCreate: X %lq  Y %lq  Z %lq  F %lu\n"),
+               dda->endpoint.X, dda->endpoint.Y,
+               dda->endpoint.Z, dda->endpoint.F);
+
 
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
@@ -161,7 +164,9 @@ void dda_create(DDA *dda, TARGET *target) {
   #endif
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-		sersendf_P(PSTR("%ld,%ld,%ld,%ld] ["), target->X - startpoint.X, target->Y - startpoint.Y, target->Z - startpoint.Z, target->E - startpoint.E);
+    sersendf_P(PSTR("[%ld,%ld,%ld,%ld]"),
+               target->X - startpoint.X, target->Y - startpoint.Y,
+               target->Z - startpoint.Z, target->E - startpoint.E);
 
 	dda->total_steps = dda->x_delta;
 	if (dda->y_delta > dda->total_steps)
@@ -172,7 +177,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		dda->total_steps = dda->e_delta;
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-		sersendf_P(PSTR("ts:%lu"), dda->total_steps);
+    sersendf_P(PSTR(" [ts:%lu"), dda->total_steps);
 
 	if (dda->total_steps == 0) {
 		dda->nullmove = 1;
@@ -430,6 +435,12 @@ void dda_create(DDA *dda, TARGET *target) {
 */
 void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!
+
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("Start: X %lq  Y %lq  Z %lq  F %lu\n"),
+               dda->endpoint.X, dda->endpoint.Y,
+               dda->endpoint.Z, dda->endpoint.F);
+
 	if ( ! dda->nullmove) {
 		// get ready to go
 		psu_timeout = 0;
