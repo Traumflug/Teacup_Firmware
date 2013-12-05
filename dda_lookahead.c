@@ -351,38 +351,9 @@ void dda_join_moves(DDA *prev, DDA *current) {
     //
     // All calculations here are done along the fast axis, so recalculate
     // F and crossF to match this, too.
-    uint32_t fast_um;
-
-    // TODO: instead of reconstructing the fast axis distance, it
-    //       could be stored right in dda_create().
-    if (prev->total_steps == prev->x_delta)
-      fast_um = prev->delta_um.X;
-    else if (prev->total_steps == prev->y_delta)
-      fast_um = prev->delta_um.Y;
-    else if (prev->total_steps == prev->z_delta)
-      fast_um = prev->delta_um.Z;
-    else if (prev->total_steps == prev->e_delta)
-      fast_um = prev->delta_um.E;
-    else {
-      fast_um = 0;
-      sersendf_P(PSTR("WTF? No prev fast axis found\n"));
-    }
-    prev_F = muldiv(fast_um, prev_F, prev->distance);
-
-    if (current->total_steps == current->x_delta)
-      fast_um = current->delta_um.X;
-    else if (current->total_steps == current->y_delta)
-      fast_um = current->delta_um.Y;
-    else if (current->total_steps == current->z_delta)
-      fast_um = current->delta_um.Z;
-    else if (current->total_steps == current->e_delta)
-      fast_um = current->delta_um.E;
-    else {
-      fast_um = 0;
-      sersendf_P(PSTR("WTF? No current fast axis found\n"));
-    }
-    crossF = muldiv(fast_um, crossF, current->distance);
-    this_F = muldiv(fast_um, current->endpoint.F, current->distance);
+    prev_F = muldiv(prev->fast_um, prev_F, prev->distance);
+    this_F = muldiv(current->fast_um, current->endpoint.F, current->distance);
+    crossF = muldiv(current->fast_um, crossF, current->distance);
 
     prev_F_in_steps = ACCELERATE_RAMP_LEN(prev_F);
     this_F_in_steps = ACCELERATE_RAMP_LEN(this_F);

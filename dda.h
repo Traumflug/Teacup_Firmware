@@ -126,8 +126,8 @@ typedef struct {
 	uint32_t					z_delta; ///< number of steps on Z axis
 	uint32_t					e_delta; ///< number of steps on E axis
 
-	/// total number of steps: set to \f$\max(\Delta x, \Delta y, \Delta z, \Delta e)\f$
-	uint32_t					total_steps;
+  uint32_t          total_steps; ///< steps of the "fast" axis
+  uint32_t          fast_um;     ///< movement length of this fast axis
 
 	uint32_t					c; ///< time until next step, 24.8 fixed point
 
