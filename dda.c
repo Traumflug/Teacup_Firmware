@@ -339,25 +339,9 @@ void dda_create(DDA *dda, TARGET *target) {
 			if (dda->c_min < c_limit)
 				dda->c_min = c_limit;
 
-      /**
-        Assuming: F is in mm/min, STEPS_PER_M_X is in steps/m, ACCELERATION is in mm/s²
-        Given:
-         - Velocity v at time t given acceleration a: v(t) = a*t
-         - Displacement s at time t given acceleration a: s(t) = 1/2 * a * t²
-         - Displacement until reaching target velocity v: s = 1/2 * (v² / a)
-         - Final result: steps needed to reach velocity v given acceleration a:
-         steps = (STEPS_PER_M_X * F^2) / (7200000 * ACCELERATION)
-         To keep precision, break up in floating point and integer part:
-           F^2 * (int)(STEPS_PER_M_X / (7200000 * ACCELERATION))
-         Note: the floating point part is static so its calculated during compilation.
-         Note 2: the floating point part will be smaller than one, invert it:
-                   steps = F^2 / (int)((7200000 * ACCELERATION) / STEPS_PER_M_X)
-         Note 3: As mentioned, setting F to 65535 or larger will overflow the
-                 calculation. Make sure this does not happen.
-         Note 4: Anyone trying to run their machine at 65535 mm/min > 1m/s is nuts
-       */
-      if (target->F > 65534)
-        target->F = 65534;
+      // Lookahead can deal with 16 bits ( = 1092 mm/s), only.
+      if (target->F > 65535)
+        target->F = 65535;
 
       // Note: this is inaccurate for several reasons:
       // - target->F isn't reverse-calculated from c_limit, so speed
@@ -864,8 +848,8 @@ void dda_clock() {
       if (dda->n == 0)
         move_c = C0;
       else
-        // Explicit formula: sqrt(n + 1) - sqrt(n),
-        // approximation here: 1 / (2 * sqrt(n)).
+        // Explicit formula: c0 * (sqrt(n + 1) - sqrt(n)),
+        // approximation here: c0 * (1 / (2 * sqrt(n))).
         move_c = ((C0 >> 8) * int_inv_sqrt(dda->n)) >> 5;
 
       if (move_c < dda->c_min) {
