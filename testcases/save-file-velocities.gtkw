@@ -1,0 +1,40 @@
+[*]
+[*] GTKWave Analyzer v3.3.49 (w)1999-2013 BSI
+[*] Thu Dec  5 14:38:51 2013
+[*]
+[dumpfile] "/home/mah/RepRap/Teacup_Firmware/testcases/straight-speeds.processed.vcd"
+[dumpfile_mtime] "Thu Dec  5 13:58:58 2013"
+[dumpfile_size] 90396188
+[savefile] "/home/mah/RepRap/Teacup_Firmware/testcases/savefile-velocities.gtkw"
+[timestart] 0
+[size] 1000 600
+[pos] -1 -1
+*-34.270847 2493458200 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 199
+[signals_width] 191
+[sst_expanded] 1
+[sst_vpaned_height] 156
+@88022
+Steppers.X_steps/s[15:0]
+@20000
+-
+-
+-
+@24
+Steppers.X_pos_steps[15:0]
+Steppers.X_pos_um[15:0]
+Steppers.X_mm/min[15:0]
+@200
+-
+@88022
+Steppers.Y_steps/s[15:0]
+@20000
+-
+-
+-
+@24
+Steppers.Y_pos_steps[15:0]
+Steppers.Y_pos_um[15:0]
+Steppers.Y_mm/min[15:0]
+[pattern_trace] 1
+[pattern_trace] 0
