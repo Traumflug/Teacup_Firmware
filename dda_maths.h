@@ -68,7 +68,13 @@ const uint8_t msbloc (uint32_t v);
 
 // s = 1/2 * a * t^2, v = a * t ==> s = v^2 / (2 * a)
 // 7200000 = 60 * 60 * 1000 * 2 (mm/min -> mm/s, steps/m -> steps/mm, factor 2)
-// Note: the floating point bit is optimized away during compilation.
+// Note: this macro has shown to be accurate between 10 and 10'000 mm/s2 and
+//       2000 to 4096000 steps/m (and higher). The numbers are a few percent
+//       too high at very low acceleration. Test code see commit message.
+#define ACCELERATE_RAMP_LEN_SPM(speed, spm)        \
+  (((speed) * (speed)) /                           \
+  (uint32_t)((7200000UL * ACCELERATION) / (spm)))
+// For X axis only, should become obsolete:
 #define ACCELERATE_RAMP_LEN(speed) (((speed)*(speed)) / (uint32_t)((7200000.0f * ACCELERATION) / (float)STEPS_PER_M_X))
 
 // Initialization constant for the ramping algorithm.

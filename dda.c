@@ -187,17 +187,21 @@ void dda_create(DDA *dda, TARGET *target) {
 
 	dda->total_steps = dda->x_delta;
   dda->fast_um = x_delta_um;
+  dda->fast_spm = STEPS_PER_M_X;
   if (dda->y_delta > dda->total_steps) {
 		dda->total_steps = dda->y_delta;
     dda->fast_um = y_delta_um;
+    dda->fast_spm = STEPS_PER_M_Y;
   }
   if (dda->z_delta > dda->total_steps) {
 		dda->total_steps = dda->z_delta;
     dda->fast_um = z_delta_um;
+    dda->fast_spm = STEPS_PER_M_Z;
   }
   if (dda->e_delta > dda->total_steps) {
 		dda->total_steps = dda->e_delta;
     dda->fast_um = e_delta_um;
+    dda->fast_spm = STEPS_PER_M_E;
   }
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
@@ -356,7 +360,8 @@ void dda_create(DDA *dda, TARGET *target) {
 
       // Acceleration ramps are based on the fast axis, not the combined speed.
       dda->rampup_steps =
-        ACCELERATE_RAMP_LEN(muldiv(dda->fast_um, dda->endpoint.F, distance));
+        ACCELERATE_RAMP_LEN_SPM(muldiv(dda->fast_um, dda->endpoint.F, distance),
+                                dda->fast_spm);
 
       if (dda->rampup_steps > dda->total_steps / 2)
         dda->rampup_steps = dda->total_steps / 2;
