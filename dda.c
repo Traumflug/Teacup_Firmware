@@ -360,8 +360,8 @@ void dda_create(DDA *dda, TARGET *target) {
 
       // Acceleration ramps are based on the fast axis, not the combined speed.
       dda->rampup_steps =
-        ACCELERATE_RAMP_LEN_SPM(muldiv(dda->fast_um, dda->endpoint.F, distance),
-                                dda->fast_spm);
+        acc_ramp_len(muldiv(dda->fast_um, dda->endpoint.F, distance),
+                     dda->fast_spm);
 
       if (dda->rampup_steps > dda->total_steps / 2)
         dda->rampup_steps = dda->total_steps / 2;

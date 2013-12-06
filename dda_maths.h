@@ -66,14 +66,9 @@ uint16_t int_inv_sqrt(uint16_t a);
 // 2 ^ msbloc(v) >= v
 const uint8_t msbloc (uint32_t v);
 
-// s = 1/2 * a * t^2, v = a * t ==> s = v^2 / (2 * a)
-// 7200000 = 60 * 60 * 1000 * 2 (mm/min -> mm/s, steps/m -> steps/mm, factor 2)
-// Note: this macro has shown to be accurate between 10 and 10'000 mm/s2 and
-//       2000 to 4096000 steps/m (and higher). The numbers are a few percent
-//       too high at very low acceleration. Test code see commit message.
-#define ACCELERATE_RAMP_LEN_SPM(speed, spm)        \
-  (((speed) * (speed)) /                           \
-  (uint32_t)((7200000UL * ACCELERATION) / (spm)))
+// Calculates acceleration ramp length in steps.
+uint32_t acc_ramp_len(uint32_t feedrate, uint32_t steps_per_m);
+
 // For X axis only, should become obsolete:
 #define ACCELERATE_RAMP_LEN(speed) (((speed)*(speed)) / (uint32_t)((7200000.0f * ACCELERATION) / (float)STEPS_PER_M_X))
 
