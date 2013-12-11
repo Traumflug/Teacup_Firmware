@@ -154,7 +154,7 @@ def main(argv):
 				adcs[i] -=1
 			break
 	print "// Thermistor lookup table for RepRap Temperature Sensor Boards (http://reprap.org/wiki/Temperature_Sensor_2_0)"
-        print "// Made with createTemperatureLookup.py (https://github.com/triffid/Teacup_Firmware/blob/master/createTemperatureLookup.py)"
+        print "// Made with createTemperatureLookup.py (https://github.com/traumflug/Teacup_Firmware/blob/master/createTemperatureLookup.py)"
         print "//           (patched per https://github.com/drf5n/Teacup_Firmware/blob/Gen7/createTemperatureLookup.py)"
 	print "// default thermistor lookup table"
 	print "// You may be able to improve the accuracy of this table in various ways."
