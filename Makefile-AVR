@@ -154,8 +154,22 @@ all: $(PROGRAM).hex $(BUILDDIR)/$(PROGRAM).lst $(BUILDDIR)/$(PROGRAM).sym size
 program: $(PROGRAM).hex config.h
 	$(UPLOADER) $(UPLOADER_FLAGS) -U flash:w:$(PROGRAM).hex
 
+## Interpret TARGET section sizes wrt different AVR chips
+## Usage:  $(call show_size,section-name,section-regex,Atmega168-size-in-k,Atmega328p-size-in-k,Atmega644p-size-in-k,Atmega1280-size-in-k)
+define show_size
+	@$(OBJDUMP) -h $^ | \
+		perl -MPOSIX -ne \
+		'/.($2)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; \
+		END { printf "    %-7s: %5d bytes         %3d%%       %3d%%       %3d%%     %3d%%\n", "$1", $$a, \
+			ceil($$a * 100 / ($3 * 1024)), \
+			ceil($$a * 100 / ($4 * 1024)), \
+			ceil($$a * 100 / ($5 * 1024)), \
+			ceil($$a * 100 / ($6 * 1024))  \
+		}'
+endef
+
 size: $(BUILDDIR)/$(PROGRAM).elf
 	@echo "    SIZES             ATmega...  '168    '328(P)    '644(P)    '1280"
-	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(text)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    FLASH : %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (14 * 1024)), ceil($$a * 100 / (30 * 1024)),ceil($$a * 100 / (62 * 1024)), ceil($$a * 100 / (126 * 1024)) }' 
-	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(data|bss)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    RAM   : %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (1 * 1024)), ceil($$a * 100 / (2 * 1024)),ceil($$a * 100 / (4 * 1024)), ceil($$a * 100 / (8 * 1024)) }'
-	@$(OBJDUMP) -h $^ | perl -MPOSIX -ne '/.(eeprom)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; END { printf "    EEPROM: %5d bytes          %3d%%      %3d%%       %3d%%      %3d%%\n", $$a, ceil($$a * 100 / (1 * 1024)), ceil($$a * 100 / (2 * 1024)), ceil($$a * 100 / (2 * 1024)), ceil($$a * 100 / (4 * 1024)) }'
+	$(call show_size,FLASH,text,14,30,62,126)
+	$(call show_size,RAM,data|bss,1,2,4,8)
+	$(call show_size,EEPROM,eeprom,1,2,2,4)
