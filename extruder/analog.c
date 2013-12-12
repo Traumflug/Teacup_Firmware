@@ -18,7 +18,7 @@ static const uint8_t analog_mask = 0
 #undef DEFINE_TEMP_SENSOR
 
 static uint8_t adc_counter;
-static volatile uint16_t adc_result[8] __attribute__ ((__section__ (".bss")));
+static volatile uint16_t BSS adc_result[8];
 
 //! Configure all registers, start interrupt loop
 void analog_init() {

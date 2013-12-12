@@ -24,7 +24,7 @@
 #undef DEFINE_TEMP_SENSOR
 
 static uint8_t adc_counter;
-static volatile uint16_t adc_result[NUM_TEMP_SENSORS] __attribute__ ((__section__ (".bss")));
+static volatile uint16_t BSS adc_result[NUM_TEMP_SENSORS];
 
 #define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
 	((type == TT_THERMISTOR) || (type == TT_AD595)) ? (pin ## _ADC) : 255,

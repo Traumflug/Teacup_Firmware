@@ -37,20 +37,20 @@
 
 /// \var startpoint
 /// \brief target position of last move in queue
-TARGET startpoint __attribute__ ((__section__ (".bss")));
+TARGET BSS startpoint;
 
 /// \var startpoint_steps
 /// \brief target position of last move in queue, expressed in steps
-TARGET startpoint_steps __attribute__ ((__section__ (".bss")));
+TARGET BSS startpoint_steps;
 
 /// \var current_position
 /// \brief actual position of extruder head
 /// \todo make current_position = real_position (from endstops) + offset from G28 and friends
-TARGET current_position __attribute__ ((__section__ (".bss")));
+TARGET BSS current_position;
 
 /// \var move_state
 /// \brief numbers for tracking the current state of movement
-MOVE_STATE move_state __attribute__ ((__section__ (".bss")));
+MOVE_STATE BSS move_state;
 
 /*! Inititalise DDA movement structures
 */
