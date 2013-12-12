@@ -35,7 +35,7 @@ uint8_t	mb_tail = 0;
 /// slot will only be modified in interrupts until the slot is
 /// is no longer live.
 /// The size does not need to be a power of 2 anymore!
-DDA movebuffer[MOVEBUFFER_SIZE] __attribute__ ((__section__ (".bss")));
+DDA _BSS(movebuffer[MOVEBUFFER_SIZE]);
 
 /// check if the queue is completely full
 uint8_t queue_full() {

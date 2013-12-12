@@ -26,10 +26,10 @@ uint8_t last_field = 0;
 #define crc(a, b)		(a ^ b)
 
 /// crude floating point data storage
-decfloat read_digit					__attribute__ ((__section__ (".bss")));
+decfloat _BSS(read_digit);
 
 /// this is where we store all the data for the current command before we work out what to do with it
-GCODE_COMMAND next_target		__attribute__ ((__section__ (".bss")));
+GCODE_COMMAND _BSS(next_target);
 
 /*
 	decfloat_to_int() is the weakest subject to variable overflow. For evaluation, we assume a build room of +-1000 mm and STEPS_PER_MM_x between 1.000 and 4096. Accordingly for metric units:

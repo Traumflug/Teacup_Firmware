@@ -103,4 +103,8 @@
 #error pins for this chip not defined in arduino.h! If you write an appropriate pin definition and have this firmware work on your chip, please tell us via the forum thread
 #endif
 
+#ifndef _BSS
+  #define _BSS(var) var __attribute__ ((__section__ (".bss")))
+#endif
+
 #endif /* _ARDUINO_H */
