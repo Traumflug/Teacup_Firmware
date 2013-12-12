@@ -18,7 +18,7 @@ static int32_t values[MAX_PINS];       ///< Pin and value states
 static int pin_count;                  ///< Number of pins we emit
 static void emit_log_data(void);
 
-static void recorder_close(int code, void*x ) {
+static void recorder_close(void) {
   if (!file) return;
   // force last line to emit
   emit_log_data();
@@ -42,7 +42,7 @@ void recorder_init(const char* filename) {
   fprintf(file, "#\n");
 
   fflush(file);
-  on_exit(recorder_close, NULL);
+  atexit((void*)recorder_close);
 }
 
 void add_trace_var(const char* name, int pin) {
