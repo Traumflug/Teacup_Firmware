@@ -35,7 +35,7 @@
 // Must be the same for all tables.
 #define NUMTEMPS 102
 
-const uint16_t temptable[NUMTABLES][NUMTEMPS][2] PROGMEM = {
+const uint16_t PROGMEM temptable[NUMTABLES][NUMTEMPS][2] = {
 
 // Table for the Extruder.
 // Thermistor: EPCOS B57560G104F
