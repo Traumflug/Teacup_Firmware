@@ -1,7 +1,7 @@
 #ifndef	_SERIAL_H
 #define	_SERIAL_H
 
-#include "config.h"
+#include "config_wrapper.h"
 #include	<stdint.h>
 #ifndef SIMULATOR
 #include	<avr/io.h>

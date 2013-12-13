@@ -2,7 +2,7 @@
 #define DDA_LOOKAHEAD_H_
 
 #include <stdint.h>
-#include "config.h"
+#include "config_wrapper.h"
 #include "dda.h"
 
 #ifndef ACCELERATION_RAMPING

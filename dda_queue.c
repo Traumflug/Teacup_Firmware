@@ -9,7 +9,7 @@
 #include	<avr/interrupt.h>
 #endif
 
-#include	"config.h"
+#include	"config_wrapper.h"
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"

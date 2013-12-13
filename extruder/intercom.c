@@ -7,7 +7,7 @@
 #include	<avr/io.h>
 #include	<avr/interrupt.h>
 
-#include	"config.h"
+#include	"config_wrapper.h"
 #include	"delay.h"
 
 #if	 (defined TEMP_INTERCOM) || (defined EXTRUDER)

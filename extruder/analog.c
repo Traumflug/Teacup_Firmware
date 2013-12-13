@@ -13,7 +13,7 @@
 //! automagically generate analog_mask from DEFINE_TEMP_SENSOR entries in config.h
 #define DEFINE_TEMP_SENSOR(name, type, pin, additional) | (((type == TT_THERMISTOR) || (type == TT_AD595)) ? 1 << (pin) : 0)
 static const uint8_t analog_mask = 0
-#include "config.h"
+#include "config_wrapper.h"
 ;
 #undef DEFINE_TEMP_SENSOR
 

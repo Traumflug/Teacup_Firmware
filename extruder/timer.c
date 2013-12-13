@@ -13,7 +13,7 @@
 #include	<avr/interrupt.h>
 
 #include	"arduino.h"
-#include	"config.h"
+#include	"config_wrapper.h"
 
 #ifdef	HOST
 #include	"dda_queue.h"

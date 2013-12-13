@@ -10,7 +10,7 @@
 #endif
 #include	"memory_barrier.h"
 
-#include	"config.h"
+#include	"config_wrapper.h"
 #include	"delay.h"
 
 #if	 (defined TEMP_INTERCOM) || (defined EXTRUDER)

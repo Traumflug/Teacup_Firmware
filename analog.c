@@ -19,7 +19,7 @@
 #else
 	static const uint8_t analog_mask = 0
 #endif
-#include "config.h"
+#include "config_wrapper.h"
 ;
 #undef DEFINE_TEMP_SENSOR
 
@@ -30,7 +30,7 @@ static volatile uint16_t adc_result[NUM_TEMP_SENSORS] __attribute__ ((__section_
 	((type == TT_THERMISTOR) || (type == TT_AD595)) ? (pin ## _ADC) : 255,
 static uint8_t adc_channel[NUM_TEMP_SENSORS] =
 {
-  #include "config.h"
+  #include "config_wrapper.h"
 };
 #undef DEFINE_TEMP_SENSOR
 

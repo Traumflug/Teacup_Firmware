@@ -31,7 +31,7 @@
 // Version 1.7: fix usb_serial_set_control
 // 2012-10-17: Import to Teacup firmware
 
-#include "config.h"
+#include "config_wrapper.h"
 #include "simulator.h"
 
 /* protect this file from Arduino IDE */

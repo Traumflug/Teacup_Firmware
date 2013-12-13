@@ -32,7 +32,13 @@
 ##############################################################################
 
 BUILDDIR = build
-CFLAGS += -save-temps=obj
+USER_CONFIG ?= config.h
+
+ifneq ($(USER_CONFIG),config.h)
+BUILDDIR := $(BUILDDIR)/$(USER_CONFIG:.h=)
+endif
+
+CFLAGS += -save-temps=obj -DUSER_CONFIG='"$(USER_CONFIG)"'
 
 CC = $(TOOLCHAIN)gcc
 OBJDUMP = $(TOOLCHAIN)objdump

@@ -57,7 +57,7 @@ typedef struct {
 #endif
 static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
 {
-	#include	"config.h"
+	#include	"config_wrapper.h"
 };
 #undef DEFINE_TEMP_SENSOR
 

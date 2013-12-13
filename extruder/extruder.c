@@ -5,7 +5,7 @@
 
 #include	"intercom.h"
 #include	"analog.h"
-#include	"config.h"
+#include	"config_wrapper.h"
 #include	"watchdog.h"
 #include	"heater.h"
 #include	"temp.h"

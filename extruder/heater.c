@@ -31,7 +31,7 @@ typedef struct {
 #define	DEFINE_HEATER(name, pin) { &(pin ## _WPORT), pin ## _PIN, (pin ## _PWM) },
 static const heater_definition_t heaters[NUM_HEATERS] =
 {
-	#include	"config.h"
+	#include	"config_wrapper.h"
 };
 #undef DEFINE_HEATER
 

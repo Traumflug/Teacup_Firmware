@@ -3,7 +3,7 @@
 
 #include	<stdint.h>
 
-#include	"config.h"
+#include	"config_wrapper.h"
 
 // return rounded result of multiplicand * multiplier / divisor
 // this version is with quotient and remainder precalculated elsewhere

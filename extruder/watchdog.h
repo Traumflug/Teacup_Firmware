@@ -1,7 +1,7 @@
 #ifndef	_WATCHDOG_H
 #define	_WATCHDOG_H
 
-#include "config.h"
+#include "config_wrapper.h"
 
 #ifdef USE_WATCHDOG
 

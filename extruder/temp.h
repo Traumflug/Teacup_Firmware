@@ -1,7 +1,7 @@
 #ifndef	_TEMP_H
 #define	_TEMP_H
 
-#include	"config.h"
+#include	"config_wrapper.h"
 #include	<stdint.h>
 
 /*
@@ -15,7 +15,7 @@ we still need to specify which analog pins we use in machine.h for the analog se
 #undef DEFINE_TEMP_SENSOR
 #define DEFINE_TEMP_SENSOR(name, type, pin, additional) TEMP_SENSOR_ ## name,
 typedef enum {
-	#include "config.h"
+	#include "config_wrapper.h"
 	NUM_TEMP_SENSORS,
 	TEMP_SENSOR_none
 } temp_sensor_t;

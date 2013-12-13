@@ -12,7 +12,7 @@
 	#define	REFERENCE_2V56	192
 #endif
 
-#include	"config.h"
+#include	"config_wrapper.h"
 
 #ifndef	REFERENCE
 #warning	define REFERENCE as one of

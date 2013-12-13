@@ -2,7 +2,7 @@
 #define	_INTERCOM_H
 
 #include	<stdint.h>
-#include	"config.h"
+#include	"config_wrapper.h"
 
 #ifndef enable_transmit
 #ifdef MOTHERBOARD

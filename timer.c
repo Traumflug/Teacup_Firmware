@@ -16,7 +16,7 @@
 #include	"memory_barrier.h"
 
 #include	"arduino.h"
-#include	"config.h"
+#include	"config_wrapper.h"
 
 #ifdef	MOTHERBOARD
 #include	"dda_queue.h"

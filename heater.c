@@ -32,7 +32,7 @@ typedef struct {
                                         pwm ? (pin ## _PWM) : NULL},
 static const heater_definition_t heaters[NUM_HEATERS] =
 {
-	#include	"config.h"
+	#include	"config_wrapper.h"
 };
 #undef DEFINE_HEATER
 
@@ -271,7 +271,7 @@ void heater_init() {
 	do {
 		#undef	DEFINE_HEATER
 		#define	DEFINE_HEATER(name, pin, pwm) WRITE(pin, 0); SET_OUTPUT(pin);
-			#include "config.h"
+			#include "config_wrapper.h"
 		#undef DEFINE_HEATER
 	} while (0);
 }

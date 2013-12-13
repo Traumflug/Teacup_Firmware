@@ -5,7 +5,7 @@
 #ifndef	_PINIO_H
 #define	_PINIO_H
 
-#include	"config.h"
+#include	"config_wrapper.h"
 
 #ifdef SIMULATOR
   #include "simulator.h"

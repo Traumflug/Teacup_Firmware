@@ -29,7 +29,7 @@
 #include	<avr/interrupt.h>
 #endif
 
-#include	"config.h"
+#include	"config_wrapper.h"
 #include	"fuses.h"
 
 #include	"serial.h"
