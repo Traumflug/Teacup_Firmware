@@ -37,7 +37,7 @@ inline void enqueue(TARGET *t) {
 }
 
 // called from step timer when current move is complete
-void next_move(void) __attribute__ ((hot));
+void next_move(void);
 
 // print queue status
 void print_queue(void);

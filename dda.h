@@ -203,10 +203,10 @@ void dda_new_startpoint(void);
 void dda_create(DDA *dda, TARGET *target);
 
 // start a created DDA (called from timer interrupt)
-void dda_start(DDA *dda)																						__attribute__ ((hot));
+void dda_start(DDA *dda);
 
 // DDA takes one step (called from timer interrupt)
-void dda_step(DDA *dda)																							__attribute__ ((hot));
+void dda_step(DDA *dda);
 
 // regular movement maintenance
 void dda_clock(void);
