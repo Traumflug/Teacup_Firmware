@@ -35,6 +35,7 @@
 TARGET = sim
 
 SIM_PATH = simulator
+BUILD_FLAVOR = $(TARGET)
 
 # Arduino IDE takes the "compile everything available"-approach, so we have
 # to keep this working and can take a shortcut:
@@ -43,7 +44,6 @@ SOURCES = $(wildcard *.c)
 SIM_SOURCES = $(subst $(SIM_PATH)/,,$(wildcard $(SIM_PATH)/*.c))
 SOURCES := $(filter-out $(subst _sim.c,.c,$(SIM_SOURCES)),$(SOURCES)) $(SIM_SOURCES)
 
-OBJ = $(patsubst %.c,$(BUILDDIR)/%.sim.o,$(SOURCES))
 CFLAGS += -g -Wall -Wstrict-prototypes -Wno-format -Os $(DEFS) -std=gnu99
 CFLAGS += -funsigned-char -funsigned-bitfields -fshort-enums -I.. -I.
 CFLAGS += -DSIMULATOR
@@ -55,13 +55,7 @@ CFLAGS += -D__AVR_ATmega1280__
 
 include Makefile-common
 
-$(BUILDDIR)/%.sim.o: %.c | $(BUILDDIR)
-	@echo "  CC        $@"
-	@cc -c $(CFLAGS) -MMD -o $@ $<
-	@$(call CCPOST)
-
-$(TARGET): $(OBJ)
-	@echo "  LINK      $@"
-	@cc $(CFLAGS) -o $@ $^
+$(TARGET): $(BUILDDIR)/$(TARGET).elf
+	cp $< $@
 
 vpath %.c $(SIM_PATH)

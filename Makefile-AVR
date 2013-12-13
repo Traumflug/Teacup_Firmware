@@ -127,6 +127,7 @@ CFLAGS += -Os
 CFLAGS += -ffunction-sections
 CFLAGS += -finline-functions-called-once
 CFLAGS += -mcall-prologues
+CFLAGS += -Wa,-adhlns=$(@:.o=.al)
 
 LDFLAGS  = -Wl,--as-needed
 
@@ -140,8 +141,6 @@ else
 endif
 
 LIBS  = -lm
-
-OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES))
 
 -include Makefile-common
 
