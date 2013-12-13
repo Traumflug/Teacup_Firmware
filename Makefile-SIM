@@ -44,7 +44,7 @@ SIM_SOURCES = $(subst $(SIM_PATH)/,,$(wildcard $(SIM_PATH)/*.c))
 SOURCES := $(filter-out $(subst _sim.c,.c,$(SIM_SOURCES)),$(SOURCES)) $(SIM_SOURCES)
 
 OBJ = $(patsubst %.c,$(BUILDDIR)/%.sim.o,$(SOURCES))
-CFLAGS  = -g -Wall -Wstrict-prototypes -Wno-format -Os $(DEFS) -std=gnu99
+CFLAGS += -g -Wall -Wstrict-prototypes -Wno-format -Os $(DEFS) -std=gnu99
 CFLAGS += -funsigned-char -funsigned-bitfields -fshort-enums -I.. -I.
 CFLAGS += -DSIMULATOR
 

@@ -40,17 +40,17 @@
 #                                                                            #
 ##############################################################################
 
-# MCU_TARGET = atmega168
-# MCU_TARGET = atmega328p
-MCU_TARGET = atmega644p
-# MCU_TARGET = atmega1280
-# MCU_TARGET = atmega2560
-# MCU_TARGET = at90usb1287
-# MCU_TARGET = atmega32u4
+# MCU_TARGET ?= atmega168
+# MCU_TARGET ?= atmega328p
+MCU_TARGET ?= atmega644p
+# MCU_TARGET ?= atmega1280
+# MCU_TARGET ?= atmega2560
+# MCU_TARGET ?= at90usb1287
+# MCU_TARGET ?= atmega32u4
 
 # CPU clock rate
-F_CPU = 16000000L
-# F_CPU = 8000000L
+F_CPU ?= 16000000L
+# F_CPU ?= 8000000L
 
 ##############################################################################
 #                                                                            #
@@ -79,9 +79,10 @@ TOOLCHAIN = avr-
 #   -P <port>                 Serial port the electronics is connected to.
 #   -C <config file>          Optional, default is /etc/avrdude.conf.
 
-UPLOADER = avrdude
+UPLOADER ?= avrdude
 # UPLOADER = <path-to-arduino-folder>/hardware/tools/avrdude
 
+ifndef UPLOADER_FLAGS
 UPLOADER_FLAGS  = -c stk500v2
 # UPLOADER_FLAGS += -b 19200
 # UPLOADER_FLAGS += -b 57600
@@ -91,6 +92,7 @@ UPLOADER_FLAGS += -p $(MCU_TARGET)
 # UPLOADER_FLAGS += -P /dev/ttyACM0
 UPLOADER_FLAGS += -P /dev/ttyUSB0
 # UPLOADER_FLAGS += -C <path-to-arduino-folder>/hardware/tools/avrdude.conf
+endif
 
 
 ##############################################################################
@@ -108,7 +110,7 @@ TARGET = $(PROGRAM).hex
 # to keep this working and can take a shortcut:
 SOURCES = $(wildcard *.c)
 
-CFLAGS  = -DF_CPU=$(F_CPU)
+CFLAGS += -DF_CPU=$(F_CPU)
 CFLAGS += -mmcu=$(MCU_TARGET)
 CFLAGS += -g
 CFLAGS += -Wall
