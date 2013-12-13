@@ -340,18 +340,30 @@ void WRITE(pin_t pin, bool s) {
     switch (pin) {
     case X_STEP_PIN:
       dir = state[X_DIR_PIN] ? 1 : -1;
+      #ifdef X_INVERT_DIR
+        dir = -dir;
+      #endif
       axis = X_AXIS;
       break;
     case Y_STEP_PIN:
       dir = state[Y_DIR_PIN] ? 1 : -1;
+      #ifdef Y_INVERT_DIR
+        dir = -dir;
+      #endif
       axis = Y_AXIS;
       break;
     case Z_STEP_PIN:
       dir = state[Z_DIR_PIN] ? 1 : -1;
+      #ifdef Z_INVERT_DIR
+        dir = -dir;
+      #endif
       axis = Z_AXIS;
       break;
     case E_STEP_PIN:
       dir = state[E_DIR_PIN] ? 1 : -1;
+      #ifdef E_INVERT_DIR
+        dir = -dir;
+      #endif
       axis = E_AXIS;
       break;
     default:
