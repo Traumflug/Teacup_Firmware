@@ -24,7 +24,14 @@ gnuplot --persist -e "
   set y2label 'Velocity (mm/minute)'; set ytics nomirror ; set y2tics;
   set samples 10000 ;
 
-  plot '${VELOC}' u (\$1/1000000):(\$2/$MM_PER_STEP) with lines t \"X-position\" , '' u (\$1/1000000):(\$3/$MM_PER_STEP) with lines t \"Y-position\"
-     , '' u (\$1/1000000):(60000000.0*\$4/$MM_PER_STEP) with lines t \"X-velocity\" axes x1y2
-     , '' u (\$1/1000000):(60000000.0*\$5/$MM_PER_STEP) with lines t \"Y-velocity\" axes x1y2
+  plot '${VELOC}' u (\$1):(60.0*\$3/$MM_PER_STEP) with lines t \"X-velocity\" axes x1y2
+     , '' u (\$1):(60.0*\$5/$MM_PER_STEP) with lines t \"Y-velocity\" axes x1y2
+     , '' u (\$1):(60.0*\$7/$MM_PER_STEP) with lines t \"Z-velocity\" axes x1y2
+     , '' u (\$1):(60.0*\$9/$MM_PER_STEP) with lines t \"E-velocity\" axes x1y2
+     , '' u (\$1):(\$2/$MM_PER_STEP) with lines t \"X-position\"
+     , '' u (\$1):(\$4/$MM_PER_STEP) with lines t \"Y-position\"
+     , '' u (\$1):(\$6/$MM_PER_STEP) with lines t \"Z-position\"
+     , '' u (\$1):(\$8/$MM_PER_STEP) with lines t \"E-position\"
+     , '' u (\$1):(\$10/$MM_PER_STEP) with steps t \"X-Step\"
+     , '' u (\$1):(\$10/$MM_PER_STEP) with steps t \"Y-Step\"
 "

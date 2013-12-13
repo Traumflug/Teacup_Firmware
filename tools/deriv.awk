@@ -3,33 +3,26 @@ BEGIN { firstline = 1 }
 
 # Calculates the first derivative of columns 2 and 3 wrt column 1
 $0 !~ /^#/ {
-  t = $1
-  x = $2
-  y = $3
+  $1 /= 1000000.0
   if (firstline == 1) {
-    old_tx = old_ty = t
-    old_x = x
-    old_y = y
-    dy_dt = dx_dt = 0
+    for ( i=1; i<=NF; i++) {
+      prev_t[i] = $1
+      prev_x[i] = $i
+      deriv[i] = 0
+    }
     firstline = 0
   } else {
-    dx = old_x - x
-    dy = old_y - y
-
-    if ( dx != 0) {
-      dt = old_tx - t
-      dx_dt = dx/dt
-      old_tx = t
-      old_x = x
+    printf $1
+    for ( i=2; i<=NF; i++) {
+      if ( $i != prev_x[i] ) {
+        dx = $i - prev_x[i]
+        dt = $1 - prev_t[i]
+        deriv[i] = dx/dt
+        prev_t[i] = $1
+        prev_x[i] = $i
+      }
+      printf " %s %0f", $i, deriv[i]
     }
-    if ( dy != 0) {
-      dt = old_ty - t
-      dy_dt = dy/dt
-      old_ty = t
-      old_y = y
-    }
-    if ( dx != 0 || dy != 0 ) {
-      print t, " ", x, " ", y, " ", dx_dt, " ", dy_dt
-    }
+    print ""
   }
 }
