@@ -39,4 +39,6 @@ void setTimer(uint32_t delay);
 
 void timer_stop(void);
 
+uint32_t get_millis(void);
+
 #endif	/* _TIMER_H */

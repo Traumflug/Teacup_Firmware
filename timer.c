@@ -37,10 +37,21 @@ uint8_t						clock_counter_250ms = 0;
 /// keep track of when 1s has elapsed
 uint8_t						clock_counter_1s = 0;
 
+static volatile uint32_t millis;        ///< Actual millisecond clock counter (granularity = 2ms, or TICK_TIME_MS)
+
 /// flags to tell main loop when above have elapsed
 volatile uint8_t	clock_flag_10ms = 0;
 volatile uint8_t	clock_flag_250ms = 0;
 volatile uint8_t	clock_flag_1s = 0;
+
+/// uptime in milliseconds (rolls over about every 12 days)
+uint32_t get_millis(void) {
+  uint32_t mlocal;
+  ATOMIC_START
+    mlocal = millis;
+  ATOMIC_END
+  return mlocal;
+}
 
 /// comparator B is the system clock, happens every TICK_TIME
 ISR(TIMER1_COMPB_vect) {
@@ -51,6 +62,7 @@ ISR(TIMER1_COMPB_vect) {
 	clock stuff
 	*/
 	clock_counter_10ms += TICK_TIME_MS;
+  millis += TICK_TIME_MS;
 	if (clock_counter_10ms >= 10) {
 		clock_counter_10ms -= 10;
 		clock_flag_10ms = 1;
