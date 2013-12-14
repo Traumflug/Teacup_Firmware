@@ -315,7 +315,7 @@ uint8_t	temp_achieved() {
 	uint8_t all_ok = 255;
 
 	for (i = 0; i < NUM_TEMP_SENSORS; i++) {
-		if (temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*100))
+		if ((temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*100)) && (temp_sensors_runtime[i].target_temp != 0))
 			all_ok = 0;
 	}
 	return all_ok;
