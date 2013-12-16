@@ -115,15 +115,10 @@ void dda_create(DDA *dda, TARGET *target) {
   if (dda->waitfor_temp)
     return;
 
-  // Initialise DDA to a known state. This also clears flags like
-  // dda->live, dda->done and dda->wait_for_temp.
-	dda->allflags = 0;
-
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("\nCreate: X %lq  Y %lq  Z %lq  F %lu\n"),
                dda->endpoint.X, dda->endpoint.Y,
                dda->endpoint.Z, dda->endpoint.F);
-
 
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));

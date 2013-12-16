@@ -113,6 +113,10 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 
 	DDA* new_movebuffer = &(movebuffer[h]);
 
+  // Initialise queue entry to a known state. This also clears flags like
+  // dda->live, dda->done and dda->wait_for_temp.
+  new_movebuffer->allflags = 0;
+
   if (t != NULL) {
 		new_movebuffer->endstop_check = endstop_check;
 		new_movebuffer->endstop_stop_cond = endstop_stop_cond;
