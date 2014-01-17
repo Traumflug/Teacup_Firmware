@@ -241,29 +241,38 @@ DaveX plan for Teensylu/printrboard-type pinouts (ref teensylu & sprinter) for a
                                USB
            GND       GND |-----#####-----| +5V              ATX +5SB
      ATX PS_ON    PWM 27 |b7   #####   b6| 26    PWM*       Stepper Enable 
-                  PWM  0 |d0           b5| 25    PWM*       X STEP 
-                  PWM  1 |d1           b4| 24    PWM        X DIR
-         X_MIN         2 |d2           b3| 23               Y STEP
-         Y_MIN         3 |d3           b2| 22               Y DIR
-         Z_MIN         4 |d4  * *      b1| 21               Z STEP       
-                       5 |d5  e e      b0| 20               Z DIR
-           LED         6 |d6  5 4      e7| 19               E STEP
-                       7 |d7           e6| 18               E DIR
-         SDSS          8 |e0             | GND              
-          SCK          9 |e1     4 0    R| AREF             
-         MOSI         10 |c0     5 1   f0| 38 A0            Extruder TC
-         MISO         11 |c1     6 2   f1| 39 A1            Bed TC
-                      12 |c2     7 3   f2| 40 A2            
+                  PWM  0 |d0           b5| 25    PWM*        
+                  PWM  1 |d1           b4| 24    PWM        
+         X_MIN         2 |d2           b3| 23               
+         Y_MIN         3 |d3           b2| 22               
+         Z_MIN         4 |d4  * *      b1| 21                      
+                       5 |d5  e e      b0| 20               
+           LED         6 |d6  5 4      e7| 19               
+                       7 |d7           e6| 18               
+                       8 |e0             | GND              
+                       9 |e1   a4 a0    R| AREF             
+                      10 |c0   a5 a1   f0| 38 A0            
+                      11 |c1   a6 a2   f1| 39 A1            
+                      12 |c2   a7 a3   f2| 40 A2            
                       13 |c3           f3| 41 A3            
-           Fan    PWM 14 |c4   V G R   f4| 42 A4            
-      Bed Heat    PWM 15 |c5   c n S   f5| 43 A5            
- Extruder Heat    PWM 16 |c6   c d T   f6| 44 A6            
-                      17 |c7   * * *   f7| 45 A7                       
+      Bed Heat    PWM 14 |c4   V G R   f4| 42 A4            
+ Extruder Heat    PWM 15 |c5   c n S   f5| 43 A5            
+           Fan    PWM 16 |c6   c d T   f6| 44 A6            Bed TC
+                      17 |c7   * * *   f7| 45 A7            Extruder TC *4.7k *+5          
                          -----------------                  
 
       Interior E4: 36, INT4
       Interior E5: 37, INT5
-      Interior PA0-7: 28-35  -- Printrboard and Teensylu use these pins for step & direction
+      Interior PA0-7: 28-35  -- Printrboard and Teensylu use these pins for step & direction:
+	     T++ PA Signal  Marlin
+              28 a0 X_STEP  0
+              29 a1 X_DIR   1
+              30 a2 Y_STEP  2
+              31 a3 Y_DIR   3
+              32 a4 Z_STEP  4 
+              33 a5 Z_DIR   5
+              34 a6 E_STEP  6
+              35 a7 E_DIR   7
 
 * PWM on pins PB5/25/OC1A and PB6/26/OC1B pins would interfere with timer/counter1 for Teacup. 
   Avoid trying to use these two PWMs, and try to use the other 7 PWMs instead.
@@ -288,8 +297,8 @@ DaveX plan for Teensylu/printrboard-type pinouts (ref teensylu & sprinter) for a
 /* starting down the left side for digital, and later down the right for analog */
 /* General layout: ccw from upper left: stops, heaters,  E,Z,Y,X,  temp sensors */
 
-#define X_STEP_PIN                 DIO25
-#define X_DIR_PIN                     DIO24
+#define X_STEP_PIN                 DIO28
+#define X_DIR_PIN                     DIO29
 #define X_MIN_PIN                     DIO2
 //#define  X_MAX_PIN                     xxxx
 //#define  X_ENABLE_PIN               xxxx
@@ -298,8 +307,8 @@ DaveX plan for Teensylu/printrboard-type pinouts (ref teensylu & sprinter) for a
 //#define  X_INVERT_MAX
 //#define  X_INVERT_ENABLE
 
-#define Y_STEP_PIN                 DIO23
-#define Y_DIR_PIN                     DIO22
+#define Y_STEP_PIN                 DIO30
+#define Y_DIR_PIN                     DIO31
 #define Y_MIN_PIN                     DIO3
 //#define  Y_MAX_PIN                     xxxx
 //#define  Y_ENABLE_PIN               xxxx
@@ -308,8 +317,8 @@ DaveX plan for Teensylu/printrboard-type pinouts (ref teensylu & sprinter) for a
 //#define  Y_INVERT_MAX
 //#define  Y_INVERT_ENABLE
 
-#define Z_STEP_PIN                 DIO21
-#define Z_DIR_PIN                     DIO20
+#define Z_STEP_PIN                 DIO32
+#define Z_DIR_PIN                     DIO33
 #define Z_MIN_PIN                     DIO4
 //#define  Z_MAX_PIN                     xxxx
 //#define  Z_ENABLE_PIN               DIO17
@@ -318,8 +327,8 @@ DaveX plan for Teensylu/printrboard-type pinouts (ref teensylu & sprinter) for a
 //#define  Z_INVERT_MAX
 //#define  Z_INVERT_ENABLE
 
-#define E_STEP_PIN                 DIO19
-#define E_DIR_PIN                     DIO18
+#define E_STEP_PIN                 DIO34
+#define E_DIR_PIN                     DIO35
 //#define E_ENABLE_PIN             xxxx
 #define E_INVERT_DIR
 //#define  E_INVERT_ENABLE
@@ -395,8 +404,8 @@ DaveX plan for Teensylu/printrboard-type pinouts (ref teensylu & sprinter) for a
 #endif
 
 //                 name       type            pin        additional
-DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO0,      THERMISTOR_EXTRUDER)
-DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO7,      THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO6,      THERMISTOR_EXTRUDER)
 // "noheater" is a special name for a sensor which doesn't have a heater.
 // Use "M105 P#" to read it, where # is a zero-based index into this list.
 // DEFINE_TEMP_SENSOR(noheater,  TT_THERMISTOR,  1,            0)
@@ -450,9 +459,9 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
 #endif
 
 //            name      port   pwm
-DEFINE_HEATER(extruder, DIO16, 1)
-DEFINE_HEATER(bed,      DIO15,  1)
-DEFINE_HEATER(fan,      DIO14,  0)
+DEFINE_HEATER(extruder, DIO15, 1)
+DEFINE_HEATER(bed,      DIO14,  1)
+DEFINE_HEATER(fan,      DIO16,  0)
 // DEFINE_HEATER(chamber,  PIND7, 1)
 // DEFINE_HEATER(motor,    PIND6, 1)
 
@@ -658,5 +667,6 @@ PWM value for 'off'
 * OCR3B - PC5 - DIO15                                                       *
 * OCR3C - PC4 - DIO14                                                       *
 * OCR2A - PB4 - DIO24                                                       *
+* OCR2B - PD1 - DIO1                                                        *
 *                                                                           *
 \***************************************************************************/
