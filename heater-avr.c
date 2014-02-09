@@ -21,12 +21,26 @@ typedef struct {
   /// Wether the heater pin signal needs to be inverted.
   uint8_t          invert;
 	volatile uint8_t *heater_pwm;  ///< pointer to 8-bit PWM register, eg OCR0A (8-bit) or ORC3L (low byte, 16-bit)
+  int32_t kP;
+  int32_t kI;
+  int32_t kD;
+  int16_t i_limit;
+  //int32_t watts;
+  //int32_t t_dead;
 } heater_definition_t;
 
 #undef DEFINE_HEATER
 /// \brief helper macro to fill heater definition struct from config.h
-#define	DEFINE_HEATER(name, pin, invert, pwm) { \
-  &(pin ## _WPORT), pin ## _PIN, invert ? 1 : 0, pwm ? (pin ## _PWM) : NULL},
+#define DEFINE_HEATER(name, pin, pwm, kP, kI, kD, i_limit, watts, t_dead) { \
+  &(pin ## _WPORT), pin ## _PIN, \
+  pwm ? (pin ## _PWM) : NULL, \
+  (int32_t)(kP > 0 ? kP * PID_SCALE_P : -kP ), \
+  (int32_t)(kI >=0 ? (kI * PID_SCALE_I) : kP * PID_SCALE_I / (-kI)), \
+  (int32_t)(kD >=0 ? ((float)kD * PID_SCALE_D) : -kD / kP * PID_SCALE_D), \
+  (int16_t)(i_limit) \
+  /* ,(int32_t)(watts * PID_SCALE) */ \
+  /* ,(int32_t)(t_dead * PID_SCALE) */ \
+},
 static const heater_definition_t heaters[NUM_HEATERS] =
 {
 	#include	"config_wrapper.h"
@@ -195,7 +209,7 @@ void heater_init() {
 
 	// set all heater pins to output
   #undef DEFINE_HEATER
-  #define DEFINE_HEATER(name, pin, invert, pwm) \
+  #define DEFINE_HEATER(name, pin, pwm, p, i, d, iLim, watt, t_dead) \
     SET_OUTPUT(pin);                            \
     WRITE(pin, invert ? 1 : 0);
   #include "config_wrapper.h"

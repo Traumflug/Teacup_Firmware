@@ -35,6 +35,7 @@
 #ifndef	EXTRUDER
 	#include	"sersendf.h"
 #endif
+
 #ifdef EECONFIG
   #include <avr/eeprom.h>
 #endif
@@ -43,7 +44,7 @@
 	\var heaters_pid
 	\brief this struct holds the heater PID factors
 
-	PID is a fascinating way to control any closed loop control, combining the error (P), cumulative error (I) and rate at which we're approacing the setpoint (D) in such a way that when correctly tuned, the system will achieve target temperature quickly and with little to no overshoot
+	PID is a fascinating way to control any closed loop control, combining the error (P), cumulative error (I) and rate at which we're approaching the setpoint (D) in such a way that when correctly tuned, the system will achieve target temperature quickly and with little to no overshoot
 
 	At every sample, we calculate \f$OUT = k_P (S - T) + k_I \int (S - T) + k_D \frac{dT}{dt}\f$ where S is setpoint and T is temperature.
 
@@ -103,10 +104,10 @@ void pid_init() {
           eeprom_read_word((uint16_t *)&EE_factors[i].crc))
       #endif /* EECONFIG */
       {
-        heaters_pid[i].p_factor = DEFAULT_P;
-        heaters_pid[i].i_factor = DEFAULT_I;
-        heaters_pid[i].d_factor = DEFAULT_D;
-        heaters_pid[i].i_limit = DEFAULT_I_LIMIT;
+				heaters_pid[i].p_factor = heaters[i].kP >= 0 ? heaters[i].kP : DEFAULT_P;
+				heaters_pid[i].i_factor = heaters[i].kI >= 0 ? heaters[i].kI : DEFAULT_I;
+				heaters_pid[i].d_factor = heaters[i].kD >= 0 ? heaters[i].kD : DEFAULT_D;
+				heaters_pid[i].i_limit = heaters[i].i_limit> 0 ? heaters[i].i_limit : DEFAULT_I_LIMIT;
       }
     #endif /* BANG_BANG */
   }

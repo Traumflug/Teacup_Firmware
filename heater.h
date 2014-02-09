@@ -63,7 +63,8 @@
 #define PID_SCALE_D ((int32_t)PID_SCALE/TH_COUNT) // Internal 1/4 degree per 1/4s sampling cancels, but the dt window is TH_COUNT long.
 
 #undef DEFINE_HEATER
-#define DEFINE_HEATER(name, pin, invert, pwm) HEATER_ ## name,
+#define DEFINE_HEATER(name, pin, pwm, p, i, d, i_limit, watts, t_dead) \
+HEATER_ ## name,
 typedef enum
 {
 	#include "config_wrapper.h"
