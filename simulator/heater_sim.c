@@ -20,8 +20,11 @@ void pid_set_p(heater_t index, int32_t p) {}
 void pid_set_i(heater_t index, int32_t i) {}
 void pid_set_d(heater_t index, int32_t d) {}
 void pid_set_i_limit(heater_t index, int32_t i_limit) {}
-void heater_save_settings(void) {}
+void heater_save_settings(void) {
+  sim_info("heater not implemented in simulator.");
+}
 #endif /* EECONFIG */
 
 void heater_print(uint16_t i) {
+  sim_info("heater not implemented in simulator.");
 }
