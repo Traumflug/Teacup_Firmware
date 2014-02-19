@@ -127,9 +127,9 @@ void sersendf_P(PGM_P format, ...) {
 					break;
 				case 'd':
 					if (j == 4)
-            serwrite_int32(GET_ARG(uint32_t));
+            serwrite_int32(GET_ARG(int32_t));
 					else
-            serwrite_int16(GET_ARG(uint16_t));
+            serwrite_int16(GET_ARG(int16_t));
 					j = 0;
 					break;
 				case 'c':
