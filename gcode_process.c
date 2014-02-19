@@ -674,6 +674,7 @@ void process_gcode_command() {
 			case 130:
 				//? --- M130: heater P factor ---
 				//? Undocumented.
+			  	//  P factor in counts per degreeC of error
         #ifdef HEATER_EXTRUDER
           if ( ! next_target.seen_P)
             next_target.P = HEATER_EXTRUDER;
@@ -686,6 +687,7 @@ void process_gcode_command() {
 			case 131:
 				//? --- M131: heater I factor ---
 				//? Undocumented.
+			  	// I factor in counts per C*s of integrated error
         #ifdef HEATER_EXTRUDER
           if ( ! next_target.seen_P)
             next_target.P = HEATER_EXTRUDER;
@@ -697,6 +699,7 @@ void process_gcode_command() {
 			case 132:
 				//? --- M132: heater D factor ---
 				//? Undocumented.
+			  	// D factor in counts per degreesC/second
         #ifdef HEATER_EXTRUDER
           if ( ! next_target.seen_P)
             next_target.P = HEATER_EXTRUDER;
