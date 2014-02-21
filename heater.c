@@ -145,7 +145,7 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 		heater_p = t_error; // Units: qC where 4qC=1C
 
 		// integral
-		heaters_runtime[h].heater_i += t_error;  // Units: qC*qs where 16qC*qs=1C*s
+		heaters_runtime[h].heater_i += t_error;  // Units: qC*qs where 16qc/qs=1C*s
 		// prevent integrator wind-up
 		if (heaters_runtime[h].heater_i > heaters_pid[h].i_limit)
 			heaters_runtime[h].heater_i = heaters_pid[h].i_limit;
