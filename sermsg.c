@@ -77,6 +77,7 @@ void serwrite_int32(int32_t v) {
 
 /** write decimal digits from a long unsigned int
 \param v number to send
+\param fp number of decimal places to the right of the decimal point
 */
 void serwrite_uint32_vf(uint32_t v, uint8_t fp) {
 	uint8_t e, t;
@@ -101,6 +102,7 @@ void serwrite_uint32_vf(uint32_t v, uint8_t fp) {
 
 /** write decimal digits from a long signed int
 \param v number to send
+\param fp number of decimal places to the right of the decimal point
 */
 void serwrite_int32_vf(int32_t v, uint8_t fp) {
 	if (v < 0) {
