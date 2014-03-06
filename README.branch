@@ -1,0 +1,24 @@
+Branch issue74-ilimOutput attempts to simplify DEFAULT_I_LIMIT and  M133 tuning by 
+making the limit apply to the output contribution of the PID integrator.
+ 
+The prior default settings of 
+DEFAULT_I_LIMIT 384
+DEFAULT_I 512
+PID_SCALE 1024
+
+combine to make the limit of the I term correspond to 384*512/1024=192 output counts, or 75.3% full power.
+
+Above this level, the PID controller I term saturates, and the controller becomes a P-D controller.
+
+Prior to this change, if you wanted to cap the integrator at a certain power level, you would set the DEFAULT_I_LIMIT or M133 to
+%power/100*255/kI 
+
+After this change, you would choose a particular power level as:
+
+%power*255/100
+
+It shifts the heaters_runtime[h].heater_i state variable from summing the error terms, measured in C/4 every s/4 seconds, to 
+summing the output counts times 32, which is later added to the pid_output_intermediate variable.
+
+
+

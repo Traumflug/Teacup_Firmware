@@ -145,12 +145,13 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 		heater_p = t_error; // Units: qC where 4qC=1C
 
 		// integral
-		heaters_runtime[h].heater_i += t_error;  // Units: qC*qs where 16qC*qs=1C*s
+#define I_RES 32 /* counts*32 allows accumulation of a qC error with a Ki=0.05 factor */
+		heaters_runtime[h].heater_i += t_error * heaters_pid[h].i_factor/(PID_SCALE/I_RES);  // counts*32 resolves qc*Ki=0.05
 		// prevent integrator wind-up
-		if (heaters_runtime[h].heater_i > heaters_pid[h].i_limit)
-			heaters_runtime[h].heater_i = heaters_pid[h].i_limit;
-		else if (heaters_runtime[h].heater_i < -heaters_pid[h].i_limit)
-			heaters_runtime[h].heater_i = -heaters_pid[h].i_limit;
+		if (heaters_runtime[h].heater_i > heaters_pid[h].i_limit * I_RES)
+			heaters_runtime[h].heater_i = heaters_pid[h].i_limit * I_RES;
+		else if (heaters_runtime[h].heater_i < -heaters_pid[h].i_limit * I_RES)
+			heaters_runtime[h].heater_i = -heaters_pid[h].i_limit * I_RES;
 
 		// derivative.  Units: qC/(TH_COUNT*qs) where 1C/s=TH_COUNT*4qC/4qs=8qC/qs)
 		// note: D follows temp rather than error so there's no large derivative when the target changes
@@ -160,9 +161,9 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 		int32_t pid_output_intermed = ( // Units: counts
 									   (
 										(((int32_t) heater_p) * heaters_pid[h].p_factor) +
-										(((int32_t) heaters_runtime[h].heater_i) * heaters_pid[h].i_factor) +
 										(((int32_t) heater_d) * heaters_pid[h].d_factor)
 										) / PID_SCALE
+			+ (((int32_t) heaters_runtime[h].heater_i)/I_RES)
 									   );
 
     // rebase and limit factors
