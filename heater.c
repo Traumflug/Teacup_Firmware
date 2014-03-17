@@ -49,15 +49,15 @@ static const heater_definition_t heaters[NUM_HEATERS] =
 	See http://www.eetimes.com/design/embedded/4211211/PID-without-a-PhD for the full story
 */
 struct {
-	int32_t						p_factor; ///< scaled P factor
-	int32_t						i_factor; ///< scaled I factor
-	int32_t						d_factor; ///< scaled D factor
+	int32_t						p_factor; ///< scaled P factor: mibicounts/qc
+	int32_t						i_factor; ///< scaled I factor: mibicounts/(qC*qs)
+	int32_t						d_factor; ///< scaled D factor: mibicounts/(qc/(TH_COUNT*qs))
 	int16_t						i_limit;  ///< scaled I limit, such that \f$-i_{limit} < i_{factor} < i_{limit}\f$
 } heaters_pid[NUM_HEATERS];
 
 /// \brief this struct holds the runtime heater data- PID integrator history, temperature history, sanity checker
 struct {
-	int16_t						heater_i; ///< integrator, \f$-i_{limit} < \sum{\Delta t} < i_{limit}\f$
+	int16_t						heater_i; ///< integrator, \f$-i_{limit} < \sum{4*eC*\Delta t} < i_{limit}\f$
 
 	uint16_t					temp_history[TH_COUNT]; ///< store last TH_COUNT readings in a ring, so we can smooth out our differentiator
 	uint8_t						temp_history_pointer;   ///< pointer to last entry in ring
@@ -76,13 +76,13 @@ struct {
 	#define HEATER_THRESHOLD 8
 #endif
 
-/// default scaled P factor, equivalent to 8.0
+/// default scaled P factor, equivalent to 8.0 counts/qC or 32 counts/C
 #define		DEFAULT_P				8192
-/// default scaled I factor, equivalent to 0.5
+/// default scaled I factor, equivalent to 0.5 counts/(qC*qs) or 8 counts/C*s
 #define		DEFAULT_I				512
-/// default scaled D factor, equivalent to 24
+/// default scaled D factor, equivalent to 24 counts/(qc/(TH_COUNT*qs)) or 192 counts/(C/s)
 #define		DEFAULT_D				24576
-/// default scaled I limit
+/// default scaled I limit, equivalent to 384 qC*qs, or 24 C*s
 #define		DEFAULT_I_LIMIT	384
 
 #ifdef EECONFIG
@@ -305,22 +305,22 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 
 		// PID stuff
 		// proportional
-		heater_p = t_error;
+		heater_p = t_error; // Units: qC where 4qC=1C
 
 		// integral
-		heaters_runtime[h].heater_i += t_error;
+		heaters_runtime[h].heater_i += t_error;  // Units: qC*qs where 16qC*qs=1C*s
 		// prevent integrator wind-up
 		if (heaters_runtime[h].heater_i > heaters_pid[h].i_limit)
 			heaters_runtime[h].heater_i = heaters_pid[h].i_limit;
 		else if (heaters_runtime[h].heater_i < -heaters_pid[h].i_limit)
 			heaters_runtime[h].heater_i = -heaters_pid[h].i_limit;
 
-		// derivative
+		// derivative.  Units: qC/(TH_COUNT*qs) where 1C/s=TH_COUNT*4qC/4qs=8qC/qs)
 		// note: D follows temp rather than error so there's no large derivative when the target changes
 		heater_d = heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer] - current_temp;
 
 		// combine factors
-		int32_t pid_output_intermed = (
+		int32_t pid_output_intermed = ( // Units: counts
 			(
 				(((int32_t) heater_p) * heaters_pid[h].p_factor) +
 				(((int32_t) heaters_runtime[h].heater_i) * heaters_pid[h].i_factor) +
