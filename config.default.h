@@ -481,6 +481,14 @@ BANG_BANG_OFF
 PWM value for 'off'
 */
 // #define	BANG_BANG_OFF	45
+/** \def PID_CONDITIONAL_INTEGRATION
+  PID_CONDITIONAL_INTEGRATION
+	Controls 'integral windup' by preventing the integral term from accumulating error if the heater output is saturated high/low by
+        the other terms in the PID calculation.  This is in addition to M133/I_LIMIT mechanism, and can help prevent overshoot in cases of
+        large setpoint changes which may overfill the integral term.
+	Costs 50 bytes.
+*/
+//#define PID_CONDITIONAL_INTEGRATION
 
 /**
 	move buffer size, in number of moves

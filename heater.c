@@ -321,22 +321,26 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 
 		// combine factors
 		int32_t pid_output_intermed = ( // Units: counts
-			(
-				(((int32_t) heater_p) * heaters_pid[h].p_factor) +
-				(((int32_t) heaters_runtime[h].heater_i) * heaters_pid[h].i_factor) +
-				(((int32_t) heater_d) * heaters_pid[h].d_factor)
-			) / PID_SCALE
-		);
+									   (
+										(((int32_t) heater_p) * heaters_pid[h].p_factor) +
+										(((int32_t) heaters_runtime[h].heater_i) * heaters_pid[h].i_factor) +
+										(((int32_t) heater_d) * heaters_pid[h].d_factor)
+										) / PID_SCALE
+									   );
 
     // rebase and limit factors
     if (pid_output_intermed > 255) {
+      #ifdef PID_CONDITIONAL_INTEGRATION
       if (t_error > 0)
         heaters_runtime[h].heater_i -= t_error; // un-integrate
+      #endif
       pid_output = 255;
     }
     else if (pid_output_intermed < 0) {
+      #ifdef PID_CONDITIONAL_INTEGRATION
       if (t_error < 0)
         heaters_runtime[h].heater_i -= t_error; // un-integrate
+      #endif
       pid_output = 0;
     }
 		else
