@@ -324,7 +324,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
 
     // Show the proposed crossing speed - this might get adjusted below.
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("Initial crossing speed: %lu\n"), crossF);
+      sersendf_P(PSTR("Initial crossing speed: %lu\n"), current->crossF);
 
   // Make sure we have 2 moves and the previous move is not already active
   if (prev->live == 0) {
