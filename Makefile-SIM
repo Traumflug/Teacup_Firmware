@@ -46,7 +46,7 @@ SOURCES := $(filter-out $(subst _sim.c,.c,$(SIM_SOURCES)),$(SOURCES)) $(SIM_SOUR
 
 CFLAGS += -g -Wall -Wstrict-prototypes -Wno-format -Os $(DEFS) -std=gnu99
 CFLAGS += -funsigned-char -funsigned-bitfields -fshort-enums -I.. -I.
-CFLAGS += -DSIMULATOR
+CFLAGS += -DSIMULATOR -Wno-format -Wno-format-security
 
 # Satisfy all current config chip targets
 CFLAGS += -D__AVR_ATmega644__ -D__AVR_ATmega644A__ -D__AVR_ATmega644P__
