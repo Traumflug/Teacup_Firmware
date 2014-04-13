@@ -247,7 +247,7 @@ void temp_sensor_tick() {
 				#ifdef	TEMP_PT100
 				case TT_PT100:
 					#warning TODO: PT100 code
-					break
+					break;
 				#endif	/* TEMP_PT100 */
 
 				#ifdef	TEMP_INTERCOM
