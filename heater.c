@@ -46,7 +46,7 @@ static const heater_definition_t heaters[NUM_HEATERS] =
 
 	The three factors kP, kI, kD are chosen to give the desired behaviour given the dynamics of the system.
 
-	See http://www.eetimes.com/design/embedded/4211211/PID-without-a-PhD for the full story
+	See http://www.embedded.com/design/prototyping-and-development/4211211/PID-without-a-PhD for the full story
 */
 struct {
 	int32_t						p_factor; ///< scaled P factor: mibicounts/qc
