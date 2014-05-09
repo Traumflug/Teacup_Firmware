@@ -303,7 +303,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (dda->c != dda->end_c) {
 			uint32_t stF = startpoint.F / 4;
 			uint32_t enF = target->F / 4;
-			// now some constant acceleration stuff, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
+			// now some constant acceleration stuff, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
 			uint32_t ssq = (stF * stF);
 			uint32_t esq = (enF * enF);
 			int32_t dsq = (int32_t) (esq - ssq) / 4;
@@ -584,7 +584,7 @@ void dda_step(DDA *dda) {
 	#endif
 
 	#ifdef ACCELERATION_REPRAP
-		// linear acceleration magic, courtesy of http://www.embedded.com/columns/technicalinsights/56800129?printable=true
+		// linear acceleration magic, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
 		if (dda->accel) {
 			if ((dda->c > dda->end_c) && (dda->n > 0)) {
 				uint32_t new_c = dda->c - (dda->c * 2) / dda->n;
@@ -817,7 +817,7 @@ void dda_clock() {
 
   #ifdef ACCELERATION_RAMPING
     // For maths about stepper speed profiles, see
-    // http://www.embedded.com/columns/technicalinsights/56800129?printable=true
+    // http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
     // and http://www.atmel.com/images/doc8017.pdf (Atmel app note AVR446)
     ATOMIC_START
       move_step_no = move_state.step_no;
