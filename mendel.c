@@ -190,6 +190,11 @@ void io_init(void) {
 		WRITE(RX_ENABLE_PIN,0);
 		disable_transmit();
 	#endif
+
+  #ifdef DEBUG_LED_PIN 
+    WRITE(DEBUG_LED_PIN, 0);
+    SET_OUTPUT(DEBUG_LED_PIN);
+  #endif
 }
 
 /// Startup code, run when we come out of reset
