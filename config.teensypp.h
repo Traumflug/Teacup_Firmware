@@ -67,18 +67,19 @@ T5=5mm, T2.5=2.5mm, MXL=0.08=2.032mm XL=1/5"=5.08mm
 
 T2.5mm belt w small, 10 (of 10-15 tooth pulley:
 MXL 2.032 mm/tooth, 29
+GT2 2.000 mm/tooth, 20 teeth
           (steps/rev) / (tooth/rev) / (mm/tooth)  * (mm/m)
- X       200*4      / 29          / 2.032         * 1000  = 13575.89
- Y       200*4      / 29          / 2.032         * 1000  = 13575.89
- Z       200*2       / 1           / 1           * 1000  = 400000  # half-step for noise
+ X       200*4      / 20          / 2.0         * 1000  = 20000
+ Y       200*4      / 20          / 2.0         * 1000  = 20000
+ Z       200*2       / 1          / 1           * 1000  = 400000  # half-step for noise
  Extrude through a Wades' 10:43 with a M8 hobbed bolt:
          steps/revM  * revM/revO    / (dia * circ/rev) *  mm/m
  E       200*1*4     * 43/10        / (8   *  3.14159) *  1000 = 136873.4
          mm/m        / (mm/rev ext)   (rev mot/rev ext)  step/revmot
  E       1000        / (8 * 3.14159)  * 43/10           * 200 * 4 = 136873.4
 */
-#define STEPS_PER_M_X                   13576
-#define STEPS_PER_M_Y              13576
+#define STEPS_PER_M_X                   20000
+#define STEPS_PER_M_Y                   20000
 #define STEPS_PER_M_Z                   400000
 
 /// http://blog.arcol.hu/?p=157 may help with this one
@@ -333,7 +334,7 @@ DaveX plan for Teensylu/printrboard-type pinouts (ref teensylu & sprinter) for a
 #define E_INVERT_DIR
 //#define  E_INVERT_ENABLE
 
-//#define PS_ON_PIN             DIO0
+#define PS_ON_PIN             DIO27
 //#define PS_MOSFET_PIN         xxxx
 #define STEPPER_ENABLE_PIN    DIO26
 #define STEPPER_INVERT_ENABLE
