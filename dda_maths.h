@@ -56,7 +56,7 @@ uint32_t acc_ramp_len(uint32_t feedrate, uint32_t steps_per_m);
 // For X axis only, should become obsolete:
 #define ACCELERATE_RAMP_LEN(speed) (((speed)*(speed)) / (uint32_t)((7200000.0f * ACCELERATION) / (float)STEPS_PER_M_X))
 
-// Initialization constant for the ramping algorithm.
+// Initialization constant for the ramping algorithm. Timer cycles for first step interval.
 #define C0 (((uint32_t)((double)F_CPU / sqrt((double)(STEPS_PER_M_X * ACCELERATION / 2000.)))) << 8)
 
 #endif	/* _DDA_MATHS_H */
