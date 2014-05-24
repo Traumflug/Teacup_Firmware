@@ -102,9 +102,6 @@
 */
 // #define	SLOW_HOMING
 
-/// this is how many steps to suck back the filament by when we stop. set to zero to disable
-#define	E_STARTSTOP_STEPS			289
-
 /**
 	Soft axis limits, in mm.
 	Define them to your machine's size relative to what your host considers to be the origin.

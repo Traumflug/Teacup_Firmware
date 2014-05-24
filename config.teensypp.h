@@ -110,9 +110,6 @@ GT2 2.000 mm/tooth, 20 teeth
 */
 // #define SLOW_HOMING
 
-/// this is how many steps to suck back the filament by when we stop. set to zero to disable
-#define E_STARTSTOP_STEPS       20
-
 /**
   Soft axis limits, in mm.
   Define them to your machine's size relative to what your host considers to be the origin.

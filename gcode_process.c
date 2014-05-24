@@ -34,20 +34,6 @@ uint8_t tool;
 uint8_t next_tool;
 
 
-/*
-	private functions
-
-	this is where we construct a move without a gcode command, useful for gcodes which require multiple moves eg; homing
-*/
-
-#if E_STARTSTOP_STEPS > 0
-/// move E by a certain amount at a certain speed
-static void SpecialMoveE(int32_t e, uint32_t f) {
-	TARGET t = { 0L, 0L, 0L, e, f, 1 };
-	enqueue(&t);
-}
-#endif /* E_STARTSTOP_STEPS > 0 */
-
 /************************************************************************//**
 
   \brief Processes command stored in global \ref next_target.
@@ -424,18 +410,8 @@ void process_gcode_command() {
 				}
 				#ifdef DC_EXTRUDER
 					heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
-				#elif E_STARTSTOP_STEPS > 0
-					do {
-						// backup feedrate, move E very quickly then restore feedrate
-						backup_f = startpoint.F;
-						startpoint.F = MAXIMUM_FEEDRATE_E;
-						SpecialMoveE(E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
-						startpoint.F = backup_f;
-					} while (0);
 				#endif
 				break;
-
-			// M102- extruder reverse
 
 			// M5/M103- extruder off
 			case 5:
@@ -445,14 +421,6 @@ void process_gcode_command() {
 				//? Undocumented.
 				#ifdef DC_EXTRUDER
 					heater_set(DC_EXTRUDER, 0);
-				#elif E_STARTSTOP_STEPS > 0
-					do {
-						// backup feedrate, move E very quickly then restore feedrate
-						backup_f = startpoint.F;
-						startpoint.F = MAXIMUM_FEEDRATE_E;
-						SpecialMoveE(-E_STARTSTOP_STEPS, MAXIMUM_FEEDRATE_E);
-						startpoint.F = backup_f;
-					} while (0);
 				#endif
 				break;
 
