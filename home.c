@@ -4,10 +4,47 @@
 	\brief Homing routines
 */
 
+#include <math.h>
 #include	"dda.h"
 #include	"dda_queue.h"
 #include	"pinio.h"
 #include	"gcode_parse.h"
+
+// Check configuration.
+#if defined X_MIN_PIN || defined X_MAX_PIN
+  #ifndef SEARCH_FEEDRATE_X
+    #error SEARCH_FEEDRATE_X undefined. It should be defined in config.h.
+  #endif
+  #ifndef ENDSTOP_CLEARANCE_X
+    #error ENDSTOP_CLEARANCE_X undefined. It should be defined in config.h.
+  #endif
+#endif
+#if defined Y_MIN_PIN || defined Y_MAX_PIN
+  #ifndef SEARCH_FEEDRATE_Y
+    #error SEARCH_FEEDRATE_Y undefined. It should be defined in config.h.
+  #endif
+  #ifndef ENDSTOP_CLEARANCE_Y
+    #error ENDSTOP_CLEARANCE_Y undefined. It should be defined in config.h.
+  #endif
+#endif
+#if defined Z_MIN_PIN || defined Z_MAX_PIN
+  #ifndef SEARCH_FEEDRATE_Z
+    #error SEARCH_FEEDRATE_Z undefined. It should be defined in config.h.
+  #endif
+  #ifndef ENDSTOP_CLEARANCE_Z
+    #error ENDSTOP_CLEARANCE_Z undefined. It should be defined in config.h.
+  #endif
+#endif
+
+// Calculate feedrates according to clearance and deceleration.
+// For a description, see #define ENDSTOP_CLEARANCE_{XYZ} in config.h.
+//   s = 1/2 * a * t^2; t = v / a  <==> v = sqrt(2 * a * s))
+//   units: / 1000 for um -> mm; * 60 for mm/s -> mm/min
+#ifdef ENDSTOP_CLEARANCE_X
+  #define SEARCH_FAST_X (uint32_t)((double)60. * \
+            sqrt((double)2 * ACCELERATION * ENDSTOP_CLEARANCE_X / 1000.))
+#endif
+
 
 /// home all 3 axes
 void home() {
@@ -36,21 +73,18 @@ void home_x_negative() {
 		TARGET t = startpoint;
 
 		t.X = -1000000;
-		#ifdef SLOW_HOMING
-			// hit home soft
-			t.F = SEARCH_FEEDRATE_X;
-		#else
-			// hit home hard
-			t.F = MAXIMUM_FEEDRATE_X;
-		#endif
+    if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) // Preprocessor can't check this :-/
+      t.F = SEARCH_FAST_X;
+    else
+      t.F = SEARCH_FEEDRATE_X;
 		enqueue_home(&t, 0x1, 1);
 
-		#ifndef SLOW_HOMING
+    if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
 			// back off slowly
 			t.X = +1000000;
 			t.F = SEARCH_FEEDRATE_X;
 			enqueue_home(&t, 0x1, 0);
-		#endif
+    }
 
 		// set X home
 		queue_wait(); // we have to wait here, see G92
