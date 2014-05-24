@@ -660,7 +660,7 @@ void dda_step(DDA *dda) {
   if ((move_state.x_steps == 0 && move_state.y_steps == 0 &&
        move_state.z_steps == 0 && move_state.e_steps == 0)
     #ifdef ACCELERATION_RAMPING
-      || (move_state.endstop_stop && dda->n == 0)
+      || (move_state.endstop_stop && dda->n <= 0)
     #endif
       ) {
 		dda->live = 0;
@@ -675,10 +675,12 @@ void dda_step(DDA *dda) {
 		#endif
 		// z stepper is only enabled while moving
 		z_disable();
+
+    // No need to restart timer here.
+    // After having finished, dda_start() will do it.
 	}
   else {
 		psu_timeout = 0;
-    // After having finished, dda_start() will set the timer.
     setTimer(dda->c >> 8);
   }
 
