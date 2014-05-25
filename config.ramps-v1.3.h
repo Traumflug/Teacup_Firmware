@@ -84,17 +84,37 @@
 #define	MAXIMUM_FEEDRATE_Z		100
 #define	MAXIMUM_FEEDRATE_E		600
 
-/// used when searching endstops and as default feedrate
+/// Used when doing precision endstop search and as default feedrate.
 #define	SEARCH_FEEDRATE_X			50
 #define	SEARCH_FEEDRATE_Y			50
 #define	SEARCH_FEEDRATE_Z			1
 // no SEARCH_FEEDRATE_E, as E can't be searched
 
-/** \def SLOW_HOMING
-	wether to search the home point slowly
-		With some endstop configurations, like when probing for the surface of a PCB, you can't deal with overrunning the endstop. In such a case, uncomment this definition.
+/** \def ENDSTOP_CLEARANCE_X
+    \def ENDSTOP_CLEARANCE_Y
+    \def ENDSTOP_CLEARANCE_Z
+
+  When hitting an endstop, Teacup properly decelerates instead of doing an
+  aprupt stop to save your mechanics. Ineviteably, this means it overshoots
+  the endstop trigger point by some distance.
+
+  To deal with this, Teacup adapts homing movement speeds to what your
+  endstops can deal with. The higher the allowed acceleration ( = deceleration,
+  see #define ACCELERATION) and the more clearance the endstop comes with,
+  the faster Teacup will do homing movements.
+
+  Set here how many micrometers (mm * 1000) your endstop allows the carriage
+  to overshoot the trigger point. Typically 1000 or 2000 for mechanical
+  endstops, more for optical ones. You can set it to zero, in which case
+  SEARCH_FEEDRATE_{XYZ} is used, but expect very slow homing movements.
+
+  Units: micrometers
+  Sane values: 0 to 20000   (0 to 20 mm)
+  Valid range: 0 to 1000000
 */
-// #define	SLOW_HOMING
+#define ENDSTOP_CLEARANCE_X 1000
+#define ENDSTOP_CLEARANCE_Y 1000
+#define ENDSTOP_CLEARANCE_Z 100
 
 /**
 	Soft axis limits, in mm.
