@@ -44,6 +44,14 @@
   #define SEARCH_FAST_X (uint32_t)((double)60. * \
             sqrt((double)2 * ACCELERATION * ENDSTOP_CLEARANCE_X / 1000.))
 #endif
+#ifdef ENDSTOP_CLEARANCE_Y
+  #define SEARCH_FAST_Y (uint32_t)((double)60. * \
+            sqrt((double)2 * ACCELERATION * ENDSTOP_CLEARANCE_Y / 1000.))
+#endif
+#ifdef ENDSTOP_CLEARANCE_Z
+  #define SEARCH_FAST_Z (uint32_t)((double)60. * \
+            sqrt((double)2 * ACCELERATION * ENDSTOP_CLEARANCE_Z / 1000.))
+#endif
 
 
 /// home all 3 axes
@@ -106,21 +114,17 @@ void home_x_positive() {
 		TARGET t = startpoint;
 
 		t.X = +1000000;
-		#ifdef SLOW_HOMING
-			// hit home soft
-			t.F = SEARCH_FEEDRATE_X;
-		#else
-			// hit home hard
-			t.F = MAXIMUM_FEEDRATE_X;
-		#endif
+    if (SEARCH_FAST_X > SEARCH_FEEDRATE_X)
+      t.F = SEARCH_FAST_X;
+    else
+      t.F = SEARCH_FEEDRATE_X;
 		enqueue_home(&t, 0x1, 1);
 
-		#ifndef SLOW_HOMING
-			// back off slowly
+    if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
 			t.X = -1000000;
 			t.F = SEARCH_FEEDRATE_X;
 			enqueue_home(&t, 0x1, 0);
-		#endif
+    }
 
 		// set X home
 		queue_wait();
@@ -140,21 +144,17 @@ void home_y_negative() {
 		TARGET t = startpoint;
 
 		t.Y = -1000000;
-		#ifdef SLOW_HOMING
-			// hit home soft
-			t.F = SEARCH_FEEDRATE_Y;
-		#else
-			// hit home hard
-			t.F = MAXIMUM_FEEDRATE_Y;
-		#endif
+    if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y)
+      t.F = SEARCH_FAST_Y;
+    else
+      t.F = SEARCH_FEEDRATE_Y;
 		enqueue_home(&t, 0x2, 1);
 
-		#ifndef SLOW_HOMING
-			// back off slowly
+    if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
 			t.Y = +1000000;
 			t.F = SEARCH_FEEDRATE_Y;
 			enqueue_home(&t, 0x2, 0);
-		#endif
+    }
 
 		// set Y home
 		queue_wait();
@@ -176,21 +176,17 @@ void home_y_positive() {
 		TARGET t = startpoint;
 
 		t.Y = +1000000;
-		#ifdef SLOW_HOMING
-			// hit home soft
-			t.F = SEARCH_FEEDRATE_Y;
-		#else
-			// hit home hard
-			t.F = MAXIMUM_FEEDRATE_Y;
-		#endif
+    if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y)
+      t.F = SEARCH_FAST_Y;
+    else
+      t.F = SEARCH_FEEDRATE_Y;
 		enqueue_home(&t, 0x2, 1);
 
-		#ifndef SLOW_HOMING
-			// back off slowly
+    if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
 			t.Y = -1000000;
 			t.F = SEARCH_FEEDRATE_Y;
 			enqueue_home(&t, 0x2, 0);
-		#endif
+    }
 
 		// set Y home
 		queue_wait();
@@ -210,21 +206,17 @@ void home_z_negative() {
 		TARGET t = startpoint;
 
 		t.Z = -1000000;
-		#ifdef SLOW_HOMING
-			// hit home soft
-			t.F = SEARCH_FEEDRATE_Z;
-		#else
-			// hit home hard
-			t.F = MAXIMUM_FEEDRATE_Z;
-		#endif
+    if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z)
+      t.F = SEARCH_FAST_Z;
+    else
+      t.F = SEARCH_FEEDRATE_Z;
 		enqueue_home(&t, 0x4, 1);
 
-		#ifndef SLOW_HOMING
-			// back off slowly
+    if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z) {
 			t.Z = +1000000;
 			t.F = SEARCH_FEEDRATE_Z;
 			enqueue_home(&t, 0x4, 0);
-		#endif
+    }
 
 		// set Z home
 		queue_wait();
@@ -247,21 +239,17 @@ void home_z_positive() {
 		TARGET t = startpoint;
 
 		t.Z = +1000000;
-		#ifdef SLOW_HOMING
-			// hit home soft
-			t.F = SEARCH_FEEDRATE_Z;
-		#else
-			// hit home hard
-			t.F = MAXIMUM_FEEDRATE_Z;
-		#endif
+    if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z)
+      t.F = SEARCH_FAST_Z;
+    else
+      t.F = SEARCH_FEEDRATE_Z;
 		enqueue_home(&t, 0x4, 1);
 
-		#ifndef SLOW_HOMING
-			// back off slowly
+    if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z) {
 			t.Z = -1000000;
 			t.F = SEARCH_FEEDRATE_Z;
 			enqueue_home(&t, 0x4, 0);
-		#endif
+    }
 
 		// set Z home
 		queue_wait();
