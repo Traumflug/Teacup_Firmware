@@ -56,23 +56,15 @@
 
 /// home all 3 axes
 void home() {
-	#if defined	X_MIN_PIN
-		home_x_negative();
-	#elif defined X_MAX_PIN
-		home_x_positive();
-	#endif
 
-	#if defined	Y_MIN_PIN
-		home_y_negative();
-	#elif defined Y_MAX_PIN
-		home_y_positive();
-	#endif
+  home_x_negative();
+  home_x_positive();
 
-	#if defined Z_MIN_PIN
-		home_z_negative();
-	#elif defined	Z_MAX_PIN
-		home_z_positive();
-	#endif
+  home_y_negative();
+  home_y_positive();
+
+  home_z_negative();
+  home_z_positive();
 }
 
 /// find X MIN endstop
