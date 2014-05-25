@@ -295,12 +295,18 @@ void process_gcode_command() {
 				//?
 				//? Find the minimum limit of the specified axes by searching for the limit switch.
 				//?
-				if (next_target.seen_X)
-					home_x_negative();
-				if (next_target.seen_Y)
-					home_y_negative();
-				if (next_target.seen_Z)
-					home_z_negative();
+        #if defined X_MIN_PIN
+          if (next_target.seen_X)
+            home_x_negative();
+        #endif
+        #if defined Y_MIN_PIN
+          if (next_target.seen_Y)
+            home_y_negative();
+        #endif
+        #if defined Z_MIN_PIN
+          if (next_target.seen_Z)
+            home_z_negative();
+        #endif
 				break;
 
 			case 162:
@@ -308,12 +314,18 @@ void process_gcode_command() {
 				//?
 				//? Find the maximum limit of the specified axes by searching for the limit switch.
 				//?
-				if (next_target.seen_X)
-					home_x_positive();
-				if (next_target.seen_Y)
-					home_y_positive();
-				if (next_target.seen_Z)
-					home_z_positive();
+        #if defined X_MAX_PIN
+          if (next_target.seen_X)
+            home_x_positive();
+        #endif
+        #if defined Y_MAX_PIN
+          if (next_target.seen_Y)
+            home_y_positive();
+        #endif
+        #if defined Z_MAX_PIN
+          if (next_target.seen_Z)
+            home_z_positive();
+        #endif
 				break;
 
 				// unknown gcode: spit an error
