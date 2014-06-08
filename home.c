@@ -123,10 +123,6 @@ void home_x_positive() {
 		// set position to MAX
     startpoint.axis[X] = next_target.target.axis[X] = (int32_t)(X_MAX * 1000.);
 		dda_new_startpoint();
-		// go to zero
-    t.axis[X] = 0;
-		t.F = MAXIMUM_FEEDRATE_X;
-		enqueue(&t);
 	#endif
 }
 
@@ -185,10 +181,6 @@ void home_y_positive() {
 		// set position to MAX
     startpoint.axis[Y] = next_target.target.axis[Y] = (int32_t)(Y_MAX * 1000.);
 		dda_new_startpoint();
-		// go to zero
-    t.axis[Y] = 0;
-		t.F = MAXIMUM_FEEDRATE_Y;
-		enqueue(&t);
 	#endif
 }
 
@@ -248,9 +240,5 @@ void home_z_positive() {
 		// set position to MAX
     startpoint.axis[Z] = next_target.target.axis[Z] = (int32_t)(Z_MAX * 1000.);
 		dda_new_startpoint();
-		// go to zero
-    t.axis[Z] = 0;
-		t.F = MAXIMUM_FEEDRATE_Z;
-		enqueue(&t);
 	#endif
 }
