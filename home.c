@@ -210,7 +210,6 @@ void home_z_negative() {
       startpoint.axis[Z] = next_target.target.axis[Z] = 0;
 		#endif
 		dda_new_startpoint();
-		z_disable();
 	#endif
 }
 
