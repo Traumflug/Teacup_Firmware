@@ -65,10 +65,10 @@ void dda_init(void) {
 	This is needed for example after homing or a G92. The new location must be in startpoint already.
 */
 void dda_new_startpoint(void) {
-  startpoint_steps.axis[X] = um_to_steps_x(startpoint.axis[X]);
-  startpoint_steps.axis[Y] = um_to_steps_y(startpoint.axis[Y]);
-  startpoint_steps.axis[Z] = um_to_steps_z(startpoint.axis[Z]);
-  startpoint_steps.axis[E] = um_to_steps_e(startpoint.axis[E]);
+  enum axis_e i;
+
+  for (i = X; i < AXIS_COUNT; i++)
+    startpoint_steps.axis[i] = um_to_steps(startpoint.axis[i], i);
 }
 
 /*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
