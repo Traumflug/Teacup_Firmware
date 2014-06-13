@@ -150,7 +150,7 @@ void gcode_parse_char(uint8_t c) {
 					else
             next_target.target.axis[E] = decfloat_to_int(&read_digit, 1000);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_uint32(next_target.target.axis[E]);
+            serwrite_int32(next_target.target.axis[E]);
 					break;
 				case 'F':
 					// just use raw integer, we need move distance and n_steps to convert it to a useful value, so wait until we have those to convert it
