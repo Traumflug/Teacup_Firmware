@@ -342,6 +342,8 @@ to use the other 6 PWMs instead.
 #define STEPPER_ENABLE_PIN    DIO19
 #define STEPPER_INVERT_ENABLE
 
+//#define DEBUG_LED_PIN         DIO0
+
 //#define	SD_CARD_DETECT		 		DIO2
 //#define	SD_WRITE_PROTECT			DIO3
 
