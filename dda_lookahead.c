@@ -136,11 +136,11 @@ int dda_jerk_size_2d(int32_t x1, int32_t y1, uint32_t F1, int32_t x2, int32_t y2
  * we shut down the entire machine.
  * @param msg The reason why the machine did an emergency stop
  */
-void dda_emergency_shutdown(PGM_P msg) {
+void dda_emergency_shutdown(PGM_P msg_P) {
   // Todo: is it smart to enable all interrupts again? e.g. can we create concurrent executions?
   sei();  // Enable interrupts to print the message
   serial_writestr_P(PSTR("error: emergency stop:"));
-  if(msg!=NULL) serial_writestr_P(msg);
+  if (msg_P != NULL) serial_writestr_P(msg_P);
   serial_writestr_P(PSTR("\r\n"));
   delay_ms(20);   // Delay so the buffer can be flushed - otherwise the message is never sent
   timer_stop();

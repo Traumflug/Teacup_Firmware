@@ -103,13 +103,13 @@
   #define GET_ARG(T) (va_arg(args, T))
 #endif
 
-void sersendf_P(PGM_P format, ...) {
+void sersendf_P(PGM_P format_P, ...) {
 	va_list args;
-	va_start(args, format);
+	va_start(args, format_P);
 
 	uint16_t i = 0;
 	uint8_t c = 1, j = 0;
-	while ((c = pgm_read_byte(&format[i++]))) {
+	while ((c = pgm_read_byte(&format_P[i++]))) {
 		if (j) {
 			switch(c) {
 				case 's':
