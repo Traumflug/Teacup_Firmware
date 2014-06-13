@@ -25,7 +25,7 @@
 #define	OC2A				DIO15
 #define	OC2B				DIO14
 
-#define	DEBUG_LED		DIO0
+
 /*
 pins
 */

@@ -295,6 +295,8 @@
 //#define	SD_CARD_DETECT				DIO2
 //#define	SD_WRITE_PROTECT			DIO3
 
+//#define DEBUG_LED_PIN         DIO0
+
 
 
 /***************************************************************************\

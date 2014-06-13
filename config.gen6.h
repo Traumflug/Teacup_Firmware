@@ -292,6 +292,8 @@
 //#define	STEPPER_ENABLE_PIN		xxxx
 //#define	STEPPER_INVERT_ENABLE
 
+//#define DEBUG_LED_PIN         DIO0
+
 
 
 /***************************************************************************\

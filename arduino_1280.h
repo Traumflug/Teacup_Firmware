@@ -29,8 +29,6 @@
 #define	OC5B				DIO45
 #define	OC5C				DIO44
 
-// change for your board
-#define	DEBUG_LED		DIO21
 
 /*
 pins
