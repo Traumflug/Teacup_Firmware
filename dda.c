@@ -52,18 +52,18 @@ TARGET BSS current_position;
 /// \brief numbers for tracking the current state of movement
 MOVE_STATE BSS move_state;
 
-/// \var steps_per_m
+/// \var steps_per_m_P
 /// \brief motor steps required to advance one meter on each axis
-static const axes_uint32_t PROGMEM steps_per_m = {
+static const axes_uint32_t PROGMEM steps_per_m_P = {
   STEPS_PER_M_X,
   STEPS_PER_M_Y,
   STEPS_PER_M_Z,
   STEPS_PER_M_E
 };
 
-/// \var maximum_feedrate
+/// \var maximum_feedrate_P
 /// \brief maximum allowed feedrate on each axis
-static const axes_uint32_t PROGMEM maximum_feedrate = {
+static const axes_uint32_t PROGMEM maximum_feedrate_P = {
   MAXIMUM_FEEDRATE_X,
   MAXIMUM_FEEDRATE_Y,
   MAXIMUM_FEEDRATE_Z,
@@ -202,7 +202,7 @@ void dda_create(DDA *dda, TARGET *target) {
     if (i == X || dda->delta[i] > dda->total_steps) {
       dda->total_steps = dda->delta[i];
       dda->fast_um = delta_um[i];
-      dda->fast_spm = pgm_read_dword(&steps_per_m[i]);
+      dda->fast_spm = pgm_read_dword(&steps_per_m_P[i]);
     }
   }
 
@@ -243,7 +243,7 @@ void dda_create(DDA *dda, TARGET *target) {
       move_duration = distance * ((60 * F_CPU) / (target->F * 1000UL));
       for (i = X; i < AXIS_COUNT; i++) {
         md_candidate = dda->delta[i] * ((60 * F_CPU) /
-                       (pgm_read_dword(&maximum_feedrate[i]) * 1000UL));
+                       (pgm_read_dword(&maximum_feedrate_P[i]) * 1000UL));
         if (md_candidate > move_duration)
           move_duration = md_candidate;
       }
@@ -276,7 +276,7 @@ void dda_create(DDA *dda, TARGET *target) {
     for (i = X; i < AXIS_COUNT; i++) {
       c_limit_calc = ((delta_um[i] * 2400L) /
                       dda->total_steps * (F_CPU / 40000) /
-                      pgm_read_dword(&maximum_feedrate[i])) << 8;
+                      pgm_read_dword(&maximum_feedrate_P[i])) << 8;
       if (c_limit_calc > c_limit)
         c_limit = c_limit_calc;
     }
