@@ -173,7 +173,7 @@ void gcode_parse_char(uint8_t c) {
 					else
 						next_target.S = decfloat_to_int(&read_digit, 1);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-						serwrite_uint16(next_target.S);
+						serwrite_int32(next_target.S);
 					break;
 				case 'P':
 					next_target.P = decfloat_to_int(&read_digit, 1);
