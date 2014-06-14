@@ -266,12 +266,12 @@ uint8_t heaters_all_zero() {
 	\param index heater to change factor for
 	\param p scaled P factor
 */
-void pid_set_p(heater_t index, int32_t p) {
+void pid_set_p(heater_t index, int32_t p) { // p in PID_SCALE units
 	#ifndef	BANG_BANG
 		if (index >= NUM_HEATERS)
 			return;
 
-		heaters_pid[index].p_factor = p;
+                heaters_pid[index].p_factor = p*PID_SCALE_P/PID_SCALE;
 	#endif /* BANG_BANG */
 }
 
@@ -279,12 +279,12 @@ void pid_set_p(heater_t index, int32_t p) {
 	\param index heater to change I factor for
 	\param i scaled I factor
 */
-void pid_set_i(heater_t index, int32_t i) {
+void pid_set_i(heater_t index, int32_t i) { // i in PID_SCALE units
 	#ifndef	BANG_BANG
 		if (index >= NUM_HEATERS)
 			return;
 
-		heaters_pid[index].i_factor = i;
+                heaters_pid[index].i_factor = i*PID_SCALE_I/PID_SCALE;
 	#endif /* BANG_BANG */
 }
 
@@ -292,12 +292,12 @@ void pid_set_i(heater_t index, int32_t i) {
 	\param index heater to change D factor for
 	\param d scaled D factor
 */
-void pid_set_d(heater_t index, int32_t d) {
+void pid_set_d(heater_t index, int32_t d) { // d in PID_SCALE units
 	#ifndef	BANG_BANG
 		if (index >= NUM_HEATERS)
 			return;
 
-		heaters_pid[index].d_factor = d;
+                heaters_pid[index].d_factor = d*PID_SCALE_D/PID_SCALE;
 	#endif /* BANG_BANG */
 }
 
@@ -305,12 +305,12 @@ void pid_set_d(heater_t index, int32_t d) {
 	\param index heater to set I limit for
 	\param i_limit scaled I limit
 */
-void pid_set_i_limit(heater_t index, int32_t i_limit) {
+void pid_set_i_limit(heater_t index, int32_t i_limit) { // i_limit in integer units
 	#ifndef	BANG_BANG
 		if (index >= NUM_HEATERS)
 			return;
 
-		heaters_pid[index].i_limit = i_limit;
+		heaters_pid[index].i_limit = i_limit*16;
 	#endif /* BANG_BANG */
 }
 
@@ -334,6 +334,6 @@ void heater_save_settings() {
 	\param i index of heater to send info for
 */
 void heater_print(uint16_t i) {
-	sersendf_P(PSTR("P:%ld I:%ld D:%ld Ilim:%u crc:%u\n"), heaters_pid[i].p_factor, heaters_pid[i].i_factor, heaters_pid[i].d_factor, heaters_pid[i].i_limit, crc_block(&heaters_pid[i].p_factor, 14));
+	sersendf_P(PSTR("P:%lq I:%lq D:%lq Ilim:%u crc:%u\n"), heaters_pid[i].p_factor*1000/PID_SCALE_P, heaters_pid[i].i_factor*1000/PID_SCALE_I, heaters_pid[i].d_factor*1000/PID_SCALE_D, heaters_pid[i].i_limit, crc_block(&heaters_pid[i].p_factor, 14));
 }
 #endif
