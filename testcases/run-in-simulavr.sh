@@ -21,6 +21,11 @@ fi
 
 # Prepare a pin tracing file, assuming a Gen7-v1.4 configuration. See
 # http://reprap.org/wiki/SimulAVR#Putting_things_together:_an_example
+#
+#   #define X_DIR_PIN        DIO28
+#   #define X_STEP_PIN       DIO29
+#   #define Y_DIR_PIN        DIO26
+#   #define Y_STEP_PIN       DIO27
 echo "# X Dir"              > /tmp/tracein.txt
 echo "+ PORTA.A3-Out"      >> /tmp/tracein.txt
 echo "# X Step"            >> /tmp/tracein.txt
@@ -62,9 +67,11 @@ for GCODE_FILE in $*; do
 
   # We assume here queue and rx buffer are large enough to read
   # the file in one chunk. If not, raise MOVEBUFFER_SIZE in config.h.
+  set -x
   "${SIMULAVR}" -c vcd:/tmp/tracein.txt:"${VCD_FILE}" \
                 -f ../build/teacup.elf \
-                -m 60000000000  < "${GCODE_FILE}"
+                -m 60000000000 -v < "${GCODE_FILE}"
+  set +x
 
 
   # Make plottable files from VCD files.
