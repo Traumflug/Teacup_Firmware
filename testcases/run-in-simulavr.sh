@@ -164,8 +164,8 @@ EOF
     BEGIN {
       # These lines must match the ones after the sort.
       intLen = 16;
-      xStepID = "0"; xPosID = "1"; xUmID = "2"; xVelID = "3"; xMmmID = "4"
-      yStepID = "5"; yPosID = "6"; yUmID = "7"; yVelID = "8"; yMmmID = "9"
+      xStepID = "0"; xPosID = "1"; xUmID = "2"; xVelID = "3"; xMmmID = "4";
+      yStepID = "5"; yPosID = "6"; yUmID = "7"; yVelID = "8"; yMmmID = "9";
 
       xDir = yDir = 0;
       xPos = yPos = 0;
@@ -231,8 +231,8 @@ EOF
     BEGIN {
       # These lines must match the ones before the sort.
       intLen = 16;
-      xStepID = "0"; xPosID = "1"; xUmID = "2"; xVelID = "3"; xMmmID = "4"
-      yStepID = "5"; yPosID = "6"; yUmID = "7"; yVelID = "8"; yMmmID = "9"
+      xStepID = "0"; xPosID = "1"; xUmID = "2"; xVelID = "3"; xMmmID = "4";
+      yStepID = "5"; yPosID = "6"; yUmID = "7"; yVelID = "8"; yMmmID = "9";
 
       lastTime = "";
 
@@ -252,16 +252,16 @@ EOF
       print "$enddefinitions $end";
       print "#0";
       print "$dumpvars";
-      print "b0 " xStepID;
-      print "b0 " xPosID;
-      print "b0 " xUmID;
-      print "b0 " xVelID;
-      print "b0 " xMmmID;
-      print "b0 " yStepID;
-      print "b0 " yPosID;
-      print "b0 " yUmID;
-      print "b0 " yVelID;
-      print "b0 " yMmmID;
+      print "bz " xStepID;
+      print "bz " xPosID;
+      print "bz " xUmID;
+      print "bz " xVelID;
+      print "bz " xMmmID;
+      print "bz " yStepID;
+      print "bz " yPosID;
+      print "bz " yUmID;
+      print "bz " yVelID;
+      print "bz " yMmmID;
       print "$end";
     }
     {
