@@ -26,6 +26,7 @@ fi
 #   #define X_STEP_PIN       DIO29
 #   #define Y_DIR_PIN        DIO26
 #   #define Y_STEP_PIN       DIO27
+#   #define DEBUG_LED_PIN    DIO21
 echo "# X Dir"              > /tmp/tracein.txt
 echo "+ PORTA.A3-Out"      >> /tmp/tracein.txt
 echo "# X Step"            >> /tmp/tracein.txt
@@ -34,7 +35,9 @@ echo "# Y Dir"             >> /tmp/tracein.txt
 echo "+ PORTA.A5-Out"      >> /tmp/tracein.txt
 echo "# Y Step"            >> /tmp/tracein.txt
 echo "+ PORTA.A4-Out"      >> /tmp/tracein.txt
-echo "Assuming pin configuration for a Gen7-v1.4."
+echo "# DEBUG LED"         >> /tmp/tracein.txt
+echo "+ PORTC.C5-Out"      >> /tmp/tracein.txt
+echo "Assuming pin configuration for a Gen7-v1.4 + debug LED on DIO21."
 
 STEPS_PER_M_X=$(grep STEPS_PER_M_X ../config.h | \
                 grep -v ^// | awk '{ print $3; }')
@@ -119,6 +122,7 @@ for GCODE_FILE in $*; do
           lastyTime = time;
         }
       }
+      # No usage for the LED pin signal ($2 == "4") so far.
     }
   ' < "${VCD_FILE}" > "${DATA_FILE}"
 
@@ -166,10 +170,12 @@ EOF
       intLen = 16;
       xStepID = "0"; xPosID = "1"; xUmID = "2"; xVelID = "3"; xMmmID = "4";
       yStepID = "5"; yPosID = "6"; yUmID = "7"; yVelID = "8"; yMmmID = "9";
+      ledID = "10"; ledTimeID = "11";
 
       xDir = yDir = 0;
       xPos = yPos = 0;
       lastxTime = lastyTime = 0;
+      ledOnTime = 0;
     }
     /^#/ {
       time = substr($0, 2);
@@ -224,6 +230,17 @@ EOF
           print time " b" bit " " yStepID;
         }
       }
+      if ($2 == "4") { # LED signal
+        if (bit == 1) { # raising flange
+          print time " b" bit " " ledID;
+          ledOnTime = time;
+        } else { # falling flange
+          print time " b" bit " " ledID;
+          if (ledOnTime != 0) { # ignore pin initialisation
+            print ledOnTime " b" print_binary(time - ledOnTime, 32) " " ledTimeID;
+          }
+        }
+      }
     }
   ' < "${VCD_FILE}" | \
   sort -g | \
@@ -233,6 +250,7 @@ EOF
       intLen = 16;
       xStepID = "0"; xPosID = "1"; xUmID = "2"; xVelID = "3"; xMmmID = "4";
       yStepID = "5"; yPosID = "6"; yUmID = "7"; yVelID = "8"; yMmmID = "9";
+      ledID = "10"; ledTimeID = "11";
 
       lastTime = "";
 
@@ -249,6 +267,10 @@ EOF
       print "$var integer " intLen " " yVelID " Y_steps/s $end";
       print "$var integer " intLen " " yMmmID " Y_mm/min $end";
       print "$upscope $end";
+      print "$scope module Timings $end";
+      print "$var wire 1 " ledID " Debug_LED $end";
+      print "$var integer " 32 " " ledTimeID " LED_on_time $end";
+      print "$upscope $end";
       print "$enddefinitions $end";
       print "#0";
       print "$dumpvars";
@@ -262,6 +284,8 @@ EOF
       print "bz " yUmID;
       print "bz " yVelID;
       print "bz " yMmmID;
+      print "bz " ledID;
+      print "bz " ledTimeID;
       print "$end";
     }
     {
