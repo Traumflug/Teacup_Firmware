@@ -176,6 +176,10 @@ EOF
       xPos = yPos = 0;
       lastxTime = lastyTime = 0;
       ledOnTime = 0;
+
+      ledTimeMin = ledTimeMax = 0;
+      ledTimeCount = 0;
+      ledTimeSum = 0;
     }
     /^#/ {
       time = substr($0, 2);
@@ -236,10 +240,32 @@ EOF
           ledOnTime = time;
         } else { # falling flange
           print time " b" bit " " ledID;
-          if (ledOnTime != 0) { # ignore pin initialisation
-            print ledOnTime " b" print_binary(time - ledOnTime, 32) " " ledTimeID;
+          if (ledOnTime != 0) {
+            ledTime = time - ledOnTime;
+            print ledOnTime " b" print_binary(ledTime, 32) " " ledTimeID;
+            ledTime /= 50; # Convert from nanoseconds to clock cycles.
+            if (ledTimeMin == 0 || ledTime < ledTimeMin) {
+              ledTimeMin = ledTime;
+            }
+            if (ledTime > ledTimeMax) {
+              ledTimeMax = ledTime;
+            }
+            ledTimeCount++;
+            ledTimeSum += ledTime;
           }
         }
+      }
+    }
+    END {
+      if (ledTimeCount > 0) {
+        print "Statistics (assuming a 20 MHz clock): " > "/dev/stderr";
+        print "LED on occurences: " ledTimeCount "." > "/dev/stderr";
+        print "Sum of all LED on time: " ledTimeSum " clock cycles." > "/dev/stderr";
+        print "LED on time minimum: " ledTimeMin " clock cycles." > "/dev/stderr";
+        print "LED on time maximum: " ledTimeMax " clock cycles." > "/dev/stderr";
+        print "LED on time average: " ledTimeSum / ledTimeCount " clock cycles." > "/dev/stderr";
+      } else {
+        print "Debug LED apparently unused." > "/dev/stderr";
       }
     }
   ' < "${VCD_FILE}" | \
