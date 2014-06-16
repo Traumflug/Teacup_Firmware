@@ -297,7 +297,17 @@
 //#define	STEPPER_ENABLE_PIN		xxxx
 //#define	STEPPER_INVERT_ENABLE
 
-//#define DEBUG_LED_PIN         DIO0
+/** \def DEBUG_LED_PIN
+
+  Enable flashing of a LED during motor stepping.
+
+  Disabled by default. Uncommenting this makes the binary a few bytes larger
+  and adds a few cycles to the step timing interrrupt in timer.c. Also used
+  for precision profiling (profiling works even without actually having such
+  a LED in hardware), see
+  http://reprap.org/wiki/Teacup_Firmware#Doing_precision_profiling
+*/
+// #define DEBUG_LED_PIN DIO13
 
 
 
