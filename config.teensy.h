@@ -342,10 +342,21 @@ to use the other 6 PWMs instead.
 #define STEPPER_ENABLE_PIN    DIO19
 #define STEPPER_INVERT_ENABLE
 
-//#define DEBUG_LED_PIN         DIO0
-
 //#define	SD_CARD_DETECT		 		DIO2
 //#define	SD_WRITE_PROTECT			DIO3
+
+/** \def DEBUG_LED_PIN
+
+  Enable flashing of a LED during motor stepping.
+
+  Disabled by default. Uncommenting this makes the binary a few bytes larger
+  and adds a few cycles to the step timing interrrupt in timer.c. Also used
+  for precision profiling (profiling works even without actually having such
+  a LED in hardware), see
+  http://reprap.org/wiki/Teacup_Firmware#Doing_precision_profiling
+*/
+// #define DEBUG_LED_PIN DIO22
+
 
 
 /***************************************************************************\
