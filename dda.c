@@ -471,6 +471,18 @@ void dda_start(DDA *dda) {
 	current_position.F = dda->endpoint.F;
 }
 
+// step the 'n' axis
+static void do_step(enum axis_e n) {
+  if (n == X)
+    x_step();
+  else if (n == Y)
+    y_step();
+  else if (n == Z)
+    z_step();
+  else if (n == E)
+    e_step();
+}
+
 /*! STEP
 	\param *dda the current move
 
