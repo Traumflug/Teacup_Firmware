@@ -471,18 +471,6 @@ void dda_start(DDA *dda) {
 	current_position.F = dda->endpoint.F;
 }
 
-// step the 'n' axis
-static void do_step(enum axis_e n) {
-  if (n == X)
-    x_step();
-  else if (n == Y)
-    y_step();
-  else if (n == Z)
-    z_step();
-  else if (n == E)
-    e_step();
-}
-
 /*! STEP
 	\param *dda the current move
 
@@ -495,13 +483,14 @@ static void do_step(enum axis_e n) {
 */
 void dda_step(DDA *dda) {
   enum axis_e i;
+  char to_step_flags = 0;
 
   #if ! defined ACCELERATION_TEMPORAL
     for (i = X; i < AXIS_COUNT; i++) {
       if (move_state.steps[i]) {
         move_state.counter[i] -= dda->delta[i];
         if (move_state.counter[i] < 0) {
-          do_step(i);
+          to_step_flags |= (0x01 << i);
           move_state.steps[i]--;
           move_state.counter[i] += dda->total_steps;
         }
@@ -509,11 +498,20 @@ void dda_step(DDA *dda) {
     }
   #else // ACCELERATION_TEMPORAL
     i = dda->axis_to_step;
-    do_step(i);
+    to_step_flags |= (0x01 << i);
     move_state.steps[i]--;
     move_state.time[i] += dda->step_interval[i];
     move_state.all_time = move_state.time[i];
   #endif
+
+  if (to_step_flags & (0x01 << X))
+    x_step();
+  if (to_step_flags & (0x01 << Y))
+    y_step();
+  if (to_step_flags & (0x01 << Z))
+    z_step();
+  if (to_step_flags & (0x01 << E))
+    e_step();
 
 	#if STEP_INTERRUPT_INTERRUPTIBLE && ! defined ACCELERATION_RAMPING
 		// Since we have sent steps to all the motors that will be stepping
