@@ -483,15 +483,25 @@ void dda_start(DDA *dda) {
 	current_position.F = dda->endpoint.F;
 }
 
-/*! STEP
-	\param *dda the current move
-
-	This is called from our timer interrupt every time a step needs to occur. Keep it as simple as possible!
-	We first work out which axes need to step, and generate step pulses for them
-	Then we re-enable global interrupts so serial data reception and other important things can occur while we do some math.
-	Next, we work out how long until our next step using the selected acceleration algorithm and set the timer.
-	Then we decide if this was the last step for this move, and if so mark this dda as dead so next timer interrupt we can start a new one.
-	Finally we de-assert any asserted step pins.
+/**
+  \brief Do per-step movement maintenance.
+ 
+  \param *dda the current move
+ 
+  \details Most important task here is to update the Bresenham algorithm and
+  to generate step pulses accordingly, this guarantees geometrical accuracy
+  of the movement. Other tasks, like acceleration calculations, are moved
+  into dda_clock() as much as possible.
+ 
+  This is called from our timer interrupt every time a step needs to occur.
+  Keep it as simple and fast as possible, this is most critical for the
+  achievable step frequency.
+ 
+  Note: it was tried to do this in loops instead of straight, repeating code.
+        However, this resulted in at least 16% performance loss, no matter
+        how it was done. On how to measure, see commit "testcases: Add
+        config.h". On the various tries and measurement results, see commits
+        starting with "DDA: Move axis calculations into loops, part 6".
 */
 void dda_step(DDA *dda) {
 
