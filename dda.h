@@ -106,6 +106,9 @@ typedef struct {
 			uint8_t						waitfor_temp	:1; ///< bool: wait for temperatures to reach their set values
 
 			// directions
+      // As we have muldiv() now, overflows became much less an issue and
+      // it's likely time to get rid of these flags and use int instead of
+      // uint for distance/speed calculations. --Traumflug 2014-07-04
 			uint8_t						x_direction		:1; ///< direction flag for X axis
 			uint8_t						y_direction		:1; ///< direction flag for Y axis
 			uint8_t						z_direction		:1; ///< direction flag for Z axis
