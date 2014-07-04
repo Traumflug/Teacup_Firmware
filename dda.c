@@ -72,16 +72,14 @@ static const axes_uint32_t PROGMEM maximum_feedrate_P = {
 
 /*! Find the direction of the 'n' axis
 */
-static char get_direction(DDA *dda, enum axis_e n) {
-  if (n == X)
-    return dda->x_direction;
-  if (n == Y)
-    return dda->y_direction;
-  if (n == Z)
-    return dda->z_direction;
-  if (n == E)
-    return dda->e_direction;
-  return 0;
+static int8_t get_direction(DDA *dda, enum axis_e n) {
+  if ((n == X && dda->x_direction) ||
+      (n == Y && dda->y_direction) ||
+      (n == Z && dda->z_direction) ||
+      (n == E && dda->e_direction))
+    return 1;
+  else
+    return -1;
 }
 
 /*! Inititalise DDA movement structures
@@ -879,19 +877,18 @@ void update_current_position() {
 	}
 	else if (dda->live) {
     for (i = X; i < AXIS_COUNT; i++) {
-      if (get_direction(dda, i))
-        current_position.axis[i] = dda->endpoint.axis[i] -
-            // Should be: move_state.steps[i] * 1000000 / steps_per_m_P[i])
-            // but steps[i] can be like 1000000 already, so we'd overflow.
-            move_state.steps[i] * 1000 / pgm_read_dword(&steps_per_mm_P[i]);
-      else
-        current_position.axis[i] = dda->endpoint.axis[i] +
-            move_state.steps[i] * 1000 / pgm_read_dword(&steps_per_mm_P[i]);
+      current_position.axis[i] = dda->endpoint.axis[i] -
+          (int32_t)get_direction(dda, i) *
+          // Should be: move_state.steps[i] * 1000000 / steps_per_m_P[i])
+          // but steps[i] can be like 1000000 already, so we'd overflow.
+          // Unfortunately, using muldiv() overwhelms the compiler.
+          // Also keep the parens around this term, else results go wrong.
+          ((move_state.steps[i] * 1000) / pgm_read_dword(&steps_per_mm_P[i]));
     }
 
     if (dda->endpoint.e_relative)
       current_position.axis[E] =
-          move_state.steps[E] * 1000 / pgm_read_dword(&steps_per_mm_P[E]);
+          (move_state.steps[E] * 1000) / pgm_read_dword(&steps_per_mm_P[E]);
 
 		// current_position.F is updated in dda_start()
 	}
