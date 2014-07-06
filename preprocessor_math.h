@@ -18,17 +18,16 @@
   equals
   (uint32_t)(sqrt(i) + .5)
 
-  These two provide identical results up to 1'861'860 (tested at runtime) and
-  up to 10'000'000 at compile time. At 90'000'000, deviation is about 5%,
-  increasing further at even higher numbers. This "+ .5" is for rounding and
-  not crucial. Casting to other sizes is also possible.
+  These two provide identical results for all tested numbers across the
+  uint32 range. This "+ .5" is for rounding and not crucial. Casting to
+  other sizes is also possible.
 
-  Can be used for calculations at runtime, too, where it costs 944(!) bytes
-  binary size and takes roughly 10'000(!) clock cycles.
+  Can principally be used for calculations at runtime, too, but its compiled
+  size is prohibitively large (more than 20kB per instance).
 
   Initial version found on pl.comp.lang.c, posted by Jean-Louis PATANE.
 */
-#define SQR00(x) (((double)(x)) / 2)
+#define SQR00(x) (((x) > 65535) ? (double)65535 : (double)(x) / 2)
 #define SQR01(x) ((SQR00(x) + ((x) / SQR00(x))) / 2)
 #define SQR02(x) ((SQR01(x) + ((x) / SQR01(x))) / 2)
 #define SQR03(x) ((SQR02(x) + ((x) / SQR02(x))) / 2)
@@ -41,11 +40,10 @@
 #define SQR10(x) ((SQR09(x) + ((x) / SQR09(x))) / 2)
 #define SQR11(x) ((SQR10(x) + ((x) / SQR10(x))) / 2)
 #define SQR12(x) ((SQR11(x) + ((x) / SQR11(x))) / 2)
-// You can add more of these lines here, each additional line increases
-// accurate range by about factor 2 and costs additional 40 bytes binary size
-// in the non-constant case. But beware, the length of the preprocessed term
-// explodes, leading to several seconds compile time above about SQR13.
-#define SQRT(x) ((SQR12(x) + ((x) / SQR12(x))) / 2)
+// We use 9 iterations, note how SQR10() and up get ignored. You can add more
+// iterations here, but beware, the length of the preprocessed term
+// explodes, leading to several seconds compile time above about SQR10().
+#define SQRT(x) ((SQR09(x) + ((x) / SQR09(x))) / 2)
 
 
 #endif /* _PREPROCESSOR_MATH_H */
