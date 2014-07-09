@@ -120,6 +120,7 @@ typedef struct {
 	// distances
   axes_uint32_t     delta;       ///< number of steps on each axis
 
+  // uint8_t        fast_axis;   (see below)
   uint32_t          total_steps; ///< steps of the "fast" axis
   uint32_t          fast_um;     ///< movement length of this fast axis
   uint32_t          fast_spm;    ///< steps per meter of the fast axis
@@ -161,6 +162,12 @@ typedef struct {
   axes_uint32_t     step_interval;   ///< time between steps on each axis
 	uint8_t						axis_to_step;    ///< axis to be stepped on the next interrupt
 	#endif
+
+  /// Small variables. Many CPUs can access 32-bit variables at word or double
+  /// word boundaries only and fill smaller variables in between with gaps,
+  /// so keep small variables grouped together to reduce the amount of these
+  /// gaps. See e.g. NXP application note AN10963, page 10f.
+  uint8_t           fast_axis;       ///< number of the fast axis
 
 	/// Endstop homing
 	uint8_t endstop_check; ///< Do we need to check endstops? 0x1=Check X, 0x2=Check Y, 0x4=Check Z
