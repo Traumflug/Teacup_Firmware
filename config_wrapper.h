@@ -10,3 +10,11 @@
 #endif
 
 #include USER_CONFIG
+
+/**
+  Give users a hint in case they obviously forgot to read instructions.
+*/
+#ifndef STEPS_PER_M_X
+  #error config.h missing. Please follow instructions at \
+    reprap.org/wiki/Teacup_Firmware#Simple_Installation
+#endif
