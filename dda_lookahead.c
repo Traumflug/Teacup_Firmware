@@ -355,9 +355,9 @@ void dda_join_moves(DDA *prev, DDA *current) {
     this_F = muldiv(current->fast_um, current->endpoint.F, current->distance);
     crossF = muldiv(current->fast_um, crossF, current->distance);
 
-    prev_F_in_steps = ACCELERATE_RAMP_LEN(prev_F);
-    this_F_in_steps = ACCELERATE_RAMP_LEN(this_F);
-    crossF_in_steps = ACCELERATE_RAMP_LEN(crossF);
+    prev_F_in_steps = acc_ramp_len(prev_F, prev->fast_spm);
+    this_F_in_steps = acc_ramp_len(this_F, current->fast_spm);
+    crossF_in_steps = acc_ramp_len(crossF, current->fast_spm);
 
     // Show the proposed crossing speed - this might get adjusted below
     serprintf(PSTR("Initial crossing speed: %lu\r\n"), crossF_in_steps);
