@@ -56,6 +56,11 @@ uint32_t lookahead_timeout = 0;     // Moves that did not compute in time to be 
  */
 void dda_find_crossing_speed(DDA *prev, DDA *current) {
   uint32_t F, dv, speed_factor, max_speed_factor;
+  // TODO: this needs looping, as preparation for allowing an arbitrary
+  //       number of axes and to save some binary size. Like
+  //         axes_int32_t prevF, currF;
+  //       and appropriate loops for all the calculations
+  //       (one commit for each step).
   int32_t prevFx, prevFy, prevFz, prevFe;
   int32_t currFx, currFy, currFz, currFe;
 
@@ -213,9 +218,9 @@ void dda_join_moves(DDA *prev, DDA *current) {
   if ( ! prev || prev->nullmove || current->crossF == 0)
     return;
 
-    // Show the proposed crossing speed - this might get adjusted below.
-    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("Initial crossing speed: %lu\n"), current->crossF);
+  // Show the proposed crossing speed - this might get adjusted below.
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("Initial crossing speed: %lu\n"), current->crossF);
 
   // Make sure we have 2 moves and the previous move is not already active
   if (prev->live == 0) {
