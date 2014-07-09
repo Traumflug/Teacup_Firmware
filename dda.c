@@ -12,6 +12,7 @@
 #endif
 
 #include	"dda_maths.h"
+#include "preprocessor_math.h"
 #include	"dda_lookahead.h"
 #include	"timer.h"
 #include	"serial.h"
@@ -68,6 +69,16 @@ static const axes_uint32_t PROGMEM maximum_feedrate_P = {
   MAXIMUM_FEEDRATE_Y,
   MAXIMUM_FEEDRATE_Z,
   MAXIMUM_FEEDRATE_E
+};
+
+/// \var c0_P
+/// \brief Initialization constant for the ramping algorithm. Timer cycles for
+///        first step interval.
+static const axes_uint32_t PROGMEM c0_P = {
+  ((uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_X * ACCELERATION / 2000.)))) << 8,
+  ((uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_Y * ACCELERATION / 2000.)))) << 8,
+  ((uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_Z * ACCELERATION / 2000.)))) << 8,
+  ((uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_E * ACCELERATION / 2000.)))) << 8
 };
 
 /*! Set the direction of the 'n' axis
@@ -383,14 +394,14 @@ void dda_create(DDA *dda, TARGET *target) {
         dda_join_moves(prev_dda, dda);
         dda->n = dda->start_steps;
         if (dda->n == 0)
-          dda->c = C0;
+          dda->c = pgm_read_dword(&c0_P[X]);
         else
-          dda->c = ((C0 >> 8) * int_inv_sqrt(dda->n)) >> 5;
+          dda->c = ((pgm_read_dword(&c0_P[X]) >> 8) * int_inv_sqrt(dda->n)) >> 5;
         if (dda->c < dda->c_min)
           dda->c = dda->c_min;
       #else
         dda->n = 0;
-        dda->c = C0;
+        dda->c = pgm_read_dword(&c0_P[X]);
       #endif
 
 		#elif defined ACCELERATION_TEMPORAL
@@ -853,11 +864,11 @@ void dda_clock() {
     }
     if (recalc_speed) {
       if (dda->n == 0)
-        move_c = C0;
+        move_c = pgm_read_dword(&c0_P[X]);
       else
         // Explicit formula: c0 * (sqrt(n + 1) - sqrt(n)),
         // approximation here: c0 * (1 / (2 * sqrt(n))).
-        move_c = ((C0 >> 8) * int_inv_sqrt(dda->n)) >> 5;
+        move_c = ((pgm_read_dword(&c0_P[X]) >> 8) * int_inv_sqrt(dda->n)) >> 5;
 
       // TODO: most likely this whole check is obsolete. It was left as a
       //       safety margin, only. Rampup steps calculation should be accurate
