@@ -30,9 +30,6 @@
 
 extern uint8_t use_lookahead;
 
-uint32_t lookahead_joined = 0;      // Total number of moves joined together
-uint32_t lookahead_timeout = 0;     // Moves that did not compute in time to be actually joined
-
 // Used for look-ahead debugging
 #ifdef LOOKAHEAD_DEBUG_VERBOSE
   #define serprintf(...) sersendf_P(__VA_ARGS__)
@@ -209,6 +206,9 @@ void dda_join_moves(DDA *prev, DDA *current) {
   uint32_t this_F, this_F_in_steps, this_F_start_in_steps, this_rampup, this_rampdown, this_total_steps;
   uint8_t this_id;
   #ifdef LOOKAHEAD_DEBUG
+    uint8_t timeout = 0;
+    // Moves that did not compute in time to be actually joined.
+    static uint32_t lookahead_timeout = 0;
     // Counter: how many moves did we join?
     static uint32_t la_cnt = 0;
     // Debug counter to number the moves - helps while debugging.
@@ -327,12 +327,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
     serprintf(PSTR("this_rampdown: %lu\r\n"), this_total_steps - this_rampdown);
     serprintf(PSTR("this_F: %lu\r\n"), this_F_in_steps);
 
-    uint8_t timeout = 0;
-
     ATOMIC_START
-      // Evaluation: determine how we did...
-      lookahead_joined++;
-
       // Determine if we are fast enough - if not, just leave the moves
       // Note: to test if the previous move was already executed and replaced by a new
       // move, we compare the DDA id.
@@ -344,8 +339,11 @@ void dda_join_moves(DDA *prev, DDA *current) {
         current->rampdown_steps = this_rampdown;
         current->end_steps = 0;
         current->start_steps = this_F_start_in_steps;
-      } else
-        timeout = 1;
+      }
+      #ifdef LOOKAHEAD_DEBUG
+        else
+          timeout = 1;
+      #endif
     ATOMIC_END
 
     #ifdef LOOKAHEAD_DEBUG
