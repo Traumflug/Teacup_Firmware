@@ -208,10 +208,12 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // back up the move settings: they will remain constant.
   uint32_t this_F, this_F_in_steps, this_F_start_in_steps, this_rampup, this_rampdown, this_total_steps;
   uint8_t this_id;
-  static uint32_t la_cnt = 0;     // Counter: how many moves did we join?
   #ifdef LOOKAHEAD_DEBUG
-  static uint32_t moveno = 0;     // Debug counter to number the moves - helps while debugging
-  moveno++;
+    // Counter: how many moves did we join?
+    static uint32_t la_cnt = 0;
+    // Debug counter to number the moves - helps while debugging.
+    static uint32_t moveno = 0;
+    moveno++;
   #endif
 
   // Bail out if there's nothing to join (e.g. G1 F1500).
@@ -342,16 +344,18 @@ void dda_join_moves(DDA *prev, DDA *current) {
         current->rampdown_steps = this_rampdown;
         current->end_steps = 0;
         current->start_steps = this_F_start_in_steps;
-        la_cnt++;
       } else
         timeout = 1;
     ATOMIC_END
 
-    // If we were not fast enough, any feedback will happen outside the atomic block:
-    if(timeout) {
-      sersendf_P(PSTR("Error: look ahead not fast enough\r\n"));
-      lookahead_timeout++;
-    }
+    #ifdef LOOKAHEAD_DEBUG
+      if (timeout) {
+        sersendf_P(PSTR("Error: lookahead not fast enough.\n"));
+        lookahead_timeout++;
+      }
+      else
+        la_cnt++;
+    #endif
   }
 }
 
