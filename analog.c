@@ -1,3 +1,5 @@
+#if defined __AVR__
+
 #include	"analog.h"
 
 /** \file
@@ -127,3 +129,4 @@ uint16_t	analog_read(uint8_t index) {
 		return 0;
 	}
 }
+#endif /* __AVR__ */
