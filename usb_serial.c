@@ -1,3 +1,5 @@
+#if defined __AVR__  /* AVR only */
+
 /* USB Serial Example for Teensy USB Development Board
  * http://www.pjrc.com/teensy/usb_serial.html
  * Copyright (c) 2008,2010,2011 PJRC.COM, LLC
@@ -943,3 +945,4 @@ ISR(USB_COM_vect)
 }
 
 #endif /* USB_SERIAL */
+#endif /* __AVR__ */
