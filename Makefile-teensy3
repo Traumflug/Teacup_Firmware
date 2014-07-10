@@ -95,6 +95,9 @@ UPLOADER_FLAGS += -P /dev/ttyUSB0
 
 PROGRAM = teacup
 
+# The thing we build by default, and also the thing we clean.
+TARGET = $(PROGRAM).hex
+
 # Arduino IDE takes the "compile everything available"-approach, so we have
 # to keep this working and can take a shortcut:
 SOURCES = $(wildcard *.c)
