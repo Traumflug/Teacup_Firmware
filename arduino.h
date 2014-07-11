@@ -105,6 +105,10 @@
 	#include    "arduino_teensy3.h"
 #endif
 
+#if defined (_mk20dx256_h_)
+	#include "arduino_teensy3.h"
+#endif
+
 #ifndef	DIO0_PIN
 #error pins for this chip not defined in arduino.h! If you write an appropriate pin definition and have this firmware work on your chip, please tell us via the forum thread
 #endif
