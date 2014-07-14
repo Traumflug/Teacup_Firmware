@@ -21,8 +21,14 @@ fi
 
 # General preparation.
 TRACEIN_FILE=$(mktemp)
+STATISTICS_FILE=$(mktemp)
 
-trap 'rm -f '${TRACEIN_FILE} 0
+trap 'cat '${STATISTICS_FILE}'; rm -f '${TRACEIN_FILE}' '${STATISTICS_FILE} 0
+
+
+# Prepare statistics.
+echo                             > ${STATISTICS_FILE}
+(cd .. && make size) | tail -4  >> ${STATISTICS_FILE}
 
 
 # Prepare a pin tracing file, assuming a Gen7-v1.4 configuration. See
@@ -67,12 +73,14 @@ for GCODE_FILE in $*; do
     echo "${GCODE_FILE} not readable, skipping."
     continue
   fi
+  echo                              >> ${STATISTICS_FILE}
+  echo "${GCODE_FILE} statistics:"  >> ${STATISTICS_FILE}
 
   FILE="${GCODE_FILE%.gcode}"
   VCD_FILE="${FILE}.vcd"
   DATA_FILE="${FILE}.data"
   VEL_FILE="${FILE}.processed.vcd"
-  
+
 
   # We assume here queue and rx buffer are large enough to read
   # the file in one chunk. If not, raise MOVEBUFFER_SIZE in config.h.
@@ -264,14 +272,15 @@ EOF
     }
     END {
       if (ledTimeCount > 0) {
-        print "Statistics (assuming a 20 MHz clock): " > "/dev/stderr";
-        print "LED on occurences: " ledTimeCount "." > "/dev/stderr";
-        print "Sum of all LED on time: " ledTimeSum " clock cycles." > "/dev/stderr";
-        print "LED on time minimum: " ledTimeMin " clock cycles." > "/dev/stderr";
-        print "LED on time maximum: " ledTimeMax " clock cycles." > "/dev/stderr";
-        print "LED on time average: " ledTimeSum / ledTimeCount " clock cycles." > "/dev/stderr";
+        print "LED on occurences: " ledTimeCount "." >> "'${STATISTICS_FILE}'";
+        print "LED on time minimum: " ledTimeMin " clock cycles." \
+            >> "'${STATISTICS_FILE}'";
+        print "LED on time maximum: " ledTimeMax " clock cycles." \
+            >> "'${STATISTICS_FILE}'";
+        print "LED on time average: " ledTimeSum / ledTimeCount " clock cycles." \
+            >> "'${STATISTICS_FILE}'";
       } else {
-        print "Debug LED apparently unused." > "/dev/stderr";
+        print "Debug LED apparently unused." > "'${STATISTICS_FILE}'";
       }
     }
   ' < "${VCD_FILE}" | \
