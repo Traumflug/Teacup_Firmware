@@ -19,6 +19,12 @@ if [ $# -eq 0 ]; then
 fi
 
 
+# General preparation.
+TRACEIN_FILE=$(mktemp)
+
+trap 'rm -f '${TRACEIN_FILE} 0
+
+
 # Prepare a pin tracing file, assuming a Gen7-v1.4 configuration. See
 # http://reprap.org/wiki/SimulAVR#Putting_things_together:_an_example
 #
@@ -27,16 +33,16 @@ fi
 #   #define Y_DIR_PIN        DIO26
 #   #define Y_STEP_PIN       DIO27
 #   #define DEBUG_LED_PIN    DIO21
-echo "# X Dir"              > /tmp/tracein.txt
-echo "+ PORTA.A3-Out"      >> /tmp/tracein.txt
-echo "# X Step"            >> /tmp/tracein.txt
-echo "+ PORTA.A2-Out"      >> /tmp/tracein.txt
-echo "# Y Dir"             >> /tmp/tracein.txt
-echo "+ PORTA.A5-Out"      >> /tmp/tracein.txt
-echo "# Y Step"            >> /tmp/tracein.txt
-echo "+ PORTA.A4-Out"      >> /tmp/tracein.txt
-echo "# DEBUG LED"         >> /tmp/tracein.txt
-echo "+ PORTC.C5-Out"      >> /tmp/tracein.txt
+echo "# X Dir"              > ${TRACEIN_FILE}
+echo "+ PORTA.A3-Out"      >> ${TRACEIN_FILE}
+echo "# X Step"            >> ${TRACEIN_FILE}
+echo "+ PORTA.A2-Out"      >> ${TRACEIN_FILE}
+echo "# Y Dir"             >> ${TRACEIN_FILE}
+echo "+ PORTA.A5-Out"      >> ${TRACEIN_FILE}
+echo "# Y Step"            >> ${TRACEIN_FILE}
+echo "+ PORTA.A4-Out"      >> ${TRACEIN_FILE}
+echo "# DEBUG LED"         >> ${TRACEIN_FILE}
+echo "+ PORTC.C5-Out"      >> ${TRACEIN_FILE}
 echo "Assuming pin configuration for a Gen7-v1.4 + debug LED on DIO21."
 
 STEPS_PER_M_X=$(grep STEPS_PER_M_X ../config.h | \
@@ -71,7 +77,7 @@ for GCODE_FILE in $*; do
   # We assume here queue and rx buffer are large enough to read
   # the file in one chunk. If not, raise MOVEBUFFER_SIZE in config.h.
   set -x
-  "${SIMULAVR}" -c vcd:/tmp/tracein.txt:"${VCD_FILE}" \
+  "${SIMULAVR}" -c vcd:${TRACEIN_FILE}:"${VCD_FILE}" \
                 -f ../build/teacup.elf \
                 -m 60000000000 -v < "${GCODE_FILE}"
   set +x
@@ -80,7 +86,7 @@ for GCODE_FILE in $*; do
   # Make plottable files from VCD files.
   # This is very rudimentary and does a lot of assumptions.
   # For examble, pin data is assumed to always be b0/b1, pin naming
-  # is assumed to match the order in tracein.txt and starting at "0".
+  # is assumed to match the order in ${TRACEIN_FILE} and starting at "0".
   awk '
     BEGIN {
       print "0 0 0 0 0";
