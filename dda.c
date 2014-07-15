@@ -314,17 +314,17 @@ void dda_create(DDA *dda, TARGET *target) {
 
 		#ifdef ACCELERATION_REPRAP
 		// c is initial step time in IOclk ticks
-		dda->c = (move_duration / startpoint.F) << 8;
-    if (dda->c < (c_limit << 8))
-      dda->c = (c_limit << 8);
+    dda->c = move_duration / startpoint.F;
+    if (dda->c < c_limit)
+      dda->c = c_limit;
     dda->end_c = move_duration / target->F;
     if (dda->end_c < c_limit)
       dda->end_c = c_limit;
 
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-			sersendf_P(PSTR(",md:%lu,c:%lu"), move_duration, dda->c >> 8);
+      sersendf_P(PSTR(",md:%lu,c:%lu"), move_duration, dda->c);
 
-    if (dda->c != (dda->end_c << 8)) {
+    if (dda->c != dda->end_c) {
 			uint32_t stF = startpoint.F / 4;
 			uint32_t enF = target->F / 4;
 			// now some constant acceleration stuff, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
@@ -395,15 +395,15 @@ void dda_create(DDA *dda, TARGET *target) {
         dda_join_moves(prev_dda, dda);
         dda->n = dda->start_steps;
         if (dda->n == 0)
-          dda->c = pgm_read_dword(&c0_P[dda->fast_axis]) << 8;
+          dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
         else
           dda->c = (pgm_read_dword(&c0_P[dda->fast_axis]) *
-                    int_inv_sqrt(dda->n)) >> 5;
-        if (dda->c < (dda->c_min << 8))
-          dda->c = (dda->c_min << 8);
+                    int_inv_sqrt(dda->n)) >> 13;
+        if (dda->c < dda->c_min)
+          dda->c = dda->c_min;
       #else
         dda->n = 0;
-        dda->c = pgm_read_dword(&c0_P[dda->fast_axis]) << 8;
+        dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
       #endif
 
 		#elif defined ACCELERATION_TEMPORAL
@@ -423,11 +423,10 @@ void dda_create(DDA *dda, TARGET *target) {
         }
       }
 
-			dda->c <<= 8;
 		#else
-			dda->c = (move_duration / target->F) << 8;
-      if (dda->c < (c_limit << 8))
-        dda->c = (c_limit << 8);
+      dda->c = move_duration / target->F;
+      if (dda->c < c_limit)
+        dda->c = c_limit;
 		#endif
 	} /* ! dda->total_steps == 0 */
 
@@ -496,7 +495,7 @@ void dda_start(DDA *dda) {
 		dda->live = 1;
 
 		// set timeout for first step
-    setTimer(dda->c >> 8);
+    setTimer(dda->c);
 	}
 	// else just a speed change, keep dda->live = 0
 
@@ -609,26 +608,26 @@ void dda_step(DDA *dda) {
 	#ifdef ACCELERATION_REPRAP
 		// linear acceleration magic, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
 		if (dda->accel) {
-      if ((dda->c > (dda->end_c << 8)) && (dda->n > 0)) {
+      if ((dda->c > dda->end_c) && (dda->n > 0)) {
 				uint32_t new_c = dda->c - (dda->c * 2) / dda->n;
-        if (new_c <= dda->c && new_c > (dda->end_c << 8)) {
+        if (new_c <= dda->c && new_c > dda->end_c) {
 					dda->c = new_c;
 					dda->n += 4;
 				}
 				else
-          dda->c = dda->end_c << 8;
+          dda->c = dda->end_c;
 			}
-      else if ((dda->c < (dda->end_c << 8)) && (dda->n < 0)) {
+      else if ((dda->c < dda->end_c) && (dda->n < 0)) {
 				uint32_t new_c = dda->c + ((dda->c * 2) / -dda->n);
-        if (new_c >= dda->c && new_c < (dda->end_c << 8)) {
+        if (new_c >= dda->c && new_c < dda->end_c) {
 					dda->c = new_c;
 					dda->n += 4;
 				}
 				else
-          dda->c = dda->end_c << 8;
+          dda->c = dda->end_c;
 			}
-      else if (dda->c != (dda->end_c << 8)) {
-        dda->c = (dda->end_c << 8);
+      else if (dda->c != dda->end_c) {
+        dda->c = dda->end_c;
 			}
 			// else we are already at target speed
 		}
@@ -671,7 +670,6 @@ void dda_step(DDA *dda) {
         }
       }
     }
-		dda->c <<= 8;
 	#endif
 
   // If there are no steps left or an endstop stop happened, we have finished.
@@ -699,7 +697,7 @@ void dda_step(DDA *dda) {
 	}
   else {
 		psu_timeout = 0;
-    setTimer(dda->c >> 8);
+    setTimer(dda->c);
   }
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
@@ -893,7 +891,7 @@ void dda_clock() {
 
       // Write results.
       ATOMIC_START
-        dda->c = (move_c << 8);
+        dda->c = move_c;
       ATOMIC_END
     }
   #endif
