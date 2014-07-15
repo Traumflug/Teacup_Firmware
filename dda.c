@@ -305,9 +305,9 @@ void dda_create(DDA *dda, TARGET *target) {
     //       allowed F easier.
     c_limit = 0;
     for (i = X; i < AXIS_COUNT; i++) {
-      c_limit_calc = ((delta_um[i] * 2400L) /
-                      dda->total_steps * (F_CPU / 40000) /
-                      pgm_read_dword(&maximum_feedrate_P[i])) << 8;
+      c_limit_calc = (delta_um[i] * 2400L) /
+                     dda->total_steps * (F_CPU / 40000) /
+                     pgm_read_dword(&maximum_feedrate_P[i]);
       if (c_limit_calc > c_limit)
         c_limit = c_limit_calc;
     }
@@ -315,11 +315,11 @@ void dda_create(DDA *dda, TARGET *target) {
 		#ifdef ACCELERATION_REPRAP
 		// c is initial step time in IOclk ticks
 		dda->c = (move_duration / startpoint.F) << 8;
-		if (dda->c < c_limit)
-			dda->c = c_limit;
+    if (dda->c < (c_limit << 8))
+      dda->c = (c_limit << 8);
 		dda->end_c = (move_duration / target->F) << 8;
-		if (dda->end_c < c_limit)
-			dda->end_c = c_limit;
+    if (dda->end_c < (c_limit << 8))
+      dda->end_c = (c_limit << 8);
 
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",md:%lu,c:%lu"), move_duration, dda->c >> 8);
@@ -368,8 +368,8 @@ void dda_create(DDA *dda, TARGET *target) {
 		#elif defined ACCELERATION_RAMPING
 			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
 			dda->c_min = (move_duration / target->F) << 8;
-      if (dda->c_min < c_limit) {
-				dda->c_min = c_limit;
+      if (dda->c_min < (c_limit << 8)) {
+        dda->c_min = (c_limit << 8);
         dda->endpoint.F = move_duration / (dda->c_min >> 8);
       }
 
@@ -426,8 +426,8 @@ void dda_create(DDA *dda, TARGET *target) {
 			dda->c <<= 8;
 		#else
 			dda->c = (move_duration / target->F) << 8;
-			if (dda->c < c_limit)
-				dda->c = c_limit;
+      if (dda->c < (c_limit << 8))
+        dda->c = (c_limit << 8);
 		#endif
 	} /* ! dda->total_steps == 0 */
 
