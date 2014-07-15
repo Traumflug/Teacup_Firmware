@@ -317,14 +317,14 @@ void dda_create(DDA *dda, TARGET *target) {
 		dda->c = (move_duration / startpoint.F) << 8;
     if (dda->c < (c_limit << 8))
       dda->c = (c_limit << 8);
-		dda->end_c = (move_duration / target->F) << 8;
-    if (dda->end_c < (c_limit << 8))
-      dda->end_c = (c_limit << 8);
+    dda->end_c = move_duration / target->F;
+    if (dda->end_c < c_limit)
+      dda->end_c = c_limit;
 
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",md:%lu,c:%lu"), move_duration, dda->c >> 8);
 
-		if (dda->c != dda->end_c) {
+    if (dda->c != (dda->end_c << 8)) {
 			uint32_t stF = startpoint.F / 4;
 			uint32_t enF = target->F / 4;
 			// now some constant acceleration stuff, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
@@ -359,7 +359,7 @@ void dda_create(DDA *dda, TARGET *target) {
 			}
 
 			if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-				sersendf_P(PSTR("\n{DDA:CA end_c:%lu, n:%ld, md:%lu, ssq:%lu, esq:%lu, dsq:%lu, msbssq:%u, msbtot:%u}\n"), dda->end_c >> 8, dda->n, move_duration, ssq, esq, dsq, msb_ssq, msb_tot);
+        sersendf_P(PSTR("\n{DDA:CA end_c:%lu, n:%ld, md:%lu, ssq:%lu, esq:%lu, dsq:%lu, msbssq:%u, msbtot:%u}\n"), dda->end_c, dda->n, move_duration, ssq, esq, dsq, msb_ssq, msb_tot);
 
 			dda->accel = 1;
 		}
@@ -609,26 +609,26 @@ void dda_step(DDA *dda) {
 	#ifdef ACCELERATION_REPRAP
 		// linear acceleration magic, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
 		if (dda->accel) {
-			if ((dda->c > dda->end_c) && (dda->n > 0)) {
+      if ((dda->c > (dda->end_c << 8)) && (dda->n > 0)) {
 				uint32_t new_c = dda->c - (dda->c * 2) / dda->n;
-				if (new_c <= dda->c && new_c > dda->end_c) {
+        if (new_c <= dda->c && new_c > (dda->end_c << 8)) {
 					dda->c = new_c;
 					dda->n += 4;
 				}
 				else
-					dda->c = dda->end_c;
+          dda->c = dda->end_c << 8;
 			}
-			else if ((dda->c < dda->end_c) && (dda->n < 0)) {
+      else if ((dda->c < (dda->end_c << 8)) && (dda->n < 0)) {
 				uint32_t new_c = dda->c + ((dda->c * 2) / -dda->n);
-				if (new_c >= dda->c && new_c < dda->end_c) {
+        if (new_c >= dda->c && new_c < (dda->end_c << 8)) {
 					dda->c = new_c;
 					dda->n += 4;
 				}
 				else
-					dda->c = dda->end_c;
+          dda->c = dda->end_c << 8;
 			}
-			else if (dda->c != dda->end_c) {
-				dda->c = dda->end_c;
+      else if (dda->c != (dda->end_c << 8)) {
+        dda->c = (dda->end_c << 8);
 			}
 			// else we are already at target speed
 		}
