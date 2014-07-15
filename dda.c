@@ -866,19 +866,20 @@ void dda_clock() {
     }
     if (recalc_speed) {
       if (dda->n == 0)
-        move_c = pgm_read_dword(&c0_P[dda->fast_axis]) << 8;
+        move_c = pgm_read_dword(&c0_P[dda->fast_axis]);
       else
         // Explicit formula: c0 * (sqrt(n + 1) - sqrt(n)),
         // approximation here: c0 * (1 / (2 * sqrt(n))).
+        // This >> 13 looks odd, but is verified with the explicit formula.
         move_c = (pgm_read_dword(&c0_P[dda->fast_axis]) *
-                  int_inv_sqrt(dda->n)) >> 5;
+                  int_inv_sqrt(dda->n)) >> 13;
 
       // TODO: most likely this whole check is obsolete. It was left as a
       //       safety margin, only. Rampup steps calculation should be accurate
       //       now and give the requested target speed within a few percent.
-      if (move_c < (dda->c_min << 8)) {
+      if (move_c < dda->c_min) {
         // We hit max speed not always exactly.
-        move_c = (dda->c_min << 8);
+        move_c = dda->c_min;
 
         // This is a hack which deals with movements with an unknown number of
         // acceleration steps. dda_create() sets a very high number, then,
@@ -892,7 +893,7 @@ void dda_clock() {
 
       // Write results.
       ATOMIC_START
-        dda->c = move_c;
+        dda->c = (move_c << 8);
       ATOMIC_END
     }
   #endif
