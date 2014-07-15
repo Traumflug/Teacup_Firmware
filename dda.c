@@ -367,10 +367,10 @@ void dda_create(DDA *dda, TARGET *target) {
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
 			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
-			dda->c_min = (move_duration / target->F) << 8;
-      if (dda->c_min < (c_limit << 8)) {
-        dda->c_min = (c_limit << 8);
-        dda->endpoint.F = move_duration / (dda->c_min >> 8);
+      dda->c_min = move_duration / target->F;
+      if (dda->c_min < c_limit) {
+        dda->c_min = c_limit;
+        dda->endpoint.F = move_duration / dda->c_min;
       }
 
       // Lookahead can deal with 16 bits ( = 1092 mm/s), only.
@@ -399,8 +399,8 @@ void dda_create(DDA *dda, TARGET *target) {
         else
           dda->c = (pgm_read_dword(&c0_P[dda->fast_axis]) *
                     int_inv_sqrt(dda->n)) >> 5;
-        if (dda->c < dda->c_min)
-          dda->c = dda->c_min;
+        if (dda->c < (dda->c_min << 8))
+          dda->c = (dda->c_min << 8);
       #else
         dda->n = 0;
         dda->c = pgm_read_dword(&c0_P[dda->fast_axis]) << 8;
@@ -876,9 +876,9 @@ void dda_clock() {
       // TODO: most likely this whole check is obsolete. It was left as a
       //       safety margin, only. Rampup steps calculation should be accurate
       //       now and give the requested target speed within a few percent.
-      if (move_c < dda->c_min) {
+      if (move_c < (dda->c_min << 8)) {
         // We hit max speed not always exactly.
-        move_c = dda->c_min;
+        move_c = (dda->c_min << 8);
 
         // This is a hack which deals with movements with an unknown number of
         // acceleration steps. dda_create() sets a very high number, then,
