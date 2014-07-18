@@ -2,7 +2,7 @@
 /* attempt by drf@vims.edu 2012-01-09 to fit TeaCup into a $16 teensy from htpp://www.pjrc.com/teensy/ */
 
 /** \file
-  \brief Teensy 2.0 configuration.
+  \brief Teensy 3.0/3.1 configuration.
 */
 
 /*
@@ -29,9 +29,10 @@
 
   If you want to port this to a new chip, start off with arduino.h and see how you go.
 */
-#if ! (defined (_mk20dx128_h_) || defined (__MK20DX128__) || defined (__ARMEL__))
-  #warning Teensy 3.0 has a mk20dx128! set your cpu type in Makefile!
-  //#error Teensy 3.0 has a mk20dx128! set your cpu type in Makefile!
+#if ! (defined (_mk20dx128_h_) || defined (__MK20DX128__) || \
+       defined (_mk20dx256_h_) || defined (__MK20DX256__) || \
+       defined (__ARMEL__))
+  #error Teensy 3.x has a mk20dx128 or mk20dx256! Set your cpu type in Makefile!
 #endif
 
 /** \def F_CPU
