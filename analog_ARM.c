@@ -96,7 +96,8 @@ void analog_initialize() {
 	  ADC0_MG = sum;                   // calibration complete
  	      
 
-	  for (int i =sizeof(adc_counter);i>=0; i--){
+          int i;  // non c99 requires declatations outside of for loops
+	  for (i =sizeof(adc_counter);i>=0; i--){
 	    pinMode(adc_dio[i],INPUT);
 	  }
 
