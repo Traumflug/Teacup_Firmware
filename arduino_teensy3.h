@@ -104,7 +104,7 @@ for x in range(0,34):
  */
 // pin 0
 #define DIO0_PIN       CORE_PIN0_BIT  // bit for bitmask within registers  
-#define DIO0_RPORT     CORE_PIN0_PORTREG
+#define DIO0_RPORT     CORE_PIN0_PINREG
 #define DIO0_WPORT     CORE_PIN0_PORTREG
 #define DIO0_PWM       NULL          
 #define DIO0_DDR       CORE_PIN0_DDRREG
@@ -113,7 +113,7 @@ for x in range(0,34):
 
 // pin 1
 #define DIO1_PIN       CORE_PIN1_BIT  // bit for bitmask within registers  
-#define DIO1_RPORT     CORE_PIN1_PORTREG
+#define DIO1_RPORT     CORE_PIN1_PINREG
 #define DIO1_WPORT     CORE_PIN1_PORTREG
 #define DIO1_PWM       NULL          
 #define DIO1_DDR       CORE_PIN1_DDRREG
@@ -122,7 +122,7 @@ for x in range(0,34):
 
 // pin 2
 #define DIO2_PIN       CORE_PIN2_BIT  // bit for bitmask within registers  
-#define DIO2_RPORT     CORE_PIN2_PORTREG
+#define DIO2_RPORT     CORE_PIN2_PINREG
 #define DIO2_WPORT     CORE_PIN2_PORTREG
 #define DIO2_PWM       NULL          
 #define DIO2_DDR       CORE_PIN2_DDRREG
@@ -131,7 +131,7 @@ for x in range(0,34):
 
 // pin 3
 #define DIO3_PIN       CORE_PIN3_BIT  // bit for bitmask within registers  
-#define DIO3_RPORT     CORE_PIN3_PORTREG
+#define DIO3_RPORT     CORE_PIN3_PINREG
 #define DIO3_WPORT     CORE_PIN3_PORTREG
 #define DIO3_PWM       &FTM1_C0V          
 #define DIO3_DDR       CORE_PIN3_DDRREG
@@ -140,7 +140,7 @@ for x in range(0,34):
 
 // pin 4
 #define DIO4_PIN       CORE_PIN4_BIT  // bit for bitmask within registers  
-#define DIO4_RPORT     CORE_PIN4_PORTREG
+#define DIO4_RPORT     CORE_PIN4_PINREG
 #define DIO4_WPORT     CORE_PIN4_PORTREG
 #define DIO4_PWM       &FTM1_C1V          
 #define DIO4_DDR       CORE_PIN4_DDRREG
@@ -149,7 +149,7 @@ for x in range(0,34):
 
 // pin 5
 #define DIO5_PIN       CORE_PIN5_BIT  // bit for bitmask within registers  
-#define DIO5_RPORT     CORE_PIN5_PORTREG
+#define DIO5_RPORT     CORE_PIN5_PINREG
 #define DIO5_WPORT     CORE_PIN5_PORTREG
 #define DIO5_PWM       &FTM0_C7V          
 #define DIO5_DDR       CORE_PIN5_DDRREG
@@ -158,7 +158,7 @@ for x in range(0,34):
 
 // pin 6
 #define DIO6_PIN       CORE_PIN6_BIT  // bit for bitmask within registers  
-#define DIO6_RPORT     CORE_PIN6_PORTREG
+#define DIO6_RPORT     CORE_PIN6_PINREG
 #define DIO6_WPORT     CORE_PIN6_PORTREG
 #define DIO6_PWM       &FTM0_C4V          
 #define DIO6_DDR       CORE_PIN6_DDRREG
@@ -167,7 +167,7 @@ for x in range(0,34):
 
 // pin 7
 #define DIO7_PIN       CORE_PIN7_BIT  // bit for bitmask within registers  
-#define DIO7_RPORT     CORE_PIN7_PORTREG
+#define DIO7_RPORT     CORE_PIN7_PINREG
 #define DIO7_WPORT     CORE_PIN7_PORTREG
 #define DIO7_PWM       NULL          
 #define DIO7_DDR       CORE_PIN7_DDRREG
@@ -176,7 +176,7 @@ for x in range(0,34):
 
 // pin 8
 #define DIO8_PIN       CORE_PIN8_BIT  // bit for bitmask within registers  
-#define DIO8_RPORT     CORE_PIN8_PORTREG
+#define DIO8_RPORT     CORE_PIN8_PINREG
 #define DIO8_WPORT     CORE_PIN8_PORTREG
 #define DIO8_PWM       NULL          
 #define DIO8_DDR       CORE_PIN8_DDRREG
@@ -185,7 +185,7 @@ for x in range(0,34):
 
 // pin 9
 #define DIO9_PIN       CORE_PIN9_BIT  // bit for bitmask within registers  
-#define DIO9_RPORT     CORE_PIN9_PORTREG
+#define DIO9_RPORT     CORE_PIN9_PINREG
 #define DIO9_WPORT     CORE_PIN9_PORTREG
 #define DIO9_PWM       &FTM0_C2V          
 #define DIO9_DDR       CORE_PIN9_DDRREG
@@ -194,7 +194,7 @@ for x in range(0,34):
 
 // pin 10
 #define DIO10_PIN       CORE_PIN10_BIT  // bit for bitmask within registers  
-#define DIO10_RPORT     CORE_PIN10_PORTREG
+#define DIO10_RPORT     CORE_PIN10_PINREG
 #define DIO10_WPORT     CORE_PIN10_PORTREG
 #define DIO10_PWM       &FTM0_C3V          
 #define DIO10_DDR       CORE_PIN10_DDRREG
@@ -203,7 +203,7 @@ for x in range(0,34):
 
 // pin 11
 #define DIO11_PIN       CORE_PIN11_BIT  // bit for bitmask within registers  
-#define DIO11_RPORT     CORE_PIN11_PORTREG
+#define DIO11_RPORT     CORE_PIN11_PINREG
 #define DIO11_WPORT     CORE_PIN11_PORTREG
 #define DIO11_PWM       NULL          
 #define DIO11_DDR       CORE_PIN11_DDRREG
@@ -212,7 +212,7 @@ for x in range(0,34):
 
 // pin 12
 #define DIO12_PIN       CORE_PIN12_BIT  // bit for bitmask within registers  
-#define DIO12_RPORT     CORE_PIN12_PORTREG
+#define DIO12_RPORT     CORE_PIN12_PINREG
 #define DIO12_WPORT     CORE_PIN12_PORTREG
 #define DIO12_PWM       NULL          
 #define DIO12_DDR       CORE_PIN12_DDRREG
@@ -221,7 +221,7 @@ for x in range(0,34):
 
 // pin 13
 #define DIO13_PIN       CORE_PIN13_BIT  // bit for bitmask within registers  
-#define DIO13_RPORT     CORE_PIN13_PORTREG
+#define DIO13_RPORT     CORE_PIN13_PINREG
 #define DIO13_WPORT     CORE_PIN13_PORTREG
 #define DIO13_PWM       NULL          
 #define DIO13_DDR       CORE_PIN13_DDRREG
@@ -230,7 +230,7 @@ for x in range(0,34):
 
 // pin 14
 #define DIO14_PIN       CORE_PIN14_BIT  // bit for bitmask within registers  
-#define DIO14_RPORT     CORE_PIN14_PORTREG
+#define DIO14_RPORT     CORE_PIN14_PINREG
 #define DIO14_WPORT     CORE_PIN14_PORTREG
 #define DIO14_PWM       NULL          
 #define DIO14_DDR       CORE_PIN14_DDRREG
@@ -239,7 +239,7 @@ for x in range(0,34):
 
 // pin 15
 #define DIO15_PIN       CORE_PIN15_BIT  // bit for bitmask within registers  
-#define DIO15_RPORT     CORE_PIN15_PORTREG
+#define DIO15_RPORT     CORE_PIN15_PINREG
 #define DIO15_WPORT     CORE_PIN15_PORTREG
 #define DIO15_PWM       NULL          
 #define DIO15_DDR       CORE_PIN15_DDRREG
@@ -248,7 +248,7 @@ for x in range(0,34):
 
 // pin 16
 #define DIO16_PIN       CORE_PIN16_BIT  // bit for bitmask within registers  
-#define DIO16_RPORT     CORE_PIN16_PORTREG
+#define DIO16_RPORT     CORE_PIN16_PINREG
 #define DIO16_WPORT     CORE_PIN16_PORTREG
 #define DIO16_PWM       NULL          
 #define DIO16_DDR       CORE_PIN16_DDRREG
@@ -257,7 +257,7 @@ for x in range(0,34):
 
 // pin 17
 #define DIO17_PIN       CORE_PIN17_BIT  // bit for bitmask within registers  
-#define DIO17_RPORT     CORE_PIN17_PORTREG
+#define DIO17_RPORT     CORE_PIN17_PINREG
 #define DIO17_WPORT     CORE_PIN17_PORTREG
 #define DIO17_PWM       NULL          
 #define DIO17_DDR       CORE_PIN17_DDRREG
@@ -266,7 +266,7 @@ for x in range(0,34):
 
 // pin 18
 #define DIO18_PIN       CORE_PIN18_BIT  // bit for bitmask within registers  
-#define DIO18_RPORT     CORE_PIN18_PORTREG
+#define DIO18_RPORT     CORE_PIN18_PINREG
 #define DIO18_WPORT     CORE_PIN18_PORTREG
 #define DIO18_PWM       NULL          
 #define DIO18_DDR       CORE_PIN18_DDRREG
@@ -275,7 +275,7 @@ for x in range(0,34):
 
 // pin 19
 #define DIO19_PIN       CORE_PIN19_BIT  // bit for bitmask within registers  
-#define DIO19_RPORT     CORE_PIN19_PORTREG
+#define DIO19_RPORT     CORE_PIN19_PINREG
 #define DIO19_WPORT     CORE_PIN19_PORTREG
 #define DIO19_PWM       NULL          
 #define DIO19_DDR       CORE_PIN19_DDRREG
@@ -284,7 +284,7 @@ for x in range(0,34):
 
 // pin 20
 #define DIO20_PIN       CORE_PIN20_BIT  // bit for bitmask within registers  
-#define DIO20_RPORT     CORE_PIN20_PORTREG
+#define DIO20_RPORT     CORE_PIN20_PINREG
 #define DIO20_WPORT     CORE_PIN20_PORTREG
 #define DIO20_PWM       &FTM0_C5V          
 #define DIO20_DDR       CORE_PIN20_DDRREG
@@ -293,7 +293,7 @@ for x in range(0,34):
 
 // pin 21
 #define DIO21_PIN       CORE_PIN21_BIT  // bit for bitmask within registers  
-#define DIO21_RPORT     CORE_PIN21_PORTREG
+#define DIO21_RPORT     CORE_PIN21_PINREG
 #define DIO21_WPORT     CORE_PIN21_PORTREG
 #define DIO21_PWM       &FTM0_C6V          
 #define DIO21_DDR       CORE_PIN21_DDRREG
@@ -302,7 +302,7 @@ for x in range(0,34):
 
 // pin 22
 #define DIO22_PIN       CORE_PIN22_BIT  // bit for bitmask within registers  
-#define DIO22_RPORT     CORE_PIN22_PORTREG
+#define DIO22_RPORT     CORE_PIN22_PINREG
 #define DIO22_WPORT     CORE_PIN22_PORTREG
 #define DIO22_PWM       &FTM0_C0V          
 #define DIO22_DDR       CORE_PIN22_DDRREG
@@ -311,7 +311,7 @@ for x in range(0,34):
 
 // pin 23
 #define DIO23_PIN       CORE_PIN23_BIT  // bit for bitmask within registers  
-#define DIO23_RPORT     CORE_PIN23_PORTREG
+#define DIO23_RPORT     CORE_PIN23_PINREG
 #define DIO23_WPORT     CORE_PIN23_PORTREG
 #define DIO23_PWM       &FTM0_C1V          
 #define DIO23_DDR       CORE_PIN23_DDRREG
@@ -320,7 +320,7 @@ for x in range(0,34):
 
 // pin 24
 #define DIO24_PIN       CORE_PIN24_BIT  // bit for bitmask within registers  
-#define DIO24_RPORT     CORE_PIN24_PORTREG
+#define DIO24_RPORT     CORE_PIN24_PINREG
 #define DIO24_WPORT     CORE_PIN24_PORTREG
 #define DIO24_PWM       NULL          
 #define DIO24_DDR       CORE_PIN24_DDRREG
@@ -329,7 +329,7 @@ for x in range(0,34):
 
 // pin 25
 #define DIO25_PIN       CORE_PIN25_BIT  // bit for bitmask within registers  
-#define DIO25_RPORT     CORE_PIN25_PORTREG
+#define DIO25_RPORT     CORE_PIN25_PINREG
 #define DIO25_WPORT     CORE_PIN25_PORTREG
 #define DIO25_PWM       NULL          
 #define DIO25_DDR       CORE_PIN25_DDRREG
@@ -338,7 +338,7 @@ for x in range(0,34):
 
 // pin 26
 #define DIO26_PIN       CORE_PIN26_BIT  // bit for bitmask within registers  
-#define DIO26_RPORT     CORE_PIN26_PORTREG
+#define DIO26_RPORT     CORE_PIN26_PINREG
 #define DIO26_WPORT     CORE_PIN26_PORTREG
 #define DIO26_PWM       NULL          
 #define DIO26_DDR       CORE_PIN26_DDRREG
@@ -347,7 +347,7 @@ for x in range(0,34):
 
 // pin 27
 #define DIO27_PIN       CORE_PIN27_BIT  // bit for bitmask within registers  
-#define DIO27_RPORT     CORE_PIN27_PORTREG
+#define DIO27_RPORT     CORE_PIN27_PINREG
 #define DIO27_WPORT     CORE_PIN27_PORTREG
 #define DIO27_PWM       NULL          
 #define DIO27_DDR       CORE_PIN27_DDRREG
@@ -356,7 +356,7 @@ for x in range(0,34):
 
 // pin 28
 #define DIO28_PIN       CORE_PIN28_BIT  // bit for bitmask within registers  
-#define DIO28_RPORT     CORE_PIN28_PORTREG
+#define DIO28_RPORT     CORE_PIN28_PINREG
 #define DIO28_WPORT     CORE_PIN28_PORTREG
 #define DIO28_PWM       NULL          
 #define DIO28_DDR       CORE_PIN28_DDRREG
@@ -365,7 +365,7 @@ for x in range(0,34):
 
 // pin 29
 #define DIO29_PIN       CORE_PIN29_BIT  // bit for bitmask within registers  
-#define DIO29_RPORT     CORE_PIN29_PORTREG
+#define DIO29_RPORT     CORE_PIN29_PINREG
 #define DIO29_WPORT     CORE_PIN29_PORTREG
 #define DIO29_PWM       NULL          
 #define DIO29_DDR       CORE_PIN29_DDRREG
@@ -374,7 +374,7 @@ for x in range(0,34):
 
 // pin 30
 #define DIO30_PIN       CORE_PIN30_BIT  // bit for bitmask within registers  
-#define DIO30_RPORT     CORE_PIN30_PORTREG
+#define DIO30_RPORT     CORE_PIN30_PINREG
 #define DIO30_WPORT     CORE_PIN30_PORTREG
 #define DIO30_PWM       NULL          
 #define DIO30_DDR       CORE_PIN30_DDRREG
@@ -383,7 +383,7 @@ for x in range(0,34):
 
 // pin 31
 #define DIO31_PIN       CORE_PIN31_BIT  // bit for bitmask within registers  
-#define DIO31_RPORT     CORE_PIN31_PORTREG
+#define DIO31_RPORT     CORE_PIN31_PINREG
 #define DIO31_WPORT     CORE_PIN31_PORTREG
 #define DIO31_PWM       NULL          
 #define DIO31_DDR       CORE_PIN31_DDRREG
@@ -392,7 +392,7 @@ for x in range(0,34):
 
 // pin 32
 #define DIO32_PIN       CORE_PIN32_BIT  // bit for bitmask within registers  
-#define DIO32_RPORT     CORE_PIN32_PORTREG
+#define DIO32_RPORT     CORE_PIN32_PINREG
 #define DIO32_WPORT     CORE_PIN32_PORTREG
 #define DIO32_PWM       NULL          
 #define DIO32_DDR       CORE_PIN32_DDRREG
@@ -401,7 +401,7 @@ for x in range(0,34):
 
 // pin 33
 #define DIO33_PIN       CORE_PIN33_BIT  // bit for bitmask within registers  
-#define DIO33_RPORT     CORE_PIN33_PORTREG
+#define DIO33_RPORT     CORE_PIN33_PINREG
 #define DIO33_WPORT     CORE_PIN33_PORTREG
 #define DIO33_PWM       NULL          
 #define DIO33_DDR       CORE_PIN33_DDRREG
