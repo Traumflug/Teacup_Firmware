@@ -53,34 +53,6 @@ TARGET BSS current_position;
 /// \brief numbers for tracking the current state of movement
 MOVE_STATE BSS move_state;
 
-/// \var steps_per_m_P
-/// \brief motor steps required to advance one meter on each axis
-static const axes_uint32_t PROGMEM steps_per_m_P = {
-  STEPS_PER_M_X,
-  STEPS_PER_M_Y,
-  STEPS_PER_M_Z,
-  STEPS_PER_M_E
-};
-
-/// \var maximum_feedrate_P
-/// \brief maximum allowed feedrate on each axis
-static const axes_uint32_t PROGMEM maximum_feedrate_P = {
-  MAXIMUM_FEEDRATE_X,
-  MAXIMUM_FEEDRATE_Y,
-  MAXIMUM_FEEDRATE_Z,
-  MAXIMUM_FEEDRATE_E
-};
-
-/// \var c0_P
-/// \brief Initialization constant for the ramping algorithm. Timer cycles for
-///        first step interval.
-static const axes_uint32_t PROGMEM c0_P = {
-  (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_X * ACCELERATION / 2000.))),
-  (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_Y * ACCELERATION / 2000.))),
-  (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_Z * ACCELERATION / 2000.))),
-  (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_E * ACCELERATION / 2000.)))
-};
-
 /*! Set the direction of the 'n' axis
 */
 static void set_direction(DDA *dda, enum axis_e n, int dir) {

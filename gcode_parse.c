@@ -6,6 +6,7 @@
 
 #include	<string.h>
 
+#include  "axis.h"
 #include	"serial.h"
 #include	"sermsg.h"
 #include	"dda_queue.h"
@@ -97,6 +98,7 @@ void gcode_init(void) {
 /// \param c the next character to process
 void gcode_parse_char(uint8_t c) {
 	uint8_t checksum_char = c;
+  int axis;
 
 	// uppercase
 	if (c >= 'a' && c <= 'z')
@@ -119,38 +121,6 @@ void gcode_parse_char(uint8_t c) {
 					next_target.M = read_digit.mantissa;
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
 						serwrite_uint8(next_target.M);
-					break;
-				case 'X':
-					if (next_target.option_inches)
-            next_target.target.axis[X] = decfloat_to_int(&read_digit, 25400);
-					else
-            next_target.target.axis[X] = decfloat_to_int(&read_digit, 1000);
-					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_int32(next_target.target.axis[X]);
-					break;
-				case 'Y':
-					if (next_target.option_inches)
-            next_target.target.axis[Y] = decfloat_to_int(&read_digit, 25400);
-					else
-            next_target.target.axis[Y] = decfloat_to_int(&read_digit, 1000);
-					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_int32(next_target.target.axis[Y]);
-					break;
-				case 'Z':
-					if (next_target.option_inches)
-            next_target.target.axis[Z] = decfloat_to_int(&read_digit, 25400);
-					else
-            next_target.target.axis[Z] = decfloat_to_int(&read_digit, 1000);
-					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_int32(next_target.target.axis[Z]);
-					break;
-				case 'E':
-					if (next_target.option_inches)
-            next_target.target.axis[E] = decfloat_to_int(&read_digit, 25400);
-					else
-            next_target.target.axis[E] = decfloat_to_int(&read_digit, 1000);
-					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_uint32(next_target.target.axis[E]);
 					break;
 				case 'F':
 					// just use raw integer, we need move distance and n_steps to convert it to a useful value, so wait until we have those to convert it
@@ -194,6 +164,17 @@ void gcode_parse_char(uint8_t c) {
 					next_target.checksum_read = decfloat_to_int(&read_digit, 1);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
 						serwrite_uint8(next_target.checksum_read);
+					break;
+        default: //Must be an axis or invalid input.
+          axis = axis_char2enum(last_field);
+          if(axis != INVALID_AXIS) {
+            if (next_target.option_inches)
+              next_target.target.axis[axis] = decfloat_to_int(&read_digit, 25400);
+            else
+              next_target.target.axis[axis] = decfloat_to_int(&read_digit, 1000);
+            if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
+              serwrite_int32(next_target.target.axis[axis]);
+          }
 					break;
 			}
 			// reset for next field

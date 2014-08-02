@@ -5,6 +5,7 @@
 */
 
 #include <math.h>
+#include  "axis.h"
 #include	"dda.h"
 #include	"dda_queue.h"
 #include	"pinio.h"

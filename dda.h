@@ -4,6 +4,7 @@
 #include	<stdint.h>
 
 #include	"config_wrapper.h"
+#include	"axis.h"
 
 #ifdef ACCELERATION_REPRAP
 	#ifdef ACCELERATION_RAMPING
@@ -20,25 +21,6 @@
 /*
 	types
 */
-
-// Enum to denote an axis
-enum axis_e { X = 0, Y, Z, E, AXIS_COUNT };
-
-/**
-  \typedef axes_uint32_t
-  \brief n-dimensional vector used to describe uint32_t axis information.
-
-  Stored value can be anything unsigned. Units should be specified when declared.
-*/
-typedef uint32_t axes_uint32_t[AXIS_COUNT];
-
-/**
-  \typedef axes_int32_t
-  \brief n-dimensional vector used to describe int32_t axis information.
-
-  Stored value can be anything unsigned. Units should be specified when declared.
-*/
-typedef int32_t axes_int32_t[AXIS_COUNT];
 
 /**
 	\struct TARGET
