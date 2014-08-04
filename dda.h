@@ -35,6 +35,15 @@ typedef struct {
   uint8_t   e_relative        :1; ///< bool: e axis relative? Overrides all_relative
 } TARGET;
 
+
+typedef struct {
+  int32_t      counter; ///< counter for total_steps vs each axis
+  uint32_t     steps;   ///< number of steps on each axis
+#ifdef ACCELERATION_TEMPORAL
+  uint32_t     time;       ///< time of the last step on each axis
+#endif
+} move_state_axes_t;
+
 /**
 	\struct MOVE_STATE
 	\brief this struct is made for tracking the current state of the movement
@@ -43,17 +52,14 @@ typedef struct {
 */
 typedef struct {
 	// bresenham counters
-  axes_int32_t      counter; ///< counter for total_steps vs each axis
 
-	// step counters
-  axes_uint32_t     steps;   ///< number of steps on each axis
+  move_state_axes_t axes[AXIS_COUNT];
 
 	#ifdef ACCELERATION_RAMPING
 	/// counts actual steps done
 	uint32_t					step_no;
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
-  axes_uint32_t     time;       ///< time of the last step on each axis
   uint32_t          last_time;  ///< time of the last step of any axis
 	#endif
 

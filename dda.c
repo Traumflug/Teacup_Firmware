@@ -451,16 +451,21 @@ void dda_start(DDA *dda) {
 		#endif
 
 		// initialise state variable
-    move_state.counter[X] = move_state.counter[Y] = move_state.counter[Z] = \
-      move_state.counter[E] = -(dda->total_steps >> 1);
-    memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
+    move_state.axes[X].counter = move_state.axes[Y].counter = move_state.axes[Z].counter = \
+      move_state.axes[E].counter = -(dda->total_steps >> 1);
+    //memcpy(&move_state.axes[X].steps, &dda->delta[X], sizeof(uint32_t) * 4);
+    for(int i = 0; i < AXIS_COUNT; i++)
+    {
+        move_state.axes[i].steps = dda->delta[i];
+    }
+
     move_state.endstop_stop = 0;
 		#ifdef ACCELERATION_RAMPING
 			move_state.step_no = 0;
 		#endif
 		#ifdef ACCELERATION_TEMPORAL
-      move_state.time[X] = move_state.time[Y] = \
-        move_state.time[Z] = move_state.time[E] = 0UL;
+      move_state.axes[X].time = move_state[Y].time = \
+        move_state.axes[Z].time = move_state.axes[E].time = 0UL;
 		#endif
 
 		// ensure this dda starts
@@ -496,77 +501,67 @@ void dda_start(DDA *dda) {
 */
 void dda_step(DDA *dda) {
 
-#if ! defined ACCELERATION_TEMPORAL
-  if (move_state.steps[X]) {
-    move_state.counter[X] -= dda->delta[X];
-    if (move_state.counter[X] < 0) {
-			x_step();
-      move_state.steps[X]--;
-      move_state.counter[X] += dda->total_steps;
-		}
-	}
-#else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == X) {
-		x_step();
-    move_state.steps[X]--;
-    move_state.time[X] += dda->step_interval[X];
-    move_state.all_time = move_state.time[X];
-	}
+#define STEP_BRESENHAMN(AXIS, STPFNC)         \
+  if (axis->steps) {                          \
+    axis->counter -= dda->delta[AXIS];        \
+    if (axis->counter < 0) {                  \
+      STPFNC();                               \
+      axis->steps--;                          \
+      axis->counter += dda->total_steps;      \
+    }                                         \
+  }                                           \
+  axis++;
+
+#ifndef ACCELERATION_TEMPORAL // Bresenhamn// Bresenhamn
+
+  move_state_axes_t *axis = move_state.axes;
+
+#ifdef U_STEP_PIN
+  STEP_BRESENHAMN(U, u_step)
+#endif
+#ifdef V_STEP_PIN
+  STEP_BRESENHAMN(V, v_step)
+#endif
+#ifdef X_STEP_PIN
+  STEP_BRESENHAMN(X, x_step)
+#endif
+#ifdef Y_STEP_PIN
+  STEP_BRESENHAMN(Y, y_step)
+#endif
+#ifdef Z_STEP_PIN
+  STEP_BRESENHAMN(Z, z_step)
+#endif
+#ifdef E_STEP_PIN
+  STEP_BRESENHAMN(E, e_step)
 #endif
 
-#if ! defined ACCELERATION_TEMPORAL
-  if (move_state.steps[Y]) {
-    move_state.counter[Y] -= dda->delta[Y];
-    if (move_state.counter[Y] < 0) {
-			y_step();
-      move_state.steps[Y]--;
-      move_state.counter[Y] += dda->total_steps;
-		}
-	}
-#else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == Y) {
-		y_step();
-    move_state.steps[Y]--;
-    move_state.time[Y] += dda->step_interval[Y];
-    move_state.all_time = move_state.time[Y];
-	}
+#else // In case of ACCELERATION_TEMPORAL
+
+  int i = dda->axis_to_step;
+  move_state_axes_t *axis = &move_state.axes[i];
+  axis->steps--;
+  axis->time += dda->step_interval[i];
+  move_state.all_time = axis->time;
+#ifdef U_STEP_PIN
+  if (i == U) u_step();
+#endif
+#ifdef V_STEP_PIN
+  if (i == V) v_step();
+#endif
+#ifdef X_STEP_PIN
+  if (i == X) x_step();
+#endif
+#ifdef Y_STEP_PIN
+  if (i == Y) y_step();
+#endif
+#ifdef Z_STEP_PIN
+  if (i == Z) z_step();
+#endif
+#ifdef E_STEP_PIN
+  if (i == E) e_step();
 #endif
 
-#if ! defined ACCELERATION_TEMPORAL
-  if (move_state.steps[Z]) {
-    move_state.counter[Z] -= dda->delta[Z];
-    if (move_state.counter[Z] < 0) {
-			z_step();
-      move_state.steps[Z]--;
-      move_state.counter[Z] += dda->total_steps;
-		}
-	}
-#else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == Z) {
-		z_step();
-    move_state.steps[Z]--;
-    move_state.time[Z] += dda->step_interval[Z];
-    move_state.all_time = move_state.time[Z];
-	}
-#endif
-
-#if ! defined ACCELERATION_TEMPORAL
-  if (move_state.steps[E]) {
-    move_state.counter[E] -= dda->delta[E];
-    if (move_state.counter[E] < 0) {
-			e_step();
-      move_state.steps[E]--;
-      move_state.counter[E] += dda->total_steps;
-		}
-	}
-#else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == E) {
-		e_step();
-    move_state.steps[E]--;
-    move_state.time[E] += dda->step_interval[E];
-    move_state.all_time = move_state.time[E];
-	}
-#endif
+#endif //ACCELERATION_TEMPORAL
 
 	#if STEP_INTERRUPT_INTERRUPTIBLE && ! defined ACCELERATION_RAMPING
 		// Since we have sent steps to all the motors that will be stepping
@@ -645,8 +640,8 @@ void dda_step(DDA *dda) {
 	#endif
 
   // If there are no steps left or an endstop stop happened, we have finished.
-  if ((move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
-       move_state.steps[Z] == 0 && move_state.steps[E] == 0)
+  if ((move_state.axes[X].steps == 0 && move_state.axes[Y].steps == 0 &&
+       move_state.axes[Z].steps == 0 && move_state.axes[Y].steps == 0)
     #ifdef ACCELERATION_RAMPING
       || (move_state.endstop_stop && dda->n <= 0)
     #endif
@@ -899,12 +894,12 @@ void update_current_position() {
           // but steps[i] can be like 1000000 already, so we'd overflow.
           // Unfortunately, using muldiv() overwhelms the compiler.
           // Also keep the parens around this term, else results go wrong.
-          ((move_state.steps[i] * 1000) / pgm_read_dword(&steps_per_mm_P[i]));
+          ((move_state.axes[i].steps * 1000) / pgm_read_dword(&steps_per_mm_P[i]));
     }
 
     if (dda->endpoint.e_relative)
       current_position.axis[E] =
-          (move_state.steps[E] * 1000) / pgm_read_dword(&steps_per_mm_P[E]);
+          (move_state.axes[E].steps * 1000) / pgm_read_dword(&steps_per_mm_P[E]);
 
 		// current_position.F is updated in dda_start()
 	}
