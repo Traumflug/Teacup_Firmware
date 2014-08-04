@@ -87,7 +87,7 @@ for GCODE_FILE in $*; do
   set -x
   "${SIMULAVR}" -c vcd:${TRACEIN_FILE}:"${VCD_FILE}" \
                 -f ../build/teacup.elf \
-                -m 60000000000 -v < "${GCODE_FILE}"
+                -m 10000000000 -v < "${GCODE_FILE}"
   set +x
 
 
