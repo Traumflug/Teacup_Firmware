@@ -363,6 +363,7 @@ void process_gcode_command() {
 				for (i = 0; i < NUM_HEATERS; i++)
 					temp_set(i, 0);
 				power_off();
+        serial_writestr_P(PSTR("\nstop\n"));
 				break;
 
 			case 112:
