@@ -516,22 +516,22 @@ void dda_step(DDA *dda) {
 
   move_state_axes_t *axis = move_state.axes;
 
-#ifdef U_STEP_PIN
+#if (defined U_STEP_PIN)
   STEP_BRESENHAMN(U, u_step)
 #endif
-#ifdef V_STEP_PIN
+#if (defined V_STEP_PIN)
   STEP_BRESENHAMN(V, v_step)
 #endif
-#ifdef X_STEP_PIN
+#if (defined X_STEP_PIN || defined SIMULATOR)
   STEP_BRESENHAMN(X, x_step)
 #endif
-#ifdef Y_STEP_PIN
+#if (defined Y_STEP_PIN || defined SIMULATOR)
   STEP_BRESENHAMN(Y, y_step)
 #endif
-#ifdef Z_STEP_PIN
+#if (defined Z_STEP_PIN || defined SIMULATOR)
   STEP_BRESENHAMN(Z, z_step)
 #endif
-#ifdef E_STEP_PIN
+#if (defined E_STEP_PIN || defined SIMULATOR)
   STEP_BRESENHAMN(E, e_step)
 #endif
 
@@ -542,22 +542,22 @@ void dda_step(DDA *dda) {
   axis->steps--;
   axis->time += dda->step_interval[i];
   move_state.all_time = axis->time;
-#ifdef U_STEP_PIN
+#if (defined U_STEP_PIN)
   if (i == U) u_step();
 #endif
-#ifdef V_STEP_PIN
+#if (defined V_STEP_PIN)
   if (i == V) v_step();
 #endif
-#ifdef X_STEP_PIN
+#if (defined X_STEP_PIN || defined SIMULATOR)
   if (i == X) x_step();
 #endif
-#ifdef Y_STEP_PIN
+#if (defined Y_STEP_PIN || defined SIMULATOR)
   if (i == Y) y_step();
 #endif
-#ifdef Z_STEP_PIN
+#if (defined Z_STEP_PIN || defined SIMULATOR)
   if (i == Z) z_step();
 #endif
-#ifdef E_STEP_PIN
+#if (defined E_STEP_PIN || defined SIMULATOR)
   if (i == E) e_step();
 #endif
 

@@ -59,6 +59,7 @@
 #define PSTR(x) (x)
 #define pgm_read_byte(x) (*((uint8_t *)(x)))
 #define pgm_read_word(x) (*((uint16_t *)(x)))
+#define pgm_read_dword(x) (*((uint32_t *)(x)))
 
 #define MASK(PIN)   (1 << PIN)
 #define ACD         7
