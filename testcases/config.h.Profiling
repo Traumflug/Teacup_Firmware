@@ -71,10 +71,9 @@
 */
 #define	STEPS_PER_M_X					71111   // 9 teeth 5 mm
 #define	STEPS_PER_M_Y					71111   // 9 teeth 5 mm
-#define	STEPS_PER_M_Z					2844444 // 9 -> 20 teeth -> M8
 
-/// http://blog.arcol.hu/?p=157 may help with this one
-#define	STEPS_PER_M_E					320000
+#define	STEPS_PER_M_U					71111   // 9 teeth 5 mm
+#define	STEPS_PER_M_V					71111   // 9 teeth 5 mm
 
 /*
 	Values depending on the capabilities of your stepper motors and other mechanics.
@@ -85,14 +84,15 @@
 
 /// used for G0 rapid moves and as a cap for all other feedrates
 #define	MAXIMUM_FEEDRATE_X			20000
-#define	MAXIMUM_FEEDRATE_Y			2000
-#define	MAXIMUM_FEEDRATE_Z			1000
-#define	MAXIMUM_FEEDRATE_E			20000
+#define	MAXIMUM_FEEDRATE_Y			20000
+#define	MAXIMUM_FEEDRATE_U			20000
+#define	MAXIMUM_FEEDRATE_V			20000
 
 /// Used when doing precision endstop search and as default feedrate.
 #define	SEARCH_FEEDRATE_X			200
 #define	SEARCH_FEEDRATE_Y			200
-#define	SEARCH_FEEDRATE_Z			50
+#define	SEARCH_FEEDRATE_U			200
+#define	SEARCH_FEEDRATE_V			200
 // no SEARCH_FEEDRATE_E, as E can't be searched
 
 /** \def ENDSTOP_CLEARANCE_X
@@ -172,7 +172,7 @@
 	acceleration and deceleration ramping.
 		Each movement starts at (almost) no speed, linearly accelerates to target speed and decelerates just in time to smoothly stop at the target. alternative to ACCELERATION_REPRAP
 */
-#define ACCELERATION_RAMPING
+//#define ACCELERATION_RAMPING
 
 /** \def ACCELERATION
 	how fast to accelerate when using ACCELERATION_RAMPING.
@@ -199,7 +199,7 @@
   transition between moves instead of performing a dead stop every move.
   Enabling look-ahead requires about 3600 bytes of flash memory.
 */
-#define LOOKAHEAD
+//#define LOOKAHEAD
 
 /** \def MAX_JERK_X
     \def MAX_JERK_Y
@@ -279,9 +279,9 @@
 //#define	Y_INVERT_MAX
 //#define	Y_INVERT_ENABLE
 
-#define	Z_STEP_PIN						DIO23
-#define	Z_DIR_PIN							DIO22
-#define	Z_MIN_PIN							DIO2
+#define	U_STEP_PIN						DIO23
+#define	U_DIR_PIN							DIO22
+#define	U_MIN_PIN							DIO2
 //#define	Z_MAX_PIN							xxxx
 //#define	Z_ENABLE_PIN					xxxx
 //#define	Z_INVERT_DIR
@@ -289,8 +289,9 @@
 //#define	Z_INVERT_MAX
 //#define	Z_INVERT_ENABLE
 
-#define	E_STEP_PIN						DIO19
-#define	E_DIR_PIN							DIO18
+#define	V_STEP_PIN						DIO19
+#define	V_DIR_PIN							DIO18
+#define	V_MIN_PIN							DIO3
 //#define E_ENABLE_PIN
 //#define	E_INVERT_DIR
 //#define	E_INVERT_ENABLE
