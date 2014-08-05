@@ -81,15 +81,19 @@ for GCODE_FILE in $*; do
   DATA_FILE="${FILE}.data"
   VEL_FILE="${FILE}.processed.vcd"
 
-
   # We assume here queue and rx buffer are large enough to read
   # the file in one chunk. If not, raise MOVEBUFFER_SIZE in config.h.
-  set -x
-  "${SIMULAVR}" -c vcd:${TRACEIN_FILE}:"${VCD_FILE}" \
-                -f ../build/teacup.elf \
-                -m 10000000000 -v < "${GCODE_FILE}"
-  set +x
-
+  while read -r line
+  do
+      case $line in
+          *stop*)
+              echo $line;
+              echo "Got \"stop\" output, killing ${SIMULAVR}";
+              (sleep 5; kill -INT $(pidof -x ${SIMULAVR})) ;;
+          *)
+              echo $line;;
+      esac
+  done < <("${SIMULAVR}" -c vcd:${TRACEIN_FILE}:"${VCD_FILE}" -f ../build/teacup.elf -m 10000000000 -v < "${GCODE_FILE}")
 
   # Make plottable files from VCD files.
   # This is very rudimentary and does a lot of assumptions.
