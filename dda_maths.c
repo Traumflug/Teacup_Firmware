@@ -17,15 +17,25 @@
 const axes_uint32_t PROGMEM axis_qn_P = {
   (uint32_t)STEPS_PER_M_X / UM_PER_METER,
   (uint32_t)STEPS_PER_M_Y / UM_PER_METER,
+#ifdef U_STEP_PIN
+  (uint32_t)STEPS_PER_M_U / UM_PER_METER,
+  (uint32_t)STEPS_PER_M_V / UM_PER_METER
+#else
   (uint32_t)STEPS_PER_M_Z / UM_PER_METER,
   (uint32_t)STEPS_PER_M_E / UM_PER_METER
+#endif
 };
 
 const axes_uint32_t PROGMEM axis_qr_P = {
   (uint32_t)STEPS_PER_M_X % UM_PER_METER,
   (uint32_t)STEPS_PER_M_Y % UM_PER_METER,
+#ifdef U_STEP_PIN
+  (uint32_t)STEPS_PER_M_U % UM_PER_METER,
+  (uint32_t)STEPS_PER_M_V % UM_PER_METER
+#else
   (uint32_t)STEPS_PER_M_Z % UM_PER_METER,
   (uint32_t)STEPS_PER_M_E % UM_PER_METER
+#endif
 };
 
 /*!

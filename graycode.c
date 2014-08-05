@@ -7,11 +7,50 @@
 	By default, X Y and Z are graycode, while E remains step/dir. If this isn't what
 	you want, edit the lines just below.
 */
+// #define U_GREYCODE
+// #define V_GREYCODE
 // #define X_GREYCODE
 // #define Y_GREYCODE
 // #define Z_GREYCODE
-//#define E_GREYCODE
+// #define E_GREYCODE
 
+
+/*
+	U Stepper
+*/
+#ifdef U_GREYCODE
+	#undef u_step
+	#undef _u_step
+	#undef u_direction
+	#define u_step()                        {\
+												u_greycode+=stored_u_direction;\
+												WRITE(U_STEP_PIN,(u_greycode>>1)&1);\
+												WRITE(U_DIR_PIN,((u_greycode>>1)^u_greycode)&1);\
+											}
+	#define _u_step(st)                    
+	#define u_direction(dir)                stored_u_direction=(dir)?1:-1
+	int8_t stored_u_direction;
+	int8_t u_greycode;
+#endif
+
+/*
+	V Stepper
+*/
+
+#ifdef V_GREYCODE
+	#undef v_step
+	#undef _v_step
+	#undef v_direction
+	#define v_step()                        {\
+												v_greycode+=stored_v_direction;\
+												WRITE(V_STEP_PIN,(v_greycode>>1)&1);\
+												WRITE(V_DIR_PIN,((v_greycode>>1)^v_greycode)&1);\
+											}
+	#define _v_step(st)                     
+	#define v_direction(dir)                stored_v_direction=(dir)?1:-1
+	int8_t stored_v_direction;
+	int8_t v_greycode;
+#endif
 
 /*
 	X Stepper

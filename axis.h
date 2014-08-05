@@ -16,17 +16,17 @@
 
 // Enum to denote valid axises
 enum axis_e {
-#ifdef U_STEP_PIN
-  U,
-#endif
-#ifdef V_STEP_PIN
-  V,
-#endif
 #ifdef X_STEP_PIN
   X,
 #endif
 #ifdef Y_STEP_PIN
   Y,
+#endif
+#ifdef U_STEP_PIN
+  U,
+#endif
+#ifdef V_STEP_PIN
+  V,
 #endif
 #ifdef Z_STEP_PIN
   Z,
@@ -40,17 +40,17 @@ enum axis_e {
 };
 
 static const char axis_enum2char[] =
-#ifdef U_STEP_PIN
-  "U"
-#endif
-#ifdef V_STEP_PIN
-  "V"
-#endif
 #ifdef X_STEP_PIN
   "X"
 #endif
 #ifdef Y_STEP_PIN
   "Y"
+#endif
+#ifdef U_STEP_PIN
+  "U"
+#endif
+#ifdef V_STEP_PIN
+  "V"
 #endif
 #ifdef Z_STEP_PIN
   "Z"
@@ -79,17 +79,17 @@ typedef int32_t axes_int32_t[AXIS_COUNT];
 /// \var steps_per_m_P
 /// \brief motor steps required to advance one meter on each axis
 static const axes_uint32_t PROGMEM steps_per_m_P = {
-#ifdef U_STEP_PIN
-  STEPS_PER_M_U,
-#endif
-#ifdef V_STEP_PIN
-  STEPS_PER_M_V,
-#endif
 #ifdef X_STEP_PIN
   STEPS_PER_M_X,
 #endif
 #ifdef Y_STEP_PIN
   STEPS_PER_M_Y,
+#endif
+#ifdef U_STEP_PIN
+  STEPS_PER_M_U,
+#endif
+#ifdef V_STEP_PIN
+  STEPS_PER_M_V,
 #endif
 #ifdef Z_STEP_PIN
   STEPS_PER_M_Z,
@@ -102,17 +102,17 @@ static const axes_uint32_t PROGMEM steps_per_m_P = {
 /// \var maximum_feedrate_P
 /// \brief maximum allowed feedrate on each axis
 static const axes_uint32_t PROGMEM maximum_feedrate_P = {
-#ifdef U_STEP_PIN
-  MAXIMUM_FEEDRATE_U,
-#endif
-#ifdef V_STEP_PIN
-  MAXIMUM_FEEDRATE_V,
-#endif
 #ifdef X_STEP_PIN
   MAXIMUM_FEEDRATE_X,
 #endif
 #ifdef Y_STEP_PIN
   MAXIMUM_FEEDRATE_Y,
+#endif
+#ifdef U_STEP_PIN
+  MAXIMUM_FEEDRATE_U,
+#endif
+#ifdef V_STEP_PIN
+  MAXIMUM_FEEDRATE_V,
 #endif
 #ifdef Z_STEP_PIN
   MAXIMUM_FEEDRATE_Z,
@@ -126,17 +126,17 @@ static const axes_uint32_t PROGMEM maximum_feedrate_P = {
 /// \brief Initialization constant for the ramping algorithm. Timer cycles for
 ///        first step interval.
 static const axes_uint32_t PROGMEM c0_P = {
-#ifdef U_STEP_PIN
-  (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_U * ACCELERATION / 2000.))),
-#endif
-#ifdef V_STEP_PIN
-  (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_V * ACCELERATION / 2000.))),
-#endif
 #ifdef X_STEP_PIN
   (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_X * ACCELERATION / 2000.))),
 #endif
 #ifdef Y_STEP_PIN
   (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_Y * ACCELERATION / 2000.))),
+#endif
+#ifdef U_STEP_PIN
+  (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_U * ACCELERATION / 2000.))),
+#endif
+#ifdef V_STEP_PIN
+  (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_V * ACCELERATION / 2000.))),
 #endif
 #ifdef Z_STEP_PIN
   (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_Z * ACCELERATION / 2000.))),

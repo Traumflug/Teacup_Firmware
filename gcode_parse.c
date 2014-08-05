@@ -229,6 +229,12 @@ void gcode_parse_char(uint8_t c) {
         case 'Y':
           next_target.seen_Y = 1;
           break;
+        case 'U':
+          next_target.seen_U = 1;
+          break;
+        case 'V':
+          next_target.seen_V = 1;
+          break;
         case 'Z':
           next_target.seen_Z = 1;
           break;
@@ -306,8 +312,13 @@ void gcode_parse_char(uint8_t c) {
 
     // Assume G1 for unspecified movements.
     if ( ! next_target.seen_G &&
-        (next_target.seen_X || next_target.seen_Y || next_target.seen_Z ||
-         next_target.seen_E || next_target.seen_F)) {
+        (next_target.seen_X || next_target.seen_Y ||
+#ifdef U_STEP_PIN
+         next_target.seen_U || next_target.seen_V ||
+#else
+         next_target.seen_Z || next_target.seen_E ||
+#endif
+         next_target.seen_F)) {
       next_target.seen_G = 1;
       next_target.G = 1;
     }
@@ -348,6 +359,7 @@ void gcode_parse_char(uint8_t c) {
 
 		// reset variables
 		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
+			next_target.seen_U = next_target.seen_V = \
 			next_target.seen_E = next_target.seen_F = next_target.seen_S = \
 			next_target.seen_P = next_target.seen_T = next_target.seen_N = \
       next_target.seen_G = next_target.seen_M = next_target.seen_checksum = \
@@ -356,11 +368,18 @@ void gcode_parse_char(uint8_t c) {
 		// last_field and read_digit are reset above already
 
 		if (next_target.option_all_relative) {
-      next_target.target.axis[X] = next_target.target.axis[Y] = next_target.target.axis[Z] = 0;
+      next_target.target.axis[X] = next_target.target.axis[Y] = 
+#ifdef U_STEP_PIN
+          next_target.target.axis[U] = next_target.target.axis[V] = 0;
+#else
+          next_target.target.axis[Z] = 0;
+#endif
 		}
+#ifdef E_STEP_PIN
 		if (next_target.option_all_relative || next_target.option_e_relative) {
       next_target.target.axis[E] = 0;
 		}
+#endif
 	}
 }
 

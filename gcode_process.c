@@ -51,7 +51,12 @@ void process_gcode_command() {
 	if (next_target.option_all_relative) {
     next_target.target.axis[X] += startpoint.axis[X];
     next_target.target.axis[Y] += startpoint.axis[Y];
+#ifdef U_STEP_PIN
+    next_target.target.axis[U] += startpoint.axis[U];
+    next_target.target.axis[V] += startpoint.axis[V];
+#else
     next_target.target.axis[Z] += startpoint.axis[Z];
+#endif
 	}
 
 	// E relative movement.
@@ -271,7 +276,17 @@ void process_gcode_command() {
           startpoint.axis[Y] = next_target.target.axis[Y];
 					axisSelected = 1;
 				}
-				if (next_target.seen_Z) {
+#ifdef U_STEP_PIN
+		    if (next_target.seen_U) {
+          startpoint.axis[U] = next_target.target.axis[U];
+					axisSelected = 1;
+				}
+				if (next_target.seen_V) {
+          startpoint.axis[V] = next_target.target.axis[V];
+					axisSelected = 1;
+				}
+#else
+		    if (next_target.seen_Z) {
           startpoint.axis[Z] = next_target.target.axis[Z];
 					axisSelected = 1;
 				}
@@ -279,12 +294,18 @@ void process_gcode_command() {
           startpoint.axis[E] = next_target.target.axis[E];
 					axisSelected = 1;
 				}
-
+#endif
 				if (axisSelected == 0) {
           startpoint.axis[X] = next_target.target.axis[X] =
           startpoint.axis[Y] = next_target.target.axis[Y] =
+#ifdef U_STEP_PIN
+          startpoint.axis[U] = next_target.target.axis[U] =
+          startpoint.axis[V] = next_target.target.axis[V] = 
+#else
           startpoint.axis[Z] = next_target.target.axis[Z] =
-          startpoint.axis[E] = next_target.target.axis[E] = 0;
+          startpoint.axis[E] = next_target.target.axis[E] = 
+#endif
+          0;
 				}
 
 				dda_new_startpoint();
@@ -557,13 +578,16 @@ void process_gcode_command() {
 					queue_wait();
 				#endif
 				update_current_position();
+#ifdef Z_STEP_PIN
 				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%lu"),
                         current_position.axis[X], current_position.axis[Y],
                         current_position.axis[Z], current_position.axis[E],
 				                current_position.F);
+#endif
 
 				#ifdef	DEBUG
 					if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
+#ifdef Z_STEP_PIN
 						sersendf_P(PSTR(",c:%lu}\nEndpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}"),
                             movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.axis[X],
                             movebuffer[mb_tail].endpoint.axis[Y], movebuffer[mb_tail].endpoint.axis[Z],
@@ -574,6 +598,7 @@ void process_gcode_command() {
 							movebuffer[mb_tail].c
 						#endif
 						);
+#endif
 						print_queue();
 					}
 				#endif /* DEBUG */

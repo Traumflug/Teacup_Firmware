@@ -56,34 +56,27 @@ MOVE_STATE BSS move_state;
 /*! Set the direction of the 'n' axis
 */
 static void set_direction(DDA *dda, enum axis_e n, int dir) {
-  if (n == X)
-    dda->x_direction = dir;
-  else if (n == Y)
-    dda->y_direction = dir;
-  else if (n == Z)
-    dda->z_direction = dir;
-  else if (n == E)
-    dda->e_direction = dir;
+  dda->direction &= ~(1<<n);
+  dda->direction |= (dir ? 1 : 0) << n;
 }
 
 /*! Find the direction of the 'n' axis
 */
 static int8_t get_direction(DDA *dda, enum axis_e n) {
-  if ((n == X && dda->x_direction) ||
-      (n == Y && dda->y_direction) ||
-      (n == Z && dda->z_direction) ||
-      (n == E && dda->e_direction))
-    return 1;
-  else
-    return -1;
+  return (dda->direction & (1 << n)) ? 1 : -1;
 }
 
 /*! Inititalise DDA movement structures
 */
 void dda_init(void) {
 	// set up default feedrate
+#ifdef SEARCH_FEEDRATE_Z
 	if (startpoint.F == 0)
 		startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
+#else
+	if (startpoint.F == 0)
+		startpoint.F = next_target.target.F = 20;
+#endif
 }
 
 /*! Distribute a new startpoint to DDA's internal structures without any movement.
@@ -93,7 +86,7 @@ void dda_init(void) {
 void dda_new_startpoint(void) {
   enum axis_e i;
 
-  for (i = X; i < AXIS_COUNT; i++)
+  for (i = 0; i < AXIS_COUNT; i++)
     startpoint_steps.axis[i] = um_to_steps(startpoint.axis[i], i);
 }
 
@@ -143,10 +136,12 @@ void dda_create(DDA *dda, TARGET *target) {
   if (dda->waitfor_temp)
     return;
 
+#ifdef Z_STEP_PIN
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("\nCreate: X %lq  Y %lq  Z %lq  F %lu\n"),
                dda->endpoint.axis[X], dda->endpoint.axis[Y],
                dda->endpoint.axis[Z], dda->endpoint.F);
+#endif
 
 	// we end at the passed target
 	memcpy(&(dda->endpoint), target, sizeof(TARGET));
@@ -161,7 +156,11 @@ void dda_create(DDA *dda, TARGET *target) {
     dda->id = idcnt++;
   #endif
 
-  for (i = X; i < (target->e_relative ? E : AXIS_COUNT); i++) {
+  for (i = 0; i < AXIS_COUNT; i++) {
+#ifdef E_STEP_PIN
+    if(target->e_relative && i == E)
+        continue;
+#endif
     delta_um[i] = (uint32_t)abs32(target->axis[i] - startpoint.axis[i]);
 
     steps = um_to_steps(target->axis[i], i);
@@ -179,6 +178,7 @@ void dda_create(DDA *dda, TARGET *target) {
     #endif
   }
 
+#ifdef E_STEP_PIN
 	if (target->e_relative) {
     // When we get more extruder axes:
     // for (i = E; i < AXIS_COUNT; i++) { ...
@@ -189,19 +189,22 @@ void dda_create(DDA *dda, TARGET *target) {
     #endif
     dda->e_direction = (target->axis[E] >= 0)?1:0;
 	}
+#endif
 
+#ifdef Z_STEP_PIN
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("[%ld,%ld,%ld,%ld]"),
                target->axis[X] - startpoint.axis[X], target->axis[Y] - startpoint.axis[Y],
                target->axis[Z] - startpoint.axis[Z], target->axis[E] - startpoint.axis[E]);
+#endif
 
   // Admittedly, this looks like it's overcomplicated. Why store three 32-bit
   // values if storing an axis number would be fully sufficient? Well, I'm not
   // sure, but my feeling says that when we achieve true circles and Beziers,
   // we'll have total_steps which matches neither of X, Y, Z or E. Accordingly,
   // keep it for now. --Traumflug
-  for (i = X; i < AXIS_COUNT; i++) {
-    if (i == X || dda->delta[i] > dda->total_steps) {
+  for (i = 0; i < AXIS_COUNT; i++) {
+    if (i == 0 || dda->delta[i] > dda->total_steps) {
       dda->fast_axis = i;
       dda->total_steps = dda->delta[i];
       dda->fast_um = delta_um[i];
@@ -225,6 +228,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		e_enable();
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
+#ifdef Z_STEP_PIN
 		if (delta_um[Z] == 0)
 			distance = approx_distance(delta_um[X], delta_um[Y]);
 		else if (delta_um[X] == 0 && delta_um[Y] == 0)
@@ -235,7 +239,15 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (distance < 2)
 			distance = delta_um[E];
 
-		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+#else //UVXY mode
+    
+    //Use the largest distance of XY/UV moves  
+    distance = approx_distance(delta_um[X], delta_um[Y]);
+    uint32_t tmp = approx_distance(delta_um[U], delta_um[V]);
+    distance = (distance < tmp) ? tmp : distance;
+#endif
+	
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",ds:%lu"), distance);
 
     #ifdef	ACCELERATION_TEMPORAL
@@ -276,7 +288,7 @@ void dda_create(DDA *dda, TARGET *target) {
     //       ACCELERATION_TEMPORAL above. This should make re-calculating the
     //       allowed F easier.
     c_limit = 0;
-    for (i = X; i < AXIS_COUNT; i++) {
+    for (i = 0; i < AXIS_COUNT; i++) {
       c_limit_calc = (delta_um[i] * 2400L) /
                      dda->total_steps * (F_CPU / 40000) /
                      pgm_read_dword(&maximum_feedrate_P[i]);
@@ -425,25 +437,33 @@ void dda_create(DDA *dda, TARGET *target) {
 */
 void dda_start(DDA *dda) {
 	// called from interrupt context: keep it simple!
-
+#ifdef Z_STEP_PIN
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Start: X %lq  Y %lq  Z %lq  F %lu\n"),
                dda->endpoint.axis[X], dda->endpoint.axis[Y],
                dda->endpoint.axis[Z], dda->endpoint.F);
+#endif
 
 	if ( ! dda->nullmove) {
 		// get ready to go
 		psu_timeout = 0;
+#if Z_ENABLE_PIN 
     if (dda->delta[Z])
 			z_enable();
+#endif
 		if (dda->endstop_check)
 			endstops_on();
 
 		// set direction outputs
-		x_direction(dda->x_direction);
-		y_direction(dda->y_direction);
-		z_direction(dda->z_direction);
-		e_direction(dda->e_direction);
+		x_direction(get_direction(dda, X) > 0);
+		y_direction(get_direction(dda, Y) > 0);
+#ifdef U_STEP_PIN
+		u_direction(get_direction(dda, U) > 0);
+		v_direction(get_direction(dda, V) > 0);
+#else
+		z_direction(get_direction(dda, Z) > 0);
+		e_direction(get_direction(dda, E) > 0);
+#endif
 
 		#ifdef	DC_EXTRUDER
     if (dda->delta[E])
@@ -451,8 +471,17 @@ void dda_start(DDA *dda) {
 		#endif
 
 		// initialise state variable
-    move_state.axes[X].counter = move_state.axes[Y].counter = move_state.axes[Z].counter = \
-      move_state.axes[E].counter = -(dda->total_steps >> 1);
+    move_state.axes[X].counter = 
+    move_state.axes[Y].counter = 
+#ifdef U_STEP_PIN
+    move_state.axes[U].counter = 
+    move_state.axes[V].counter = 
+#else
+    move_state.axes[Z].counter = 
+    move_state.axes[E].counter = 
+#endif
+    -(dda->total_steps >> 1);
+
     //memcpy(&move_state.axes[X].steps, &dda->delta[X], sizeof(uint32_t) * 4);
     for(int i = 0; i < AXIS_COUNT; i++)
     {
@@ -516,17 +545,17 @@ void dda_step(DDA *dda) {
 
   move_state_axes_t *axis = move_state.axes;
 
-#if (defined U_STEP_PIN)
-  STEP_BRESENHAMN(U, u_step)
-#endif
-#if (defined V_STEP_PIN)
-  STEP_BRESENHAMN(V, v_step)
-#endif
 #if (defined X_STEP_PIN || defined SIMULATOR)
   STEP_BRESENHAMN(X, x_step)
 #endif
 #if (defined Y_STEP_PIN || defined SIMULATOR)
   STEP_BRESENHAMN(Y, y_step)
+#endif
+#if (defined U_STEP_PIN)
+  STEP_BRESENHAMN(U, u_step)
+#endif
+#if (defined V_STEP_PIN)
+  STEP_BRESENHAMN(V, v_step)
 #endif
 #if (defined Z_STEP_PIN || defined SIMULATOR)
   STEP_BRESENHAMN(Z, z_step)
@@ -542,17 +571,17 @@ void dda_step(DDA *dda) {
   axis->steps--;
   axis->time += dda->step_interval[i];
   move_state.all_time = axis->time;
-#if (defined U_STEP_PIN)
-  if (i == U) u_step();
-#endif
-#if (defined V_STEP_PIN)
-  if (i == V) v_step();
-#endif
 #if (defined X_STEP_PIN || defined SIMULATOR)
   if (i == X) x_step();
 #endif
 #if (defined Y_STEP_PIN || defined SIMULATOR)
   if (i == Y) y_step();
+#endif
+#if (defined U_STEP_PIN)
+  if (i == U) u_step();
+#endif
+#if (defined V_STEP_PIN)
+  if (i == V) v_step();
 #endif
 #if (defined Z_STEP_PIN || defined SIMULATOR)
   if (i == Z) z_step();
@@ -641,7 +670,12 @@ void dda_step(DDA *dda) {
 
   // If there are no steps left or an endstop stop happened, we have finished.
   if ((move_state.axes[X].steps == 0 && move_state.axes[Y].steps == 0 &&
-       move_state.axes[Z].steps == 0 && move_state.axes[Y].steps == 0)
+#ifdef U_STEP_PIN
+       move_state.axes[U].steps == 0 && move_state.axes[V].steps == 0
+#else
+       move_state.axes[Z].steps == 0 && move_state.axes[E].steps == 0
+#endif
+       )
     #ifdef ACCELERATION_RAMPING
       || (move_state.endstop_stop && dda->n <= 0)
     #endif
@@ -877,17 +911,22 @@ void update_current_position() {
   static const axes_uint32_t PROGMEM steps_per_mm_P = {
     ((STEPS_PER_M_X + 500) / 1000),
     ((STEPS_PER_M_Y + 500) / 1000),
+#ifdef U_STEP_PIN
+    ((STEPS_PER_M_U + 500) / 1000),
+    ((STEPS_PER_M_V + 500) / 1000)
+#else
     ((STEPS_PER_M_Z + 500) / 1000),
     ((STEPS_PER_M_E + 500) / 1000)
+#endif
   };
 
 	if (queue_empty()) {
-    for (i = X; i < AXIS_COUNT; i++) {
+    for (i = 0; i < AXIS_COUNT; i++) {
       current_position.axis[i] = startpoint.axis[i];
     }
 	}
 	else if (dda->live) {
-    for (i = X; i < AXIS_COUNT; i++) {
+    for (i = 0; i < AXIS_COUNT; i++) {
       current_position.axis[i] = dda->endpoint.axis[i] -
           (int32_t)get_direction(dda, i) *
           // Should be: move_state.steps[i] * 1000000 / steps_per_m_P[i])
@@ -897,9 +936,11 @@ void update_current_position() {
           ((move_state.axes[i].steps * 1000) / pgm_read_dword(&steps_per_mm_P[i]));
     }
 
+#ifdef E_STEP_PIN
     if (dda->endpoint.e_relative)
       current_position.axis[E] =
           (move_state.axes[E].steps * 1000) / pgm_read_dword(&steps_per_mm_P[E]);
+#endif
 
 		// current_position.F is updated in dda_start()
 	}

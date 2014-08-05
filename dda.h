@@ -97,10 +97,7 @@ typedef struct {
       // As we have muldiv() now, overflows became much less an issue and
       // it's likely time to get rid of these flags and use int instead of
       // uint for distance/speed calculations. --Traumflug 2014-07-04
-			uint8_t						x_direction		:1; ///< direction flag for X axis
-			uint8_t						y_direction		:1; ///< direction flag for Y axis
-			uint8_t						z_direction		:1; ///< direction flag for Z axis
-			uint8_t						e_direction		:1; ///< direction flag for E axis
+			uint8_t						direction		:AXIS_COUNT; ///< direction flag 
 		};
     uint16_t            allflags; ///< used for clearing all flags
 	};

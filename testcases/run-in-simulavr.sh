@@ -47,6 +47,16 @@ echo "# Y Dir"             >> ${TRACEIN_FILE}
 echo "+ PORTA.A5-Out"      >> ${TRACEIN_FILE}
 echo "# Y Step"            >> ${TRACEIN_FILE}
 echo "+ PORTA.A4-Out"      >> ${TRACEIN_FILE}
+
+echo "# U Dir"             >> ${TRACEIN_FILE}
+echo "+ PORTC.C6-Out"      >> ${TRACEIN_FILE}
+echo "# U Step"            >> ${TRACEIN_FILE}
+echo "+ PORTC.C7-Out"      >> ${TRACEIN_FILE}
+echo "# V Dir"             >> ${TRACEIN_FILE}
+echo "+ PORTC.C2-Out"      >> ${TRACEIN_FILE}
+echo "# V Step"            >> ${TRACEIN_FILE}
+echo "+ PORTC.C3-Out"      >> ${TRACEIN_FILE}
+
 echo "# DEBUG LED"         >> ${TRACEIN_FILE}
 echo "+ PORTC.C5-Out"      >> ${TRACEIN_FILE}
 echo "Assuming pin configuration for a Gen7-v1.4 + debug LED on DIO21."
@@ -101,12 +111,15 @@ for GCODE_FILE in $*; do
   # is assumed to match the order in ${TRACEIN_FILE} and starting at "0".
   awk '
     BEGIN {
-      print "0 0 0 0 0";
+      print "0 0 0 0 0 0 0 0 0";
       xDir = yDir = 0;
       xPos = yPos = 0;
       xVel = yVel = 0;
-      yAcc = yAcc = 0;
+      uDir = vDir = 0;
+      uPos = vPos = 0;
+      uVel = vVel = 0;
       lastxTime = lastyTime = 0;
+      lastuTime = lastvTime = 0;
     }
     /^#/ {
       time = substr($0, 2);
@@ -124,11 +137,21 @@ for GCODE_FILE in $*; do
         else if (bit == 1) yDir = 1;
         else yDir = 0;
       }
+      if ($2 == "4") { # U Dir
+        if (bit == 0) uDir = -1;
+        else if (bit == 1) uDir = 1;
+        else uDir = 0;
+      }
+      if ($2 == "6") { # V Dir
+        if (bit == 0) vDir = -1;
+        else if (bit == 1) vDir = 1;
+        else vDir = 0;
+      }
       if ($2 == "1") { # X Step, count only raising flanges
         if (bit == 1) {
           xPos += xDir;
           xVel = 1000000000 / (time - lastxTime);
-          print time " " xPos " " yPos " " xVel " " yVel;
+          print time " " xPos " " yPos " " xVel " " yVel " " uPos " " vPos " " uVel " " vVel;
           lastxTime = time;
         }
       }
@@ -136,8 +159,24 @@ for GCODE_FILE in $*; do
         if (bit == 1) {
           yPos += yDir;
           yVel = 1000000000 / (time - lastyTime);
-          print time " " xPos " " yPos " " xVel " " yVel;
+          print time " " xPos " " yPos " " xVel " " yVel " " uPos " " vPos " " uVel " " vVel;
           lastyTime = time;
+        }
+      }
+      if ($2 == "5") { # U Step, count only raising flanges
+        if (bit == 1) {
+          uPos += uDir;
+          uVel = 1000000000 / (time - lastuTime);
+          print time " " xPos " " yPos " " xVel " " yVel " " uPos " " vPos " " uVel " " vVel;
+          lastuTime = time;
+        }
+      }
+      if ($2 == "7") { # V Step, count only raising flanges
+        if (bit == 1) {
+          vPos += vDir;
+          vVel = 1000000000 / (time - lastvTime);
+          print time " " xPos " " yPos " " xVel " " yVel " " uPos " " vPos " " uVel " " vVel;
+          lastvTime = time;
         }
       }
       # No usage for the LED pin signal ($2 == "4") so far.
@@ -152,14 +191,15 @@ for GCODE_FILE in $*; do
 
     set title "${GCODE_FILE}"
 
-    set xlabel "X steps"
-    set ylabel "Y steps"
+    set xlabel "X/U steps"
+    set ylabel "Y/V steps"
     set y2label "feedrate [steps/s]"
 
     #set origin 10,10;
     plot "${FILE}.data" using (\$2):(\$3) with dots title "position", \
          "${FILE}.data" using (\$2):(\$4) with dots title "X feedrate", \
-         "${FILE}.data" using (\$2):(\$5) with dots title "Y feedrate"
+         "${FILE}.data" using (\$2):(\$5) with dots title "Y feedrate", \
+         "${FILE}.data" using (\$6):(\$7) with dots title "position"
 EOF
 
 

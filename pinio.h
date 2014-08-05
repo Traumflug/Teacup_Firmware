@@ -34,6 +34,66 @@ void power_on(void);
 void power_off(void);
 
 /*
+U Stepper
+*/
+
+#define	_u_step(st)						WRITE(U_STEP_PIN, st)
+#define u_step()              _u_step(1)
+#ifndef	U_INVERT_DIR
+	#define	u_direction(dir)		WRITE(U_DIR_PIN, dir)
+#else
+	#define	u_direction(dir)		WRITE(U_DIR_PIN, (dir)^1)
+#endif
+#ifdef	U_MIN_PIN
+	#ifndef U_INVERT_MIN
+		#define u_min()						(READ(U_MIN_PIN)?1:0)
+	#else
+		#define u_min()						(READ(U_MIN_PIN)?0:1)
+	#endif
+#else
+	#define	u_min()							(0)
+#endif
+#ifdef	U_MAX_PIN
+	#ifndef U_INVERT_MAX
+		#define u_max()						(READ(U_MAX_PIN)?1:0)
+	#else
+		#define u_max()						(READ(U_MAX_PIN)?0:1)
+	#endif
+#else
+	#define	u_max()							(0)
+#endif
+
+/*
+V Stepper
+*/
+
+#define	_v_step(st)						WRITE(V_STEP_PIN, st)
+#define v_step()              _v_step(1)
+#ifndef	V_INVERT_DIR
+	#define	v_direction(dir)		WRITE(V_DIR_PIN, dir)
+#else
+	#define	v_direction(dir)		WRITE(V_DIR_PIN, (dir)^1)
+#endif
+#ifdef	V_MIN_PIN
+	#ifndef V_INVERT_MIN
+		#define v_min()						(READ(V_MIN_PIN)?1:0)
+	#else
+		#define v_min()						(READ(V_MIN_PIN)?0:1)
+	#endif
+#else
+	#define	v_min()							(0)
+#endif
+#ifdef	V_MAX_PIN
+	#ifndef V_INVERT_MAX
+		#define v_max()						(READ(V_MAX_PIN)?1:0)
+	#else
+		#define v_max()						(READ(V_MAX_PIN)?0:1)
+	#endif
+#else
+	#define	v_max()							(0)
+#endif
+
+/*
 X Stepper
 */
 
@@ -152,7 +212,7 @@ End Step - All Steppers
 (so we don't have to delay in interrupt context)
 */
 
-#define unstep() 							do { _x_step(0); _y_step(0); _z_step(0); _e_step(0); } while (0)
+#define unstep() 							do { _x_step(0); _y_step(0); _u_step(0); _v_step(0); _z_step(0); _e_step(0); } while (0)
 
 /*
 Stepper Enable Pins

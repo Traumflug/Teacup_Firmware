@@ -102,6 +102,30 @@ void io_init(void) {
 		WRITE(Y_MAX_PIN, 0); // pullup resistors off
 	#endif
 
+	// U Stepper
+	WRITE(U_STEP_PIN, 0);	SET_OUTPUT(U_STEP_PIN);
+	WRITE(U_DIR_PIN,  0);	SET_OUTPUT(U_DIR_PIN);
+	#ifdef U_MIN_PIN
+		SET_INPUT(U_MIN_PIN);
+		WRITE(U_MIN_PIN, 0); // pullup resistors off
+	#endif
+	#ifdef U_MAX_PIN
+		SET_INPUT(U_MAX_PIN);
+		WRITE(U_MAX_PIN, 0); // pullup resistors off
+	#endif
+
+	// V Stepper
+	WRITE(V_STEP_PIN, 0);	SET_OUTPUT(V_STEP_PIN);
+	WRITE(V_DIR_PIN,  0);	SET_OUTPUT(V_DIR_PIN);
+	#ifdef V_MIN_PIN
+		SET_INPUT(V_MIN_PIN);
+		WRITE(V_MIN_PIN, 0); // pullup resistors off
+	#endif
+	#ifdef V_MAX_PIN
+		SET_INPUT(V_MAX_PIN);
+		WRITE(V_MAX_PIN, 0); // pullup resistors off
+	#endif
+
 	// Z Stepper
 	#if defined Z_STEP_PIN && defined Z_DIR_PIN
 		WRITE(Z_STEP_PIN, 0);	SET_OUTPUT(Z_STEP_PIN);
