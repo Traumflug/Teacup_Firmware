@@ -493,7 +493,7 @@ void dda_start(DDA *dda) {
 			move_state.step_no = 0;
 		#endif
 		#ifdef ACCELERATION_TEMPORAL
-      move_state.axes[X].time = move_state[Y].time = \
+      move_state.axes[X].time = move_state.axes[Y].time = \
         move_state.axes[Z].time = move_state.axes[E].time = 0UL;
 		#endif
 
