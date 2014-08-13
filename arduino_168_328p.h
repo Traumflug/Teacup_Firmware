@@ -21,10 +21,7 @@
 #define	OC2B				DIO3
 
 
-/*
-pins
-*/
-
+// digital pins
 #define DIO0_PIN		PIND0
 #define DIO0_RPORT	PIND
 #define DIO0_WPORT	PORTD
@@ -109,7 +106,61 @@ pins
 #define DIO13_DDR		DDRB
 #define DIO13_PWM		NULL
 
+/**
+  DIO14 ... DIO21 are added for compatibility with other
+  firmwares and duplicate names for AIO0 ... AIO7,
+  so DIO14 == AIO0, DIO15 == AIO1, DIO16 == AIO2, ...
+*/
+#define DIO14_PIN   PINC0
+#define DIO14_RPORT PINC
+#define DIO14_WPORT PORTC
+#define DIO14_DDR   DDRC
+#define DIO14_PWM   NULL
 
+#define DIO15_PIN   PINC1
+#define DIO15_RPORT PINC
+#define DIO15_WPORT PORTC
+#define DIO15_DDR   DDRC
+#define DIO15_PWM   NULL
+
+#define DIO16_PIN   PINC2
+#define DIO16_RPORT PINC
+#define DIO16_WPORT PORTC
+#define DIO16_DDR   DDRC
+#define DIO16_PWM   NULL
+
+#define DIO17_PIN   PINC3
+#define DIO17_RPORT PINC
+#define DIO17_WPORT PORTC
+#define DIO17_DDR   DDRC
+#define DIO17_PWM   NULL
+
+#define DIO18_PIN   PINC4
+#define DIO18_RPORT PINC
+#define DIO18_WPORT PORTC
+#define DIO18_DDR   DDRC
+#define DIO18_PWM   NULL
+
+#define DIO19_PIN   PINC5
+#define DIO19_RPORT PINC
+#define DIO19_WPORT PORTC
+#define DIO19_DDR   DDRC
+#define DIO19_PWM   NULL
+
+#define DIO20_PIN   PINC6
+#define DIO20_RPORT PINC
+#define DIO20_WPORT PORTC
+#define DIO20_DDR   DDRC
+#define DIO20_PWM   NULL
+
+#define DIO21_PIN   PINC7
+#define DIO21_RPORT PINC
+#define DIO21_WPORT PORTC
+#define DIO21_DDR   DDRC
+#define DIO21_PWM   NULL
+
+
+// analog pins
 #define AIO0_PIN		PINC0
 #define AIO0_RPORT	PINC
 #define AIO0_WPORT	PORTC
