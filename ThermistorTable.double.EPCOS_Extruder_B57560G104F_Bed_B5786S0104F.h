@@ -1,4 +1,6 @@
 // Thermistor lookup table for two different thermistors.
+// EPCOS B57560G104F for hot end
+// EOCOS B5786S0104F for bed
 
 /*
    This table doesn't depend on the type of electronics, but on the type of
