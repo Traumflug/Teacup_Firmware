@@ -38,6 +38,23 @@ inline int32_t um_to_steps_y(int32_t distance) {
                     STEPS_PER_M_Y % 1000000UL, 1000000UL);
 }
 
+#ifdef SCARA_PRINTER
+/*
+	Scara-type printers need a different calculation, because the ratio
+	between xy-coordinates and xy-steps is not constant.
+	The start coordinates are needed here, because the steps needed between two points of the Scara-print
+	area depend on the coordinates of start- and endpoint.
+	You can calculate a step-pair for any cartesian coordinate, relative to bed's zero, but we need to
+	calculate the real motor-steps needed to cover the given (cartesian) distance.
+*/
+void scara_um_to_steps(int32_t pos_x, //actual x_pos
+							  int32_t pos_y, //actual y_pos
+							  int32_t distance_x, //delta to new position along x-axis in micrometer
+							  int32_t distance_y, //delta to new position along y-axis in micrometer
+							  int32_t *steps_x,  //steps for Theta-arm
+							  int32_t *steps_y);  //steps for Psi-arm 
+#endif
+
 static int32_t um_to_steps_z(int32_t) __attribute__ ((always_inline));
 inline int32_t um_to_steps_z(int32_t distance) {
     return muldivQR(distance, STEPS_PER_M_Z / 1000000UL,

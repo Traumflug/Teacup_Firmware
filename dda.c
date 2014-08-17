@@ -65,10 +65,16 @@ void dda_init(void) {
 	This is needed for example after homing or a G92. The new location must be in startpoint already.
 */
 void dda_new_startpoint(void) {
+#ifndef SCARA_PRINTER
 	startpoint_steps.X = um_to_steps_x(startpoint.X);
 	startpoint_steps.Y = um_to_steps_y(startpoint.Y);
 	startpoint_steps.Z = um_to_steps_z(startpoint.Z);
 	startpoint_steps.E = um_to_steps_e(startpoint.E);
+#else
+	scara_um_to_steps(startpoint.X, startpoint.Y, startpoint.X, startpoint.Y, &(startpoint_steps.X), &(startpoint_steps.Y));
+	startpoint_steps.Z = um_to_steps_z(startpoint.Z);
+	startpoint_steps.E = um_to_steps_e(startpoint.E);
+#endif
 }
 
 /*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
@@ -140,12 +146,28 @@ void dda_create(DDA *dda, TARGET *target) {
 	y_delta_um = (uint32_t)abs32(target->Y - startpoint.Y);
 	z_delta_um = (uint32_t)abs32(target->Z - startpoint.Z);
 
+#ifndef SCARA_PRINTER
 	steps = um_to_steps_x(target->X);
 	dda->x_delta = abs32(steps - startpoint_steps.X);
 	startpoint_steps.X = steps;
 	steps = um_to_steps_y(target->Y);
 	dda->y_delta = abs32(steps - startpoint_steps.Y);
 	startpoint_steps.Y = steps;
+#else
+	/*
+		For Scara-type printers steps on x- and y-axis mean turns of scara-arms.
+		Turning one arm (e.g. the "x-axis" arm, called Theta) for one degree you 
+		need (STEPS_PER_M_X/1000000) steps. On a RepRap Morgan with 16-tooth-pulleys
+		a single degree movement should require 215 steps.
+	*/
+	int32_t tmp_steps_x;
+	int32_t tmp_steps_y;
+	scara_um_to_steps(startpoint.X, startpoint.Y, x_delta_um, y_delta_um, &tmp_steps_x, &tmp_steps_y);
+	dda->x_delta = abs32(tmp_steps_x - startpoint_steps.X);
+	startpoint_steps.X = tmp_steps_x;
+	dda->y_delta= abs32(tmp_steps_y - startpoint_steps.Y);
+	startpoint_steps.Y = tmp_steps_y;
+#endif
 	steps = um_to_steps_z(target->Z);
 	dda->z_delta = abs32(steps - startpoint_steps.Z);
 	startpoint_steps.Z = steps;

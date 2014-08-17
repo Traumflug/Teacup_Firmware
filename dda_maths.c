@@ -8,6 +8,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#ifdef SCARA_PRINTER
+/*
+	floating pointer is only needed for Scara-type printers at the moment.
+*/
+#include <math.h>
+#endif
+
 /*!
   Integer multiply-divide algorithm. Returns the same as muldiv(multiplicand, multiplier, divisor), but also allowing to use precalculated quotients and remainders.
 
@@ -252,4 +259,64 @@ uint32_t acc_ramp_len(uint32_t feedrate, uint32_t steps_per_m) {
   return (feedrate * feedrate) /
          (((uint32_t)7200000UL * ACCELERATION) / steps_per_m);
 }
+
+/*
+	Integer square giving int64 result type
+*/
+int64_t int_sqr(int32_t a) {
+	return a * a;
+}
+
+#ifdef SCARA_PRINTER
+/*
+	Scara-type printers need a different calculation, because the ratio
+	between xy-coordinates and xy-steps is not constant.
+	The start coordinates are needed here, because the steps between two points 
+	depend on the coordinates of start- and endpoint.
+
+	The following calculaitons are a workof Quentin Harley, the inventor of the 
+	RepRap Morgan Scara-printer. We need 64-bit integers here, because we need to
+	square micrometer units. Assuming a 200mm by 200mm print area we need to handle
+	200,000 x 200,000 = 40,000,000,000 (35 bits needed to represent that).
+	Thank you Quentin for your outstanding work.
+
+	For Scara we need more memory and CPU-cycles, compared to a Delta-type printer.
+
+	pos_x, pos_y, distance_x and distance_y are micrometer values. 
+*/
+void scara_um_to_steps(int32_t pos_x, int32_t pos_y, int32_t distance_x, int32_t distance_y, int32_t *steps_x, int32_t *steps_y) {
+	int64_t scara_pos_x = pos_x - SCARA_TOWER_OFFSET_X;
+	int64_t scara_pos_y = pos_y - SCARA_TOWER_OFFSET_Y;
+
+	#if (INNER_ARM_LENGTH == OUTER_ARM_LENGTH)
+		int64_t scara_c2 = (int_sqr(scara_pos_x)+int_sqr(scara_pos_y)-2*int_sqr(INNER_ARM_LENGTH)) / (2 * int_sqr(INNER_ARM_LENGTH));
+	#else
+		int64_t scara_c2 = (int_sqr(scara_pos_x)+int_sqr(scara_pos_y)-int_sqr(INNER_ARM_LENGTH)-int_sqr(OUTER_ARM_LENGTH)) / 45000; 
+	#endif
+
+	int64_t scara_s2 = sqrt(1-int_sqr(scara_c2));
+
+	int64_t scara_k1 = INNER_ARM_LENGTH + OUTER_ARM_LENGTH * scara_c2;
+	int64_t scara_k2 = OUTER_ARM_LENGTH * scara_s2;
+
+	/*
+		TODO:
+		Repace atan2-calls with an implementation of the Cordic-algorithmor similar.
+	*/
+	double scara_theta = (atan2(scara_pos_x,scara_pos_y)-atan2(scara_k1, scara_k2))*-1;
+	double scara_psi = atan2(scara_s2,scara_c2);
+
+	/*
+		degrees = (radians * 4068) / 71
+		This is more accurate for floating point operations
+
+		For Scara-type printers, a "unit" (STEPS_PER_M_...) is one degree (1/1000th of a degree in Teacup).
+		To here we have calculated the required changes in radians, the scara-arms have to move to bring 
+		the nozzle from (pos_x,pos_y) to (pos_x+distance_x,pos_y+distance_y).
+		Now we have to convert to degerees and calculate the steps.
+	*/
+	*steps_x = (int32_t) trunc(um_to_steps_x(((scara_theta * 4068) / 71) * 1000000UL));  
+	*steps_y = (int32_t) trunc(um_to_steps_y((((scara_theta + scara_psi) * 4068) / 71) * 1000000UL)); 
+}
+#endif
 
