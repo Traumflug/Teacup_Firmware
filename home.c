@@ -132,7 +132,6 @@ void home_scara() {
 				enqueue_home(&t, 0x1, 0);
 			}
 		}
-		queue_wait();
 	}
 	else {
 		//If both endstops were reached, we can and should back off both axes (if applicable).
