@@ -110,14 +110,15 @@ void temp_init() {
 }
 
 /// called every 10ms from clock.c - check all temp sensors that are ready for checking
-void temp_sensor_tick() {
-	temp_sensor_t i = 0;
-	for (; i < NUM_TEMP_SENSORS; i++) {
-		if (temp_sensors_runtime[i].next_read_time) {
-			temp_sensors_runtime[i].next_read_time--;
-		}
-		else {
-			uint16_t	temp = 0;
+void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
+	temp_sensor_t i = sensor;
+//	for (; i < NUM_TEMP_SENSORS; i++) {
+//		if (temp_sensors_runtime[i].next_read_time) {
+//			temp_sensors_runtime[i].next_read_time--;
+//		}
+//		else {
+		{
+			uint16_t	temp = tempvalue;
 			//time to deal with this temp sensor
 			switch(temp_sensors[i].temp_type) {
 				#ifdef	TEMP_MAX6675
@@ -174,7 +175,7 @@ void temp_sensor_tick() {
 					do {
 						uint8_t j, table_num;
 						//Read current temperature
-						temp = analog_read(i);
+//						temp = analog_read(i);
 						// for thermistors the thermistor table number is in the additional field
 						table_num = temp_sensors[i].additional;
 
@@ -310,7 +311,7 @@ void temp_sensor_tick() {
                  temp_sensors_runtime[i].last_read_temp,
                  temp_sensors_runtime[i].last_read_temp / 4,
                  (temp_sensors_runtime[i].last_read_temp & 0x03) * 25);
-	}
+//	}
   if (DEBUG_PID && (debug_flags & DEBUG_PID))
     sersendf_P(PSTR("\n"));
 }
@@ -382,7 +383,7 @@ void temp_print(temp_sensor_t index) {
 	else {
 		if (index >= NUM_TEMP_SENSORS)
 			return;
-		sersendf_P(PSTR("T[%su]:"), index);
+//		sersendf_P(PSTR("T[%su]:"), index);
 		single_temp_print(index);
 	}
 }

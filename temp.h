@@ -34,7 +34,7 @@ typedef enum {
 
 void temp_init(void);
 
-void temp_sensor_tick(void);
+void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue);
 
 uint8_t	temp_achieved(void);
 

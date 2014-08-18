@@ -245,6 +245,9 @@ void init(void) {
 
 }
 
+#include "memory_barrier.h"
+#include "delay.h"
+
 /// this is where it all starts, and ends
 ///
 /// just run init(), then run an endless loop where we pass characters from the serial RX buffer to gcode_parse_char() and check the clocks
@@ -257,6 +260,21 @@ int main (void)
 {
 #endif
 	init();
+
+  uint16_t i;
+
+  for (i = 0; i < 1024; i++) {
+    ATOMIC_START
+      WRITE(DEBUG_LED_PIN, 1);
+      temp_sensor_tick(0, i);
+      WRITE(DEBUG_LED_PIN, 0);
+    ATOMIC_END
+    sersendf_P(PSTR("%u\t"), i);
+    temp_print(0);
+    sersendf_P(PSTR("\n"));
+    delay_ms(1);
+  }
+  sersendf_P(PSTR("\nstop\n"));
 
 	// main loop
 	for (;;)
