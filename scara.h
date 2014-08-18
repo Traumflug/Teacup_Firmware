@@ -18,4 +18,15 @@
 #define SCARA_TOWER_OFFSET_X	100000L
 #define SCARA_TOWER_OFFSET_Y	-62000L
 
+/*
+	We need the approximate home-positions for the homing procedure.
+	Home-positon shoud be measured relatively to the print aera's zero coordinates (x=0, y=0),
+	which for scara are at to top-right of the bed (looking towards the pole/top-platform).
+	The positon doesn't need to be very accurate because it only gives a rough startpoint for the homing
+	procedure.
+*/
+#define SCARA_HOME_X	25000L
+#define SCARA_HOME_Y	-60000L
+
+
 

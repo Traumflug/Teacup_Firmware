@@ -53,18 +53,128 @@
             sqrt((double)2 * ACCELERATION * ENDSTOP_CLEARANCE_Z / 1000.))
 #endif
 
+#ifdef SCARA_PRINTER
+/*
+	Homing a Scara-type printer like the RepRap Morgan requires a special
+	approach. After moving both axes simultaneously to negative until one
+	axis reaches the endstop, the axis that didn't reach its endstop, has
+	to be moved positive until it reaches its endstop.
+	The new function home_xy_negative() returns the axis that has to be moved
+	positive. This result is passed directly to home_scara_positive(),
+	that moves this axis in a positive direction until it reaches its endstop 
+	too.
+*/
+void home_scara() {
+#if defined X_MIN_PIN && defined Y_MIN_PIN
+	TARGET t = startpoint;
+	TARGET t2 = startpoint;
+
+	t.X = -1000000;
+	t.Y = -1000000;
+    if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) // Preprocessor can't check this :-/
+		t.F = SEARCH_FAST_X;
+    else
+		t.F = SEARCH_FEEDRATE_X;
+	enqueue_home(&t, 0x3, 1);
+
+	//We need to know which endtop was reached.
+	queue_wait();
+
+	t = startpoint;
+
+	if (! READ(X_MIN_PIN) || ! READ(Y_MIN_PIN)) {
+		//If only one endstop was reached, only this axis should back off
+		//Get the axis that reached its endstop and prepare to back off
+		if (READ(X_MIN_PIN)) {
+			t.X = +1000000;
+			if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
+				t.F = SEARCH_FEEDRATE_X;
+				enqueue_home(&t, 0x1, 0);
+			}
+
+			//home the other axis
+			t = startpoint;
+
+			t.Y = +1000000;
+		    if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y)
+				t.F = SEARCH_FAST_Y;
+			else
+				t.F = SEARCH_FEEDRATE_Y;
+			enqueue_home(&t, 0x2, 1);
+
+			if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
+				t.Y = -1000000;
+				t.F = SEARCH_FEEDRATE_Y;
+				enqueue_home(&t, 0x2, 0);
+			}
+		}
+	
+		if (READ(Y_MIN_PIN)) {
+			t.Y = +1000000;
+			if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
+				t.F = SEARCH_FEEDRATE_Y;
+				enqueue_home(&t, 0x2, 0);
+			}
+
+			//home the other axis
+			t = startpoint;
+
+			t.X = +1000000;
+		    if (SEARCH_FAST_X > SEARCH_FEEDRATE_X)
+				t.F = SEARCH_FAST_X;
+			else
+				t.F = SEARCH_FEEDRATE_X;
+			enqueue_home(&t, 0x1, 1);
+
+			if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
+				t.X = -1000000;
+				t.F = SEARCH_FEEDRATE_X;
+				enqueue_home(&t, 0x1, 0);
+			}
+		}
+		queue_wait();
+	}
+	else {
+		//If both endstops were reached, we can and should back off both axes (if applicable).
+		t.X = +1000000;
+		t.Y = +1000000;
+		if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
+			// back off slowly
+			t.F = SEARCH_FEEDRATE_X; //For Scara x- and y-feedartes are always the same
+			enqueue_home(&t, 0x3, 0);
+		}
+		//As both axes have reached their endstops we are finished here.
+    }
+
+	// set X home
+	queue_wait(); 
+	startpoint.X = next_target.target.X = SCARA_HOME_X;
+	startpoint.Y = next_target.target.Y = SCARA_HOME_Y;
+	dda_new_startpoint();
+#else
+	/*
+		Scara requires x_min- and y_min-endstops.
+	*/
+	#warning You need to define both, X_MIN_PIN and Y_MIN_PIN, for scara-type printers to work!!
+#endif
+}
+#endif
 
 /// home all 3 axes
 void home() {
 
-  home_x_negative();
-  home_x_positive();
+#ifdef SCARA_PRINTER
+	home_scara();
+#else
+	home_x_negative();
+	home_x_positive();
 
-  home_y_negative();
-  home_y_positive();
+	home_y_negative();
+	home_y_positive();
+#endif
 
-  home_z_negative();
-  home_z_positive();
+	home_z_negative();
+	home_z_positive();
 }
 
 /// find X MIN endstop
