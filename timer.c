@@ -50,7 +50,7 @@ ISR(TIMER1_COMPA_vect) {
 	if (next_step_time < 65536) {
 		// step!
 		#ifdef DEBUG_LED_PIN
-			WRITE(DEBUG_LED_PIN, 1);
+//			WRITE(DEBUG_LED_PIN, 1);
 		#endif
 
 		// disable this interrupt. if we set a new timeout, it will be re-enabled when appropriate
@@ -61,7 +61,7 @@ ISR(TIMER1_COMPA_vect) {
 
 		// led off
 		#ifdef DEBUG_LED_PIN
-			WRITE(DEBUG_LED_PIN, 0);
+//			WRITE(DEBUG_LED_PIN, 0);
 		#endif
 
 		return;
