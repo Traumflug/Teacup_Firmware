@@ -7,6 +7,8 @@
 */
 
 #include	<stdlib.h>
+#warning remove when entirely integer
+#include <math.h>
 #ifndef SIMULATOR
 #include	<avr/eeprom.h>
 #include	<avr/pgmspace.h>
@@ -170,64 +172,28 @@ void temp_sensor_tick() {
 				#endif	/* TEMP_MAX6675	*/
 
 				#ifdef	TEMP_THERMISTOR
-				case TT_THERMISTOR:
-					do {
-						uint8_t j, table_num;
-						//Read current temperature
-						temp = analog_read(i);
-						// for thermistors the thermistor table number is in the additional field
-						table_num = temp_sensors[i].additional;
+          case TT_THERMISTOR: {
+            /**
+              Courtesy of Nophead in his Hydraraptor blog:
+              http://hydraraptor.blogspot.de/2007/10/measuring-temperature-easy-way.html
 
-						//Calculate real temperature based on lookup table
-						for (j = 1; j < NUMTEMPS; j++) {
-							if (pgm_read_word(&(temptable[table_num][j][0])) > temp) {
-								// Thermistor table is already in 14.2 fixed point
-								#ifndef	EXTRUDER
-								if (DEBUG_PID && (debug_flags & DEBUG_PID))
-									sersendf_P(PSTR("pin:%d Raw ADC:%d table entry: %d"),temp_sensors[i].temp_pin,temp,j);
-								#endif
-								// Linear interpolating temperature value
-								// y = ((x - x₀)y₁ + (x₁-x)y₀ ) / (x₁ - x₀)
-								// y = temp
-								// x = ADC reading
-								// x₀= temptable[j-1][0]
-								// x₁= temptable[j][0]
-								// y₀= temptable[j-1][1]
-								// y₁= temptable[j][1]
-								// y =
-								// Wikipedia's example linear interpolation formula.
-								temp = (
-								//     ((x - x₀)y₁
-									((uint32_t)temp - pgm_read_word(&(temptable[table_num][j-1][0]))) * pgm_read_word(&(temptable[table_num][j][1]))
-								//                 +
-									+
-								//                   (x₁-x)
-									(pgm_read_word(&(temptable[table_num][j][0])) - (uint32_t)temp)
-								//                         y₀ )
-									* pgm_read_word(&(temptable[table_num][j-1][1])))
-								//                              /
-									/
-								//                                (x₁ - x₀)
-									(pgm_read_word(&(temptable[table_num][j][0])) - pgm_read_word(&(temptable[table_num][j-1][0])));
-								#ifndef	EXTRUDER
-								if (DEBUG_PID && (debug_flags & DEBUG_PID))
-									sersendf_P(PSTR(" temp:%d.%d"),temp/4,(temp%4)*25);
-								#endif
-								break;
-							}
-						}
-						#ifndef	EXTRUDER
-						if (DEBUG_PID && (debug_flags & DEBUG_PID))
-							sersendf_P(PSTR(" Sensor:%d\n"),i);
-						#endif
+              Let's do the same with r1 = 0, which is true for all RepRap
+              electronics I'm aware of.
+            */
+            double k, v, r;
+            double vadc = 5.0;
+            double r0 = 100000., t0 = 25. + 273.15, r2 = 4700., beta = 4092.;
 
+            temp = analog_read(i);
 
-						//Clamp for overflows
-						if (j == NUMTEMPS)
-							temp = temptable[table_num][NUMTEMPS-1][1];
+            k = r0 * exp(-beta / t0); // around 0.1
+            v = (double)temp * vadc / 1024.;
+            r = r2 * v / (vadc - v);
 
-						temp_sensors_runtime[i].next_read_time = 0;
-					} while (0);
+            temp = (uint16_t)(((beta / log(r / k)) - 273.15) * 4.0);
+
+            temp_sensors_runtime[i].next_read_time = 0;
+          }
 					break;
 				#endif	/* TEMP_THERMISTOR */
 
