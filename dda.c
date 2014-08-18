@@ -735,7 +735,11 @@ void dda_clock() {
   uint8_t recalc_speed;
 
   dda = queue_current_movement();
+#ifdef SCARA_PRINTER
+  if (dda != last_dda && dda != NULL) {
+#else
   if (dda != last_dda) {
+#endif
     move_state.debounce_count_xmin = move_state.debounce_count_ymin =
     move_state.debounce_count_zmin = move_state.debounce_count_xmax =
     move_state.debounce_count_ymax = move_state.debounce_count_zmax = 0;

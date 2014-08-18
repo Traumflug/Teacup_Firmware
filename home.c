@@ -82,10 +82,10 @@ void home_scara() {
 
 	t = startpoint;
 
-	if (! READ(X_MIN_PIN) || ! READ(Y_MIN_PIN)) {
+	if (! x_min() || ! y_min()) {
 		//If only one endstop was reached, only this axis should back off
 		//Get the axis that reached its endstop and prepare to back off
-		if (READ(X_MIN_PIN)) {
+		if (x_min()) {
 			t.X = +1000000;
 			if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
 				t.F = SEARCH_FEEDRATE_X;
@@ -109,7 +109,7 @@ void home_scara() {
 			}
 		}
 	
-		if (READ(Y_MIN_PIN)) {
+		if (y_min()) {
 			t.Y = +1000000;
 			if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
 				t.F = SEARCH_FEEDRATE_Y;
