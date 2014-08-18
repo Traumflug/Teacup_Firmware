@@ -109,6 +109,8 @@ void temp_init() {
 	}
 }
 
+#include <math.h>
+
 /// called every 10ms from clock.c - check all temp sensors that are ready for checking
 void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
 	temp_sensor_t i = sensor;
@@ -172,6 +174,65 @@ void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
 
 				#ifdef	TEMP_THERMISTOR
 				case TT_THERMISTOR:
+          {
+            /**
+              Courtesy Nophead and his Hydraraptor blog:
+              http://hydraraptor.blogspot.de/2007/10/measuring-temperature-easy-way.html
+
+class Thermistor:
+   "Class to do the thermistor maths"
+   def __init__(self, r0, t0, beta, r1, r2):
+       self.r0 = r0                        # stated resistance, e.g. 10K
+       self.t0 = t0 + 273.15               # temperature at stated resistance, e.g. 25C
+       self.beta = beta                    # stated beta, e.g. 3500
+       self.vadc = 5.0                     # ADC reference
+       self.vcc = 5.0                      # supply voltage to potential divider
+       self.vs = r1 * self.vcc / (r1 + r2) # effective bias voltage
+       self.rs = r1 * r2 / (r1 + r2)       # effective bias impedance
+       self.k = r0 * exp(-beta / self.t0)  # constant part of calculation
+
+   def temp(self,adc):
+       "Convert ADC reading into a temperature in Celcius"
+       v = adc * self.vadc / 1024          # convert the 10 bit ADC value to a voltage
+       r = self.rs * v / (self.vs - v)     # resistance of thermistor
+       return (self.beta / log(r / self.k)) - 273.15        # temperature
+
+   def setting(self, t):
+       "Convert a temperature into a ADC value"
+       r = self.r0 * exp(self.beta * (1 / (t + 273.15) - 1 / self.t0)) # resistance of the thermistor
+       v = self.vs * r / (self.rs + r)     # the voltage at the potential divider
+       return round(v / self.vadc * 1024)  # the ADC reading
+              */
+              /**
+              createTemperatureLookup.py does it like this:
+
+    self.t0 = t0 + 273.15                  # temperature at stated resistance, e.g. 25C
+    self.k = r0 * exp(-beta / self.t0)     # constant part of calculation
+    if r1 > 0:
+      self.vs = r1 * self.vadc / (r1 + r2) # effective bias voltage
+      self.rs = r1 * r2 / (r1 + r2)        # effective bias impedance
+    else:
+      self.vs = self.vadc                  # effective bias voltage
+      self.rs = r2                         # effective bias impedance
+
+    v = adc * self.vadc / 1024     # convert the 10 bit ADC value to a voltage
+    r = self.rs * v / (self.vs - v)        # resistance of thermistor
+    return (self.beta / log(r / self.k)) - 273.15        # temperature
+              */
+            // Let's do the same, with r1 = 0
+            double k, v, r;
+            double vadc = 5.0, r0 = 100000, t0 = 25 + 273.15, r2 = 4700, beta = 4092;
+
+            k = r0 * exp(-beta / t0); // around 0.1
+            v = (double)temp * vadc / 1024;
+
+            r = r2 * v / (vadc - v);
+            temp = (uint16_t)(((beta / log(r / k)) - 273.15) * 4.0);
+
+            temp_sensors_runtime[i].next_read_time = 0;
+          }
+
+#if 0
 					do {
 						uint8_t j, table_num;
 						//Read current temperature
@@ -229,6 +290,7 @@ void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
 
 						temp_sensors_runtime[i].next_read_time = 0;
 					} while (0);
+#endif
 					break;
 				#endif	/* TEMP_THERMISTOR */
 
