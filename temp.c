@@ -242,6 +242,7 @@ class Thermistor:
     r = self.rs * v / (self.vs - v)        # resistance of thermistor
     return (self.beta / log(r / self.k)) - 273.15        # temperature
               */
+#if 0
             // Voltages in volts * 1024.
             uint32_t v, vadc = 5.0 * 1024;
             uint32_t r, r2 = 4700, beta = 4092;
@@ -255,8 +256,18 @@ class Thermistor:
             temp = (uint16_t)(((beta << 2 << 10) / (uint32_t)(log((double)r * k) * 1024)) - 1093);
 
             temp_sensors_runtime[i].next_read_time = 0;
+#endif
           }
-
+// Linear regression tool: http://www.arndt-bruenner.de/mathe/scripts/regr.htm
+// Putting the values of ThermistorTable.single.h and the terms
+// 1, x, 1/x and 1/x^2 in there gives:
+//    f(x) = 780.346 - 0.715 * x + 13056.737 * 1/x - 10472.409 * 1/x^2 
+// Expand this by 1024 for sufficient precision with integers.
+temp = (uint16_t)(((uint32_t)(780.346 * 1024)
+               - (uint32_t)(0.715 * 1024) * temp)
+               + (uint32_t)(13056.737 * 1024) / temp
+               - (uint32_t)(10472.409 * 1024) / ((uint32_t)temp * temp)
+               >> 10);
 #if 0
 					do {
 						uint8_t j, table_num;
