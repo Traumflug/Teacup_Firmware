@@ -47,10 +47,10 @@ typedef struct {
 	temp_type_t temp_type; ///< type of sensor
 	uint8_t     temp_pin;  ///< pin that sensor is on
 	heater_t    heater;    ///< associated heater if any
-  double      vadc;      ///< ADC reference voltage
+  uint32_t    vadc;      ///< ADC reference voltage
   double      r0;        ///< Thermistor's reference resistance
   double      t0;        ///< Thermistor's reference temperature
-  double      r2;        ///< Thermistor's compare resistor
+  uint32_t    r2;        ///< Thermistor's compare resistor
   double      beta;      ///< Thermistor's calibration coefficient
 } temp_sensor_definition_t;
 
@@ -58,8 +58,8 @@ typedef struct {
 /// help build list of sensors from entries in config.h
 #ifndef SIMULATOR
 #define DEFINE_TEMP_SENSOR(name, type, pin, vadc, r0, t0, r2, beta) { \
-  (type), (pin ## _ADC), (HEATER_ ## name), (vadc), (r0), (t0) + 273.15, \
-  (r2), (beta) },
+  (type), (pin ## _ADC), (HEATER_ ## name), (vadc) * 1024, (r0), \
+  (t0) + 273.15, (r2), (beta) },
 #else
 #define DEFINE_TEMP_SENSOR(name, type, pin, vadc, r0, t0, r2, beta) { \
   (type), (TEMP_SENSOR_ ## name), (HEATER_ ## name), (vadc) },
@@ -188,7 +188,9 @@ void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
               Let's do the same with r1 = 0, which is true for all RepRap
               electronics I'm aware of.
             */
-            double k, v, r;
+            // Voltages in volts * 1024.
+            uint32_t v, r;
+            double k;
 
 //            temp = analog_read(i);
 
@@ -196,13 +198,14 @@ void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
             // Instead of a divide, multiply with the inverse.
             k = (double)1. / (temp_sensors[i].r0 *
                 exp(-temp_sensors[i].beta / temp_sensors[i].t0));
-            // v = temp * vadc / 1024.;
-            v = (double)temp * temp_sensors[i].vadc / 1024.;
-            // r = r2 * v / (vadc - v);
-            r = temp_sensors[i].r2 * v / (temp_sensors[i].vadc - v);
+            // v = temp * vadc / 1024.;  // min. 0, max. 5000
+#warning ungeschickt, da sehr ungenau f+r vadc = 3.3.
+            v = (uint32_t)temp * (temp_sensors[i].vadc / 1024);
+            // r = r2 * v / (vadc - v);  // min. 0, max. 50'000'000
+            r = (temp_sensors[i].r2 * v) / (temp_sensors[i].vadc - v);
 
             temp = (uint16_t)
-                   (((temp_sensors[i].beta / log(r * k)) - 273.15) * 4.0);
+                   (((temp_sensors[i].beta / log((double)r * k)) - 273.15) * 4.0);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }
