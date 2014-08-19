@@ -192,15 +192,16 @@ void temp_sensor_tick() {
             temp = analog_read(i);
 
             // k = r0 * exp(-beta / t0); // around 0.1
-            k = temp_sensors[i].r0 *
-                exp(-temp_sensors[i].beta / temp_sensors[i].t0);
+            // Instead of a divide, multiply with the inverse.
+            k = (double)1. / (temp_sensors[i].r0 *
+                exp(-temp_sensors[i].beta / temp_sensors[i].t0));
             // v = temp * vadc / 1024.;
             v = (double)temp * temp_sensors[i].vadc / 1024.;
             // r = r2 * v / (vadc - v);
             r = temp_sensors[i].r2 * v / (temp_sensors[i].vadc - v);
 
             temp = (uint16_t)
-                   (((temp_sensors[i].beta / log(r / k)) - 273.15) * 4.0);
+                   (((temp_sensors[i].beta / log(r * k)) - 273.15) * 4.0);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }
