@@ -223,11 +223,11 @@ class Thermistor:
             double k, v, r;
             double vadc = 5.0, r0 = 100000, t0 = 25 + 273.15, r2 = 4700, beta = 4092;
 
-            k = r0 * exp(-beta / t0); // around 0.1
+            k = (double)1 / (r0 * exp(-beta / t0));
             v = (double)temp * vadc / 1024;
 
             r = r2 * v / (vadc - v);
-            temp = (uint16_t)(((beta / log(r / k)) - 273.15) * 4.0);
+            temp = (uint16_t)(((beta / log(r * k)) - 273.15) * 4.0);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }
