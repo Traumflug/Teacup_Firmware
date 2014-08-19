@@ -110,6 +110,29 @@ void temp_init() {
 }
 
 #include <math.h>
+#include "dda_maths.h"
+/* Courtesy of http://www.quinapalus.com/efunc.html */
+uint32_t int_log(uint32_t x) {
+  uint32_t t,y;
+
+  y=0xa65af;
+  if(x<0x00008000) x<<=16,              y-=0xb1721;
+  if(x<0x00800000) x<<= 8,              y-=0x58b91;
+  if(x<0x08000000) x<<= 4,              y-=0x2c5c8;
+  if(x<0x20000000) x<<= 2,              y-=0x162e4;
+  if(x<0x40000000) x<<= 1,              y-=0x0b172;
+  t=x+(x>>1); if((t&0x80000000)==0) x=t,y-=0x067cd;
+  t=x+(x>>2); if((t&0x80000000)==0) x=t,y-=0x03920;
+  t=x+(x>>3); if((t&0x80000000)==0) x=t,y-=0x01e27;
+  t=x+(x>>4); if((t&0x80000000)==0) x=t,y-=0x00f85;
+  t=x+(x>>5); if((t&0x80000000)==0) x=t,y-=0x007e1;
+  t=x+(x>>6); if((t&0x80000000)==0) x=t,y-=0x003f8;
+  t=x+(x>>7); if((t&0x80000000)==0) x=t,y-=0x001fe;
+  x=0x80000000-x;
+  y-=x>>15;
+  return y;
+}
+
 
 /// called every 10ms from clock.c - check all temp sensors that are ready for checking
 void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
@@ -219,15 +242,17 @@ class Thermistor:
     r = self.rs * v / (self.vs - v)        # resistance of thermistor
     return (self.beta / log(r / self.k)) - 273.15        # temperature
               */
-            // Let's do the same, with r1 = 0
-            double k, v, r;
-            double vadc = 5.0, r0 = 100000, t0 = 25 + 273.15, r2 = 4700, beta = 4092;
+            // Voltages on volts * 1024.
+            uint32_t v, vadc = 5.0 * 1024;
+            uint32_t r, r2 = 4700;
+            double k;
+            double r0 = 100000, t0 = 25 + 273.15, beta = 4092;
 
             k = (double)1 / (r0 * exp(-beta / t0));
-            v = (double)temp * vadc / 1024;
+            v = (uint32_t)temp * (vadc / 1024);
 
-            r = r2 * v / (vadc - v);
-            temp = (uint16_t)(((beta / log(r * k)) - 273.15) * 4.0);
+            r = (r2 * v) / (vadc - v);
+            temp = (uint16_t)(((beta / log((double)r * k)) - 273.15) * 4.0);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }

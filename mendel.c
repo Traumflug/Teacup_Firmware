@@ -272,7 +272,7 @@ int main (void)
     sersendf_P(PSTR("%u\t"), i);
     temp_print(0);
     sersendf_P(PSTR("\n"));
-    delay_ms(1);
+    delay_ms(3);
   }
   sersendf_P(PSTR("\nstop\n"));
 
