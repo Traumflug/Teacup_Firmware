@@ -51,7 +51,7 @@ typedef struct {
   double      r0;        ///< Thermistor's reference resistance
   double      t0;        ///< Thermistor's reference temperature
   uint32_t    r2;        ///< Thermistor's compare resistor
-  double      beta;      ///< Thermistor's calibration coefficient
+  uint32_t    beta;      ///< Thermistor's calibration coefficient
 } temp_sensor_definition_t;
 
 #undef DEFINE_TEMP_SENSOR
@@ -197,15 +197,15 @@ void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
             // k = r0 * exp(-beta / t0); // around 0.1
             // Instead of a divide, multiply with the inverse.
             k = (double)1. / (temp_sensors[i].r0 *
-                exp(-temp_sensors[i].beta / temp_sensors[i].t0));
+                exp(-(double)temp_sensors[i].beta / temp_sensors[i].t0));
             // v = temp * vadc / 1024.;  // min. 0, max. 5000
 #warning ungeschickt, da sehr ungenau f+r vadc = 3.3.
             v = (uint32_t)temp * (temp_sensors[i].vadc / 1024);
             // r = r2 * v / (vadc - v);  // min. 0, max. 50'000'000
             r = (temp_sensors[i].r2 * v) / (temp_sensors[i].vadc - v);
 
-            temp = (uint16_t)
-                   (((temp_sensors[i].beta / log((double)r * k)) - 273.15) * 4.0);
+            temp = (uint16_t)(((temp_sensors[i].beta << 2 << 10) /
+                              (uint32_t)(log((double)r * k) * 1024)) - 1093);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }
