@@ -242,17 +242,17 @@ class Thermistor:
     r = self.rs * v / (self.vs - v)        # resistance of thermistor
     return (self.beta / log(r / self.k)) - 273.15        # temperature
               */
-            // Voltages on volts * 1024.
+            // Voltages in volts * 1024.
             uint32_t v, vadc = 5.0 * 1024;
-            uint32_t r, r2 = 4700;
+            uint32_t r, r2 = 4700, beta = 4092;
             double k;
-            double r0 = 100000, t0 = 25 + 273.15, beta = 4092;
+            double r0 = 100000, t0 = 25 + 273.15;
 
-            k = (double)1 / (r0 * exp(-beta / t0));
+            k = (double)1 / (r0 * exp(-(double)beta / t0));
             v = (uint32_t)temp * (vadc / 1024);
 
             r = (r2 * v) / (vadc - v);
-            temp = (uint16_t)(((beta / log((double)r * k)) - 273.15) * 4.0);
+            temp = (uint16_t)(((beta << 2 << 10) / (uint32_t)(log((double)r * k) * 1024)) - 1093);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }
