@@ -118,6 +118,97 @@ void temp_init() {
 	}
 }
 
+/**
+  Natural logarithm (base e). Algorithm used in the HP-35 pocket calculator.
+
+  See http://www.jacques-laporte.org/TheSecretOfTheAlgorithms.htm
+  and http://www.jacques-laporte.org/Logarithm_1.htm
+
+  Unused in Teacup, because floating point math. Kept for reference, because
+  this algorithm is so brilliant and because the above references show no C
+  implementation.
+*/
+double hp_35_log(double x) {
+  double y, t;
+
+  if (x == 0.)
+    return 0.;
+
+  /**
+    The basic idea is quite simple.
+
+    First step is to choose a convenient target value. As the HP-35 prefered
+    BCD (binary coded decimals) over pure binary numbers, 10 is a natural
+    choice. Then we have two things:
+
+    1. Valid range is 0 < x < target, or 0 < x < 10.
+    2. We start with the logarithm of this target:
+  */
+  y = 2.302585092994012; // ln(10)
+
+  /**
+    Normalize. Our argument could be much bigger than our target. To change
+    that, we divide by the target and to compensate, we add the logarithm
+    of the target. Just as the math textbooks say:
+
+      ln(x * k) = ln(x) + ln(k)  <==>
+      ln(x * 10) = ln(x) + ln(10)
+
+    As we don't know the size of our number, yet, we have to try in reverse
+    order.
+  */
+  while (x >= 10.) {
+    x /= 10.;
+    y += 2.302585092994012; // ln(10)
+  }
+
+  /**
+    Here comes the brilliant part. Basically it's the opposite of what we did
+    for normalisation. We try to multiply with small, well choosen numbers to
+    fill the gap between our initial result ( ln(10) ) an the actually wanted
+    value ( ln(x < 10) ). Then apply the same mathematical rule:
+
+      ln(x / k) = ln(x) - ln(k) ... always as often as possible.
+
+    That's it! A number of tries later, the gap between argument value and
+    target value becomes very small and along the way, the gap between the
+    target logarithm and actually searched logarithm becomes very small, too.
+
+    To trade some precision for speed, shorten the following list of while()
+    loops.
+  */
+  while (t = x * 2., t < 10.) {
+    y -= 0.693147180559945; // ln(2)
+    x = t;
+  }
+  while (t = x * 1.1, t < 10.) {
+    y -= 0.095310179804325; // ln(1.1)
+    x = t;
+  }
+  while (t = x * 1.01, t < 10.) {
+    y -= 0.009950330853168; // ln(1.01)
+    x = t;
+  }
+  while (t = x * 1.001, t < 10.) {
+    y -= 0.000999500333084; // ln(1.001)
+    x = t;
+  }
+  while (t = x * 1.0001, t < 10.) {
+    y -= 0.000099995000333; // ln(1.0001)
+    x = t;
+  }
+  while (t = x * 1.00001, t < 10.) {
+    y -= 0.000009999950000; // ln(1.00001)
+    x = t;
+  }
+  while (t = x * 1.000001, t < 10.) {
+    y -= 0.000000999999500; // ln(1.000001)
+    x = t;
+  }
+
+  return y;
+}
+
 /// called every 10ms from clock.c - check all temp sensors that are ready for checking
 void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
 	temp_sensor_t i = sensor;
