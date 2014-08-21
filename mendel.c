@@ -264,15 +264,15 @@ int main (void)
   uint16_t i;
 
   for (i = 0; i < 1024; i++) {
-//    ATOMIC_START
+    ATOMIC_START
       WRITE(DEBUG_LED_PIN, 1);
       temp_sensor_tick(0, i);
       WRITE(DEBUG_LED_PIN, 0);
-//    ATOMIC_END
+    ATOMIC_END
     sersendf_P(PSTR("%u\t"), i);
     temp_print(0);
     sersendf_P(PSTR("\n"));
-    delay_ms(6);
+    delay_ms(3);
   }
   sersendf_P(PSTR("\nstop\n"));
 

@@ -198,39 +198,87 @@ double hp_35_log(double x) {
   while (t = x * 2., t < 10.) {
     y -= 0.693147180559945; // ln(2)
     x = t;
-sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
   while (t = x * 1.1, t < 10.) {
     y -= 0.095310179804325; // ln(1.1)
     x = t;
-sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
   while (t = x * 1.01, t < 10.) {
     y -= 0.009950330853168; // ln(1.01)
     x = t;
-sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
   while (t = x * 1.001, t < 10.) {
     y -= 0.000999500333084; // ln(1.001)
     x = t;
-sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
   while (t = x * 1.0001, t < 10.) {
     y -= 0.000099995000333; // ln(1.0001)
     x = t;
-sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
   while (t = x * 1.00001, t < 10.) {
     y -= 0.000009999950000; // ln(1.00001)
     x = t;
-sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
   while (t = x * 1.000001, t < 10.) {
     y -= 0.000000999999500; // ln(1.000001)
     x = t;
-sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
-sersendf_P(PSTR("\nstop\n"));
+
+  return y;
+}
+
+/**
+  Natural logarithm (base e). Same as hp_35_log(), but optimized for binary
+  numbers.
+*/
+double teacup_log(double x) {
+  double y, t;
+
+  if (x == 0.)
+    return 0.;
+
+  // Target = 2.
+  y = 0.69314718055994530941; // ln(2)
+
+  // Normalize.
+  while (x >= 2.) {
+    x /= 2.;
+    y += 0.69314718055994530941; // ln(2)
+//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+
+  // Multiplication list.
+  while (t = x * 1.1, t < 2.) {
+    y -= 0.095310179804325; // ln(1.1)
+    x = t;
+//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+  while (t = x * 1.01, t < 2.) {
+    y -= 0.009950330853168; // ln(1.01)
+    x = t;
+//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+  while (t = x * 1.001, t < 2.) {
+    y -= 0.000999500333084; // ln(1.001)
+    x = t;
+//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+  while (t = x * 1.0001, t < 2.) {
+    y -= 0.000099995000333; // ln(1.0001)
+    x = t;
+//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+  while (t = x * 1.00001, t < 2.) {
+    y -= 0.000009999950000; // ln(1.00001)
+    x = t;
+//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+  while (t = x * 1.000001, t < 2.) {
+    y -= 0.000000999999500; // ln(1.000001)
+    x = t;
+//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+//sersendf_P(PSTR("\nstop\n"));
 
   return y;
 }
@@ -353,9 +401,7 @@ class Thermistor:
             v = (uint32_t)temp * (vadc / 1024);  // min. 0, max. 5000
 
             r = (r2 * v) / (vadc - v);  // min. 0, max. 50'000'000
-            temp = (uint16_t)(((beta << 2 << 10) / (uint32_t)(log((double)r * k) * 1024)) - 1093);
-
-sersendf_P(PSTR("%ld "), (int32_t)(hp_35_log(4.4) * 1000000.));
+            temp = (uint16_t)(((beta << 2 << 10) / (uint32_t)(teacup_log((double)r * k) * 1024)) - 1093);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }
