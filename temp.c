@@ -209,6 +209,55 @@ double hp_35_log(double x) {
   return y;
 }
 
+/**
+  Natural logarithm (base e). Same as hp_35_log(), but optimized for binary
+  numbers.
+*/
+uint32_t teacup_log(double x) {
+  uint32_t y; // 8.24 fixed point
+  double t;
+
+  if (x == 0.)
+    return 0;
+
+  // Target = 2.
+  y = 11629079; // ln(2) * 2^24
+
+  // Normalize.
+  while (x >= 2.) {
+    x /= 2.;
+    y += 11629079; // ln(2) * 2^24
+  }
+
+  // Multiplication list.
+  while (t = x * 1.1, t < 2.) {
+    y -= 1599039; // ln(1.1) * 2^24
+    x = t;
+  }
+  while (t = x * 1.01, t < 2.) {
+    y -= 166938; // ln(1.01) * 2^24
+    x = t;
+  }
+  while (t = x * 1.001, t < 2.) {
+    y -= 16768; // ln(1.001) * 2^24
+    x = t;
+  }
+  while (t = x * 1.0001, t < 2.) {
+    y -= 1677; // ln(1.0001) * 2^24
+    x = t;
+  }
+  while (t = x * 1.00001, t < 2.) {
+    y -= 167; // ln(1.00001) * 2^24
+    x = t;
+  }
+  while (t = x * 1.000001, t < 2.) {
+    y -= 16; // ln(1.000001) * 2^24
+    x = t;
+  }
+
+  return y;
+}
+
 /// called every 10ms from clock.c - check all temp sensors that are ready for checking
 void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
 	temp_sensor_t i = sensor;
@@ -296,7 +345,7 @@ void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
             r = (temp_sensors[i].r2 * v) / (temp_sensors[i].vadc - v);
 
             temp = (uint16_t)(((temp_sensors[i].beta << 2 << 10) /
-                              (uint32_t)(log((double)r * k) * 1024)) - 1093);
+                              (teacup_log((double)r * k) * 1024)) - 1093);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }
