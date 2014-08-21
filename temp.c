@@ -112,9 +112,11 @@ void temp_init() {
 #include <math.h>
 #include "dda_maths.h"
 /* Courtesy of http://www.quinapalus.com/efunc.html */
+#if 0
 uint32_t int_log(uint32_t x) {
   uint32_t t,y;
 
+// Hmpf. This stuff works apparently for big endian, only.
   y=0xa65af;
   if(x<0x00008000) x<<=16,              y-=0xb1721;
   if(x<0x00800000) x<<= 8,              y-=0x58b91;
@@ -132,7 +134,106 @@ uint32_t int_log(uint32_t x) {
   y-=x>>15;
   return y;
 }
+#endif
 
+
+/**
+  Natural logarithm (base e). Algorithm used in the HP-35 pocket calculator.
+
+  See http://www.jacques-laporte.org/TheSecretOfTheAlgorithms.htm
+  and http://www.jacques-laporte.org/Logarithm_1.htm
+
+  Unused in Teacup, because floating point math. Kept for reference and
+  because the above sources show no C implementation.
+*/
+double hp_35_log(double x) {
+  double y, t;
+
+  if (x == 0.)
+    return 0.;
+
+  /**
+    The idea is as simple as brilliant.
+
+    First step is to choose a convenient target value. As the HP-35 prefered
+    BCD (binary coded decimals) over pure binary numbers, 10 is a natural
+    choice. Then we have two things:
+
+    1. Valid range is 0 < x < target, or 0 < x < 10.
+    2. We start with the logarithm of this target:
+  */
+  y = 2.302585092994012; // ln(10)
+
+  /**
+    Normalize. Our argument could be much bigger than our target. To change
+    that, we divide by the target and to compensate, we add the logarithm
+    of the target. Just as the math textbooks say:
+
+      ln(x * k) = ln(x) + ln(k)  <==>
+      ln(x * 10) = ln(x) + ln(10)
+
+    As we don't know the size of our number, yet, we have to try in reverse
+    order.
+  */
+  while (x >= 10.) {
+    x /= 10.;
+    y += 2.302585092994012; // ln(10)
+  }
+
+  /**
+    Here comes the brilliant part. Basically it's the opposite of what we did
+    for normalisation. We try to multiply with small, well choosen numbers to
+    fill the gap between our initial result ( ln(10) ) an the actually wanted
+    value ( ln( x < 10) ). Then apply the same mathematical rule:
+
+      ln(x / k) = ln(x) - ln(k) ... always as often as possible.
+
+    That's it! A number of tries later, the gap between argument value and
+    target value becomes very small and along the way, the gap between the
+    target logarithm and actually searched logarithm becomes very small, too.
+
+    To trade some precision for speed, shorten the following list of while()
+    loops.
+  */
+  while (t = x * 2., t < 10.) {
+    y -= 0.693147180559945; // ln(2)
+    x = t;
+sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+  while (t = x * 1.1, t < 10.) {
+    y -= 0.095310179804325; // ln(1.1)
+    x = t;
+sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+  while (t = x * 1.01, t < 10.) {
+    y -= 0.009950330853168; // ln(1.01)
+    x = t;
+sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+  while (t = x * 1.001, t < 10.) {
+    y -= 0.000999500333084; // ln(1.001)
+    x = t;
+sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+  while (t = x * 1.0001, t < 10.) {
+    y -= 0.000099995000333; // ln(1.0001)
+    x = t;
+sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+  while (t = x * 1.00001, t < 10.) {
+    y -= 0.000009999950000; // ln(1.00001)
+    x = t;
+sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+  while (t = x * 1.000001, t < 10.) {
+    y -= 0.000000999999500; // ln(1.000001)
+    x = t;
+sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  }
+sersendf_P(PSTR("\nstop\n"));
+
+  return y;
+}
 
 /// called every 10ms from clock.c - check all temp sensors that are ready for checking
 void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
@@ -242,7 +343,6 @@ class Thermistor:
     r = self.rs * v / (self.vs - v)        # resistance of thermistor
     return (self.beta / log(r / self.k)) - 273.15        # temperature
               */
-#if 0
             // Voltages in volts * 1024.
             uint32_t v, vadc = 5.0 * 1024;
             uint32_t r, r2 = 4700, beta = 4092;
@@ -250,24 +350,15 @@ class Thermistor:
             double r0 = 100000, t0 = 25 + 273.15;
 
             k = (double)1 / (r0 * exp(-(double)beta / t0));
-            v = (uint32_t)temp * (vadc / 1024);
+            v = (uint32_t)temp * (vadc / 1024);  // min. 0, max. 5000
 
-            r = (r2 * v) / (vadc - v);
+            r = (r2 * v) / (vadc - v);  // min. 0, max. 50'000'000
             temp = (uint16_t)(((beta << 2 << 10) / (uint32_t)(log((double)r * k) * 1024)) - 1093);
 
+sersendf_P(PSTR("%ld "), (int32_t)(hp_35_log(4.4) * 1000000.));
+
             temp_sensors_runtime[i].next_read_time = 0;
-#endif
           }
-// Linear regression tool: http://www.arndt-bruenner.de/mathe/scripts/regr.htm
-// Putting the values of ThermistorTable.single.h and the terms
-// 1, x, 1/x and 1/x^2 in there gives:
-//    f(x) = 780.346 - 0.715 * x + 13056.737 * 1/x - 10472.409 * 1/x^2 
-// Expand this by 1024 for sufficient precision with integers.
-temp = (uint16_t)(((uint32_t)(780.346 * 1024)
-               - (uint32_t)(0.715 * 1024) * temp)
-               + (uint32_t)(13056.737 * 1024) / temp
-               - (uint32_t)(10472.409 * 1024) / ((uint32_t)temp * temp)
-               >> 10);
 #if 0
 					do {
 						uint8_t j, table_num;
