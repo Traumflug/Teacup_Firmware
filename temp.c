@@ -393,13 +393,13 @@ class Thermistor:
     return (self.beta / log(r / self.k)) - 273.15        # temperature
               */
             // Voltages in volts * 1024.
-            uint32_t v, vadc = 5.0 * 1024;
+            uint16_t v, vadc = 5.0 * 1024;
             uint32_t r, r2 = 4700, beta = 4092;
             double k;
             double r0 = 100000, t0 = 25 + 273.15;
 
             k = (double)1 / (r0 * exp(-(double)beta / t0));
-            v = (uint32_t)temp * (vadc / 1024);  // min. 0, max. 5000
+            v = temp * (vadc / 1024);  // min. 0, max. 5000
 
             r = (r2 * v) / (vadc - v);  // min. 0, max. 50'000'000
             temp = (uint16_t)(((beta << 2 << 10) / (teacup_log((double)r * k) >> 14)) - 1093);
