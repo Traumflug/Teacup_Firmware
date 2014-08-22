@@ -47,7 +47,7 @@ typedef struct {
 	temp_type_t temp_type; ///< type of sensor
 	uint8_t     temp_pin;  ///< pin that sensor is on
 	heater_t    heater;    ///< associated heater if any
-  uint32_t    vadc;      ///< ADC reference voltage
+  uint16_t    vadc;      ///< ADC reference voltage
   double      r0;        ///< Thermistor's reference resistance
   double      t0;        ///< Thermistor's reference temperature
   uint32_t    r2;        ///< Thermistor's compare resistor
@@ -329,7 +329,8 @@ void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
               electronics I'm aware of.
             */
             // Voltages in volts * 1024.
-            uint32_t v, r;
+            uint16_t v;
+            uint32_t r;
             double k;
 
 //            temp = analog_read(i);
@@ -339,13 +340,13 @@ void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
             k = (double)1. / (temp_sensors[i].r0 *
                 exp(-(double)temp_sensors[i].beta / temp_sensors[i].t0));
             // v = temp * vadc / 1024.;  // min. 0, max. 5000
+            v = temp * (temp_sensors[i].vadc / 1024);
 #warning ungeschickt, da sehr ungenau f+r vadc = 3.3.
-            v = (uint32_t)temp * (temp_sensors[i].vadc / 1024);
             // r = r2 * v / (vadc - v);  // min. 0, max. 50'000'000
             r = (temp_sensors[i].r2 * v) / (temp_sensors[i].vadc - v);
 
             temp = (uint16_t)(((temp_sensors[i].beta << 2 << 10) /
-                              (teacup_log((double)r * k) * 1024)) - 1093);
+                              (teacup_log((double)r * k) >> 14)) - 1093);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }
