@@ -64,10 +64,9 @@
 	that moves this axis in a positive direction until it reaches its endstop 
 	too.
 */
-void home_scara() {
+void home_scara(void) {
 #if defined X_MIN_PIN && defined Y_MIN_PIN
 	TARGET t = startpoint;
-	TARGET t2 = startpoint;
 
 	t.X = -1000000;
 	t.Y = -1000000;
