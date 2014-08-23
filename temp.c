@@ -227,9 +227,17 @@ double hp_35_log(double x) {
   return y;
 }
 
-/**
-  Natural logarithm (base e). Same as hp_35_log(), but optimized for binary
-  numbers.
+/*!
+  Natural logarithm (base e). Same as hp_35_log(), but using integers and
+  optimized for binary numbers.
+
+  \param Number in 32.0 fixed point.
+  \return Natural logarithm of that number in 8.24 fixed point.
+
+  Costs 741 ... 1795 clock cycles, 1654 on average when used in
+  temp_sensor_tick() and is as such about 1000 cycles faster than avr-libc's
+  log(). Measurements were done by running temp_sensor_tick() once for each of
+  0 ... 1024.
 */
 #define LN_PRECISION 10
 // Storing this in PROGMEM saves 40 bytes RAM, but costs 120 bytes flash and
@@ -245,7 +253,9 @@ static uint32_t ln[LN_PRECISION] = {
     130562, // ln(1 1/128) * 2^24
      65408, // ln(1 1/256) * 2^24
      32736, // ln(1 1/512) * 2^24
-#if 0
+// 10 refinements in the multiplication list are entirely sufficient for our
+// current use, we currently throw away the least significant 14 bits anyways.
+#if LN_PRECISION > 10
      16376, // ln(1 1/1024) * 2^24
       8190, // ln(1 1/2048) * 2^24
       4096, // ln(1 1/4096) * 2^24
@@ -274,22 +284,20 @@ uint32_t teacup_log(uint32_t x) {
   y = ln[0]; // ln(2) * 2^24
 
   // Normalize. Like find the most significant bit, then adjust result and bits.
-  // Costs 35..501 clock cycles, 215 on average.
+  // Costs 35..375 clock cycles, 206 on average.
   t = 0x80000000;
   for (dec = 31; dec; dec--) {
     if (x & t)
       break;
     t >>= 1;
   }
-  // Costs 12..143 clock cycles, 43 on average.
+  // Costs 12..110 clock cycles, 41 on average.
   x = x << (24 - dec);
-  // Costs 108..413 clock cycles, 196 on average.
-  for ( ; dec > 0; dec--) {
-    y += ln[0]; // ln(2) * 2^24
-  }
+  // Costs 56 clock cycles.
+  y += ln[0] * dec;
 
   // Multiplication list.
-  // Costs 465..809 clock cycles, 530 on average.
+  // Costs 465..543 clock cycles, 508 on average.
   for (dec = 1; dec <= LN_PRECISION - 2; dec++) {
     t = x + (x >> dec);
     if (t < (2UL << 24)) {
@@ -298,7 +306,7 @@ uint32_t teacup_log(uint32_t x) {
     }
   }
 
-  // Adjustment. Costs just 2 clock cylces :-)
+  // Adjustment. Costs just 2 clock cycles :-)
   y -= ((2UL << 24) - ln[LN_PRECISION - 1]) / (2UL << 24);
 
   return y;
@@ -423,13 +431,13 @@ class Thermistor:
             v = temp * (vadc / 1024);  // min. 0, max. 5000
 
             r = (r2 * v) / (vadc - v);  // min. 0, max. 50'000'000
-            // temp = (uint16_t)(((beta / log(r / k)) - 273.15) * 4.0);
             /**
               For better accuracy:
               - Subtract ln(32) in 8.24 fixed point = 58145400 to compensate
                 multiplication by 32 above.
               - Do multiplication by 4 and 1024 in the numerator already.
             */
+            // temp = (uint16_t)(((beta / log(r / k)) - 273.15) * 4.0);
             temp = (uint16_t)(((beta << 2 << 10) /
                                ((teacup_log(r * k) - 58145400) >> 14)) - 1093);
 
