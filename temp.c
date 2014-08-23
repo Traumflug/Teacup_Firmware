@@ -213,46 +213,50 @@ double hp_35_log(double x) {
   Natural logarithm (base e). Same as hp_35_log(), but optimized for binary
   numbers.
 */
-uint32_t teacup_log(double x) {
+uint32_t teacup_log(uint32_t x) {
   uint32_t y; // 8.24 fixed point
-  double t;
+  double xd = (double)x, t;
+  uint8_t dec;
 
-  if (x == 0.)
+  if (x == 0)
     return 0;
 
   // Target = 2.
   y = 11629079; // ln(2) * 2^24
 
-  // Normalize.
-  while (x >= 2.) {
-    x /= 2.;
+  // Normalize. Like find the most significant bit, then adjust result and bits.
+  for (dec = 31; (x & (1UL << dec)) == 0UL; dec--)
+    ;
+  x = x << (24 - dec);
+  for ( ; dec > 0; dec--) {
     y += 11629079; // ln(2) * 2^24
+    xd /= 2.; // remove when fully integer
   }
 
   // Multiplication list.
-  while (t = x * 1.1, t < 2.) {
+  while (t = xd * 1.1, t < 2.) {
     y -= 1599039; // ln(1.1) * 2^24
-    x = t;
+    xd = t;
   }
-  while (t = x * 1.01, t < 2.) {
+  while (t = xd * 1.01, t < 2.) {
     y -= 166938; // ln(1.01) * 2^24
-    x = t;
+    xd = t;
   }
-  while (t = x * 1.001, t < 2.) {
+  while (t = xd * 1.001, t < 2.) {
     y -= 16768; // ln(1.001) * 2^24
-    x = t;
+    xd = t;
   }
-  while (t = x * 1.0001, t < 2.) {
+  while (t = xd * 1.0001, t < 2.) {
     y -= 1677; // ln(1.0001) * 2^24
-    x = t;
+    xd = t;
   }
-  while (t = x * 1.00001, t < 2.) {
+  while (t = xd * 1.00001, t < 2.) {
     y -= 167; // ln(1.00001) * 2^24
-    x = t;
+    xd = t;
   }
-  while (t = x * 1.000001, t < 2.) {
+  while (t = xd * 1.000001, t < 2.) {
     y -= 16; // ln(1.000001) * 2^24
-    x = t;
+    xd = t;
   }
 
   return y;
@@ -330,23 +334,31 @@ void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
             */
             // Voltages in volts * 1024.
             uint16_t v;
-            uint32_t r;
-            double k;
+            uint32_t r, k;
 
 //            temp = analog_read(i);
 
             // k = r0 * exp(-beta / t0); // around 0.1
             // Instead of a divide, multiply with the inverse.
-            k = (double)1. / (temp_sensors[i].r0 *
-                exp(-(double)temp_sensors[i].beta / temp_sensors[i].t0));
+            // Multiply with 32 for higher accuracy.
+            k = (uint32_t)((double)32. / (temp_sensors[i].r0 *
+                                          exp(-(double)temp_sensors[i].beta /
+                                          temp_sensors[i].t0)) + .5);
             // v = temp * vadc / 1024.;  // min. 0, max. 5000
             v = temp * (temp_sensors[i].vadc / 1024);
 #warning ungeschickt, da sehr ungenau f+r vadc = 3.3.
             // r = r2 * v / (vadc - v);  // min. 0, max. 50'000'000
             r = (temp_sensors[i].r2 * v) / (temp_sensors[i].vadc - v);
 
+            /**
+              For better accuracy:
+              - Subtract ln(32) in 8.24 fixed point = 58145400 to compensate
+                multiplication by 32 above.
+              - Do multiplication by 4 and 1024 in the numerator already.
+            */
+            // temp = (uint16_t)(((beta / log(r / k)) - 273.15) * 4.0);
             temp = (uint16_t)(((temp_sensors[i].beta << 2 << 10) /
-                              (teacup_log((double)r * k) >> 14)) - 1093);
+                               (teacup_log(r * k) - 58145400 >> 14)) - 1093);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }
