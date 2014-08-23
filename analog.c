@@ -12,7 +12,7 @@
 /* OR-combined mask of all channels */
 #undef DEFINE_TEMP_SENSOR
 //! automagically generate analog_mask from DEFINE_TEMP_SENSOR entries in config.h
-#define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
+#define DEFINE_TEMP_SENSOR(name, type, pin, vadc, r0, t0, r2, beta) \
 	| (((type == TT_THERMISTOR) || (type == TT_AD595)) ? (1 << (pin ## _ADC)) : 0)
 #ifdef	AIO8_PIN
 	static const uint16_t analog_mask = 0
@@ -26,7 +26,7 @@
 static uint8_t adc_counter;
 static volatile uint16_t BSS adc_result[NUM_TEMP_SENSORS];
 
-#define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
+#define DEFINE_TEMP_SENSOR(name, type, pin, vadc, r0, t0, r2, beta) \
 	((type == TT_THERMISTOR) || (type == TT_AD595)) ? (pin ## _ADC) : 255,
 static uint8_t adc_channel[NUM_TEMP_SENSORS] =
 {
