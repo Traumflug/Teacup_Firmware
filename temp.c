@@ -232,8 +232,7 @@ double hp_35_log(double x) {
   numbers.
 */
 uint32_t teacup_log(uint32_t x) {
-  uint32_t y; // 8.24 fixed point
-  double xd = (double)x, t;
+  uint32_t y, t; // 8.24 fixed point
   uint8_t dec;
 
   if (x == 0)
@@ -248,41 +247,71 @@ uint32_t teacup_log(uint32_t x) {
   x = x << (24 - dec);
   for ( ; dec > 0; dec--) {
     y += 11629079; // ln(2) * 2^24
-    xd /= 2.; // remove when fully integer
   }
 
   // Multiplication list.
-  while (t = xd * 1.1, t < 2.) {
-    y -= 1599039; // ln(1.1) * 2^24
-    xd = t;
-//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  t = x + (x >> 1);
+  if (t < (2UL << 24)) {
+    y -= 6802576; // ln(1 1/2) * 2^24
+    x = t;
   }
-  while (t = xd * 1.01, t < 2.) {
-    y -= 166938; // ln(1.01) * 2^24
-    xd = t;
-//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  t = x + (x >> 2);
+  if (t < (2UL << 24)) {
+    y -= 3743728; // ln(1 1/4) * 2^24
+    x = t;
   }
-  while (t = xd * 1.001, t < 2.) {
-    y -= 16768; // ln(1.001) * 2^24
-    xd = t;
-//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  t = x + (x >> 3);
+  if (t < (2UL << 24)) {
+    y -= 1976071; // ln(1 1/8) * 2^24
+    x = t;
   }
-  while (t = xd * 1.0001, t < 2.) {
-    y -= 1677; // ln(1.0001) * 2^24
-    xd = t;
-//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  t = x + (x >> 4);
+  if (t < (2UL << 24)) {
+    y -= 1017112; // ln(1 1/16) * 2^24
+    x = t;
   }
-  while (t = xd * 1.00001, t < 2.) {
-    y -= 167; // ln(1.00001) * 2^24
-    xd = t;
-//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  t = x + (x >> 5);
+  if (t < (2UL << 24)) {
+    y -= 516262; // ln(1 1/32) * 2^24
+    x = t;
   }
-  while (t = xd * 1.000001, t < 2.) {
-    y -= 16; // ln(1.000001) * 2^24
-    xd = t;
-//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+  t = x + (x >> 6);
+  if (t < (2UL << 24)) {
+    y -= 260117; // ln(1 1/64) * 2^24
+    x = t;
   }
-//sersendf_P(PSTR("\nstop\n"));
+  t = x + (x >> 7);
+  if (t < (2UL << 24)) {
+    y -= 130562; // ln(1 1/128) * 2^24
+    x = t;
+  }
+  t = x + (x >> 8);
+  if (t < (2UL << 24)) {
+    y -= 65408; // ln(1 1/256) * 2^24
+    x = t;
+  }
+  t = x + (x >> 9);
+  if (t < (2UL << 24)) {
+    y -= 32736; // ln(1 1/512) * 2^24
+    x = t;
+  }
+  t = x + (x >> 10);
+  if (t < (2UL << 24)) {
+    y -= 16376; // ln(1 1/1024) * 2^24
+    x = t;
+  }
+  t = x + (x >> 11);
+  if (t < (2UL << 24)) {
+    y -= 8190; // ln(1 1/2048) * 2^24
+    x = t;
+  }
+  t = x + (x >> 12);
+  if (t < (2UL << 24)) {
+    y -= 4095; // ln(1 1/4096) * 2^24
+    x = t;
+  }
+  // This is entirely sufficient for Teacup's needs.
+  // You can extend this to all 24 bits right of the decimal, of course.
 
   return y;
 }
