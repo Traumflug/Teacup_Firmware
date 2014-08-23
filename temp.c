@@ -234,6 +234,7 @@ double hp_35_log(double x) {
 uint32_t teacup_log(uint32_t x) {
   uint32_t y; // 8.24 fixed point
   double xd = (double)x, t;
+  uint8_t dec;
 
   if (x == 0)
     return 0;
@@ -241,11 +242,13 @@ uint32_t teacup_log(uint32_t x) {
   // Target = 2.
   y = 11629079; // ln(2) * 2^24
 
-  // Normalize.
-  while (xd >= 2.) {
-    xd /= 2.;
+  // Normalize. Like find the most significant bit, then adjust result and bits.
+  for (dec = 31; (x & (1UL << dec)) == 0UL; dec--)
+    ;
+  x = x << (24 - dec);
+  for ( ; dec > 0; dec--) {
     y += 11629079; // ln(2) * 2^24
-//sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
+    xd /= 2.; // remove when fully integer
   }
 
   // Multiplication list.
