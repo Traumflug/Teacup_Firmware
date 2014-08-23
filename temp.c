@@ -274,14 +274,22 @@ uint32_t teacup_log(uint32_t x) {
   y = ln[0]; // ln(2) * 2^24
 
   // Normalize. Like find the most significant bit, then adjust result and bits.
-  for (dec = 31; (x & (1UL << dec)) == 0UL; dec--)
-    ;
+  // Costs 35..501 clock cycles, 215 on average.
+  t = 0x80000000;
+  for (dec = 31; dec; dec--) {
+    if (x & t)
+      break;
+    t >>= 1;
+  }
+  // Costs 12..143 clock cycles, 43 on average.
   x = x << (24 - dec);
+  // Costs 108..413 clock cycles, 196 on average.
   for ( ; dec > 0; dec--) {
     y += ln[0]; // ln(2) * 2^24
   }
 
   // Multiplication list.
+  // Costs 465..809 clock cycles, 530 on average.
   for (dec = 1; dec <= LN_PRECISION - 2; dec++) {
     t = x + (x >> dec);
     if (t < (2UL << 24)) {
@@ -290,7 +298,7 @@ uint32_t teacup_log(uint32_t x) {
     }
   }
 
-  // Adjustment.
+  // Adjustment. Costs just 2 clock cylces :-)
   y -= ((2UL << 24) - ln[LN_PRECISION - 1]) / (2UL << 24);
 
   return y;
