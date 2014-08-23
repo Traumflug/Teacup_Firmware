@@ -209,9 +209,17 @@ double hp_35_log(double x) {
   return y;
 }
 
-/**
-  Natural logarithm (base e). Same as hp_35_log(), but optimized for binary
-  numbers.
+/*!
+  Natural logarithm (base e). Same as hp_35_log(), but using integers and
+  optimized for binary numbers.
+
+  \param Number in 32.0 fixed point.
+  \return Natural logarithm of that number in 8.24 fixed point.
+
+  Costs 741 ... 1795 clock cycles, 1654 on average when used in
+  temp_sensor_tick() and is as such about 1000 cycles faster than avr-libc's
+  log(). Measurements were done by running temp_sensor_tick() once for each of
+  0 ... 1024.
 */
 #define LN_PRECISION 10
 // Storing this in PROGMEM saves 40 bytes RAM, but costs 120 bytes flash and
@@ -227,7 +235,9 @@ static uint32_t ln[LN_PRECISION] = {
     130562, // ln(1 1/128) * 2^24
      65408, // ln(1 1/256) * 2^24
      32736, // ln(1 1/512) * 2^24
-#if 0
+// 10 refinements in the multiplication list are entirely sufficient for our
+// current use, we currently throw away the least significant 14 bits anyways.
+#if LN_PRECISION > 10
      16376, // ln(1 1/1024) * 2^24
       8190, // ln(1 1/2048) * 2^24
       4096, // ln(1 1/4096) * 2^24
@@ -265,10 +275,8 @@ uint32_t teacup_log(uint32_t x) {
   }
   // Costs 12..110 clock cycles, 41 on average.
   x = x << (24 - dec);
-  // Costs 108..413 clock cycles, 196 on average.
-  for ( ; dec > 0; dec--) {
-    y += ln[0]; // ln(2) * 2^24
-  }
+  // Costs 56 clock cycles.
+  y += ln[0] * dec;
 
   // Multiplication list.
   // Costs 465..543 clock cycles, 508 on average.
