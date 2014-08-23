@@ -213,7 +213,7 @@ double hp_35_log(double x) {
   Natural logarithm (base e). Same as hp_35_log(), but using integers and
   optimized for binary numbers.
 
-  \param Number in 32.0 fixed point.
+  \param Number in 32.0 fixed point, 31 bits may be significant.
   \return Natural logarithm of that number in 8.24 fixed point.
 
   Costs 741 ... 1795 clock cycles, 1654 on average when used in
@@ -273,8 +273,12 @@ uint32_t teacup_log(uint32_t x) {
       break;
     t >>= 1;
   }
-  // Costs 12..110 clock cycles, 41 on average.
-  x = x << (24 - dec);
+  // Beware, one can't shift by negative amounts.
+  // Costs 8..112 clock cycles, 43 on average.
+  if (dec < 24)
+    x <<= 24 - dec;
+  else if (dec > 24)
+    x >>= dec - 24;
   // Costs 56 clock cycles.
   y += ln[0] * dec;
 
