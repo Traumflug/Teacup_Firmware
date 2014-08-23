@@ -231,52 +231,52 @@ double hp_35_log(double x) {
   Natural logarithm (base e). Same as hp_35_log(), but optimized for binary
   numbers.
 */
-uint32_t teacup_log(double x) {
+uint32_t teacup_log(uint32_t x) {
   uint32_t y; // 8.24 fixed point
-  double t;
+  double xd = (double)x, t;
 
-  if (x == 0.)
+  if (x == 0)
     return 0;
 
   // Target = 2.
   y = 11629079; // ln(2) * 2^24
 
   // Normalize.
-  while (x >= 2.) {
-    x /= 2.;
+  while (xd >= 2.) {
+    xd /= 2.;
     y += 11629079; // ln(2) * 2^24
 //sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
 
   // Multiplication list.
-  while (t = x * 1.1, t < 2.) {
+  while (t = xd * 1.1, t < 2.) {
     y -= 1599039; // ln(1.1) * 2^24
-    x = t;
+    xd = t;
 //sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
-  while (t = x * 1.01, t < 2.) {
+  while (t = xd * 1.01, t < 2.) {
     y -= 166938; // ln(1.01) * 2^24
-    x = t;
+    xd = t;
 //sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
-  while (t = x * 1.001, t < 2.) {
+  while (t = xd * 1.001, t < 2.) {
     y -= 16768; // ln(1.001) * 2^24
-    x = t;
+    xd = t;
 //sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
-  while (t = x * 1.0001, t < 2.) {
+  while (t = xd * 1.0001, t < 2.) {
     y -= 1677; // ln(1.0001) * 2^24
-    x = t;
+    xd = t;
 //sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
-  while (t = x * 1.00001, t < 2.) {
+  while (t = xd * 1.00001, t < 2.) {
     y -= 167; // ln(1.00001) * 2^24
-    x = t;
+    xd = t;
 //sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
-  while (t = x * 1.000001, t < 2.) {
+  while (t = xd * 1.000001, t < 2.) {
     y -= 16; // ln(1.000001) * 2^24
-    x = t;
+    xd = t;
 //sersendf_P(PSTR("y %lu  x %lu\n"), (uint32_t)(y * 1000000.), (uint32_t)(x * 1000000.));
   }
 //sersendf_P(PSTR("\nstop\n"));
@@ -394,15 +394,24 @@ class Thermistor:
               */
             // Voltages in volts * 1024.
             uint16_t v, vadc = 5.0 * 1024;
-            uint32_t r, r2 = 4700, beta = 4092;
-            double k;
-            double r0 = 100000, t0 = 25 + 273.15;
+            uint32_t r, r2 = 4700, beta = 4092, k;
+            double r0 = 100000., t0 = 25. + 273.15;
 
-            k = (double)1 / (r0 * exp(-(double)beta / t0));
+            // k = 1. / (r0 * exp(-beta / t0));
+            // Multiply with 32 for higher accuracy.
+            k = (uint32_t)((double)32. / (r0 * exp(-(double)beta / t0)) + .5);
             v = temp * (vadc / 1024);  // min. 0, max. 5000
 
             r = (r2 * v) / (vadc - v);  // min. 0, max. 50'000'000
-            temp = (uint16_t)(((beta << 2 << 10) / (teacup_log((double)r * k) >> 14)) - 1093);
+            // temp = (uint16_t)(((beta / log(r / k)) - 273.15) * 4.0);
+            /**
+              For better accuracy:
+              - Subtract ln(32) in 8.24 fixed point = 58145400 to compensate
+                multiplication by 32 above.
+              - Do multiplication by 4 and 1024 in the numerator already.
+            */
+            temp = (uint16_t)(((beta << 2 << 10) /
+                               (teacup_log(r * k) - 58145400 >> 14)) - 1093);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }
