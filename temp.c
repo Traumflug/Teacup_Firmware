@@ -8,8 +8,7 @@
 */
 
 #include	<stdlib.h>
-#warning remove when entirely integer
-#include <math.h>
+#include "preprocessor_math.h"
 #ifndef SIMULATOR
 #include	<avr/eeprom.h>
 #include	<avr/pgmspace.h>
@@ -378,7 +377,7 @@ void temp_sensor_tick(uint8_t sensor, uint16_t tempvalue) {
             // Instead of a divide, multiply with the inverse.
             // Multiply with 32 for higher accuracy.
             k = (uint32_t)((double)32. / (temp_sensors[i].r0 *
-                                          exp(-(double)temp_sensors[i].beta /
+                                          EXP(-(double)temp_sensors[i].beta /
                                           temp_sensors[i].t0)) + .5);
             // v = temp * vadc / 1024.;  // min. 0, max. 5000
             v = temp * (temp_sensors[i].vadc / 1024);
