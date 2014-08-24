@@ -274,7 +274,7 @@ int64_t int_sqr(int32_t a) {
 	The start coordinates are needed here, because the steps between two points 
 	depend on the coordinates of start- and endpoint.
 
-	The following calculaitons are a workof Quentin Harley, the inventor of the 
+	The following calculations are a work of Quentin Harley, the inventor of the 
 	RepRap Morgan Scara-printer. We need 64-bit integers here, because we need to
 	square micrometer units. Assuming a 200mm by 200mm print area we need to handle
 	200,000 x 200,000 = 40,000,000,000 (35 bits needed to represent that).
@@ -285,8 +285,9 @@ int64_t int_sqr(int32_t a) {
 	pos_x, pos_y, distance_x and distance_y are micrometer values. 
 */
 void scara_um_to_steps(int32_t pos_x, int32_t pos_y, int32_t distance_x, int32_t distance_y, int32_t *steps_x, int32_t *steps_y) {
-	int64_t scara_pos_x = pos_x - SCARA_TOWER_OFFSET_X;
-	int64_t scara_pos_y = pos_y - SCARA_TOWER_OFFSET_Y;
+
+	int64_t scara_pos_x = pos_x + distance_x - SCARA_TOWER_OFFSET_X;
+	int64_t scara_pos_y = pos_y + distance_y - SCARA_TOWER_OFFSET_Y;
 
 	#if (INNER_ARM_LENGTH == OUTER_ARM_LENGTH)
 		int64_t scara_c2 = (int_sqr(scara_pos_x)+int_sqr(scara_pos_y)-2*int_sqr(INNER_ARM_LENGTH)) / (2 * int_sqr(INNER_ARM_LENGTH));
@@ -301,22 +302,22 @@ void scara_um_to_steps(int32_t pos_x, int32_t pos_y, int32_t distance_x, int32_t
 
 	/*
 		TODO:
-		Repace atan2-calls with an implementation of the Cordic-algorithmor similar.
+		Replace atan2-calls with an implementation of the Cordic-algorithm or similar.
 	*/
-	double scara_theta = (atan2(scara_pos_x,scara_pos_y)-atan2(scara_k1, scara_k2))*-1;
-	double scara_psi = atan2(scara_s2,scara_c2);
+	double theta_rad = (atan2(scara_pos_x,scara_pos_y)-atan2(scara_k1, scara_k2))*-1;
+	double phi_rad = atan2(scara_s2,scara_c2);
 
 	/*
 		degrees = (radians * 4068) / 71
-		This is more accurate for floating point operations
+		This is more accurate for floating point operations than radians*180/Pi
 
 		For Scara-type printers, a "unit" (STEPS_PER_M_...) is one degree (1/1000th of a degree in Teacup).
 		To here we have calculated the required changes in radians, the scara-arms have to move to bring 
 		the nozzle from (pos_x,pos_y) to (pos_x+distance_x,pos_y+distance_y).
 		Now we have to convert to degerees and calculate the steps.
 	*/
-	*steps_x = (int32_t) trunc(um_to_steps_x(((scara_theta * 4068) / 71) * 1000000UL));  
-	*steps_y = (int32_t) trunc(um_to_steps_y((((scara_theta + scara_psi) * 4068) / 71) * 1000000UL)); 
+	*steps_x = (int32_t) trunc(um_to_steps_x(((theta_rad * 4068) / 71) * 1000000UL));  
+	*steps_y = (int32_t) trunc(um_to_steps_y((((theta_rad + phi_rad) * 4068) / 71) * 1000000UL)); 
 }
 #endif
 

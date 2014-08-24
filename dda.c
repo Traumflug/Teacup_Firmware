@@ -158,7 +158,8 @@ void dda_create(DDA *dda, TARGET *target) {
 		For Scara-type printers steps on x- and y-axis mean turns of scara-arms.
 		Turning one arm (e.g. the "x-axis" arm, called Theta) for one degree you 
 		need (STEPS_PER_M_X/1000000) steps. On a RepRap Morgan with 16-tooth-pulleys
-		a single degree movement should require 215 steps.
+		a single degree movement requires app. 215 steps (depends on the real diameter 
+		of the drive-wheels for the axes).
 	*/
 	int32_t tmp_steps_x;
 	int32_t tmp_steps_y;
@@ -917,6 +918,42 @@ void update_current_position() {
 		current_position.E = startpoint.E;
 	}
 	else if (dda->live) {
+#ifdef SCARA_PRINTER
+		int32_t end_phi_steps = 0;
+		int32_t end_theta_steps = 0;
+
+		//Get the steps from home-position to the designated endpoint for phi- (x-stepper) and theta-arm (y-stepper)
+		scara_um_to_steps(dda->endpoint.X, dda->endpoint.Y, 0, 0, &end_phi_steps, &end_theta_steps);
+
+		/*
+			STEPS_PER_M_X and STEPS_PER_M_Y under SCARA_PRINTER represent the count of steps, needed for a turn
+			of the axis for 0.001 degree.So STEPS_PER_M_X/1000 is the stepcount for a one degree-turn of the x-axis (phi-arm).
+			move_state.x_steps and move_state.y-steps hold the amoutn of steps already made to reach the endpoint.
+			We need to substract the steps already made from the steps, needed to reach the endpoint and 
+			calculate the resulting position with forward kinematics.
+		*/
+
+		//phi_deg and theta_deg hold the actual arm-angles in radians.
+		double phi_rad =   ((end_phi_steps   - ((dda->x_direction - 1) * move_state.x_steps)) / (STEPS_PER_M_X/1000)) * 4068 / 71;
+		double theta_rad = ((end_theta_steps - ((dda->y_direction - 1) * move_state.y_steps)) / (STEPS_PER_M_Y/1000)) * 4068 / 71;
+
+		/*
+			Now that we know the angles of both arms, we can calclulate the coordinates 
+			using forward kinematics.
+		*/
+		current_position.X = cos(phi_rad) * INNER_ARM_LENGTH + cos(theta_rad + phi_rad) * OUTER_ARM_LENGTH + SCARA_TOWER_OFFSET_X;
+		/*
+			The implementation above differs from Quentin Harley's. Maybe he's wrong, maybe I didn't get something.
+			In Quentin's Marlin implentation wrong forward kinematics would have no effect, because they are only used
+			to calculate, if home-posiiotn is reached (but that depends on the endstops, so is on the safe side) and
+			during calibration, where the cartesian coordinates of the movement destination aren't used.
+			Even in this function "updtae_current_position" faults wouldn't lead to negative affects on printing,
+			except outputting wrong coordinates to serial out.
+		*/
+
+		current_position.Y = sin(phi_rad) * INNER_ARM_LENGTH + sin(phi_rad+ theta_rad) * OUTER_ARM_LENGTH + SCARA_TOWER_OFFSET_Y;
+
+#else
 		if (dda->x_direction)
 			// (STEPS_PER_M_X / 1000) is a bit inaccurate for low STEPS_PER_M numbers
 			current_position.X = dda->endpoint.X -
@@ -933,6 +970,7 @@ void update_current_position() {
 		else
 			current_position.Y = dda->endpoint.Y +
 			                     move_state.y_steps * 1000 / ((STEPS_PER_M_Y + 500) / 1000);
+#endif
 
 		if (dda->z_direction)
 			current_position.Z = dda->endpoint.Z -
