@@ -283,7 +283,8 @@ void heater_init() {
 	\param target_temp the temperature we're trying to achieve
 */
 void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t target_temp) {
-	uint8_t		pid_output;
+  // Static, so it's not mandatory to calculate a new value, see BANG_BANG.
+  static uint8_t pid_output;
 
 	#ifndef	BANG_BANG
 		int16_t		heater_p;
@@ -347,10 +348,11 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 			sersendf_P(PSTR("T{E:%d, P:%d * %ld = %ld / I:%d * %ld = %ld / D:%d * %ld = %ld # O: %ld = %u}\n"), t_error, heater_p, heaters_pid[h].p_factor, (int32_t) heater_p * heaters_pid[h].p_factor / PID_SCALE, heaters_runtime[h].heater_i, heaters_pid[h].i_factor, (int32_t) heaters_runtime[h].heater_i * heaters_pid[h].i_factor / PID_SCALE, heater_d, heaters_pid[h].d_factor, (int32_t) heater_d * heaters_pid[h].d_factor / PID_SCALE, pid_output_intermed, pid_output);
 		#endif
 	#else
-		if (current_temp >= target_temp)
+    if (current_temp >= target_temp + (TEMP_HYSTERESIS))
 			pid_output = BANG_BANG_OFF;
-		else //BANG_BANG
+    else if (current_temp <= target_temp - (TEMP_HYSTERESIS))
 			pid_output = BANG_BANG_ON;
+    // else keep pid_output
 	#endif
 
 	#ifdef	HEATER_SANITY_CHECK
