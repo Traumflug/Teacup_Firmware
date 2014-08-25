@@ -7,6 +7,7 @@
 #endif
 #include "simulator.h"
 
+
 // time-related constants
 #define	US	* (F_CPU / 1000000)
 #define	MS	* (F_CPU / 1000)
@@ -19,16 +20,6 @@
 /// properly if you change TICK_TIME.
 #define TICK_TIME_MS (TICK_TIME / (F_CPU / 1000))
 
-/*
-clock stuff
-*/
-extern volatile uint8_t	clock_flag_10ms;
-extern volatile uint8_t	clock_flag_250ms;
-extern volatile uint8_t	clock_flag_1s;
-
-// If the specific bit is set, execute the following block exactly once
-// and then clear the flag.
-#define	ifclock(F)	for (;F;F=0 )
 
 /*
 timer stuff
