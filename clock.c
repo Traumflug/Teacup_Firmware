@@ -17,6 +17,46 @@
 #endif
 #include	"memory_barrier.h"
 
+
+/// Every time our clock fires we increment this,
+/// so we know when 10ms has elapsed.
+uint8_t clock_counter_10ms = 0;
+/// Keep track of when 250ms has elapsed.
+uint8_t clock_counter_250ms = 0;
+/// Keep track of when 1s has elapsed.
+uint8_t clock_counter_1s = 0;
+
+/// Flags to tell main loop when above have elapsed.
+volatile uint8_t clock_flag_10ms = 0;
+volatile uint8_t clock_flag_250ms = 0;
+volatile uint8_t clock_flag_1s = 0;
+
+
+/** Advance our clock by a tick.
+
+  Update clock counters accordingly. Should be called from the TICK_TIME
+  Interrupt in timer.c.
+*/
+void clock_tick(void) {
+  clock_counter_10ms += TICK_TIME_MS;
+  if (clock_counter_10ms >= 10) {
+    clock_counter_10ms -= 10;
+    clock_flag_10ms = 1;
+
+    clock_counter_250ms++;
+    if (clock_counter_250ms >= 25) {
+      clock_counter_250ms = 0;
+      clock_flag_250ms = 1;
+
+      clock_counter_1s++;
+      if (clock_counter_1s >= 4) {
+        clock_counter_1s = 0;
+        clock_flag_1s = 1;
+      }
+    }
+  }
+}
+
 /*!	do stuff every 1/4 second
 
 	called from clock_10ms(), do not call directly
