@@ -58,6 +58,10 @@
   SIMINFO_SERIAL_OUT("D1", "-", BAUD);
 #endif
 
+#ifdef CANNED_CYCLE
+  const char PROGMEM canned_gcode_P[] = CANNED_CYCLE;
+#endif
+
 /// initialise all I/O - set pins as input or output, turn off unused subsystems, etc
 void io_init(void) {
 	// disable modules we don't use
@@ -254,11 +258,6 @@ int main (void)
 #endif
 	init();
 
-  #ifdef CANNED_CYCLE
-    #include "canned_gcode.h"
-    uint32_t canned_gcode_pos = 0;
-  #endif /* CANNED_CYCLE */
-
 	// main loop
 	for (;;)
 	{
@@ -287,6 +286,8 @@ int main (void)
           If ever print-from-SD card is implemented, these changes may become
           necessary.
         */
+        static uint32_t canned_gcode_pos = 0;
+
         gcode_parse_char(pgm_read_byte(&(canned_gcode_P[canned_gcode_pos])));
 
         canned_gcode_pos++;
