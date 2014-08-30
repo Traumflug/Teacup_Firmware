@@ -358,16 +358,38 @@
 * Define your temperature sensors here. One line for each sensor, only      *
 * limited by the number of available ATmega pins.                           *
 *                                                                           *
-* Types are same as TEMP_ list above - TT_MAX6675, TT_THERMISTOR, TT_AD595, *
-*   TT_PT100, TT_INTERCOM. See list in temp.c.                              *
+* The fields are as following:                                              *
 *                                                                           *
-* The "additional" field is used for TT_THERMISTOR only. It defines the     *
-* name of the table(s) in ThermistorTable.h to use. Typically, this is      *
-* THERMISTOR_EXTRUDER for the first or only table, or THERMISTOR_BED for    *
-* the second table. See also early in ThermistorTable.{single|double}.h.    *
+* name   Arbitrary name, must be unique. If you want to connect this sensor *
+*        to a heater to form temperature regulation (that's usually the     *
+*        case) its name must match that of the corresponding heater.        *
 *                                                                           *
-* For a GEN3 set temp_type to TT_INTERCOM and temp_pin to AIO0. The pin     *
-* won't be used in this case.                                               *
+* type   Type of temperatur sensor. One of TT_MAX6675, TT_THERMISTOR,       *
+*        TT_AD595, TT_PT100 or TT_INTERCOM. See list in temp.c.             *
+*                                                                           *
+* pin    CPU pin the sensor is connected to. Must be a pin with ADC         *
+*        (analog) capabilities for TT_THERMISTOR, TT_AD595 and TT_PT100.    *
+*        Not used for TT_MAX6675 (connects to SPI) and TT_INTERCOM          *
+*        (connects to UART1); use AIO0 as a dummy value in this case.       *
+*                                                                           *
+* vadc   ADC's reference voltage in volts. Typically 5.0 or 3.3. Currently  *
+*        used for TT_THERMISTOR, only.                                      *
+*                                                                           *
+* r0     Nominal resistance of a thermistor in ohms. Typically 10000 or     *
+*        100000. Currently used for TT_THERMISTOR, only.                    *
+*                                                                           *
+* t0     A thermistor's reference voltage in deg Celsius. Almost always 25. *
+*        Currently used for TT_THERMISTOR, only.                            *
+*                                                                           *
+* r2     Value of the comparison resistor on your electronics board in      *
+*        ohms. Most commonly 4700, but 1000 were seen, too. Measuring the   *
+*        actually used resistor and entering the precise value instead of   *
+*        the nominal value here improves temperature reading accuracy a     *
+*        lot. Currently used for TT_THERMISTOR, only.                       *
+*                                                                           *
+* beta   A thermistor's calibration coefficient. Varies from type to type   *
+*        and has to be looked up in the data sheet. Currently used for      *
+*        TT_THERMISTOR, only.                                               *
 *                                                                           *
 \***************************************************************************/
 
@@ -375,9 +397,12 @@
 	#define DEFINE_TEMP_SENSOR(...)
 #endif
 
-//                 name       type            pin        additional
-DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO7,      THERMISTOR_EXTRUDER)
-DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO6,      THERMISTOR_BED)
+//                 name       type            pin        vadc
+//                 r0         t0              r2         beta
+DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO7,      5.0, \
+                   100000,    25,             4700,      4092)
+DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO6,      5.0, \
+                   100000,    25,             4700,      4092)
 
 
 

@@ -31,9 +31,6 @@
 
 #ifdef	TEMP_THERMISTOR
 #include	"analog.h"
-#warning get rid of these two when Thermistortableless is completed.
-#define THERMISTOR_EXTRUDER 0
-#define THERMISTOR_BED 1
 #endif
 
 #ifdef	TEMP_AD595
