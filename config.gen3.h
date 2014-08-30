@@ -572,6 +572,22 @@ DEFINE_TEMP_SENSOR(bed,       TT_INTERCOM,    AIO1,      0)
 */
 #define	ENDSTOP_STEPS	4
 
+/** \def CANNED_CYCLE
+
+  G-code commands in this string will be executed over and over again, without
+  user interaction or even a serial connection. It's purpose is e.g. for
+  exhibitions or when using Teacup for other purposes than printing. You can
+  add any G-code supported by Teacup.
+
+  Note: don't miss these newlines (\n) and backslashes (\).
+*/
+/*
+#define CANNED_CYCLE "G1 X100 F3000\n" \
+"G4 P500\n" \
+"G1 X0\n" \
+"G4 P500\n"
+*/
+
 
 
 /***************************************************************************\
