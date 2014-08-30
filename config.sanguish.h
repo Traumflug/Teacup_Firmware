@@ -320,11 +320,15 @@
 *                                                                           *
 \***************************************************************************/
 
-/**
-  TEMP_HYSTERESIS: actual temperature must be target +/- hysteresis before target temperature can be achieved.
-  Unit is degree Celsius.
+/** \def TEMP_HYSTERESIS
+
+  Actual temperature must be target +/- this hysteresis before target
+  temperature is considered to be achieved. Also, BANG_BANG tries to stay
+  within half of this hysteresis.
+
+  Unit: degree Celsius
 */
-#define TEMP_HYSTERESIS     20
+#define TEMP_HYSTERESIS 10
 
 /**
   TEMP_RESIDENCY_TIME: actual temperature must be close to target (within
