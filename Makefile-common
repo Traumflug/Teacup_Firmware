@@ -49,7 +49,7 @@ OBJDUMP = $(TOOLCHAIN)objdump
 OBJCOPY = $(TOOLCHAIN)objcopy
 
 
-OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES))
+OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES)) $(BUILDDIR)/canned_gcode.o
 
 .PHONY: all clean doc functionsbysize
 .PRECIOUS: %.o %.elf
@@ -57,7 +57,7 @@ OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES))
 all: $(BUILDDIR) $(TARGET)
 
 clean:
-	rm -rf $(BUILDDIR) $(TARGET) *~
+	rm -rf $(BUILDDIR) $(TARGET) *~ canned_gcode.c
 
 doc: Doxyfile *.c *.h
 	doxygen $<
@@ -107,3 +107,11 @@ $(BUILDDIR)/%.bin: $(BUILDDIR)/%.elf
 $(BUILDDIR)/%.sym: $(BUILDDIR)/%.elf
 	@echo "  SYM       $@"
 	@$(OBJDUMP) -t $< | perl -ne 'BEGIN { printf "  ADDR  NAME                  SIZE\n"; } /([0-9a-f]+)\s+(\w+)\s+O\s+\.(bss|data)\s+([0-9a-f]+)\s+(\w+)/ && printf "0x%04x  %-20s +%d\n", eval("0x$$1") & 0xFFFF, $$5, eval("0x$$4")' | sort -k1 > $@
+
+canned_gcode.c: canned_gcode.g
+	@echo "  GEN       $@"
+	@echo "#include \"canned_gcode.h\"" > $@
+	@echo "" >> $@
+	@echo -n "const char canned_gcode_P[] PROGMEM = \"" >> $@
+	@perl -pe 's/\n/\\n/gs' $< >> $@
+	@echo "\";" >> $@
