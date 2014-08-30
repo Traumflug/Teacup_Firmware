@@ -19,8 +19,7 @@
   (uint32_t)(sqrt(i) + .5)
 
   These two provide identical results for all tested numbers across the
-  uint32 range. This "+ .5" is for rounding and not crucial. Casting to
-  other sizes is also possible.
+  uint32 range. Casting to other sizes is also possible.
 
   Can principally be used for calculations at runtime, too, but its compiled
   size is prohibitively large (more than 20kB per instance).
