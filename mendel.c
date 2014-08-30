@@ -287,10 +287,11 @@ int main (void)
           If ever print-from-SD card is implemented, these changes may become
           necessary.
         */
-        if (pgm_read_byte(&(canned_gcode_P[++canned_gcode_pos])) == 0)
+        gcode_parse_char(pgm_read_byte(&(canned_gcode_P[canned_gcode_pos])));
+
+        canned_gcode_pos++;
+        if (pgm_read_byte(&(canned_gcode_P[canned_gcode_pos])) == 0)
           canned_gcode_pos = 0;
-        else
-          gcode_parse_char(pgm_read_byte(&(canned_gcode_P[canned_gcode_pos])));
 
       #endif /* CANNED_CYCLE */
 		}
