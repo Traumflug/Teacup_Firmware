@@ -47,7 +47,7 @@ typedef struct {
 	temp_type_t temp_type; ///< type of sensor
 	uint8_t     temp_pin;  ///< pin that sensor is on
 	heater_t    heater;    ///< associated heater if any
-	uint8_t		additional; ///< additional, sensor type specifc config
+  double      vadc;      ///< ADC reference voltage
 } temp_sensor_definition_t;
 
 #undef DEFINE_TEMP_SENSOR
@@ -183,14 +183,15 @@ void temp_sensor_tick() {
               electronics I'm aware of.
             */
             double k, v, r;
-            double vadc = 5.0;
             double r0 = 100000., t0 = 25. + 273.15, r2 = 4700., beta = 4092.;
 
             temp = analog_read(i);
 
             k = r0 * exp(-beta / t0); // around 0.1
-            v = (double)temp * vadc / 1024.;
-            r = r2 * v / (vadc - v);
+            // v = temp * vadc / 1024.;
+            v = (double)temp * temp_sensors[i].vadc / 1024.;
+            // r = r2 * v / (vadc - v);
+            r = r2 * v / (temp_sensors[i].vadc - v);
 
             temp = (uint16_t)(((beta / log(r / k)) - 273.15) * 4.0);
 
