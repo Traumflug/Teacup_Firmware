@@ -51,6 +51,7 @@ typedef struct {
   double      r0;        ///< Thermistor's reference resistance
   double      t0;        ///< Thermistor's reference temperature
   double      r2;        ///< Thermistor's compare resistor
+  double      beta;      ///< Thermistor's calibration coefficient
 } temp_sensor_definition_t;
 
 #undef DEFINE_TEMP_SENSOR
@@ -58,7 +59,7 @@ typedef struct {
 #ifndef SIMULATOR
 #define DEFINE_TEMP_SENSOR(name, type, pin, vadc, r0, t0, r2, beta) { \
   (type), (pin ## _ADC), (HEATER_ ## name), (vadc), (r0), (t0) + 273.15, \
-  (r2) },
+  (r2), (beta) },
 #else
 #define DEFINE_TEMP_SENSOR(name, type, pin, vadc, r0, t0, r2, beta) { \
   (type), (TEMP_SENSOR_ ## name), (HEATER_ ## name), (vadc) },
@@ -187,18 +188,19 @@ void temp_sensor_tick() {
               electronics I'm aware of.
             */
             double k, v, r;
-            double beta = 4092.;
 
             temp = analog_read(i);
 
             // k = r0 * exp(-beta / t0); // around 0.1
-            k = temp_sensors[i].r0 * exp(-beta / temp_sensors[i].t0);
+            k = temp_sensors[i].r0 *
+                exp(-temp_sensors[i].beta / temp_sensors[i].t0);
             // v = temp * vadc / 1024.;
             v = (double)temp * temp_sensors[i].vadc / 1024.;
             // r = r2 * v / (vadc - v);
             r = temp_sensors[i].r2 * v / (temp_sensors[i].vadc - v);
 
-            temp = (uint16_t)(((beta / log(r / k)) - 273.15) * 4.0);
+            temp = (uint16_t)
+                   (((temp_sensors[i].beta / log(r / k)) - 273.15) * 4.0);
 
             temp_sensors_runtime[i].next_read_time = 0;
           }
