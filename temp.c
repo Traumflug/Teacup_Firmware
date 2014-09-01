@@ -50,13 +50,15 @@ typedef struct {
   double      vadc;      ///< ADC reference voltage
   double      r0;        ///< Thermistor's reference resistance
   double      t0;        ///< Thermistor's reference temperature
+  double      r2;        ///< Thermistor's compare resistor
 } temp_sensor_definition_t;
 
 #undef DEFINE_TEMP_SENSOR
 /// help build list of sensors from entries in config.h
 #ifndef SIMULATOR
 #define DEFINE_TEMP_SENSOR(name, type, pin, vadc, r0, t0, r2, beta) { \
-  (type), (pin ## _ADC), (HEATER_ ## name), (vadc), (r0), (t0) + 273.15 },
+  (type), (pin ## _ADC), (HEATER_ ## name), (vadc), (r0), (t0) + 273.15, \
+  (r2) },
 #else
 #define DEFINE_TEMP_SENSOR(name, type, pin, vadc, r0, t0, r2, beta) { \
   (type), (TEMP_SENSOR_ ## name), (HEATER_ ## name), (vadc) },
@@ -185,7 +187,7 @@ void temp_sensor_tick() {
               electronics I'm aware of.
             */
             double k, v, r;
-            double r2 = 4700., beta = 4092.;
+            double beta = 4092.;
 
             temp = analog_read(i);
 
@@ -194,7 +196,7 @@ void temp_sensor_tick() {
             // v = temp * vadc / 1024.;
             v = (double)temp * temp_sensors[i].vadc / 1024.;
             // r = r2 * v / (vadc - v);
-            r = r2 * v / (temp_sensors[i].vadc - v);
+            r = temp_sensors[i].r2 * v / (temp_sensors[i].vadc - v);
 
             temp = (uint16_t)(((beta / log(r / k)) - 273.15) * 4.0);
 
