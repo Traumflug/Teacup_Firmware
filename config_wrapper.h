@@ -18,3 +18,10 @@
   #error config.h missing. Please follow instructions at \
     reprap.org/wiki/Teacup_Firmware#Simple_Installation
 #endif
+
+/**
+  Additional tests to protect against misconfiguration.
+*/
+#ifdef USB_SERIAL
+  #undef BAUD
+#endif
