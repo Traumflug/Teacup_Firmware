@@ -13,8 +13,6 @@
 #define MOSI           DIO10
 #define SS             DIO8
 
-// change for your board
-#define DEBUG_LED      DIO6 /* led D6 */
 
 /*
 pins

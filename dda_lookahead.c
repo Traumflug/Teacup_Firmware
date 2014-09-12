@@ -136,11 +136,11 @@ int dda_jerk_size_2d(int32_t x1, int32_t y1, uint32_t F1, int32_t x2, int32_t y2
  * we shut down the entire machine.
  * @param msg The reason why the machine did an emergency stop
  */
-void dda_emergency_shutdown(PGM_P msg) {
+void dda_emergency_shutdown(PGM_P msg_P) {
   // Todo: is it smart to enable all interrupts again? e.g. can we create concurrent executions?
   sei();  // Enable interrupts to print the message
   serial_writestr_P(PSTR("error: emergency stop:"));
-  if(msg!=NULL) serial_writestr_P(msg);
+  if (msg_P != NULL) serial_writestr_P(msg_P);
   serial_writestr_P(PSTR("\r\n"));
   delay_ms(20);   // Delay so the buffer can be flushed - otherwise the message is never sent
   timer_stop();
@@ -184,15 +184,15 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
 
   // Find individual axis speeds.
   // int32_t muldiv(int32_t multiplicand, uint32_t multiplier, uint32_t divisor)
-  prevFx = muldiv(prev->delta_um.X, F, prev->distance);
-  prevFy = muldiv(prev->delta_um.Y, F, prev->distance);
-  prevFz = muldiv(prev->delta_um.Z, F, prev->distance);
-  prevFe = muldiv(prev->delta_um.E, F, prev->distance);
+  prevFx = muldiv(prev->delta_um[X], F, prev->distance);
+  prevFy = muldiv(prev->delta_um[Y], F, prev->distance);
+  prevFz = muldiv(prev->delta_um[Z], F, prev->distance);
+  prevFe = muldiv(prev->delta_um[E], F, prev->distance);
 
-  currFx = muldiv(current->delta_um.X, F, current->distance);
-  currFy = muldiv(current->delta_um.Y, F, current->distance);
-  currFz = muldiv(current->delta_um.Z, F, current->distance);
-  currFe = muldiv(current->delta_um.E, F, current->distance);
+  currFx = muldiv(current->delta_um[X], F, current->distance);
+  currFy = muldiv(current->delta_um[Y], F, current->distance);
+  currFz = muldiv(current->delta_um[Z], F, current->distance);
+  currFe = muldiv(current->delta_um[E], F, current->distance);
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("prevF: %ld  %ld  %ld  %ld\ncurrF: %ld  %ld  %ld  %ld\n"),
@@ -324,7 +324,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
 
     // Show the proposed crossing speed - this might get adjusted below.
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("Initial crossing speed: %lu\n"), crossF);
+      sersendf_P(PSTR("Initial crossing speed: %lu\n"), current->crossF);
 
   // Make sure we have 2 moves and the previous move is not already active
   if (prev->live == 0) {

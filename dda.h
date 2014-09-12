@@ -11,12 +11,34 @@
 	#endif
 #endif
 
+#ifndef SIMULATOR
+  #include <avr/pgmspace.h>
+#else
+  #define PROGMEM
+#endif
+
 /*
 	types
 */
 
 // Enum to denote an axis
-enum axis_e { X, Y, Z, E };
+enum axis_e { X = 0, Y, Z, E, AXIS_COUNT };
+
+/**
+  \typedef axes_uint32_t
+  \brief n-dimensional vector used to describe uint32_t axis information.
+
+  Stored value can be anything unsigned. Units should be specified when declared.
+*/
+typedef uint32_t axes_uint32_t[AXIS_COUNT];
+
+/**
+  \typedef axes_int32_t
+  \brief n-dimensional vector used to describe int32_t axis information.
+
+  Stored value can be anything unsigned. Units should be specified when declared.
+*/
+typedef int32_t axes_int32_t[AXIS_COUNT];
 
 /**
 	\struct TARGET
@@ -25,30 +47,11 @@ enum axis_e { X, Y, Z, E };
 	X, Y, Z and E are in micrometers unless explcitely stated. F is in mm/min.
 */
 typedef struct {
-// TODO TODO: We should really make up a loop for all axes.
-//            Think of what happens when a sixth axis (multi colour extruder)
-//            appears?
-	int32_t						X;
-	int32_t						Y;
-	int32_t						Z;
-	int32_t						E;
-	uint32_t					F;
+  axes_int32_t axis;
+  uint32_t  F;
 
-	uint8_t		e_relative				:1; ///< bool: e axis relative? Overrides all_relative
+  uint8_t   e_relative        :1; ///< bool: e axis relative? Overrides all_relative
 } TARGET;
-
-/**
- \struct VECTOR4D
- \brief 4 dimensional vector used to describe the difference between moves.
-
-  Units are in micrometers and usually based off 'TARGET'.
-*/
-typedef struct {
-  int32_t X;
-  int32_t Y;
-  int32_t Z;
-  int32_t E;
-} VECTOR4D;
 
 /**
 	\struct MOVE_STATE
@@ -58,27 +61,18 @@ typedef struct {
 */
 typedef struct {
 	// bresenham counters
-	int32_t						x_counter; ///< counter for total_steps vs this axis
-	int32_t						y_counter; ///< counter for total_steps vs this axis
-	int32_t						z_counter; ///< counter for total_steps vs this axis
-	int32_t						e_counter; ///< counter for total_steps vs this axis
+  axes_int32_t      counter; ///< counter for total_steps vs each axis
 
 	// step counters
-	uint32_t					x_steps; ///< number of steps on X axis
-	uint32_t					y_steps; ///< number of steps on Y axis
-	uint32_t					z_steps; ///< number of steps on Z axis
-	uint32_t					e_steps; ///< number of steps on E axis
+  axes_uint32_t     steps;   ///< number of steps on each axis
 
 	#ifdef ACCELERATION_RAMPING
 	/// counts actual steps done
 	uint32_t					step_no;
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
-	uint32_t					x_time; ///< time of the last x step
-	uint32_t					y_time; ///< time of the last y step
-	uint32_t					z_time; ///< time of the last z step
-	uint32_t					e_time; ///< time of the last e step
-	uint32_t					all_time; ///< time of the last step of any axis
+  axes_uint32_t     time;       ///< time of the last step on each axis
+  uint32_t          last_time;  ///< time of the last step of any axis
 	#endif
 
 	/// Endstop handling.
@@ -112,6 +106,9 @@ typedef struct {
 			uint8_t						waitfor_temp	:1; ///< bool: wait for temperatures to reach their set values
 
 			// directions
+      // As we have muldiv() now, overflows became much less an issue and
+      // it's likely time to get rid of these flags and use int instead of
+      // uint for distance/speed calculations. --Traumflug 2014-07-04
 			uint8_t						x_direction		:1; ///< direction flag for X axis
 			uint8_t						y_direction		:1; ///< direction flag for Y axis
 			uint8_t						z_direction		:1; ///< direction flag for Z axis
@@ -121,11 +118,9 @@ typedef struct {
 	};
 
 	// distances
-	uint32_t					x_delta; ///< number of steps on X axis
-	uint32_t					y_delta; ///< number of steps on Y axis
-	uint32_t					z_delta; ///< number of steps on Z axis
-	uint32_t					e_delta; ///< number of steps on E axis
+  axes_uint32_t     delta;       ///< number of steps on each axis
 
+  // uint8_t        fast_axis;   (see below)
   uint32_t          total_steps; ///< steps of the "fast" axis
   uint32_t          fast_um;     ///< movement length of this fast axis
   uint32_t          fast_spm;    ///< steps per meter of the fast axis
@@ -156,7 +151,7 @@ typedef struct {
   // Displacement vector, in um, based between the difference of the starting
   // point and the target. Required to obtain the jerk between 2 moves.
   // Note: x_delta and co are in steps, not um.
-  VECTOR4D          delta_um;
+  axes_int32_t      delta_um;
   // Number the moves to be able to test at the end of lookahead if the moves
   // are the same. Note: we do not need a lot of granularity here: more than
   // MOVEBUFFER_SIZE is already enough.
@@ -164,12 +159,15 @@ typedef struct {
   #endif
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
-	uint32_t					x_step_interval; ///< time between steps on X axis
-	uint32_t					y_step_interval; ///< time between steps on Y axis
-	uint32_t					z_step_interval; ///< time between steps on Z axis
-	uint32_t					e_step_interval; ///< time between steps on E axis
+  axes_uint32_t     step_interval;   ///< time between steps on each axis
 	uint8_t						axis_to_step;    ///< axis to be stepped on the next interrupt
 	#endif
+
+  /// Small variables. Many CPUs can access 32-bit variables at word or double
+  /// word boundaries only and fill smaller variables in between with gaps,
+  /// so keep small variables grouped together to reduce the amount of these
+  /// gaps. See e.g. NXP application note AN10963, page 10f.
+  uint8_t           fast_axis;       ///< number of the fast axis
 
 	/// Endstop homing
 	uint8_t endstop_check; ///< Do we need to check endstops? 0x1=Check X, 0x2=Check Y, 0x4=Check Z

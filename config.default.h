@@ -292,6 +292,18 @@
 //#define	STEPPER_ENABLE_PIN		xxxx
 //#define	STEPPER_INVERT_ENABLE
 
+/** \def DEBUG_LED_PIN
+
+  Enable flashing of a LED during motor stepping.
+
+  Disabled by default. Uncommenting this makes the binary a few bytes larger
+  and adds a few cycles to the step timing interrrupt in timer.c. Also used
+  for precision profiling (profiling works even without actually having such
+  a LED in hardware), see
+  http://reprap.org/wiki/Teacup_Firmware#Doing_precision_profiling
+*/
+// #define DEBUG_LED_PIN DIO13
+
 
 
 /***************************************************************************\
@@ -558,6 +570,22 @@ PWM value for 'off'
 		As Endstops trigger false alarm sometimes, Teacup debounces them by counting a number of consecutive positives. Valid range is 1...255. Use 4 or less for reliable endstops, 8 or even more for flaky ones.
 */
 #define	ENDSTOP_STEPS	4
+
+/** \def CANNED_CYCLE
+
+  G-code commands in this string will be executed over and over again, without
+  user interaction or even a serial connection. It's purpose is e.g. for
+  exhibitions or when using Teacup for other purposes than printing. You can
+  add any G-code supported by Teacup.
+
+  Note: don't miss these newlines (\n) and backslashes (\).
+*/
+/*
+#define CANNED_CYCLE "G1 X100 F3000\n" \
+"G4 P500\n" \
+"G1 X0\n" \
+"G4 P500\n"
+*/
 
 
 

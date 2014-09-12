@@ -245,19 +245,19 @@ void serial_writestr(uint8_t *data)
 	For single character writes (i.e. '\n' instead of "\n"), using
 	serial_writechar() directly is the better choice.
 */
-void serial_writeblock_P(PGM_P data, int datalen)
+void serial_writeblock_P(PGM_P data_P, int datalen)
 {
 	int i;
 
 	for (i = 0; i < datalen; i++)
-		serial_writechar(pgm_read_byte(&data[i]));
+		serial_writechar(pgm_read_byte(&data_P[i]));
 }
 
 /// Write string from FLASH
-void serial_writestr_P(PGM_P data)
+void serial_writestr_P(PGM_P data_P)
 {
 	uint8_t r, i = 0;
 	// yes, this is *supposed* to be assignment rather than comparison, so we break when r is assigned zero
-	while ((r = pgm_read_byte(&data[i++])))
+	while ((r = pgm_read_byte(&data_P[i++])))
 		serial_writechar(r);
 }

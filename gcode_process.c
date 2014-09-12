@@ -49,9 +49,9 @@ void process_gcode_command() {
 
 	// convert relative to absolute
 	if (next_target.option_all_relative) {
-		next_target.target.X += startpoint.X;
-		next_target.target.Y += startpoint.Y;
-		next_target.target.Z += startpoint.Z;
+    next_target.target.axis[X] += startpoint.axis[X];
+    next_target.target.axis[Y] += startpoint.axis[Y];
+    next_target.target.axis[Z] += startpoint.axis[Z];
 	}
 
 	// E relative movement.
@@ -63,28 +63,28 @@ void process_gcode_command() {
 
 	// implement axis limits
 	#ifdef	X_MIN
-		if (next_target.target.X < X_MIN * 1000.)
-			next_target.target.X = X_MIN * 1000.;
+    if (next_target.target.axis[X] < X_MIN * 1000.)
+      next_target.target.axis[X] = X_MIN * 1000.;
 	#endif
 	#ifdef	X_MAX
-		if (next_target.target.X > X_MAX * 1000.)
-			next_target.target.X = X_MAX * 1000.;
+    if (next_target.target.axis[X] > X_MAX * 1000.)
+      next_target.target.axis[X] = X_MAX * 1000.;
 	#endif
 	#ifdef	Y_MIN
-		if (next_target.target.Y < Y_MIN * 1000.)
-			next_target.target.Y = Y_MIN * 1000.;
+    if (next_target.target.axis[Y] < Y_MIN * 1000.)
+      next_target.target.axis[Y] = Y_MIN * 1000.;
 	#endif
 	#ifdef	Y_MAX
-		if (next_target.target.Y > Y_MAX * 1000.)
-			next_target.target.Y = Y_MAX * 1000.;
+    if (next_target.target.axis[Y] > Y_MAX * 1000.)
+      next_target.target.axis[Y] = Y_MAX * 1000.;
 	#endif
 	#ifdef	Z_MIN
-		if (next_target.target.Z < Z_MIN * 1000.)
-			next_target.target.Z = Z_MIN * 1000.;
+    if (next_target.target.axis[Z] < Z_MIN * 1000.)
+      next_target.target.axis[Z] = Z_MIN * 1000.;
 	#endif
 	#ifdef	Z_MAX
-		if (next_target.target.Z > Z_MAX * 1000.)
-			next_target.target.Z = Z_MAX * 1000.;
+    if (next_target.target.axis[Z] > Z_MAX * 1000.)
+      next_target.target.axis[Z] = Z_MAX * 1000.;
 	#endif
 
 
@@ -181,7 +181,10 @@ void process_gcode_command() {
 				//?
 				//? Example: G28
 				//?
-				//? This causes the RepRap machine to move back to its X, Y and Z zero endstops.  It does so accelerating, so as to get there fast.  But when it arrives it backs off by 1 mm in each direction slowly, then moves back slowly to the stop.  This ensures more accurate positioning.
+        //? This causes the RepRap machine to search for its X, Y and Z zero
+        //? endstops. It does so at high speed, so as to get there fast. When
+        //? it arrives it backs off slowly until the endstop is released again.
+        //? Backing off slowly ensures more accurate positioning.
 				//?
 				//? If you add coordinates, then just the axes with coordinates specified will be zeroed.  Thus
 				//?
@@ -264,27 +267,27 @@ void process_gcode_command() {
 				queue_wait();
 
 				if (next_target.seen_X) {
-					startpoint.X = next_target.target.X;
+          startpoint.axis[X] = next_target.target.axis[X];
 					axisSelected = 1;
 				}
 				if (next_target.seen_Y) {
-					startpoint.Y = next_target.target.Y;
+          startpoint.axis[Y] = next_target.target.axis[Y];
 					axisSelected = 1;
 				}
 				if (next_target.seen_Z) {
-					startpoint.Z = next_target.target.Z;
+          startpoint.axis[Z] = next_target.target.axis[Z];
 					axisSelected = 1;
 				}
 				if (next_target.seen_E) {
-					startpoint.E = next_target.target.E;
+          startpoint.axis[E] = next_target.target.axis[E];
 					axisSelected = 1;
 				}
 
 				if (axisSelected == 0) {
-					startpoint.X = next_target.target.X =
-					startpoint.Y = next_target.target.Y =
-					startpoint.Z = next_target.target.Z =
-					startpoint.E = next_target.target.E = 0;
+          startpoint.axis[X] = next_target.target.axis[X] =
+          startpoint.axis[Y] = next_target.target.axis[Y] =
+          startpoint.axis[Z] = next_target.target.axis[Z] =
+          startpoint.axis[E] = next_target.target.axis[E] = 0;
 				}
 
 				dda_new_startpoint();
@@ -360,6 +363,7 @@ void process_gcode_command() {
 				for (i = 0; i < NUM_HEATERS; i++)
 					temp_set(i, 0);
 				power_off();
+        serial_writestr_P(PSTR("\nstop\n"));
 				break;
 
 			case 112:
@@ -557,16 +561,16 @@ void process_gcode_command() {
 				#endif
 				update_current_position();
 				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%lu"),
-				                current_position.X, current_position.Y,
-				                current_position.Z, current_position.E,
+                        current_position.axis[X], current_position.axis[Y],
+                        current_position.axis[Z], current_position.axis[E],
 				                current_position.F);
 
 				#ifdef	DEBUG
 					if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
 						sersendf_P(PSTR(",c:%lu}\nEndpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}"),
-						                movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.X,
-						                movebuffer[mb_tail].endpoint.Y, movebuffer[mb_tail].endpoint.Z,
-						                movebuffer[mb_tail].endpoint.E, movebuffer[mb_tail].endpoint.F,
+                            movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.axis[X],
+                            movebuffer[mb_tail].endpoint.axis[Y], movebuffer[mb_tail].endpoint.axis[Z],
+                            movebuffer[mb_tail].endpoint.axis[E], movebuffer[mb_tail].endpoint.F,
 						#ifdef ACCELERATION_REPRAP
 							movebuffer[mb_tail].end_c
 						#else
@@ -654,6 +658,7 @@ void process_gcode_command() {
 			case 130:
 				//? --- M130: heater P factor ---
 				//? Undocumented.
+			  	//  P factor in counts per degreeC of error
         #ifdef HEATER_EXTRUDER
           if ( ! next_target.seen_P)
             next_target.P = HEATER_EXTRUDER;
@@ -666,6 +671,7 @@ void process_gcode_command() {
 			case 131:
 				//? --- M131: heater I factor ---
 				//? Undocumented.
+			  	// I factor in counts per C*s of integrated error
         #ifdef HEATER_EXTRUDER
           if ( ! next_target.seen_P)
             next_target.P = HEATER_EXTRUDER;
@@ -677,6 +683,7 @@ void process_gcode_command() {
 			case 132:
 				//? --- M132: heater D factor ---
 				//? Undocumented.
+			  	// D factor in counts per degreesC/second
         #ifdef HEATER_EXTRUDER
           if ( ! next_target.seen_P)
             next_target.P = HEATER_EXTRUDER;

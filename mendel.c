@@ -58,6 +58,10 @@
   SIMINFO_SERIAL_OUT("D1", "-", BAUD);
 #endif
 
+#ifdef CANNED_CYCLE
+  const char PROGMEM canned_gcode_P[] = CANNED_CYCLE;
+#endif
+
 /// initialise all I/O - set pins as input or output, turn off unused subsystems, etc
 void io_init(void) {
 	// disable modules we don't use
@@ -258,9 +262,39 @@ int main (void)
 	for (;;)
 	{
 		// if queue is full, no point in reading chars- host will just have to wait
-		if ((serial_rxchars() != 0) && (queue_full() == 0)) {
-			uint8_t c = serial_popchar();
-			gcode_parse_char(c);
+    if (queue_full() == 0) {
+      if (serial_rxchars() != 0) {
+        uint8_t c = serial_popchar();
+        gcode_parse_char(c);
+      }
+
+      #ifdef CANNED_CYCLE
+        /**
+          WARNING!
+
+          This code works on a per-character basis.
+
+          Any data received over serial WILL be randomly distributed through
+          the canned gcode, and you'll have a big mess!
+
+          The solution is to either store gcode parser state with each source,
+          or only parse a line at a time.
+
+          This will take extra ram, and may be out of scope for the Teacup
+          project.
+
+          If ever print-from-SD card is implemented, these changes may become
+          necessary.
+        */
+        static uint32_t canned_gcode_pos = 0;
+
+        gcode_parse_char(pgm_read_byte(&(canned_gcode_P[canned_gcode_pos])));
+
+        canned_gcode_pos++;
+        if (pgm_read_byte(&(canned_gcode_P[canned_gcode_pos])) == 0)
+          canned_gcode_pos = 0;
+
+      #endif /* CANNED_CYCLE */
 		}
 
 		clock();

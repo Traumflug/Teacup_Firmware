@@ -29,12 +29,8 @@
 #define	OC5B				DIO45
 #define	OC5C				DIO44
 
-// change for your board
-#define	DEBUG_LED		DIO21
 
-/*
-pins
-*/
+// digital pins
 #define	DIO0_PIN		PINE0
 #define	DIO0_RPORT	PINE
 #define	DIO0_WPORT	PORTE
@@ -359,6 +355,109 @@ pins
 #define	DIO53_DDR		DDRB
 #define DIO53_PWM		NULL
 
+/**
+  DIO54 ... DIO69 are added for compatibility with other
+  firmwares and duplicate names for AIO0 ... AIO15,
+  so DIO54 == AIO0, DIO55 == AIO1, DIO56 == AIO2, ...
+*/
+#define DIO54_PIN   PINF0
+#define DIO54_RPORT PINF
+#define DIO54_WPORT PORTF
+#define DIO54_DDR   DDRF
+#define DIO54_PWM   NULL
+
+#define DIO55_PIN   PINF1
+#define DIO55_RPORT PINF
+#define DIO55_WPORT PORTF
+#define DIO55_DDR   DDRF
+#define DIO55_PWM   NULL
+
+#define DIO56_PIN   PINF2
+#define DIO56_RPORT PINF
+#define DIO56_WPORT PORTF
+#define DIO56_DDR   DDRF
+#define DIO56_PWM   NULL
+
+#define DIO57_PIN   PINF3
+#define DIO57_RPORT PINF
+#define DIO57_WPORT PORTF
+#define DIO57_DDR   DDRF
+#define DIO57_PWM   NULL
+
+#define DIO58_PIN   PINF4
+#define DIO58_RPORT PINF
+#define DIO58_WPORT PORTF
+#define DIO58_DDR   DDRF
+#define DIO58_PWM   NULL
+
+#define DIO59_PIN   PINF5
+#define DIO59_RPORT PINF
+#define DIO59_WPORT PORTF
+#define DIO59_DDR   DDRF
+#define DIO59_PWM   NULL
+
+#define DIO60_PIN   PINF6
+#define DIO60_RPORT PINF
+#define DIO60_WPORT PORTF
+#define DIO60_DDR   DDRF
+#define DIO60_PWM   NULL
+
+#define DIO61_PIN   PINF7
+#define DIO61_RPORT PINF
+#define DIO61_WPORT PORTF
+#define DIO61_DDR   DDRF
+#define DIO61_PWM   NULL
+
+#define DIO62_PIN   PINK0
+#define DIO62_RPORT PINK
+#define DIO62_WPORT PORTK
+#define DIO62_DDR   DDRK
+#define DIO62_PWM   NULL
+
+#define DIO63_PIN   PINK1
+#define DIO63_RPORT PINK
+#define DIO63_WPORT PORTK
+#define DIO63_DDR   DDRK
+#define DIO63_PWM   NULL
+
+#define DIO64_PIN   PINK2
+#define DIO64_RPORT PINK
+#define DIO64_WPORT PORTK
+#define DIO64_DDR   DDRK
+#define DIO64_PWM   NULL
+
+#define DIO65_PIN   PINK3
+#define DIO65_RPORT PINK
+#define DIO65_WPORT PORTK
+#define DIO65_DDR   DDRK
+#define DIO65_PWM   NULL
+
+#define DIO66_PIN   PINK4
+#define DIO66_RPORT PINK
+#define DIO66_WPORT PORTK
+#define DIO66_DDR   DDRK
+#define DIO66_PWM   NULL
+
+#define DIO67_PIN   PINK5
+#define DIO67_RPORT PINK
+#define DIO67_WPORT PORTK
+#define DIO67_DDR   DDRK
+#define DIO67_PWM   NULL
+
+#define DIO68_PIN   PINK6
+#define DIO68_RPORT PINK
+#define DIO68_WPORT PORTK
+#define DIO68_DDR   DDRK
+#define DIO68_PWM   NULL
+
+#define DIO69_PIN   PINK7
+#define DIO69_RPORT PINK
+#define DIO69_WPORT PORTK
+#define DIO69_DDR   DDRK
+#define DIO69_PWM   NULL
+
+
+// analog pins
 #define AIO0_PIN		PINF0
 #define AIO0_RPORT	PINF
 #define AIO0_WPORT	PORTF

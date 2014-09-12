@@ -25,11 +25,8 @@
 #define	OC2A				DIO15
 #define	OC2B				DIO14
 
-#define	DEBUG_LED		DIO0
-/*
-pins
-*/
 
+// digital pins
 #define DIO0_PIN		PINB0
 #define DIO0_RPORT	PINB
 #define DIO0_WPORT	PORTB
@@ -174,6 +171,11 @@ pins
 #define DIO23_DDR		DDRC
 #define DIO23_PWM		NULL
 
+/**
+  DIO24 ... DIO31 are duplicate names for AIO0 ... AIO7 in opposite order, so
+  DIO24 == AIO7, DIO25 == AIO6, DIO26 == AIO5, DIO27 == AIO4,
+  DIO28 == AIO3, DIO29 == AIO2, DIO30 == AIO1 and DIO31 == AIO0
+*/
 #define DIO24_PIN		PINA7
 #define DIO24_RPORT	PINA
 #define DIO24_WPORT	PORTA
@@ -222,6 +224,8 @@ pins
 #define DIO31_DDR		DDRA
 #define DIO31_PWM		NULL
 
+
+// analog pins
 #define AIO0_PIN		PINA0
 #define AIO0_RPORT	PINA
 #define AIO0_WPORT	PORTA

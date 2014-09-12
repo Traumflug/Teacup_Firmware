@@ -4,6 +4,7 @@
 #include	<stdint.h>
 
 #include	"config_wrapper.h"
+#include "dda.h"
 
 // return rounded result of multiplicand * multiplier / divisor
 // this version is with quotient and remainder precalculated elsewhere
@@ -18,25 +19,14 @@ inline int32_t muldiv(int32_t multiplicand, uint32_t multiplier,
                   multiplier % divisor, divisor);
 }
 
-/*
-	micrometer distance <=> motor step distance conversions
+/*!
+  Micrometer distance <=> motor step distance conversions.
 */
-// Like shown in the patch attached to this post:
-// http://forums.reprap.org/read.php?147,89710,130225#msg-130225 ,
-// it might be worth pre-calculating muldivQR()'s qn and rn in dda_init()
-// as soon as STEPS_PER_M_{XYZE} is no longer a compile-time variable.
 
-static int32_t um_to_steps_x(int32_t) __attribute__ ((always_inline));
-inline int32_t um_to_steps_x(int32_t distance) {
-    return muldivQR(distance, STEPS_PER_M_X / 1000000UL,
-                    STEPS_PER_M_X % 1000000UL, 1000000UL);
-}
+#define UM_PER_METER (1000000UL)
 
-static int32_t um_to_steps_y(int32_t) __attribute__ ((always_inline));
-inline int32_t um_to_steps_y(int32_t distance) {
-    return muldivQR(distance, STEPS_PER_M_Y / 1000000UL,
-                    STEPS_PER_M_Y % 1000000UL, 1000000UL);
-}
+extern const axes_uint32_t PROGMEM axis_qn_P;
+extern const axes_uint32_t PROGMEM axis_qr_P;
 
 #ifdef SCARA_PRINTER
 /*
@@ -55,16 +45,10 @@ void scara_um_to_steps(int32_t pos_x, //actual x_pos
 							  int32_t *steps_y);  //steps for Psi-arm 
 #endif
 
-static int32_t um_to_steps_z(int32_t) __attribute__ ((always_inline));
-inline int32_t um_to_steps_z(int32_t distance) {
-    return muldivQR(distance, STEPS_PER_M_Z / 1000000UL,
-                    STEPS_PER_M_Z % 1000000UL, 1000000UL);
-}
-
-static int32_t um_to_steps_e(int32_t) __attribute__ ((always_inline));
-inline int32_t um_to_steps_e(int32_t distance) {
-    return muldivQR(distance, STEPS_PER_M_E / 1000000UL,
-                    STEPS_PER_M_E % 1000000UL, 1000000UL);
+static int32_t um_to_steps(int32_t, enum axis_e) __attribute__ ((always_inline));
+inline int32_t um_to_steps(int32_t distance, enum axis_e a) {
+  return muldivQR(distance, pgm_read_dword(&axis_qn_P[a]),
+                  pgm_read_dword(&axis_qr_P[a]), UM_PER_METER);
 }
 
 // approximate 2D distance
@@ -88,8 +72,5 @@ uint32_t acc_ramp_len(uint32_t feedrate, uint32_t steps_per_m);
 
 // For X axis only, should become obsolete:
 #define ACCELERATE_RAMP_LEN(speed) (((speed)*(speed)) / (uint32_t)((7200000.0f * ACCELERATION) / (float)STEPS_PER_M_X))
-
-// Initialization constant for the ramping algorithm.
-#define C0 (((uint32_t)((double)F_CPU / sqrt((double)(STEPS_PER_M_X * ACCELERATION / 2000.)))) << 8)
 
 #endif	/* _DDA_MATHS_H */
