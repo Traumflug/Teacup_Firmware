@@ -212,7 +212,6 @@ void dda_create(DDA *dda, TARGET *target) {
       //       because this space is multiplied by the movement queue size.
       dda->delta_um[i] = target->axis[i] - startpoint.axis[i];
     #endif
-  }
 #else
 	/*
 		For Scara-type printers steps on x- and y-axis mean turns of scara-arms.
@@ -223,13 +222,13 @@ void dda_create(DDA *dda, TARGET *target) {
 	*/
 	int32_t tmp_steps_x;
 	int32_t tmp_steps_y;
-	scara_um_to_steps(startpoint.axis[X], startpoint.Y, delta_um.axis[X], delta_um.axis[Y], &tmp_steps_x, &tmp_steps_y);
+	scara_um_to_steps(startpoint.axis[X], startpoint.axis[Y], delta_um[X], delta_um[Y], &tmp_steps_x, &tmp_steps_y);
 	dda->delta_um[X] = abs32(tmp_steps_x - startpoint_steps.axis[X]);
 	startpoint_steps.axis[X] = tmp_steps_x;
 	dda->delta_um[Y]= abs32(tmp_steps_y - startpoint_steps.axis[Y]);
 	startpoint_steps.axis[Y] = tmp_steps_y;
 #endif
-
+  }
 	if (target->e_relative) {
     // When we get more extruder axes:
     // for (i = E; i < AXIS_COUNT; i++) { ...
@@ -941,12 +940,12 @@ void update_current_position() {
     ((STEPS_PER_M_E + 500) / 1000)
   };
 
-	if (queue_empty()) {
+  if (queue_empty()) {
     for (i = X; i < AXIS_COUNT; i++) {
       current_position.axis[i] = startpoint.axis[i];
     }
-	}
-	else if (dda->live) {
+  }
+  else if (dda->live) {
 #ifdef SCARA_PRINTER
 		int32_t end_phi_steps = 0;
 		int32_t end_theta_steps = 0;
@@ -974,14 +973,13 @@ void update_current_position() {
 		/*
 			The implementation above differs from Quentin Harley's. Maybe he's wrong, maybe I didn't get something.
 			In Quentin's Marlin implentation wrong forward kinematics would have no effect, because they are only used
-			to calculate, if home-posiiotn is reached (but that depends on the endstops, so is on the safe side) and
+			to calculate, if home-position is reached (but that depends on the endstops, so is on the safe side) and
 			during calibration, where the cartesian coordinates of the movement destination aren't used.
 			Even in this function "updtae_current_position" faults wouldn't lead to negative affects on printing,
 			except outputting wrong coordinates to serial out.
 		*/
 
 		current_position.axis[Y] = sin(phi_rad) * INNER_ARM_LENGTH + sin(phi_rad+ theta_rad) * OUTER_ARM_LENGTH + SCARA_TOWER_OFFSET_Y;
-
 #else
     for (i = X; i < AXIS_COUNT; i++) {
       current_position.axis[i] = dda->endpoint.axis[i] -
@@ -998,6 +996,7 @@ void update_current_position() {
           (move_state.steps[E] * 1000) / pgm_read_dword(&steps_per_mm_P[E]);
 
 		// current_position.F is updated in dda_start()
-	}
 #endif
+  }
 }
+

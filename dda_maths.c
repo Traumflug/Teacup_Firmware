@@ -335,8 +335,8 @@ void scara_um_to_steps(int32_t pos_x, int32_t pos_y, int32_t distance_x, int32_t
 		the nozzle from (pos_x,pos_y) to (pos_x+distance_x,pos_y+distance_y).
 		Now we have to convert to degerees and calculate the steps.
 	*/
-	*steps_x = (int32_t) trunc(um_to_steps_x(((theta_rad * 4068) / 71) * 1000000UL));  
-	*steps_y = (int32_t) trunc(um_to_steps_y((((theta_rad + phi_rad) * 4068) / 71) * 1000000UL)); 
+	*steps_x = (int32_t) trunc(um_to_steps(((theta_rad * 4068) / 71) * 1000000UL,X));  
+	*steps_y = (int32_t) trunc(um_to_steps((((theta_rad + phi_rad) * 4068) / 71) * 1000000UL,Y)); 
 }
 #endif
 
