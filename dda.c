@@ -504,18 +504,18 @@ void dda_start(DDA *dda) {
 
 /**
   \brief Do per-step movement maintenance.
- 
+
   \param *dda the current move
- 
+
   \details Most important task here is to update the Bresenham algorithm and
   to generate step pulses accordingly, this guarantees geometrical accuracy
   of the movement. Other tasks, like acceleration calculations, are moved
   into dda_clock() as much as possible.
- 
+
   This is called from our timer interrupt every time a step needs to occur.
   Keep it as simple and fast as possible, this is most critical for the
   achievable step frequency.
- 
+
   Note: it was tried to do this in loops instead of straight, repeating code.
         However, this resulted in at least 16% performance loss, no matter
         how it was done. On how to measure, see commit "testcases: Add
