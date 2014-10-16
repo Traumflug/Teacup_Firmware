@@ -46,6 +46,19 @@
 #define MOTHERBOARD
 
 
+/** \def KINEMATICS
+
+  This defines the type of kinematics your printer uses. That's essential!
+
+  Valid values (see dda_kinematics.h):
+
+  KINEMATICS_STRAIGHT   Motors move axis directions directly. This is the
+                        traditional type, found in many printers, including
+                        Mendel, Prusa i3, Mendel90, Ormerod, Mantis.
+*/
+#define KINEMATICS KINEMATICS_STRAIGHT
+
+
 /** \def STEPS_PER_M
   steps per meter ( = steps per mm * 1000 )
 
@@ -258,26 +271,26 @@ DaveX plan for Teensylu/printrboard-type pinouts (ref teensylu & sprinter) for a
 
                                USB
            GND       GND |-----#####-----| +5V              ATX +5SB
-     ATX PS_ON    PWM 27 |b7   #####   b6| 26    PWM*       Stepper Enable 
-                  PWM  0 |d0           b5| 25    PWM*        
-                  PWM  1 |d1           b4| 24    PWM        
-         X_MIN         2 |d2           b3| 23               
-         Y_MIN         3 |d3           b2| 22               
-         Z_MIN         4 |d4  * *      b1| 21                      
-                       5 |d5  e e      b0| 20               
-           LED         6 |d6  5 4      e7| 19               
-                       7 |d7           e6| 18               
-                       8 |e0             | GND              
-                       9 |e1   a4 a0    R| AREF             
-                      10 |c0   a5 a1   f0| 38 A0            
-                      11 |c1   a6 a2   f1| 39 A1            
-                      12 |c2   a7 a3   f2| 40 A2            
-                      13 |c3           f3| 41 A3            
-      Bed Heat    PWM 14 |c4   V G R   f4| 42 A4            
- Extruder Heat    PWM 15 |c5   c n S   f5| 43 A5            
+     ATX PS_ON    PWM 27 |b7   #####   b6| 26    PWM*       Stepper Enable
+                  PWM  0 |d0           b5| 25    PWM*
+                  PWM  1 |d1           b4| 24    PWM
+         X_MIN         2 |d2           b3| 23
+         Y_MIN         3 |d3           b2| 22
+         Z_MIN         4 |d4  * *      b1| 21
+                       5 |d5  e e      b0| 20
+           LED         6 |d6  5 4      e7| 19
+                       7 |d7           e6| 18
+                       8 |e0             | GND
+                       9 |e1   a4 a0    R| AREF
+                      10 |c0   a5 a1   f0| 38 A0
+                      11 |c1   a6 a2   f1| 39 A1
+                      12 |c2   a7 a3   f2| 40 A2
+                      13 |c3           f3| 41 A3
+      Bed Heat    PWM 14 |c4   V G R   f4| 42 A4
+ Extruder Heat    PWM 15 |c5   c n S   f5| 43 A5
            Fan    PWM 16 |c6   c d T   f6| 44 A6            Bed TC
-                      17 |c7   * * *   f7| 45 A7            Extruder TC *4.7k *+5          
-                         -----------------                  
+                      17 |c7   * * *   f7| 45 A7            Extruder TC *4.7k *+5
+                         -----------------
 
       Interior E4: 36, INT4
       Interior E5: 37, INT5
@@ -287,12 +300,12 @@ DaveX plan for Teensylu/printrboard-type pinouts (ref teensylu & sprinter) for a
               29 a1 X_DIR   1
               30 a2 Y_STEP  2
               31 a3 Y_DIR   3
-              32 a4 Z_STEP  4 
+              32 a4 Z_STEP  4
               33 a5 Z_DIR   5
               34 a6 E_STEP  6
               35 a7 E_DIR   7
 
-* PWM on pins PB5/25/OC1A and PB6/26/OC1B pins would interfere with timer/counter1 for Teacup. 
+* PWM on pins PB5/25/OC1A and PB6/26/OC1B pins would interfere with timer/counter1 for Teacup.
   Avoid trying to use these two PWMs, and try to use the other 7 PWMs instead.
 */
 
@@ -709,7 +722,7 @@ PWM value for 'off'
 * OCR4D - PD7 - DIO12 - AIO9                                                *
 *~OCRAB - PB5 - DIO14 - AIO7     *** inverse of OCR4B (avoid it) ***        *
 * OCR4B - PB6 - DIO15 - AIO6                                                *
-*     
+*
 * For the at90usb1286, timer pin/mappings are as follows                    *
 *                                                                           *
 * OCR0A - PB7 - DIO27                                                       *

@@ -46,6 +46,19 @@
 #define	MOTHERBOARD
 
 
+/** \def KINEMATICS
+
+  This defines the type of kinematics your printer uses. That's essential!
+
+  Valid values (see dda_kinematics.h):
+
+  KINEMATICS_STRAIGHT   Motors move axis directions directly. This is the
+                        traditional type, found in many printers, including
+                        Mendel, Prusa i3, Mendel90, Ormerod, Mantis.
+*/
+#define KINEMATICS KINEMATICS_STRAIGHT
+
+
 /** \def STEPS_PER_M
 	steps per meter ( = steps per mm * 1000 )
 
