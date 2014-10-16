@@ -155,8 +155,8 @@ void dda_new_startpoint(void) {
  *    already.
  */
 void dda_create(DDA *dda, TARGET *target) {
-  uint32_t steps;
   axes_uint32_t delta_um;
+  axes_int32_t steps;
 	uint32_t	distance, c_limit, c_limit_calc;
   enum axis_e i;
   #ifdef LOOKAHEAD
@@ -192,9 +192,9 @@ void dda_create(DDA *dda, TARGET *target) {
   for (i = X; i < (target->e_relative ? E : AXIS_COUNT); i++) {
     delta_um[i] = (uint32_t)abs32(target->axis[i] - startpoint.axis[i]);
 
-    steps = um_to_steps(target->axis[i], i);
-    dda->delta[i] = abs32(steps - startpoint_steps.axis[i]);
-    startpoint_steps.axis[i] = steps;
+    steps[i] = um_to_steps(target->axis[i], i);
+    dda->delta[i] = (uint32_t)abs32(steps[i] - startpoint_steps.axis[i]);
+    startpoint_steps.axis[i] = steps[i];
 
     set_direction(dda, i, (target->axis[i] >= startpoint.axis[i])?1:0);
     #ifdef LOOKAHEAD
