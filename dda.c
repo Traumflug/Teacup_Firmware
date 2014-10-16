@@ -208,7 +208,8 @@ void dda_create(DDA *dda, TARGET *target) {
       //       just signedness and storage location. Ideally, dda is used
       //       as storage place only if neccessary (LOOKAHEAD turned on?)
       //       because this space is multiplied by the movement queue size.
-      dda->delta_um[i] = target->axis[i] - startpoint.axis[i];
+      dda->delta_um[i] = (delta_steps >= 0) ?
+                         (int32_t)delta_um[i] : -(int32_t)delta_um[i];
     #endif
   }
 
@@ -229,7 +230,8 @@ void dda_create(DDA *dda, TARGET *target) {
       //       just signedness and storage location. Ideally, dda is used
       //       as storage place only if neccessary (LOOKAHEAD turned on?)
       //       because this space is multiplied by the movement queue size.
-      dda->delta_um[E] = target->axis[E] - startpoint.axis[E];
+      dda->delta_um[E] = (delta_steps >= 0) ?
+                         (int32_t)delta_um[E] : -(int32_t)delta_um[E];
     #endif
   }
   else {
