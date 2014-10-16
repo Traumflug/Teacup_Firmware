@@ -165,8 +165,7 @@ void dda_emergency_shutdown(PGM_P msg_P) {
  */
 void dda_find_crossing_speed(DDA *prev, DDA *current) {
   uint32_t F, dv, speed_factor, max_speed_factor;
-  axes_int32_t prevF;
-  int32_t currFx, currFy, currFz, currFe;
+  axes_int32_t prevF, currF;
   enum axis_e i;
 
   // Bail out if there's nothing to join (e.g. G1 F1500).
@@ -186,17 +185,13 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   // Find individual axis speeds.
   for (i = X; i < AXIS_COUNT; i++) {
     prevF[i] = muldiv(prev->delta_um[i], F, prev->distance);
+    currF[i] = muldiv(current->delta_um[i], F, current->distance);
   }
-
-  currFx = muldiv(current->delta_um[X], F, current->distance);
-  currFy = muldiv(current->delta_um[Y], F, current->distance);
-  currFz = muldiv(current->delta_um[Z], F, current->distance);
-  currFe = muldiv(current->delta_um[E], F, current->distance);
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("prevF: %ld  %ld  %ld  %ld\ncurrF: %ld  %ld  %ld  %ld\n"),
                prevF[X], prevF[Y], prevF[Z], prevF[E],
-               currFx, currFy, currFz, currFe);
+               currF[X], currF[Y], currF[Z], currF[E]);
 
   /**
    * What we want is (for each axis):
@@ -221,7 +216,8 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
    */
   max_speed_factor = (uint32_t)2 << 8;
 
-  dv = currFx > prevF[X] ? currFx - prevF[X] : prevF[X] - currFx;
+  // TODO: this should be looped up, too.
+  dv = currF[X] > prevF[X] ? currF[X] - prevF[X] : prevF[X] - currF[X];
   if (dv) {
     speed_factor = ((uint32_t)MAX_JERK_X << 8) / dv;
     if (speed_factor < max_speed_factor)
@@ -231,7 +227,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
                  dv, (uint32_t)MAX_JERK_X, speed_factor, (uint32_t)1 << 8);
   }
 
-  dv = currFy > prevF[Y] ? currFy - prevF[Y] : prevF[Y] - currFy;
+  dv = currF[Y] > prevF[Y] ? currF[Y] - prevF[Y] : prevF[Y] - currF[Y];
   if (dv) {
     speed_factor = ((uint32_t)MAX_JERK_Y << 8) / dv;
     if (speed_factor < max_speed_factor)
@@ -241,7 +237,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
                  dv, (uint32_t)MAX_JERK_Y, speed_factor, (uint32_t)1 << 8);
   }
 
-  dv = currFz > prevF[Z] ? currFz - prevF[Z] : prevF[Z] - currFz;
+  dv = currF[Z] > prevF[Z] ? currF[Z] - prevF[Z] : prevF[Z] - currF[Z];
   if (dv) {
     speed_factor = ((uint32_t)MAX_JERK_Z << 8) / dv;
     if (speed_factor < max_speed_factor)
@@ -251,7 +247,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
                  dv, (uint32_t)MAX_JERK_Z, speed_factor, (uint32_t)1 << 8);
   }
 
-  dv = currFe > prevF[E] ? currFe - prevF[E] : prevF[E] - currFe;
+  dv = currF[E] > prevF[E] ? currF[E] - prevF[E] : prevF[E] - currF[E];
   if (dv) {
     speed_factor = ((uint32_t)MAX_JERK_E << 8) / dv;
     if (speed_factor < max_speed_factor)
