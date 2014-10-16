@@ -189,7 +189,7 @@ void dda_create(DDA *dda, TARGET *target) {
     dda->id = idcnt++;
   #endif
 
-  for (i = X; i < (target->e_relative ? E : AXIS_COUNT); i++) {
+  for (i = X; i < E; i++) {
     delta_um[i] = (uint32_t)abs32(target->axis[i] - startpoint.axis[i]);
 
     steps[i] = um_to_steps(target->axis[i], i);
@@ -207,7 +207,24 @@ void dda_create(DDA *dda, TARGET *target) {
     #endif
   }
 
-	if (target->e_relative) {
+  if ( ! target->e_relative) {
+    delta_um[E] = (uint32_t)abs32(target->axis[E] - startpoint.axis[E]);
+
+    steps[E] = um_to_steps(target->axis[E], E);
+    dda->delta[E] = (uint32_t)abs32(steps[E] - startpoint_steps.axis[E]);
+    startpoint_steps.axis[E] = steps[E];
+
+    set_direction(dda, E, (target->axis[E] >= startpoint.axis[E]) ? 1 : 0);
+    #ifdef LOOKAHEAD
+      // Also displacements in micrometers, but for the lookahead alogrithms.
+      // TODO: this is redundant. delta_um[] and dda->delta_um[] differ by
+      //       just signedness and storage location. Ideally, dda is used
+      //       as storage place only if neccessary (LOOKAHEAD turned on?)
+      //       because this space is multiplied by the movement queue size.
+      dda->delta_um[E] = target->axis[E] - startpoint.axis[E];
+    #endif
+  }
+  else {
     // When we get more extruder axes:
     // for (i = E; i < AXIS_COUNT; i++) { ...
     delta_um[E] = abs32(target->axis[E]);
