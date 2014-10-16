@@ -13,6 +13,7 @@
 
 #include	"dda_maths.h"
 #include "preprocessor_math.h"
+#include "dda_kinematics.h"
 #include	"dda_lookahead.h"
 #include	"timer.h"
 #include	"serial.h"
@@ -191,12 +192,10 @@ void dda_create(DDA *dda, TARGET *target) {
     dda->id = idcnt++;
   #endif
 
+  code_axes_to_stepper_axes(&startpoint, target, delta_um, steps);
   for (i = X; i < E; i++) {
     int32_t delta_steps;
 
-    delta_um[i] = (uint32_t)abs32(target->axis[i] - startpoint.axis[i]);
-
-    steps[i] = um_to_steps(target->axis[i], i);
     delta_steps = steps[i] - startpoint_steps.axis[i];
     dda->delta[i] = (uint32_t)abs32(delta_steps);
     startpoint_steps.axis[i] = steps[i];
@@ -217,8 +216,8 @@ void dda_create(DDA *dda, TARGET *target) {
     int32_t delta_steps;
 
     delta_um[E] = (uint32_t)abs32(target->axis[E] - startpoint.axis[E]);
-
     steps[E] = um_to_steps(target->axis[E], E);
+
     delta_steps = steps[E] - startpoint_steps.axis[E];
     dda->delta[E] = (uint32_t)abs32(delta_steps);
     startpoint_steps.axis[E] = steps[E];
