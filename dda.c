@@ -83,7 +83,9 @@ static const axes_uint32_t PROGMEM c0_P = {
 
 /*! Set the direction of the 'n' axis
 */
-static void set_direction(DDA *dda, enum axis_e n, int dir) {
+static void set_direction(DDA *dda, enum axis_e n, int32_t delta) {
+  uint8_t dir = (delta >= 0) ? 1 : 0;
+
   if (n == X)
     dda->x_direction = dir;
   else if (n == Y)
@@ -199,7 +201,7 @@ void dda_create(DDA *dda, TARGET *target) {
     dda->delta[i] = (uint32_t)abs32(delta_steps);
     startpoint_steps.axis[i] = steps[i];
 
-    set_direction(dda, i, (target->axis[i] >= startpoint.axis[i])?1:0);
+    set_direction(dda, i, delta_steps);
     #ifdef LOOKAHEAD
       // Also displacements in micrometers, but for the lookahead alogrithms.
       // TODO: this is redundant. delta_um[] and dda->delta_um[] differ by
@@ -220,7 +222,7 @@ void dda_create(DDA *dda, TARGET *target) {
     dda->delta[E] = (uint32_t)abs32(delta_steps);
     startpoint_steps.axis[E] = steps[E];
 
-    set_direction(dda, E, (target->axis[E] >= startpoint.axis[E]) ? 1 : 0);
+    set_direction(dda, E, delta_steps);
     #ifdef LOOKAHEAD
       // Also displacements in micrometers, but for the lookahead alogrithms.
       // TODO: this is redundant. delta_um[] and dda->delta_um[] differ by
