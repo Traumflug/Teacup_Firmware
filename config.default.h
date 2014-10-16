@@ -53,6 +53,10 @@
   KINEMATICS_STRAIGHT   Motors move axis directions directly. This is the
                         traditional type, found in many printers, including
                         Mendel, Prusa i3, Mendel90, Ormerod, Mantis.
+
+  KINEMATICS_COREXY     A bot using CoreXY kinematics. Typical for CoreXY are
+                        long and crossing toothed belts and a print head moving
+                        on the X-Y-plane.
 */
 #define KINEMATICS KINEMATICS_STRAIGHT
 
