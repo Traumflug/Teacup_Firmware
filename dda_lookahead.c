@@ -226,49 +226,17 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
    */
   max_speed_factor = (uint32_t)2 << 8;
 
-  // TODO: this should be looped up, too.
-  dv = currF[X] > prevF[X] ? currF[X] - prevF[X] : prevF[X] - currF[X];
-  if (dv) {
-    speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[X]) << 8) / dv;
-    if (speed_factor < max_speed_factor)
-      max_speed_factor = speed_factor;
-    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("X: dv %lu of %lu   factor %lu of %lu\n"),
-                 dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[X]),
-                 speed_factor, (uint32_t)1 << 8);
-  }
-
-  dv = currF[Y] > prevF[Y] ? currF[Y] - prevF[Y] : prevF[Y] - currF[Y];
-  if (dv) {
-    speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[Y]) << 8) / dv;
-    if (speed_factor < max_speed_factor)
-      max_speed_factor = speed_factor;
-    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("Y: dv %lu of %lu   factor %lu of %lu\n"),
-                 dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[Y]),
-                 speed_factor, (uint32_t)1 << 8);
-  }
-
-  dv = currF[Z] > prevF[Z] ? currF[Z] - prevF[Z] : prevF[Z] - currF[Z];
-  if (dv) {
-    speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[Z]) << 8) / dv;
-    if (speed_factor < max_speed_factor)
-      max_speed_factor = speed_factor;
-    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("Z: dv %lu of %lu   factor %lu of %lu\n"),
-                 dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[Z]),
-                 speed_factor, (uint32_t)1 << 8);
-  }
-
-  dv = currF[E] > prevF[E] ? currF[E] - prevF[E] : prevF[E] - currF[E];
-  if (dv) {
-    speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[E]) << 8) / dv;
-    if (speed_factor < max_speed_factor)
-      max_speed_factor = speed_factor;
-    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("E: dv %lu of %lu   factor %lu of %lu\n"),
-                 dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[E]),
-                 speed_factor, (uint32_t)1 << 8);
+  for (i = X; i < AXIS_COUNT; i++) {
+    dv = currF[i] > prevF[i] ? currF[i] - prevF[i] : prevF[i] - currF[i];
+    if (dv) {
+      speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[i]) << 8) / dv;
+      if (speed_factor < max_speed_factor)
+        max_speed_factor = speed_factor;
+      if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+        sersendf_P(PSTR("%c: dv %lu of %lu   factor %lu of %lu\n"),
+                   'X' + i, dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[i]),
+                   speed_factor, (uint32_t)1 << 8);
+    }
   }
 
   if (max_speed_factor >= ((uint32_t)1 << 8))
