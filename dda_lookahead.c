@@ -40,6 +40,16 @@ uint32_t lookahead_timeout = 0;     // Moves that did not compute in time to be 
   #define serprintf(...)
 #endif
 
+/// \var maximum_jerk_P
+/// \brief maximum allowed feedrate jerk on each axis
+static const axes_uint32_t PROGMEM maximum_jerk_P = {
+  MAX_JERK_X,
+  MAX_JERK_Y,
+  MAX_JERK_Z,
+  MAX_JERK_E
+};
+
+
 // We also need the inverse: given a ramp length, determine the expected speed
 // Note: the calculation is scaled by a factor 16384 to obtain an answer with a smaller
 // rounding error.
@@ -219,42 +229,46 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   // TODO: this should be looped up, too.
   dv = currF[X] > prevF[X] ? currF[X] - prevF[X] : prevF[X] - currF[X];
   if (dv) {
-    speed_factor = ((uint32_t)MAX_JERK_X << 8) / dv;
+    speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[X]) << 8) / dv;
     if (speed_factor < max_speed_factor)
       max_speed_factor = speed_factor;
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
       sersendf_P(PSTR("X: dv %lu of %lu   factor %lu of %lu\n"),
-                 dv, (uint32_t)MAX_JERK_X, speed_factor, (uint32_t)1 << 8);
+                 dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[X]),
+                 speed_factor, (uint32_t)1 << 8);
   }
 
   dv = currF[Y] > prevF[Y] ? currF[Y] - prevF[Y] : prevF[Y] - currF[Y];
   if (dv) {
-    speed_factor = ((uint32_t)MAX_JERK_Y << 8) / dv;
+    speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[Y]) << 8) / dv;
     if (speed_factor < max_speed_factor)
       max_speed_factor = speed_factor;
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
       sersendf_P(PSTR("Y: dv %lu of %lu   factor %lu of %lu\n"),
-                 dv, (uint32_t)MAX_JERK_Y, speed_factor, (uint32_t)1 << 8);
+                 dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[Y]),
+                 speed_factor, (uint32_t)1 << 8);
   }
 
   dv = currF[Z] > prevF[Z] ? currF[Z] - prevF[Z] : prevF[Z] - currF[Z];
   if (dv) {
-    speed_factor = ((uint32_t)MAX_JERK_Z << 8) / dv;
+    speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[Z]) << 8) / dv;
     if (speed_factor < max_speed_factor)
       max_speed_factor = speed_factor;
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
       sersendf_P(PSTR("Z: dv %lu of %lu   factor %lu of %lu\n"),
-                 dv, (uint32_t)MAX_JERK_Z, speed_factor, (uint32_t)1 << 8);
+                 dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[Z]),
+                 speed_factor, (uint32_t)1 << 8);
   }
 
   dv = currF[E] > prevF[E] ? currF[E] - prevF[E] : prevF[E] - currF[E];
   if (dv) {
-    speed_factor = ((uint32_t)MAX_JERK_E << 8) / dv;
+    speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[E]) << 8) / dv;
     if (speed_factor < max_speed_factor)
       max_speed_factor = speed_factor;
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
       sersendf_P(PSTR("E: dv %lu of %lu   factor %lu of %lu\n"),
-                 dv, (uint32_t)MAX_JERK_E, speed_factor, (uint32_t)1 << 8);
+                 dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[E]),
+                 speed_factor, (uint32_t)1 << 8);
   }
 
   if (max_speed_factor >= ((uint32_t)1 << 8))
