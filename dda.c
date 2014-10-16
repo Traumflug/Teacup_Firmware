@@ -30,8 +30,6 @@
 	#include	"heater.h"
 #endif
 
-/* 32-bit-specific abs fn coerces argument to 32-bit signed value first */
-#define abs32(x) labs((int32_t)(x))
 
 /*
 	position tracking
@@ -197,7 +195,7 @@ void dda_create(DDA *dda, TARGET *target) {
     int32_t delta_steps;
 
     delta_steps = steps[i] - startpoint_steps.axis[i];
-    dda->delta[i] = (uint32_t)abs32(delta_steps);
+    dda->delta[i] = (uint32_t)labs(delta_steps);
     startpoint_steps.axis[i] = steps[i];
 
     set_direction(dda, i, delta_steps);
@@ -215,11 +213,11 @@ void dda_create(DDA *dda, TARGET *target) {
   if ( ! target->e_relative) {
     int32_t delta_steps;
 
-    delta_um[E] = (uint32_t)abs32(target->axis[E] - startpoint.axis[E]);
+    delta_um[E] = (uint32_t)labs(target->axis[E] - startpoint.axis[E]);
     steps[E] = um_to_steps(target->axis[E], E);
 
     delta_steps = steps[E] - startpoint_steps.axis[E];
-    dda->delta[E] = (uint32_t)abs32(delta_steps);
+    dda->delta[E] = (uint32_t)labs(delta_steps);
     startpoint_steps.axis[E] = steps[E];
 
     set_direction(dda, E, delta_steps);
@@ -236,8 +234,8 @@ void dda_create(DDA *dda, TARGET *target) {
   else {
     // When we get more extruder axes:
     // for (i = E; i < AXIS_COUNT; i++) { ...
-    delta_um[E] = abs32(target->axis[E]);
-    dda->delta[E] = abs32(um_to_steps(target->axis[E], E));
+    delta_um[E] = (uint32_t)labs(target->axis[E]);
+    dda->delta[E] = (uint32_t)labs(um_to_steps(target->axis[E], E));
     #ifdef LOOKAHEAD
       dda->delta_um[E] = target->axis[E];
     #endif
