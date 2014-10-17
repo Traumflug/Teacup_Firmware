@@ -193,6 +193,12 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
                prev->distance, current->distance);
 
   // Find individual axis speeds.
+  // TODO: this is eight expensive muldiv()s. It should be possible to store
+  //       currF as prevF for the next calculation somehow, to save 4 of
+  //       these 8 muldiv()s. This would also allow to get rid of
+  //       dda->delta_um[] and using delta_um[] from dda_create() instead.
+  //       Caveat: bail out condition above and some other non-continuous
+  //               situations might need some extra code for handling.
   for (i = X; i < AXIS_COUNT; i++) {
     prevF[i] = muldiv(prev->delta_um[i], F, prev->distance);
     currF[i] = muldiv(current->delta_um[i], F, current->distance);

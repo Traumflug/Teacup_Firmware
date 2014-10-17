@@ -205,11 +205,19 @@ void dda_create(DDA *dda, TARGET *target) {
       //       just signedness and storage location. Ideally, dda is used
       //       as storage place only if neccessary (LOOKAHEAD turned on?)
       //       because this space is multiplied by the movement queue size.
+      //
+      // Update 2014/10: it was tried to use delta_um[]'s sign to set stepper
+      //                 direction in dda_start() to allow getting rid of
+      //                 some of this redundancy, but this increases dda_start()
+      //                 by at least 20 clock cycles. Not good for performance.
+      //                 Tried code can be found in the archive folder.
       dda->delta_um[i] = (delta_steps >= 0) ?
                          (int32_t)delta_um[i] : -(int32_t)delta_um[i];
     #endif
   }
 
+  // TODO: this can likely be, at least partially, joined with the above for()
+  //       loop. Lots of almost-duplicate code.
   if ( ! target->e_relative) {
     int32_t delta_steps;
 
