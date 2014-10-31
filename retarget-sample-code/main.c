@@ -1,6 +1,18 @@
+
+#include <serial_api.h>
+
 #include <stdio.h>
-void main()
-{
-    printf("Hello, world!");
-	for (;;);
+
+extern serial_t serial_line;
+
+void retarget_init(void);
+
+
+int main() {
+
+  retarget_init();
+
+  printf("Hello, world!\n");
+
+  for ( ; ; );
 }
