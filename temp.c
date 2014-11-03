@@ -97,12 +97,18 @@ void temp_init() {
 				break;*/
 		#endif
 
-		#ifdef	TEMP_INTERCOM
-			case TT_INTERCOM:
-				intercom_init();
-				send_temperature(0, 0);
-				break;
-		#endif
+      #ifdef TEMP_INTERCOM
+        case TT_INTERCOM:
+          // Enable the RS485 transceiver
+          SET_OUTPUT(RX_ENABLE_PIN);
+          SET_OUTPUT(TX_ENABLE_PIN);
+          WRITE(RX_ENABLE_PIN,0);
+          disable_transmit();
+
+          intercom_init();
+          send_temperature(0, 0);
+          // Intentionally no break.
+      #endif
 
 			default: /* prevent compiler warning */
 				break;

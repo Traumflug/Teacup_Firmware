@@ -186,14 +186,6 @@ void io_init(void) {
 		WRITE(MISO, 1);				SET_INPUT(MISO);
 	#endif
 
-	#ifdef TEMP_INTERCOM
-		// Enable the RS485 transceiver
-		SET_OUTPUT(RX_ENABLE_PIN);
-		SET_OUTPUT(TX_ENABLE_PIN);
-		WRITE(RX_ENABLE_PIN,0);
-		disable_transmit();
-	#endif
-
   #ifdef DEBUG_LED_PIN 
     WRITE(DEBUG_LED_PIN, 0);
     SET_OUTPUT(DEBUG_LED_PIN);
