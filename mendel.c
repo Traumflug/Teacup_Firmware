@@ -184,7 +184,6 @@ void io_init(void) {
 		WRITE(SCK, 0);				SET_OUTPUT(SCK);
 		WRITE(MOSI, 1);				SET_OUTPUT(MOSI);
 		WRITE(MISO, 1);				SET_INPUT(MISO);
-		WRITE(SS, 1);					SET_OUTPUT(SS);
 	#endif
 
 	#ifdef TEMP_INTERCOM
