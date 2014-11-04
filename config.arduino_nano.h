@@ -3,7 +3,9 @@
 /** \file
 	\brief Sample Configuration
 
-	\note this sample uses AIO0 for both X_STEP and thermistor, and is intended to be an example only!
+	\This File is ready for Arduino NANO.
+	 Thermistor for extruder goes in Analog Port 6
+	 Thermistor for bed goes in Analog Port 7
 */
 
 /*
