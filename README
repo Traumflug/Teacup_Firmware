@@ -6,6 +6,8 @@
 #                                                                            #
 ##############################################################################
 
+***Adds config.h files for Arduino UNO and Arduino NANO***
+
 For installation instructions, see
 http://reprap.org/wiki/Teacup_Firmware#Simple_Installation and/or
 http://reprap.org/wiki/Teacup_Firmware#Developer_Installation
