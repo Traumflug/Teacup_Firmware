@@ -34,8 +34,12 @@ typedef enum {
 /* Prototypes for disk control functions */
 
 DSTATUS disk_initialize (void);
-DRESULT disk_readp (BYTE* buff, DWORD sector, UINT offser, UINT count);
-DRESULT disk_writep (const BYTE* buff, DWORD sc);
+#if _USE_READ
+  DRESULT disk_readp (BYTE* buffer, DWORD sector, UINT offset, UINT count);
+#endif
+#if _USE_WRITE
+  DRESULT disk_writep (const BYTE* buffer, DWORD sc);
+#endif
 
 #define STA_NOINIT      0x01    /* Drive not initialized */
 #define STA_NODISK      0x02    /* No medium in the drive */

@@ -38,6 +38,8 @@
     file name conflicts.
   - Changed former integer.h content to use fixed width types (int8_t, etc).
   - Wrapped code in #ifdef SD to compile it only when needed.
+  - Added the hardware connection layer from sample code of the same source,
+    see pff_diskio.c.
 */
 
 #include "pff.h"        /* Petit FatFs configurations and declarations */

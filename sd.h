@@ -10,6 +10,11 @@
 #ifdef SD_CARD_SELECT_PIN
 #define SD
 
+#include "pff.h"
+
+// Feature set of Petit FatFs is currently defined early in pff_conf.h.
+
+
 void sd_init(void);
 
 #endif /* SD_CARD_SELECT_PIN */
