@@ -3,7 +3,7 @@
 /** \file
 	\brief Sample Configuration
 
-	\note this sample uses AIO0 for both X_STEP and thermistor, and is intended to be an example only!
+	\File ready for Arduino_UNO, extruder thermistor goes to Analog pin 0, and X_STEP_PIN goes to DIO0.
 */
 
 /*
