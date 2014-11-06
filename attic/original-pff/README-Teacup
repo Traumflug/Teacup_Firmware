@@ -1,0 +1,7 @@
+
+These files are the Petit FatFs R0.03 files used for the
+Teacup implementation, but entirely unchanged. Not even
+whitespace or line endings fixed.
+
+The purpose of storing them here is to have them
+available for diffs with newer PFF releases.
