@@ -317,6 +317,9 @@
 #define STEPPER_ENABLE_PIN		DIO25
 #define	STEPPER_INVERT_ENABLE
 
+#define SD_CARD_SELECT_PIN    DIO15
+//#define SD_CARD_DETECT_PIN    xxxx
+
 /** \def DEBUG_LED_PIN
 
   Enable flashing of a LED during motor stepping.
