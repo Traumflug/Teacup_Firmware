@@ -366,23 +366,6 @@ void process_gcode_command() {
         serial_writestr_P(PSTR("\nstop\n"));
 				break;
 
-			case 112:
-				//? --- M112: Emergency Stop ---
-				//?
-				//? Example: M112
-				//?
-				//? Any moves in progress are immediately terminated, then RepRap shuts down.  All motors and heaters are turned off.
-				//? It can be started again by pressing the reset button on the master microcontroller.  See also M0.
-				//?
-
-				timer_stop();
-				queue_flush();
-				power_off();
-				cli();
-				for (;;)
-					wd_reset();
-				break;
-
 			case 6:
 				//? --- M6: tool change ---
 				//?
@@ -543,6 +526,24 @@ void process_gcode_command() {
 				debug_flags = next_target.S;
 				break;
 			#endif
+
+      case 112:
+        //? --- M112: Emergency Stop ---
+        //?
+        //? Example: M112
+        //?
+        //? Any moves in progress are immediately terminated, then the printer
+        //? shuts down. All motors and heaters are turned off. Only way to
+        //? restart is to press the reset button on the master microcontroller.
+        //? See also M0.
+        //?
+        timer_stop();
+        queue_flush();
+        power_off();
+        cli();
+        for (;;)
+          wd_reset();
+        break;
 
 			case 114:
 				//? --- M114: Get Current Position ---
