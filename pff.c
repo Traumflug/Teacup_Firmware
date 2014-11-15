@@ -433,14 +433,18 @@ CLUST get_clust (
     BYTE* dir       /* Pointer to directory entry */
 )
 {
-    FATFS *fs = FatFs;
     CLUST clst = 0;
 
 
-    if (_FS_32ONLY || (_FS_FAT32 && fs->fs_type == FS_FAT32)) {
-        clst = LD_WORD(dir+DIR_FstClusHI);
-        clst <<= 16;
-    }
+    #if _FS_FAT32
+        #if ! _FS_32ONLY
+            if (FatFs->fs_type == FS_FAT32)
+        #endif
+        {
+            clst = LD_WORD(dir+DIR_FstClusHI);
+            clst <<= 16;
+        }
+    #endif
     clst |= LD_WORD(dir+DIR_FstClusLO);
 
     return clst;
