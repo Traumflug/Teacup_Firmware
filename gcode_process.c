@@ -212,10 +212,10 @@ void process_gcode_command() {
 					axisSelected = 1;
 				}
 				if (next_target.seen_Z) {
-					#if defined Z_MAX_PIN
-						home_z_positive();
-					#elif defined	Z_MIN_PIN
-						home_z_negative();
+          #if defined Z_MIN_PIN
+            home_z_negative();
+          #elif defined Z_MAX_PIN
+            home_z_positive();
 					#endif
 					axisSelected = 1;
 				}
