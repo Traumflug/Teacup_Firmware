@@ -172,13 +172,13 @@ void dda_create(DDA *dda, TARGET *target) {
   if (dda->waitfor_temp)
     return;
 
+  // We end at the passed target.
+  memcpy(&(dda->endpoint), target, sizeof(TARGET));
+
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("\nCreate: X %lq  Y %lq  Z %lq  F %lu\n"),
                dda->endpoint.axis[X], dda->endpoint.axis[Y],
                dda->endpoint.axis[Z], dda->endpoint.F);
-
-	// we end at the passed target
-	memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
   #ifdef LOOKAHEAD
     // Set the start and stop speeds to zero for now = full stops between
