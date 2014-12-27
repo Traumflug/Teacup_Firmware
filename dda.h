@@ -77,8 +77,7 @@ typedef struct {
 
 	/// Endstop handling.
   uint8_t endstop_stop; ///< Stop due to endstop trigger
-	uint8_t debounce_count_xmin, debounce_count_ymin, debounce_count_zmin;
-	uint8_t debounce_count_xmax, debounce_count_ymax, debounce_count_zmax;
+  uint8_t debounce_count_x, debounce_count_y, debounce_count_z;
 } MOVE_STATE;
 
 /**
