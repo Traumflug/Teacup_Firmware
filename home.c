@@ -77,13 +77,13 @@ void home_x_negative() {
       t.F = SEARCH_FAST_X;
     else
       t.F = SEARCH_FEEDRATE_X;
-		enqueue_home(&t, 0x1, 1);
+    enqueue_home(&t, 0x01, 1);
 
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
 			// back off slowly
       t.axis[X] = +1000000;
 			t.F = SEARCH_FEEDRATE_X;
-			enqueue_home(&t, 0x1, 0);
+      enqueue_home(&t, 0x01, 0);
     }
 
 		// set X home
@@ -110,12 +110,12 @@ void home_x_positive() {
       t.F = SEARCH_FAST_X;
     else
       t.F = SEARCH_FEEDRATE_X;
-		enqueue_home(&t, 0x1, 1);
+    enqueue_home(&t, 0x02, 1);
 
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
       t.axis[X] = -1000000;
 			t.F = SEARCH_FEEDRATE_X;
-			enqueue_home(&t, 0x1, 0);
+      enqueue_home(&t, 0x02, 0);
     }
 
 		// set X home
@@ -136,12 +136,12 @@ void home_y_negative() {
       t.F = SEARCH_FAST_Y;
     else
       t.F = SEARCH_FEEDRATE_Y;
-		enqueue_home(&t, 0x2, 1);
+    enqueue_home(&t, 0x04, 1);
 
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
       t.axis[Y] = +1000000;
 			t.F = SEARCH_FEEDRATE_Y;
-			enqueue_home(&t, 0x2, 0);
+      enqueue_home(&t, 0x04, 0);
     }
 
 		// set Y home
@@ -168,12 +168,12 @@ void home_y_positive() {
       t.F = SEARCH_FAST_Y;
     else
       t.F = SEARCH_FEEDRATE_Y;
-		enqueue_home(&t, 0x2, 1);
+    enqueue_home(&t, 0x08, 1);
 
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
       t.axis[Y] = -1000000;
 			t.F = SEARCH_FEEDRATE_Y;
-			enqueue_home(&t, 0x2, 0);
+      enqueue_home(&t, 0x08, 0);
     }
 
 		// set Y home
@@ -194,12 +194,12 @@ void home_z_negative() {
       t.F = SEARCH_FAST_Z;
     else
       t.F = SEARCH_FEEDRATE_Z;
-		enqueue_home(&t, 0x4, 1);
+    enqueue_home(&t, 0x10, 1);
 
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z) {
       t.axis[Z] = +1000000;
 			t.F = SEARCH_FEEDRATE_Z;
-			enqueue_home(&t, 0x4, 0);
+      enqueue_home(&t, 0x10, 0);
     }
 
 		// set Z home
@@ -226,12 +226,12 @@ void home_z_positive() {
       t.F = SEARCH_FAST_Z;
     else
       t.F = SEARCH_FEEDRATE_Z;
-		enqueue_home(&t, 0x4, 1);
+    enqueue_home(&t, 0x20, 1);
 
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z) {
       t.axis[Z] = -1000000;
 			t.F = SEARCH_FEEDRATE_Z;
-			enqueue_home(&t, 0x4, 0);
+      enqueue_home(&t, 0x20, 0);
     }
 
 		// set Z home
