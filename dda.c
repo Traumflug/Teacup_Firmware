@@ -80,6 +80,15 @@ static const axes_uint32_t PROGMEM c0_P = {
   (uint32_t)((double)F_CPU / SQRT((double)(STEPS_PER_M_E * ACCELERATION / 2000.)))
 };
 
+/// \var search_feedrate_P
+/// \brief desired feedrate for homing on each axis except E
+const axes_uint32_t PROGMEM search_feedrate_P = {
+  SEARCH_FEEDRATE_X,
+  SEARCH_FEEDRATE_Y,
+  SEARCH_FEEDRATE_Z
+
+};
+
 /*! Set the direction of the 'n' axis
 */
 static void set_direction(DDA *dda, enum axis_e n, int32_t delta) {
