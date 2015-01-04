@@ -349,9 +349,13 @@ void gcode_parse_char(uint8_t c) {
 				#endif
 				) {
 				// process
-				serial_writestr_P(PSTR("ok "));
-				process_gcode_command();
-				serial_writechar('\n');
+				//PK Don't process empty lines
+				if ( (next_target.seen_G) || (next_target.seen_M) || (next_target.seen_T) )
+				{
+					serial_writestr_P(PSTR("ok "));
+					process_gcode_command();
+					serial_writechar('\n');
+				}
 
 				// expect next line number
 				if (next_target.seen_N == 1)
