@@ -66,6 +66,17 @@ struct {
 	temp_flags_enum		temp_flags;     ///< flags
 
 	uint16_t					last_read_temp; ///< last received reading
+	//PK Ready for average
+	#ifdef TEMP_SAMPLES_TO_AVERAGE
+		#if (TEMP_SAMPLES_TO_AVERAGE <= 64)
+			uint16_t
+		#else
+			uint32_t
+		#endif
+			temp_sum;
+		uint16_t temp_sump_fractional;
+	#endif
+	
 	uint16_t					target_temp;		///< manipulate attached heater to attempt to achieve this value
 
 	uint16_t					temp_residency; ///< how long have we been close to target temperature in temp ticks?
@@ -112,6 +123,12 @@ void temp_init() {
 /// called every 10ms from clock.c - check all temp sensors that are ready for checking
 void temp_sensor_tick() {
 	temp_sensor_t i = 0;
+	//PK Support for PID_REFRESH_TIME
+	#ifdef PID_REFRESH_TIME
+		static uint16_t pid_time;
+		pid_time += 10;
+	#endif
+
 	for (; i < NUM_TEMP_SENSORS; i++) {
 		if (temp_sensors_runtime[i].next_read_time) {
 			temp_sensors_runtime[i].next_read_time--;
@@ -284,9 +301,28 @@ void temp_sensor_tick() {
 			#endif
 			#define EWMA_SCALE  1024L
 			#define EWMA_ALPHA  ((long) (TEMP_EWMA * EWMA_SCALE))
-			temp_sensors_runtime[i].last_read_temp = (uint16_t) ((EWMA_ALPHA * temp +
-			  (EWMA_SCALE-EWMA_ALPHA) * temp_sensors_runtime[i].last_read_temp
-			                                         ) / EWMA_SCALE);
+			#ifndef TEMP_SAMPLES_TO_AVERAGE
+				temp_sensors_runtime[i].last_read_temp = (uint16_t) ((EWMA_ALPHA * temp +
+					(EWMA_SCALE-EWMA_ALPHA) * temp_sensors_runtime[i].last_read_temp
+						                                 ) / EWMA_SCALE);
+			#else
+				temp_sensors_runtime[i].temp_sump_fractional = temp_sensors_runtime[i].temp_sum % TEMP_SAMPLES_TO_AVERAGE;
+				temp_sensors_runtime[i].temp_sum +=
+				#if (TEMP_SAMPLES_TO_AVERAGE <= 64)
+					(uint16_t)
+				#else
+					(uint32_t)
+				#endif
+					temp - (temp_sensors_runtime[i].temp_sum / TEMP_SAMPLES_TO_AVERAGE);
+				if (temp_sensors_runtime[i].temp_sump_fractional >= TEMP_SAMPLES_TO_AVERAGE)
+				{
+					temp_sensors_runtime[i].temp_sump_fractional -= TEMP_SAMPLES_TO_AVERAGE;
+					if(temp_sensors_runtime[i].temp_sum)
+					temp_sensors_runtime[i].temp_sum--;
+				}
+				temp_sensors_runtime[i].last_read_temp = (temp_sensors_runtime[i].temp_sum / TEMP_SAMPLES_TO_AVERAGE);
+			#endif
+
 		}
 		if (labs((int16_t)(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp)) < (TEMP_HYSTERESIS*4)) {
 			if (temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*120))
@@ -302,7 +338,13 @@ void temp_sensor_tick() {
 		}
 
 		if (temp_sensors[i].heater < NUM_HEATERS) {
-			heater_tick(temp_sensors[i].heater, temp_sensors[i].temp_type, temp_sensors_runtime[i].last_read_temp, temp_sensors_runtime[i].target_temp);
+			//PK Support for PID_REFRESH_TIME
+			#ifdef PID_REFRESH_TIME
+				if(pid_time >= PID_REFRESH_TIME)
+			#endif
+				{
+					heater_tick(temp_sensors[i].heater, temp_sensors[i].temp_type, temp_sensors_runtime[i].last_read_temp, temp_sensors_runtime[i].target_temp);
+				}
 		}
 
     if (DEBUG_PID && (debug_flags & DEBUG_PID))
@@ -313,6 +355,12 @@ void temp_sensor_tick() {
 	}
   if (DEBUG_PID && (debug_flags & DEBUG_PID))
     sersendf_P(PSTR("\n"));
+	
+	//PK Support for PID_REFRESH_TIME
+	#ifdef PID_REFRESH_TIME
+		if(pid_time >= PID_REFRESH_TIME)
+			pid_time -= PID_REFRESH_TIME;
+	#endif
 }
 
 /**
