@@ -324,7 +324,7 @@ void gcode_parse_char(uint8_t c) {
 			serial_writechar(c);
 
     // Assume G1 for unspecified movements.
-    if ( ! next_target.seen_G &&
+    if ( ! next_target.seen_G && ! next_target.seen_M && ! next_target.seen_T &&
         (next_target.seen_X || next_target.seen_Y || next_target.seen_Z ||
          next_target.seen_E || next_target.seen_F)) {
       next_target.seen_G = 1;
