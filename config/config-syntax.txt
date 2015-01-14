@@ -1,0 +1,160 @@
+
+Syntax rules for configuration files in order to be used with the graphical
+configuration utility.
+
+
+Variable Names - both board and printer files
+---------------------------------------------
+
+Every #define variable used in the configuration must appear in the file.
+If the variable is being given a value, it must appear normally i.e.
+
+#define NAME value
+
+or
+
+#define NAME
+
+If a variable is NOT to be defined, then it must be included in a single line
+comment:
+
+//#define NAME
+
+It is immaterial if the name as a comment has a value. This line just marks
+place where the variable will be inserted if it is defined. Although there
+may be arbitrary spaces before and after the "//", no other intervening
+characters may be placed on this line.
+
+The above is based on the variable NAME, not on value. For example, for
+acceleration there are three different and mutually exclusive variable names:
+
+//#define ACCELERATION_REPRAP
+#define ACCELERATION_RAMPING
+//#define ACCELERATION_TEMPORAL
+
+All of these names MUST appear in the header file (with at most one of them
+un-commented out).
+
+However, the variable KINEMATICS only has a finite set of values and would
+seem to be a similar field, but there is only one variable name: KINEMATICS
+- so it should only appear once.
+
+This is ok:
+
+//#define KINEMATICS KINEMATICS_STRAIGHT
+
+as is this:
+
+#define KINEMATICS KINEMATICS_STRAIGHT
+
+but this is not:
+
+#define KINEMATICS KINEMATICS_STRAIGHT
+//#define KINEMATICS KINEMATICS_COREXY
+
+
+Help Text - both board and printer files
+----------------------------------------
+
+The help text that is displayed on the GUI comes directly from the
+configuration file itself. In order to be parsed correctly, help text must
+be formatted as follows:
+
+The start of a help text block is as follows:
+
+/** \def NAME1 NAME2 NAME2 NAME4 ...
+
+All subsequent lines are copied exactly as entered into the help text until
+the end delimiter is reached. The end delimiter is a line that starts with '*/'.
+
+Note that it is possible to specify multiple names on the start line. This
+allows identical help text for similar or related fields.
+
+
+Processor Preamble - Board file
+-------------------------------
+
+The utility parses out the processor types from the config file when it loads
+it, and it provides an interface where processors may be added or removed.
+When a file is saved, the utility needs to know 1) where to insert the new
+processor preamble, and 2) what to remove from the old file. To achieve this,
+there is a sequence that identifies the start of the processor preamble, and
+a sequence that indicates the end. As follows:
+
+//PROCESSORS_START
+#ifndef __AVR_ATmega1280__
+  #ifndef __AVR_ATmega2560__
+    #error Wrong CPU type.
+  #endif
+#endif
+//PROCESSORS_END
+
+when a file is saved, all of the lines between these two delimiters are removed
+and a new preamble is generated based on the values from the screen. The
+supported processor types are defined in a python list in the data.py file. As
+additional processors are supported, then can be added to this list.
+
+If the START/END delimiters are not present, then the processor preamble will
+not be generated and the content from the original file will be retained.
+
+
+Temperature Sensor Considerations - Board file
+----------------------------------------------
+
+The board configuration file has a section that includes the definition of
+temperature sensors. Because the number of temperature sensors may grow or
+shrink, or might even be 0, the utility needs to know where to place these
+definitions. For this reason, delimiters are used to mark the beginning
+and end of this section:
+
+//DEFINE_TEMP_SENSORS_START
+DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, AIO13, THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(bed, TT_THERMISTOR, AIO14, THERMISTOR_BED)
+//DEFINE_TEMP_SENSORS_END
+
+If the START/END delimiters are not found in the file, then the temperature
+sensor definitions will not be generated and the original contents of the
+file will be retained.
+
+In addition to this, it is possible to limit the number of pins that are
+available to the user to use for thermistors. To do this, enter as many
+lines of the following form as are needed. Note that these lines are
+commented out. If no such lines are defined, then ALL pin names will be
+allowed.
+
+//#define THERMISTOR_PIN AIO13
+//#define THERMISTOR_PIN AIO14
+//#define THERMISTOR_PIN AIO15
+
+
+Heater Considerations - Board file
+----------------------------------
+
+The board configuration file has a section that includes the definition of
+heaters. Because the number of heaters may grow or shrink, or might even be 0,
+the utility needs to know where to place these definitions. For this reason,
+delimiters are used to mark the beginning and end of this section:
+
+//DEFINE_HEATERS_START
+DEFINE_HEATER(extruder, DIO10, 1)
+DEFINE_HEATER(bed, DIO8, 1)
+
+#define HEATER_EXTRUDER HEATER_extruder
+#define HEATER_BED HEATER_bed
+//DEFINE_HEATERS_END
+
+Note that these delimiters also enclose the defines for the heater names. This
+is different than in the sensor case where these definitions are not necessary.
+
+If the START/END delimiters are not found in the file, then the temperature
+sensor definitions will not be generated and the original contents of the
+file will be retained.
+
+In addition to this, it is possible to limit the number of pins that are
+available to the user to use for heaters. To do this, enter as many lines of
+the following form as are needed. Note that these lines are commented out.
+If no such lines are defined, then ALL pin names will be allowed.
+
+//#define HEATER_PIN DIO10
+//#define HEATER_PIN DIO8
+//#define HEATER_PIN DIO5
