@@ -323,13 +323,15 @@ void gcode_parse_char(uint8_t c) {
 		if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
 			serial_writechar(c);
 
-    // Assume G1 for unspecified movements.
+	#ifndef DONT_BE_SMARTER_THAN_HOST
+	// Assume G1 for unspecified movements.
     if ( ! next_target.seen_G &&
         (next_target.seen_X || next_target.seen_Y || next_target.seen_Z ||
          next_target.seen_E || next_target.seen_F)) {
       next_target.seen_G = 1;
       next_target.G = 1;
     }
+	#endif
 
 		if (
 		#ifdef	REQUIRE_LINENUMBER
@@ -347,9 +349,13 @@ void gcode_parse_char(uint8_t c) {
 				#endif
 				) {
 				// process
-				serial_writestr_P(PSTR("ok "));
-				process_gcode_command();
-				serial_writechar('\n');
+				//PK Don't process empty lines
+				if ( (next_target.seen_G) || (next_target.seen_M) || (next_target.seen_T) )
+				{
+					serial_writestr_P(PSTR("ok "));
+					process_gcode_command();
+					serial_writechar('\n');
+				}
 
 				// expect next line number
 				if (next_target.seen_N == 1)

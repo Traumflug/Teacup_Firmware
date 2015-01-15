@@ -53,6 +53,56 @@
             sqrt((double)2 * ACCELERATION * ENDSTOP_CLEARANCE_Z / 1000.))
 #endif
 
+//Select position of endstops
+#ifdef X_MIN_ENDSTOP_POSITION
+#define X_HOME_MIN	((int32_t)(X_MIN_ENDSTOP_POSITION * 1000.0))
+#elif defined X_MIN
+#define X_HOME_MIN	((int32_t)(X_MIN * 1000.0))
+#else
+#define X_HOME_MIN	(0)
+#endif
+
+#ifdef X_MAX_ENDSTOP_POSITION
+#define X_HOME_MAX	((int32_t)(X_MAX_ENDSTOP_POSITION * 1000.0))
+#elif defined X_MAX
+#define X_HOME_MAX	((int32_t)(X_MAX * 1000.0))
+#else
+#define X_HOME_MAX	(0)
+#endif
+
+#ifdef Y_MIN_ENDSTOP_POSITION
+#define Y_HOME_MIN	((int32_t)(Y_MIN_ENDSTOP_POSITION * 1000.0))
+#elif defined Y_MIN
+#define Y_HOME_MIN	((int32_t)(Y_MIN * 1000.0))
+#else
+#define Y_HOME_MIN	(0)
+#endif
+
+#ifdef Y_MAX_ENDSTOP_POSITION
+#define Y_HOME_MAX	((int32_t)(Y_MAX_ENDSTOP_POSITION * 1000.0))
+#elif defined Y_MAX
+#define Y_HOME_MAX	((int32_t)(Y_MAX * 1000.0))
+#else
+#define Y_HOME_MAX	(0)
+#endif
+
+#ifdef Z_MIN_ENDSTOP_POSITION
+#define Z_HOME_MIN	((int32_t)(Z_MIN_ENDSTOP_POSITION * 1000.0))
+#elif defined Z_MIN
+#define Z_HOME_MIN	((int32_t)(Z_MIN * 1000.0))
+#else
+#define Z_HOME_MIN	(0)
+#endif
+
+#ifdef Z_MAX_ENDSTOP_POSITION
+#define Z_HOME_MAX	((int32_t)(Z_MAX_ENDSTOP_POSITION * 1000.0))
+#elif defined Z_MAX
+#define Z_HOME_MAX	((int32_t)(Z_MAX * 1000.0))
+#else
+#define Z_HOME_MAX	(0)
+#endif
+
+
 
 /// home all 3 axes
 void home() {
@@ -88,11 +138,9 @@ void home_x_negative() {
 
 		// set X home
 		queue_wait(); // we have to wait here, see G92
-		#ifdef X_MIN
-      startpoint.axis[X] = next_target.target.axis[X] = (int32_t)(X_MIN * 1000.0);
-		#else
-      startpoint.axis[X] = next_target.target.axis[X] = 0;
-		#endif
+		
+		//PK Correct value is selected at the top of this file
+      startpoint.axis[X] = next_target.target.axis[X] = X_HOME_MIN;
 		dda_new_startpoint();
 	#endif
 }
@@ -121,9 +169,17 @@ void home_x_positive() {
 		// set X home
 		queue_wait();
 		// set position to MAX
-    startpoint.axis[X] = next_target.target.axis[X] = (int32_t)(X_MAX * 1000.);
+		//PK X_HOME_MAX instead of X_MAX
+    startpoint.axis[X] = next_target.target.axis[X] = X_HOME_MAX;
 		dda_new_startpoint();
 	#endif
+	
+	//PK Added going to real home position
+	#ifdef X_HOME_POSITION
+		t.axis[X] = (int32_t)(X_HOME_POSITION * 1000.);;
+		t.F = MAXIMUM_FEEDRATE_X;
+		enqueue(&t);
+	#endif	
 }
 
 /// fund Y MIN endstop
@@ -146,11 +202,8 @@ void home_y_negative() {
 
 		// set Y home
 		queue_wait();
-		#ifdef	Y_MIN
-      startpoint.axis[Y] = next_target.target.axis[Y] = (int32_t)(Y_MIN * 1000.);
-		#else
-      startpoint.axis[Y] = next_target.target.axis[Y] = 0;
-		#endif
+		//PK Correct value is selected at the top of this file
+      startpoint.axis[Y] = next_target.target.axis[Y] = Y_HOME_MIN;
 		dda_new_startpoint();
 	#endif
 }
@@ -179,8 +232,16 @@ void home_y_positive() {
 		// set Y home
 		queue_wait();
 		// set position to MAX
-    startpoint.axis[Y] = next_target.target.axis[Y] = (int32_t)(Y_MAX * 1000.);
+		//PK Y_HOME_MAX instead of Y_MAX
+    startpoint.axis[Y] = next_target.target.axis[Y] = Y_HOME_MAX;
 		dda_new_startpoint();
+	#endif
+	
+	//PK Added going to real home position
+	#ifdef Y_HOME_POSITION
+		t.axis[Y] = (int32_t)(Y_HOME_POSITION * 1000.);;
+		t.F = MAXIMUM_FEEDRATE_Y;
+		enqueue(&t);
 	#endif
 }
 
@@ -204,11 +265,8 @@ void home_z_negative() {
 
 		// set Z home
 		queue_wait();
-		#ifdef Z_MIN
-      startpoint.axis[Z] = next_target.target.axis[Z] = (int32_t)(Z_MIN * 1000.);
-		#else
-      startpoint.axis[Z] = next_target.target.axis[Z] = 0;
-		#endif
+		//PK Correct value is selected at the top of this file
+      startpoint.axis[Z] = next_target.target.axis[Z] = Z_HOME_MIN;
 		dda_new_startpoint();
 	#endif
 }
@@ -237,7 +295,15 @@ void home_z_positive() {
 		// set Z home
 		queue_wait();
 		// set position to MAX
-    startpoint.axis[Z] = next_target.target.axis[Z] = (int32_t)(Z_MAX * 1000.);
+		//PK Z_HOME_MAX instead of Z_MAX
+    startpoint.axis[Z] = next_target.target.axis[Z] = Z_HOME_MAX;
 		dda_new_startpoint();
+	#endif
+	
+	//PK Added going to real home position
+	#ifdef Z_HOME_POSITION
+		t.axis[Z] = (int32_t)(Z_HOME_POSITION * 1000.);;
+		t.F = MAXIMUM_FEEDRATE_Z;
+		enqueue(&t);
 	#endif
 }

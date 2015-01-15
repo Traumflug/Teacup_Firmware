@@ -57,7 +57,13 @@ struct {
 
 /// \brief this struct holds the runtime heater data- PID integrator history, temperature history, sanity checker
 struct {
-	int16_t						heater_i; ///< integrator, \f$-i_{limit} < \sum{4*eC*\Delta t} < i_{limit}\f$
+	//PK Support for PID_REFRESH_TIME
+	#ifdef PID_REFRESH_TIME
+		int32_t
+	#else
+		int16_t
+	#endif
+		heater_i; ///< integrator, \f$-i_{limit} < \sum{4*eC*\Delta t} < i_{limit}\f$
 
 	uint16_t					temp_history[TH_COUNT]; ///< store last TH_COUNT readings in a ring, so we can smooth out our differentiator
 	uint8_t						temp_history_pointer;   ///< pointer to last entry in ring
@@ -288,7 +294,13 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 
 	#ifndef	BANG_BANG
 		int16_t		heater_p;
-		int16_t		heater_d;
+		//PK Support for PID_REFRESH_TIME
+		#ifdef PID_REFRESH_TIME
+			int32_t
+		#else
+			int16_t
+		#endif
+			heater_d;
 		int16_t		t_error = target_temp - current_temp;
 	#endif	/* BANG_BANG */
 
@@ -301,6 +313,16 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 	}
 
 	#ifndef	BANG_BANG
+	
+		//PK Derivative uses average value of temperature history now
+		uint16_t temp_history_sum = 0;
+		{
+			uint8_t i;
+			for (i=0; i<TH_COUNT; i++)
+			temp_history_sum += heaters_runtime[h].temp_history[i];
+		}
+		//PK ------------
+		
 		heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer++] = current_temp;
 		heaters_runtime[h].temp_history_pointer &= (TH_COUNT - 1);
 
@@ -309,35 +331,70 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 		heater_p = t_error; // Units: qC where 4qC=1C
 
 		// integral
-		heaters_runtime[h].heater_i += t_error;  // Units: qC*qs where 16qC*qs=1C*s
+		heaters_runtime[h].heater_i += t_error  // Units: qC*qs where 16qC*qs=1C*s
+		//PK Support for PID_REFRESH_TIME
+		#ifdef PID_REFRESH_TIME
+			* PID_REFRESH_TIME
+		#endif
+		;
+
 		// prevent integrator wind-up
-		if (heaters_runtime[h].heater_i > heaters_pid[h].i_limit)
-			heaters_runtime[h].heater_i = heaters_pid[h].i_limit;
-		else if (heaters_runtime[h].heater_i < -heaters_pid[h].i_limit)
-			heaters_runtime[h].heater_i = -heaters_pid[h].i_limit;
+		// PK Support for PID_REFRESH_TIME
+		#ifdef PID_REFRESH_TIME
+			int32_t i_limit = heaters_pid[h].i_limit * 1000L;
+		#else
+			int16_t i_limit = heaters_pid[h].i_limit;
+		#endif
+		
+		if (heaters_runtime[h].heater_i > i_limit)
+			heaters_runtime[h].heater_i = i_limit;
+		else if (heaters_runtime[h].heater_i < -i_limit)
+			heaters_runtime[h].heater_i = -i_limit;
 
 		// derivative.  Units: qC/(TH_COUNT*qs) where 1C/s=TH_COUNT*4qC/4qs=8qC/qs)
 		// note: D follows temp rather than error so there's no large derivative when the target changes
-		heater_d = heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer] - current_temp;
+		//PK: Derivative uses average value of temperature history now
+		#ifdef PID_REFRESH_TIME
+			heater_d = ((int32_t) temp_history_sum - (int32_t) (current_temp * TH_COUNT) ) * 1000L / TH_COUNT;
+		#else
+			heater_d = ((int16_t) temp_history_sum - (int16_t) current_temp) / TH_COUNT;
+		#endif
 
 		// combine factors
-		int32_t pid_output_intermed = ( // Units: counts
-									   (
-										(((int32_t) heater_p) * heaters_pid[h].p_factor) +
-										(((int32_t) heaters_runtime[h].heater_i) * heaters_pid[h].i_factor) +
-										(((int32_t) heater_d) * heaters_pid[h].d_factor)
-										) / PID_SCALE
-									   );
+		//PK Support for PID_REFRESH_TINE
+		int32_t pid_output_intermed = 128 + ( // Units: counts
+			(
+				(((int32_t) heater_p) * heaters_pid[h].p_factor) +
+				(((int32_t) heaters_runtime[h].heater_i) * heaters_pid[h].i_factor
+		#ifdef PID_REFRESH_TIME
+					/ 1000L
+		#endif
+					) + (((int32_t) heater_d) * heaters_pid[h].d_factor)
+		#ifdef PID_REFRESH_TIME
+				/ PID_REFRESH_TIME
+		#endif
+			) / PID_SCALE
+		);
 
     // rebase and limit factors
     if (pid_output_intermed > 255) {
       if (t_error > 0)
-        heaters_runtime[h].heater_i -= t_error; // un-integrate
+        heaters_runtime[h].heater_i -= t_error // un-integrate
+		//PK Support for PID_REFRESH_TIME
+		#ifdef PID_REFRESH_TIME
+			* PID_REFRESH_TIME
+		#endif
+		;
       pid_output = 255;
     }
     else if (pid_output_intermed < 0) {
       if (t_error < 0)
-        heaters_runtime[h].heater_i -= t_error; // un-integrate
+        heaters_runtime[h].heater_i -= t_error // un-integrate
+		//PK Support for PID_REFRESH_TIME
+		#ifdef PID_REFRESH_TIME
+			* PID_REFRESH_TIME
+		#endif
+		;
       pid_output = 0;
     }
 		else
