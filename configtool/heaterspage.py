@@ -7,10 +7,11 @@ from configtool.addheaterdlg import AddHeaterDlg
 
 
 class HeatersPage(wx.Panel, Page):
-  def __init__(self, parent, nb, idPg):
+  def __init__(self, parent, nb, idPg, font):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
-    Page.__init__(self)
+    Page.__init__(self, font)
     self.parent = parent
+    self.font = font
     self.id = idPg
 
     sz = wx.GridBagSizer()
@@ -20,11 +21,13 @@ class HeatersPage(wx.Panel, Page):
     self.validPins = pinNames
 
 
-    self.lb = HeaterList(self)
-    sz.Add(self.lb, pos = (1, 1), span = (1, 3))
+    self.lb = HeaterList(self, font)
+    sz.Add(self.lb, pos = (1, 1))
+    sz.AddSpacer((20, 20), pos = (1, 2))
 
     bsz = wx.BoxSizer(wx.VERTICAL)
     self.bAdd = wx.Button(self, wx.ID_ANY, "Add", size = BSIZESMALL)
+    self.bAdd.SetFont(font)
     self.Bind(wx.EVT_BUTTON, self.doAdd, self.bAdd)
     self.bAdd.SetToolTipString("Add a heater to the configuration.")
 
@@ -32,13 +35,14 @@ class HeatersPage(wx.Panel, Page):
 
     bsz.AddSpacer((10, 10))
     self.bDelete = wx.Button(self, wx.ID_ANY, "Delete", size = BSIZESMALL)
+    self.bDelete.SetFont(font)
     self.bDelete.Enable(False)
     self.Bind(wx.EVT_BUTTON, self.doDelete, self.bDelete)
     bsz.Add(self.bDelete)
     self.bDelete.SetToolTipString("Remove the selected heater from the "
                                   "configuration.")
 
-    sz.Add(bsz, pos = (1, 4))
+    sz.Add(bsz, pos = (1, 3))
 
     self.SetSizer(sz)
     self.enableAll(False)
@@ -59,7 +63,7 @@ class HeatersPage(wx.Panel, Page):
     for s in self.heaters:
       nm.append(s[0])
 
-    dlg = AddHeaterDlg(self, nm, self.validPins)
+    dlg = AddHeaterDlg(self, nm, self.validPins, self.font)
     rc = dlg.ShowModal()
     if rc == wx.ID_OK:
       ht = dlg.getValues()
@@ -73,6 +77,7 @@ class HeatersPage(wx.Panel, Page):
     self.lb.updateList(self.heaters)
     self.validateTable()
     self.parent.setHeaters(self.heaters)
+    self.assertModified(True)
 
   def doDelete(self, evt):
     if self.selection is None:
@@ -84,6 +89,7 @@ class HeatersPage(wx.Panel, Page):
     self.lb.updateList(self.heaters)
     self.validateTable()
     self.parent.setHeaters(self.heaters)
+    self.assertModified(True)
 
   def insertValues(self, cfgValues):
     self.enableAll(True)

@@ -5,13 +5,13 @@ from configtool.data import supportedCPUs
 
 
 class CpuPage(wx.Panel, Page):
-  def __init__(self, parent, nb, idPg):
+  def __init__(self, parent, nb, idPg, font):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
-    Page.__init__(self)
+    Page.__init__(self, font)
     self.parent = parent
     self.id = idPg
 
-    self.labels = {'MOTHERBOARD': "Motherboard", 'F_CPU': "CPU Clock Rate:"}
+    self.labels = {'F_CPU': "CPU Clock Rate:"}
     self.defaultClock = '16000000UL'
     self.clocks = ['8000000UL', self.defaultClock, '20000000UL']
     self.processors = []
@@ -19,18 +19,11 @@ class CpuPage(wx.Panel, Page):
     sz = wx.GridBagSizer()
     sz.AddSpacer((20, 40), pos = (0, 0))
 
-
-    k = 'MOTHERBOARD'
-    cb = self.addCheckBox(k, self.onCheckBox)
-    sz.Add(cb, pos = (1, 1))
-    sz.AddSpacer((100, 10), pos = (1, 2))
-
-
     k = 'F_CPU'
     ch = self.addChoice(k, self.clocks, self.clocks.index(self.defaultClock),
-                        80, self.onChoice)
-    sz.Add(ch, pos = (1, 3))
-    sz.AddSpacer((100, 10), pos = (1, 4))
+                        100, self.onChoice)
+    sz.Add(ch, pos = (1, 1))
+    sz.AddSpacer((100, 10), pos = (1, 2))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Processor Type(s)")
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
@@ -43,7 +36,7 @@ class CpuPage(wx.Panel, Page):
       sbox.AddSpacer((120, 5))
 
     sbox.AddSpacer((5, 5))
-    sz.Add(sbox, pos = (1, 5), span = (3, 1))
+    sz.Add(sbox, pos = (1, 3), span = (3, 1))
 
     self.SetSizer(sz)
     self.enableAll(False)

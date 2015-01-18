@@ -6,16 +6,19 @@ import re
 from configtool.data import (defineValueFormat, defineBoolFormat, reCommDefBL,
                              reCommDefBoolBL, reHelpTextStart, reHelpTextEnd,
                              reDefine, reDefineBL, reDefQS, reDefQSm,
-                             reDefQSm2, reDefBool, reDefBoolBL)
+                             reDefQSm2, reDefBool, reDefBoolBL, reFloatAttr,
+                             TYPE_FLOAT, TYPE_GENERAL)
 from configtool.mechanicalpage import MechanicalPage
 from configtool.accelerationpage import AccelerationPage
 from configtool.miscellaneouspage import MiscellaneousPage
 
 
 class PrinterPanel(wx.Panel):
-  def __init__(self, parent, nb, folder):
+  def __init__(self, parent, nb, font, folder):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
     self.parent = parent
+
+    self.configFile = None
 
     self.cfgValues = {}
     self.heaters = []
@@ -25,13 +28,14 @@ class PrinterPanel(wx.Panel):
 
     self.nb = wx.Notebook(self, wx.ID_ANY, size = (21, 21),
                           style = wx.BK_DEFAULT)
+    self.nb.SetFont(font)
 
     self.pages = []
     self.titles = []
     self.pageModified = []
     self.pageValid = []
 
-    self.pgMech = MechanicalPage(self, self.nb, len(self.pages))
+    self.pgMech = MechanicalPage(self, self.nb, len(self.pages), font)
     text = "Mechanical"
     self.nb.AddPage(self.pgMech, text)
     self.pages.append(self.pgMech)
@@ -39,7 +43,7 @@ class PrinterPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgAcc = AccelerationPage(self, self.nb, len(self.pages))
+    self.pgAcc = AccelerationPage(self, self.nb, len(self.pages), font)
     text = "Acceleration"
     self.nb.AddPage(self.pgAcc, text)
     self.pages.append(self.pgAcc)
@@ -47,7 +51,8 @@ class PrinterPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgMiscellaneous = MiscellaneousPage(self, self.nb, len(self.pages))
+    self.pgMiscellaneous = MiscellaneousPage(self, self.nb, len(self.pages),
+                                             font)
     text = "Miscellaneous"
     self.nb.AddPage(self.pgMiscellaneous, text)
     self.pages.append(self.pgMiscellaneous)
@@ -58,15 +63,10 @@ class PrinterPanel(wx.Panel):
     sz.Add(self.nb, 1, wx.EXPAND + wx.ALL, 5)
 
     self.SetSizer(sz)
+    self.Fit()
 
-  def onPageChange(self, evt):
-    print "printer notebook page changed"
-    print evt.GetSelection()
-    print evt.GetEventObject()
-    evt.Skip()
-
-  def checkFocus(self):
-    print "check focus: ", self.nb.GetSelection()
+  def getFileName(self):
+    return self.configFile
 
   def assertModified(self, pg, flag = True):
     self.pageModified[pg] = flag
@@ -151,19 +151,6 @@ class PrinterPanel(wx.Panel):
       dlg.Destroy()
       return
 
-    self.parent.enableSavePrinter(True)
-    self.parent.setPrinterTabText("Printer <%s>" % os.path.basename(path))
-
-    for pg in self.pages:
-      pg.insertValues(self.cfgValues)
-      pg.setHelpText(self.helpText)
-
-    k = 'DC_EXTRUDER'
-    if k in self.cfgValues.keys():
-      print "calling orig with (%s)" % self.cfgValues[k]
-      self.pgMiscellaneous.setOriginalHeater(self.cfgValues[k])
-    else:
-      self.pgMiscellaneous.setOriginalHeater(None)
 
 
   def loadConfigFile(self, fn):
@@ -235,7 +222,6 @@ class PrinterPanel(wx.Panel):
         if m:
           t = m.groups()
           if len(t) == 2:
-            if t[0] == 'DC_EXTRUDER': print "raw value (%s)" % t[1]
             self.cfgValues[t[0]] = t[1]
             continue
 
@@ -244,6 +230,19 @@ class PrinterPanel(wx.Panel):
           t = m.groups()
           if len(t) == 1:
             self.cfgValues[t[0]] = True
+
+    self.parent.enableSavePrinter(True)
+    self.parent.setPrinterTabText("Printer <%s>" % os.path.basename(fn))
+
+    for pg in self.pages:
+      pg.insertValues(self.cfgValues)
+      pg.setHelpText(self.helpText)
+
+    k = 'DC_EXTRUDER'
+    if k in self.cfgValues.keys():
+      self.pgMiscellaneous.setOriginalHeater(self.cfgValues[k])
+    else:
+      self.pgMiscellaneous.setOriginalHeater(None)
 
     return True
 
@@ -314,8 +313,10 @@ class PrinterPanel(wx.Panel):
         if len(t) == 2:
           if t[0] in values.keys() and values[t[0]] != "":
             fp.write(defineValueFormat % (t[0], values[t[0]]))
-          else:
+          elif t[0] in values.keys():
             fp.write("//" + ln)
+          else:
+            fp.write(ln)
           continue
 
       m = reDefBoolBL.match(ln)
@@ -324,8 +325,10 @@ class PrinterPanel(wx.Panel):
         if len(t) == 1:
           if t[0] in values.keys() and values[t[0]]:
             fp.write(defineBoolFormat % t[0])
-          else:
+          elif t[0] in values.keys():
             fp.write("//" + ln)
+          else:
+            fp.write(ln)
           continue
 
       m = reCommDefBL.match(ln)

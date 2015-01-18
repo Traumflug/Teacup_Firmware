@@ -1,12 +1,13 @@
 
 import wx
 from configtool.page import Page
+from configtool.data import pinNames
 
 
 class PinoutsPage(wx.Panel, Page):
-  def __init__(self, parent, nb, idPg):
+  def __init__(self, parent, nb, idPg, font):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
-    Page.__init__(self)
+    Page.__init__(self, font)
     self.parent = parent
     self.id = idPg
 
@@ -68,6 +69,7 @@ class PinoutsPage(wx.Panel, Page):
     sz.AddSpacer((10, 10), pos = (0, 0))
 
     b = wx.StaticBox(self, wx.ID_ANY, "X Axis")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
     for k, ctype in pinXkeys:
@@ -75,7 +77,7 @@ class PinoutsPage(wx.Panel, Page):
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
         sbox.Add(tc)
       elif ctype == 2:
-        tc = self.addPinChoice(k, "", True, labelWidth)
+        tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
         sbox.Add(tc)
       else:
         cb = self.addCheckBox(k, self.onCheckBox)
@@ -86,6 +88,7 @@ class PinoutsPage(wx.Panel, Page):
     sz.Add(sbox, pos = (1, 1))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Y Axis")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
     for k, ctype in pinYkeys:
@@ -93,7 +96,7 @@ class PinoutsPage(wx.Panel, Page):
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
         sbox.Add(tc)
       elif ctype == 2:
-        tc = self.addPinChoice(k, "", True, labelWidth)
+        tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
         sbox.Add(tc)
       else:
         cb = self.addCheckBox(k, self.onCheckBox)
@@ -104,6 +107,7 @@ class PinoutsPage(wx.Panel, Page):
     sz.Add(sbox, pos = (1, 3))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Z Axis")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
     for k, ctype in pinZkeys:
@@ -111,7 +115,7 @@ class PinoutsPage(wx.Panel, Page):
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
         sbox.Add(tc)
       elif ctype == 2:
-        tc = self.addPinChoice(k, "", True, labelWidth)
+        tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
         sbox.Add(tc)
       else:
         cb = self.addCheckBox(k, self.onCheckBox)
@@ -122,6 +126,7 @@ class PinoutsPage(wx.Panel, Page):
     sz.Add(sbox, pos = (1, 5))
 
     b = wx.StaticBox(self, wx.ID_ANY, "E Axis")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
     for k, ctype in pinEkeys:
@@ -129,7 +134,7 @@ class PinoutsPage(wx.Panel, Page):
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
         sbox.Add(tc)
       elif ctype == 2:
-        tc = self.addPinChoice(k, "", True, labelWidth)
+        tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
         sbox.Add(tc)
       else:
         cb = self.addCheckBox(k, self.onCheckBox)
@@ -140,7 +145,7 @@ class PinoutsPage(wx.Panel, Page):
     sz.Add(sbox, pos = (1, 7))
 
     k = "STEPPER_ENABLE_PIN"
-    tc = self.addPinChoice(k, "", True, labelWidth)
+    tc = self.addPinChoice(k, "", pinNames, True, labelWidth + 20)
     sz.Add(tc, pos = (3, 1))
 
     sz.AddSpacer((10, 10), pos = (4, 1))
@@ -150,19 +155,23 @@ class PinoutsPage(wx.Panel, Page):
     sz.Add(cb, pos = (5, 1), flag = wx.ALIGN_CENTER_HORIZONTAL)
 
     k = "PS_ON_PIN"
-    tc = self.addPinChoice(k, "", True, labelWidth)
+    tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
     sz.Add(tc, pos = (3, 3))
 
     k = "PS_MOSFET_PIN"
-    tc = self.addPinChoice(k, "", True, labelWidth)
+    tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
     sz.Add(tc, pos = (5, 3))
 
     k = "DEBUG_LED_PIN"
-    tc = self.addPinChoice(k, "", True, labelWidth)
+    tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
     sz.Add(tc, pos = (3, 7))
 
     self.SetSizer(sz)
     self.enableAll(False)
+
+  def onChoice(self, evt):
+    self.assertModified(True)
+    evt.Skip()
 
   def insertValues(self, cfgValues):
     self.assertValid(True)

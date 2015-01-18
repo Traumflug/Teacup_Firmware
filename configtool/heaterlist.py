@@ -3,12 +3,14 @@ import wx
 
 
 class HeaterList(wx.ListCtrl):
-  def __init__(self, parent):
+  def __init__(self, parent, font):
     self.parent = parent
     self.currentItem = None
-    wx.ListCtrl.__init__(self, parent, wx.ID_ANY, size = (165 + 4, 100),
+    wx.ListCtrl.__init__(self, parent, wx.ID_ANY,
+                         size = (95 + 55 + 55 + 4, 100),
                          style = wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_HRULES |
                          wx.LC_VRULES)
+    self.SetFont(font)
 
     self.valid = []
     self.heaterList = []
@@ -16,7 +18,7 @@ class HeaterList(wx.ListCtrl):
     self.InsertColumn(0, "Name")
     self.InsertColumn(1, "Pin")
     self.InsertColumn(2, "PWM")
-    self.SetColumnWidth(0, 55)
+    self.SetColumnWidth(0, 95)
     self.SetColumnWidth(1, 55)
     self.SetColumnWidth(2, 55)
 

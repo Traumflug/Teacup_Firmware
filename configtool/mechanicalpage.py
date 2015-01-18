@@ -7,11 +7,12 @@ from configtool.calcscrew import CalcScrew
 
 
 class MechanicalPage(wx.Panel, Page):
-  def __init__(self, parent, nb, idPg):
+  def __init__(self, parent, nb, idPg, font):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
-    Page.__init__(self)
+    Page.__init__(self, font)
     self.id = idPg
     self.parent = parent
+    self.font = font
 
     self.spmKeys = ['STEPS_PER_M_X', 'STEPS_PER_M_Y', 'STEPS_PER_M_Z',
                     'STEPS_PER_M_E']
@@ -50,50 +51,55 @@ class MechanicalPage(wx.Panel, Page):
     sz.AddSpacer((90, 10), pos = (0, 4))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Steps Per Meter")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
     for k in self.spmKeys:
-      tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlFloat)
+      tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
       sbox.Add(tc)
       sbox.AddSpacer((5, 5))
 
     sz.Add(sbox, pos = (1, 1))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Maximum Feedrate")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
     for k in self.mfrKeys:
-      tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlFloat)
+      tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
       sbox.Add(tc)
       sbox.AddSpacer((5, 5))
 
     sz.Add(sbox, pos = (1, 5))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Search Feedrate")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
     for k in self.msrKeys:
-      tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlFloat)
+      tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
       sbox.Add(tc)
       sbox.AddSpacer((5, 5))
 
     sz.Add(sbox, pos = (1, 7))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Endstop Clearance")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
     for k in self.eclKeys:
-      tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlFloat)
+      tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
       sbox.Add(tc)
       sbox.AddSpacer((5, 5))
 
     sz.Add(sbox, pos = (3, 5))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Travel Limits")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
     for k in self.minmaxKeys:
-      tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlFloat)
+      tc = self.addTextCtrl(k, labelWidth + 20, self.onTextCtrlInteger)
       sbox.Add(tc)
       sbox.AddSpacer((5, 5))
 
@@ -102,6 +108,7 @@ class MechanicalPage(wx.Panel, Page):
     vsz = wx.BoxSizer(wx.VERTICAL)
 
     b = wx.StaticBox(self, wx.ID_ANY, "Kinematics")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
     style = wx.RB_GROUP
@@ -122,12 +129,14 @@ class MechanicalPage(wx.Panel, Page):
 
     bsz = wx.BoxSizer(wx.VERTICAL)
     b = wx.Button(self, wx.ID_ANY, "Calculate\nBelt Driven", size = BSIZE)
+    b.SetFont(font)
     b.SetToolTipString("Open the calculator for axes that are belt-driven.")
     self.Bind(wx.EVT_BUTTON, self.onCalcBelt, b)
     self.bCalcBelt = b
 
     bsz.Add(b, 1, wx.ALL, 5)
     b = wx.Button(self, wx.ID_ANY, "Calculate\nScrew Driven", size = BSIZE)
+    b.SetFont(font)
     bsz.Add(b, 1, wx.ALL, 5)
     b.SetToolTipString("Open the calculator for axes that are screw-driven.")
     self.Bind(wx.EVT_BUTTON, self.onCalcScrew, b)
@@ -147,7 +156,7 @@ class MechanicalPage(wx.Panel, Page):
     evt.Skip()
 
   def onCalcBelt(self, evt):
-    dlg = CalcBelt(self, self.cbCalcBelt)
+    dlg = CalcBelt(self, self.font, self.cbCalcBelt)
     dlg.ShowModal()
     dlg.Destroy()
 
@@ -156,7 +165,7 @@ class MechanicalPage(wx.Panel, Page):
     self.textControls[field].SetValue(s)
 
   def onCalcScrew(self, evt):
-    dlg = CalcScrew(self, self.cbCalcScrew)
+    dlg = CalcScrew(self, self.font, self.cbCalcScrew)
     dlg.ShowModal()
     dlg.Destroy()
 

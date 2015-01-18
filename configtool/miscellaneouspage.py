@@ -5,11 +5,12 @@ from configtool.data import reFloat
 
 
 class MiscellaneousPage(wx.Panel, Page):
-  def __init__(self, parent, nb, idPg):
+  def __init__(self, parent, nb, idPg, font):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
-    Page.__init__(self)
+    Page.__init__(self, font)
     self.parent = parent
     self.id = idPg
+    self.font = font
 
     self.labels = {'USE_INTERNAL_PULLUPS': "Use Internal Pullups",
                    'EECONFIG': "Enable EEPROM Storage",
@@ -79,13 +80,9 @@ class MiscellaneousPage(wx.Panel, Page):
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (6, 1))
 
-    k = 'XONXOFF'
-    cb = self.addCheckBox(k, self.onCheckBox)
-    sz.Add(cb, pos = (7, 1))
-
     k = 'HEATER_SANITY_CHECK'
     cb = self.addCheckBox(k, self.onCheckBox)
-    sz.Add(cb, pos = (8, 1))
+    sz.Add(cb, pos = (7, 1))
 
     k = 'REFERENCE'
     ch = self.addChoice(k, self.references,
@@ -94,6 +91,7 @@ class MiscellaneousPage(wx.Panel, Page):
     sz.Add(ch, pos = (1, 3))
 
     b = wx.StaticBox(self, wx.ID_ANY, "BANG BANG Bed Control")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
 
@@ -103,18 +101,19 @@ class MiscellaneousPage(wx.Panel, Page):
     sbox.AddSpacer((5, 20))
 
     k = 'BANG_BANG_ON'
-    tc = self.addTextCtrl(k, 80, self.onTextCtrlInteger)
+    tc = self.addTextCtrl(k, 100, self.onTextCtrlInteger)
     sbox.Add(tc)
     sbox.AddSpacer((5, 5))
 
     k = 'BANG_BANG_OFF'
-    tc = self.addTextCtrl(k, 80, self.onTextCtrlInteger)
+    tc = self.addTextCtrl(k, 100, self.onTextCtrlInteger)
     sbox.Add(tc)
     sbox.AddSpacer((5, 5))
 
     sz.Add(sbox, pos = (3, 3), span = (4, 1), flag = wx.ALIGN_CENTER_HORIZONTAL)
 
     b = wx.StaticBox(self, wx.ID_ANY, "DC Motor Extruder")
+    b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
 
@@ -129,6 +128,8 @@ class MiscellaneousPage(wx.Panel, Page):
     sbox.AddSpacer((5, 5))
 
     sz.Add(sbox, pos = (8,3), flag = wx.ALIGN_CENTER_HORIZONTAL)
+
+    labelWidth = 180;
 
     k = 'MOVEBUFFER_SIZE'
     tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
@@ -147,7 +148,7 @@ class MiscellaneousPage(wx.Panel, Page):
     sz.Add(tc, pos = (4, 5))
 
     k = 'TEMP_HYSTERESIS'
-    tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlFloat)
+    tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
     sz.Add(tc, pos = (6, 5))
 
     k = 'TEMP_RESIDENCY_TIME'
@@ -195,9 +196,9 @@ class MiscellaneousPage(wx.Panel, Page):
     self.boardHeaters = [s[0] for s in hlist]
     self.heaterNames = [self.heaterNameNone] + self.boardHeaters
     self.choices[k].Clear()
+    self.choices[k].SetFont(self.font)
     for h in self.heaterNames:
       self.choices[k].Append(h)
-    self.choiceOptions[k] = self.heaterNames
 
     try:
       v = self.heaterNames.index(currentChoice)
@@ -220,7 +221,7 @@ class MiscellaneousPage(wx.Panel, Page):
       hname = h[len("HEATER_"):]
     else:
       hname = h
-    if len(self.boardHeaters) != 0:
+    if hname and len(self.boardHeaters) != 0:
       if hname not in self.boardHeaters:
         dlg = wx.MessageDialog(self,
                                "Printer: Miscellaneous tab:\nDC Extruder "
@@ -233,12 +234,12 @@ class MiscellaneousPage(wx.Panel, Page):
       self.heaterNames = [self.heaterNameNone] + self.boardHeaters
     else:
       self.heaterNames = [self.heaterNameNone]
-      if h and h != self.heaterNameNone:
+      if hname and hname != self.heaterNameNone:
         self.heaterNames.append(hname)
     self.choices[k].Clear()
+    self.choices[k].SetFont(self.font)
     for ht in self.heaterNames:
       self.choices[k].Append(ht)
-    self.choiceOptions[k] = self.heaterNames
     if hname:
       try:
         v = self.heaterNames.index(hname)
@@ -282,7 +283,7 @@ class MiscellaneousPage(wx.Panel, Page):
 
     k = "DC_EXTRUDER"
     s = self.choices[k].GetSelection()
-    v = self.choiceOptions[k][s]
+    v = self.choices[k].GetString(s)
     if v == self.heaterNameNone:
       result[k] = ""
     else:
