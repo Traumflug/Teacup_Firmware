@@ -208,6 +208,15 @@ DEFINE_HEATER(bed,      DIO8,  1)
 */
 #define BAUD                     115200
 
+/** \def XONXOFF
+  Xon/Xoff flow control.
+
+  Redundant when using RepRap Host for sending G-code, but mandatory when
+  sending G-code files with a plain terminal emulator, like GtkTerm (Linux),
+  CoolTerm (Mac) or HyperTerminal (Windows).
+*/
+//#define XONXOFF
+
 /** \def USB_SERIAL
   Define this for using USB instead of the serial RS232 protocol. Works on
   USB-equipped ATmegas, like the ATmega32U4, only.

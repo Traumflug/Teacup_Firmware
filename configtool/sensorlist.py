@@ -3,12 +3,15 @@ import wx
 
 
 class SensorList(wx.ListCtrl):
-  def __init__(self, parent):
+  def __init__(self, parent, font):
     self.parent = parent
     self.currentItem = None
-    wx.ListCtrl.__init__(self, parent, wx.ID_ANY, size = (495 + 4, 100),
+    wx.ListCtrl.__init__(self, parent, wx.ID_ANY,
+                         size = (105 + 105 + 55 + 280 + 4, 100),
                          style = wx.LC_REPORT | wx.LC_VIRTUAL |
                                  wx.LC_HRULES | wx.LC_VRULES)
+
+    self.SetFont(font)
 
     self.valid = []
     self.sensorList = []
@@ -17,7 +20,7 @@ class SensorList(wx.ListCtrl):
     self.InsertColumn(1, "Sensor Type")
     self.InsertColumn(2, "Pin")
     self.InsertColumn(3, "Additional")
-    self.SetColumnWidth(0, 55)
+    self.SetColumnWidth(0, 105)
     self.SetColumnWidth(1, 105)
     self.SetColumnWidth(2, 55)
     self.SetColumnWidth(3, 280)

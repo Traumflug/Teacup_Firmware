@@ -8,10 +8,10 @@ from configtool.data import (supportedCPUs, defineValueFormat,
                              reCommDefBoolBL, reHelpTextStart, reHelpTextEnd,
                              reStartSensors, reEndSensors, reStartHeaters,
                              reEndHeaters, reStartProcessors, reEndProcessors,
-                             reCandHeatPins, reCandThermPins, reAVR, reDefine,
-                             reDefineBL, reDefQS, reDefQSm, reDefQSm2,
-                             reDefBool, reDefBoolBL, reDefHT, reDefTS,
-                             reHeater, reSensor3, reSensor4)
+                             reCandHeatPins, reCandThermPins, reFloatAttr,
+                             reAVR, reDefine, reDefineBL, reDefQS, reDefQSm,
+                             reDefQSm2, reDefBool, reDefBoolBL, reDefHT,
+                             reDefTS, reHeater, reSensor3, reSensor4)
 from configtool.pinoutspage import PinoutsPage
 from configtool.sensorpage import SensorsPage
 from configtool.heaterspage import HeatersPage
@@ -20,9 +20,11 @@ from configtool.cpupage import CpuPage
 
 
 class BoardPanel(wx.Panel):
-  def __init__(self, parent, nb, folder):
+  def __init__(self, parent, nb, font, folder):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
     self.parent = parent
+
+    self.configFile = None
 
     self.cfgValues = {}
     self.heaters = []
@@ -36,13 +38,14 @@ class BoardPanel(wx.Panel):
 
     self.nb = wx.Notebook(self, wx.ID_ANY, size = (21, 21),
                           style = wx.BK_DEFAULT)
+    self.nb.SetFont(font)
 
     self.pages = []
     self.titles = []
     self.pageModified = []
     self.pageValid = []
 
-    self.pgCpu = CpuPage(self, self.nb, len(self.pages))
+    self.pgCpu = CpuPage(self, self.nb, len(self.pages), font)
     text = "CPU"
     self.nb.AddPage(self.pgCpu, text)
     self.pages.append(self.pgCpu)
@@ -50,7 +53,7 @@ class BoardPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgPins = PinoutsPage(self, self.nb, len(self.pages))
+    self.pgPins = PinoutsPage(self, self.nb, len(self.pages), font)
     text = "Pinouts"
     self.nb.AddPage(self.pgPins, text)
     self.pages.append(self.pgPins)
@@ -58,7 +61,7 @@ class BoardPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgSensors = SensorsPage(self, self.nb, len(self.pages))
+    self.pgSensors = SensorsPage(self, self.nb, len(self.pages), font)
     text = "Temperature Sensors"
     self.nb.AddPage(self.pgSensors, text)
     self.pages.append(self.pgSensors)
@@ -66,7 +69,7 @@ class BoardPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgHeaters = HeatersPage(self, self.nb, len(self.pages))
+    self.pgHeaters = HeatersPage(self, self.nb, len(self.pages), font)
     text = "Heaters"
     self.nb.AddPage(self.pgHeaters, text)
     self.pages.append(self.pgHeaters)
@@ -74,7 +77,8 @@ class BoardPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgCommunications = CommunicationsPage(self, self.nb, len(self.pages))
+    self.pgCommunications = CommunicationsPage(self, self.nb, len(self.pages),
+                                               font)
     text = "Communications"
     self.nb.AddPage(self.pgCommunications, text)
     self.pages.append(self.pgCommunications)
@@ -85,6 +89,7 @@ class BoardPanel(wx.Panel):
     sz.Add(self.nb, 1, wx.EXPAND + wx.ALL, 5)
 
     self.SetSizer(sz)
+    self.Fit()
 
   def assertModified(self, pg, flag = True):
     self.pageModified[pg] = flag
@@ -92,6 +97,9 @@ class BoardPanel(wx.Panel):
 
   def isModified(self):
     return (True in self.pageModified)
+
+  def getFileName(self):
+    return self.configFile
 
   def assertValid(self, pg, flag = True):
     self.pageValid[pg] = flag
@@ -168,19 +176,6 @@ class BoardPanel(wx.Panel):
       dlg.ShowModal()
       dlg.Destroy()
       return
-
-    self.parent.enableSaveBoard(True)
-    self.parent.setBoardTabText("Board <%s>" % os.path.basename(path))
-    self.pgHeaters.setCandidatePins(self.candHeatPins)
-    self.pgSensors.setCandidatePins(self.candThermPins)
-
-    for pg in self.pages:
-      pg.insertValues(self.cfgValues)
-      pg.setHelpText(self.helpText)
-
-    self.pgSensors.setSensors(self.sensors)
-    self.pgHeaters.setHeaters(self.heaters)
-    self.pgCpu.setProcessors(self.processors)
 
   def loadConfigFile(self, fn):
     try:
@@ -297,6 +292,8 @@ class BoardPanel(wx.Panel):
           t = m.groups()
           if len(t) == 2:
             self.cfgValues[t[0]] = t[1]
+            if reFloatAttr.search(ln):
+              pass
             continue
 
         m = reDefBool.search(ln)
@@ -323,6 +320,19 @@ class BoardPanel(wx.Panel):
             if s:
               self.heaters.append(s)
             continue
+
+    self.parent.enableSaveBoard(True)
+    self.parent.setBoardTabText("Board <%s>" % os.path.basename(fn))
+    self.pgHeaters.setCandidatePins(self.candHeatPins)
+    self.pgSensors.setCandidatePins(self.candThermPins)
+
+    for pg in self.pages:
+      pg.insertValues(self.cfgValues)
+      pg.setHelpText(self.helpText)
+
+    self.pgSensors.setSensors(self.sensors)
+    self.pgHeaters.setHeaters(self.heaters)
+    self.pgCpu.setProcessors(self.processors)
 
     return True
 
@@ -378,7 +388,6 @@ class BoardPanel(wx.Panel):
     if self.saveConfigFile(path):
       dlg = wx.MessageDialog(self, "File %s successfully written." % path,
                              "Save successful", wx.OK + wx.ICON_INFORMATION)
-      self.parent.setBoardTabText("Board <%s>" % os.path.basename(path))
     else:
       dlg = wx.MessageDialog(self, "Unable to write to file %s." % path,
                              "File error", wx.OK + wx.ICON_ERROR)
@@ -407,7 +416,6 @@ class BoardPanel(wx.Panel):
         values[k] = v1[k]
 
     self.processors = self.pgCpu.getProcessors()
-
 
     skipToSensorEnd = False
     skipToHeaterEnd = False
@@ -475,8 +483,10 @@ class BoardPanel(wx.Panel):
         if len(t) == 2:
           if t[0] in values.keys() and values[t[0]] != "":
             fp.write(defineValueFormat % (t[0], values[t[0]]))
-          else:
+          elif t[0] in values.keys():
             fp.write("//" + ln)
+          else:
+            fp.write(ln)
           continue
 
       m = reDefBoolBL.match(ln)
@@ -485,8 +495,10 @@ class BoardPanel(wx.Panel):
         if len(t) == 1:
           if t[0] in values.keys() and values[t[0]]:
             fp.write(defineBoolFormat % t[0])
-          else:
+          elif t[0] in values.keys():
             fp.write("//" + ln)
+          else:
+            fp.write(ln)
           continue
 
       m = reCommDefBL.match(ln)
@@ -512,4 +524,7 @@ class BoardPanel(wx.Panel):
       fp.write(ln)
 
     fp.close()
+
+    self.parent.setBoardTabText("Board <%s>" % os.path.basename(path))
+
     return True

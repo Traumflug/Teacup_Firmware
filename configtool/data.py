@@ -4,18 +4,29 @@ import re
 
 VERSION = "0.1"
 
-supportedCPUs = ['ATmega168', 'ATmega328P', 'ATmega644P', 'ATmega644PA',
-                 'ATmega1280', 'ATmega1284P', 'ATmega2560', 'AT90USB1286']
+supportedCPUs = ['ATmega168', 'ATmega328P', 'ATmega644', 'ATmega644P',
+                 'ATmega644PA', 'ATmega1280', 'ATmega1284', 'ATmega1284P',
+                 'ATmega2560', 'AT90USB1286']
 
 pinNames = ["AIO%d" % x for x in range(16)] + ["DIO%d" % x for x in range(64)]
 pinNamesWithBlank = ["-"] + pinNames
 
+sensorTypes = {'MAX6675': "TT_MAX6675", 'Thermistor': "TT_THERMISTOR",
+               'AD595': "TT_AD595", 'PT100': "TT_PT100",
+               'Intercom': "TT_INTERCOM"}
+
 BSIZE = (90, 60)
 BSIZESMALL = (90, 30)
+
+
+TYPE_GENERAL = 0
+TYPE_FLOAT = 1
 
 reDefQSm = re.compile("\s*#define\s+(\S+)\s+(.*)")
 reDefQSm2 = re.compile("\s*(\"[^\"]*\")")
 
+reInclude = re.compile("^\s*#include\s+\"([^\"]*)")
+reFloatAttr = re.compile("/\*\s*float\s*\*/")
 reDefine = re.compile("\s*#define\s+(\w+)\s+(\S+)")
 reDefineBL = re.compile("^\s*#define\s+(\w+)\s+(\S+)")
 reCommDefBL = re.compile("^\s*//\s*#define\s+(\w+)\s+(\S+)")

@@ -1,14 +1,16 @@
 
 import wx
-from configtool.data import pinNames, BSIZESMALL
+from configtool.data import BSIZESMALL
 
 
 class AddHeaterDlg(wx.Dialog):
-  def __init__(self, parent, names, pins):
+  def __init__(self, parent, names, pins, font):
     wx.Dialog.__init__(self, parent, wx.ID_ANY, "Add heater", size = (400, 204))
+    self.SetFont(font)
     self.Bind(wx.EVT_CLOSE, self.onCancel)
 
     self.names = names
+    self.choices = pins
 
     self.nameValid = False
 
@@ -19,9 +21,11 @@ class AddHeaterDlg(wx.Dialog):
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "Heater Name:", size = (80, -1),
                        style = wx.ALIGN_RIGHT)
+    st.SetFont(font)
     lsz.Add(st)
 
     self.tcName = wx.TextCtrl(self, wx.ID_ANY, "")
+    self.tcName.SetFont(font)
     self.tcName.SetBackgroundColour("pink")
     self.tcName.Bind(wx.EVT_TEXT, self.onNameEntry)
     lsz.Add(self.tcName)
@@ -32,9 +36,11 @@ class AddHeaterDlg(wx.Dialog):
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "Pin:", size = (80, -1),
                        style = wx.ALIGN_RIGHT)
+    st.SetFont(font)
     lsz.Add(st)
 
     self.chPin = wx.Choice(self, wx.ID_ANY, choices = pins)
+    self.chPin.SetFont(font)
     self.chPin.Bind(wx.EVT_CHOICE, self.onChoice)
     self.chPin.SetSelection(0)
     lsz.Add(self.chPin)
@@ -43,6 +49,7 @@ class AddHeaterDlg(wx.Dialog):
     gsz.Add(lsz, pos = (3, 1))
 
     self.cbPwm = wx.CheckBox(self, wx.ID_ANY, "PWM")
+    self.cbPwm.SetFont(font)
     self.cbPwm.SetToolTipString("Use Pulse Width Modulation in case the "
                                 "choosen pin allows to do so.")
 
@@ -56,6 +63,7 @@ class AddHeaterDlg(wx.Dialog):
     bsz = wx.BoxSizer(wx.HORIZONTAL)
 
     self.bSave = wx.Button(self, wx.ID_ANY, "Save", size = BSIZESMALL)
+    self.bSave.SetFont(font)
     self.bSave.Bind(wx.EVT_BUTTON, self.onSave)
     bsz.Add(self.bSave)
     self.bSave.Enable(False)
@@ -63,11 +71,15 @@ class AddHeaterDlg(wx.Dialog):
     bsz.AddSpacer(30, 100)
 
     self.bCancel = wx.Button(self, wx.ID_ANY, "Cancel", size = BSIZESMALL)
+    self.bCancel.SetFont(font)
     self.bCancel.Bind(wx.EVT_BUTTON, self.onCancel)
     bsz.Add(self.bCancel)
 
     sz.Add(bsz, flag = wx.ALIGN_CENTER_HORIZONTAL)
+    sz.AddSpacer((10, 10))
     self.SetSizer(sz)
+
+    self.Fit()
 
   def onNameEntry(self, evt):
     tc = evt.GetEventObject()
@@ -100,7 +112,7 @@ class AddHeaterDlg(wx.Dialog):
 
   def getValues(self):
     nm = self.tcName.GetValue()
-    pin = pinNames[self.chPin.GetSelection()]
+    pin = self.choices[self.chPin.GetSelection()]
     if self.cbPwm.IsChecked():
       pwm = "1"
     else:

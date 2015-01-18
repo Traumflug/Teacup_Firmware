@@ -112,7 +112,7 @@
   Units: mm/s^2
   Useful range: 1 to 10'000
 */
-#define ACCELERATION             1000 /* float */
+#define ACCELERATION             1000
 
 /** \def LOOKAHEAD
   Define this to enable look-ahead during *ramping* acceleration to smoothly
@@ -192,7 +192,7 @@
 
   Valid range: 0.001 to 1.0
 */
-#define TEMP_EWMA                1.0 /* float */
+#define TEMP_EWMA                1.0
 
 /** \def HEATER_SANITY_CHECK
   Check if heater responds to changes in target temperature, disable and spit
@@ -200,15 +200,6 @@
   doesn't work for you!
 */
 //#define HEATER_SANITY_CHECK
-
-/** \def XONXOFF
-  Xon/Xoff flow control.
-
-  Redundant when using RepRap Host for sending G-code, but mandatory when
-  sending G-code files with a plain terminal emulator, like GtkTerm (Linux),
-  CoolTerm (Mac) or HyperTerminal (Windows).
-*/
-//#define XONXOFF
 
 /** \def EECONFIG
   Enable EEPROM configuration storage.
