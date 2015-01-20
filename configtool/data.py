@@ -40,10 +40,10 @@ reStartSensors = re.compile("^\s*//\s*DEFINE_TEMP_SENSORS_START")
 reEndSensors = re.compile("^\s*//\s*DEFINE_TEMP_SENSORS_END")
 reStartHeaters = re.compile("^\s*//\s*DEFINE_HEATERS_START")
 reEndHeaters = re.compile("^\s*//\s*DEFINE_HEATERS_END")
-reStartProcessors = re.compile("^\s*//\s*PROCESSORS_START")
-reEndProcessors = re.compile("^\s*//\s*PROCESSORS_END")
 reCandHeatPins = re.compile("^\s*//\s*#define\s+HEATER_PIN\s+(\w+)")
 reCandThermPins = re.compile("^\s*//\s*#define\s+TEMP_SENSOR_PIN\s+(\w+)")
+reCandProcessors = re.compile("^\s*//\s*#define\s+CPU_TYPE\s+(\w+)")
+reCandCPUClocks = re.compile("^\s*//\s*#define\s+F_CPU_OPT\s+(\w+)")
 
 reHelpTextStart = re.compile("^\s*/\*\*\s+\\\\def\s+(.*)")
 reHelpTextEnd = re.compile("^\s*\*/")
@@ -54,8 +54,6 @@ reHeater = re.compile(".*\\(\s*(\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*\\)")
 
 reInteger = re.compile("^\d+U?L?$")
 reFloat = re.compile("^\d+(\.\d*)?$")
-
-reAVR = re.compile("__AVR_(\w+)__")
 
 defineValueFormat =      "#define %-24s %s\n"
 defineBoolFormat =       "#define %s\n"

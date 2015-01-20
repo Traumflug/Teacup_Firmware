@@ -14,28 +14,31 @@ from configtool.miscellaneouspage import MiscellaneousPage
 
 
 class PrinterPanel(wx.Panel):
-  def __init__(self, parent, nb, font, folder):
+  def __init__(self, parent, nb, settings):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
     self.parent = parent
 
     self.configFile = None
 
+    self.settings = settings
+
     self.cfgValues = {}
     self.heaters = []
-    self.dir = os.path.join(folder, "config")
+    self.dir = os.path.join(self.settings.folder, "config")
 
     sz = wx.BoxSizer(wx.HORIZONTAL)
 
     self.nb = wx.Notebook(self, wx.ID_ANY, size = (21, 21),
                           style = wx.BK_DEFAULT)
-    self.nb.SetFont(font)
+    self.nb.SetFont(self.settings.font)
 
     self.pages = []
     self.titles = []
     self.pageModified = []
     self.pageValid = []
 
-    self.pgMech = MechanicalPage(self, self.nb, len(self.pages), font)
+    self.pgMech = MechanicalPage(self, self.nb, len(self.pages),
+                                 self.settings.font)
     text = "Mechanical"
     self.nb.AddPage(self.pgMech, text)
     self.pages.append(self.pgMech)
@@ -43,7 +46,8 @@ class PrinterPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgAcc = AccelerationPage(self, self.nb, len(self.pages), font)
+    self.pgAcc = AccelerationPage(self, self.nb, len(self.pages),
+                                  self.settings.font)
     text = "Acceleration"
     self.nb.AddPage(self.pgAcc, text)
     self.pages.append(self.pgAcc)
@@ -52,7 +56,7 @@ class PrinterPanel(wx.Panel):
     self.pageValid.append(True)
 
     self.pgMiscellaneous = MiscellaneousPage(self, self.nb, len(self.pages),
-                                             font)
+                                             self.settings.font)
     text = "Miscellaneous"
     self.nb.AddPage(self.pgMiscellaneous, text)
     self.pages.append(self.pgMiscellaneous)
@@ -75,6 +79,9 @@ class PrinterPanel(wx.Panel):
   def isModified(self):
     return (True in self.pageModified)
 
+  def hasData(self):
+    return (self.configFile != None)
+
   def assertValid(self, pg, flag = True):
     self.pageValid[pg] = flag
     self.modifyTab(pg)
@@ -95,6 +102,15 @@ class PrinterPanel(wx.Panel):
       pfx = ""
 
     self.nb.SetPageText(pg, pfx + self.titles[pg])
+    if True in self.pageModified and False in self.pageValid:
+      pfx = "?* "
+    elif True in self.pageModified:
+      pfx = "* "
+    elif False in self.pageValid:
+      pfx = "? "
+    else:
+      pfx = ""
+    self.parent.setPrinterTabDecor(pfx)
 
   def setHeaters(self, ht):
     return self.pgMiscellaneous.setHeaters(ht)
@@ -232,7 +248,7 @@ class PrinterPanel(wx.Panel):
             self.cfgValues[t[0]] = True
 
     self.parent.enableSavePrinter(True)
-    self.parent.setPrinterTabText("Printer <%s>" % os.path.basename(fn))
+    self.parent.setPrinterTabFile(os.path.basename(fn))
 
     for pg in self.pages:
       pg.insertValues(self.cfgValues)
@@ -277,7 +293,7 @@ class PrinterPanel(wx.Panel):
     if self.saveConfigFile(path):
       dlg = wx.MessageDialog(self, "File %s successfully written." % path,
                              "Save successful", wx.OK + wx.ICON_INFORMATION)
-      self.parent.setPrinterTabText("Printer <%s>" % os.path.basename(path))
+      self.parent.setPrinterTabFile(os.path.basename(path))
 
     else:
       dlg = wx.MessageDialog(self, "Unable to write to file %s." % path,

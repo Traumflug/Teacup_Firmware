@@ -67,35 +67,32 @@ The start of a help text block is as follows:
 All subsequent lines are copied exactly as entered into the help text until
 the end delimiter is reached. The end delimiter is a line that starts with '*/'.
 
-Note that it is possible to specify multiple names on the start line. This
-allows identical help text for similar or related fields.
+The names are the actual #define variable names and are used to associate the
+help text with a specific field. Note that it is possible to specify multiple
+names on the start line. This allows identical help text for similar or related
+fields.
 
 
 Processor Preamble - Board file
 -------------------------------
 
-The utility parses out the processor types from the config file when it loads
-it, and it provides an interface where processors may be added or removed.
-When a file is saved, the utility needs to know 1) where to insert the new
-processor preamble, and 2) what to remove from the old file. To achieve this,
-there is a sequence that identifies the start of the processor preamble, and
-a sequence that indicates the end. As follows:
+The various CPU_TYPE lines define the options that the user can select from
+for CPU type. These must be legal values acceptable to avr-gcc for the -MMCU
+parameter. The CPU line is the currently chosen value from these options.
 
-//PROCESSORS_START
-#ifndef __AVR_ATmega1280__
-  #ifndef __AVR_ATmega2560__
-    #error Wrong CPU type.
-  #endif
-#endif
-//PROCESSORS_END
+Example:
 
-when a file is saved, all of the lines between these two delimiters are removed
-and a new preamble is generated based on the values from the screen. The
-supported processor types are defined in a python list in the data.py file. As
-additional processors are supported, then can be added to this list.
+//#define CPU_TYPE atmega1280
+//#define CPU_TYPE atmega2560
+#define CPU atmega2560
 
-If the START/END delimiters are not present, then the processor preamble will
-not be generated and the content from the original file will be retained.
+There can be multiple F_CPU_OPT lines specifying the various CPU clock values.
+The final F_CPU line shows the currently chose value from the options.
+
+Example:
+
+//#define F_CPU_OPT 16000000UL
+#define F_CPU 16000000UL
 
 
 Temperature Sensor Considerations - Board file
