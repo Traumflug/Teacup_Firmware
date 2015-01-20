@@ -370,6 +370,11 @@ uint16_t temp_get(temp_sensor_t index) {
 static void single_temp_print(temp_sensor_t index) {
 	uint8_t c = (temp_sensors_runtime[index].last_read_temp & 3) * 25;
 	sersendf_P(PSTR("%u.%u"), temp_sensors_runtime[index].last_read_temp >> 2, c);
+  #ifdef REPORT_TARGET_TEMPS
+    sersendf_P(PSTR("/"));
+    c = (temp_sensors_runtime[index].target_temp & 3) * 25;
+    sersendf_P(PSTR("%u.%u"), temp_sensors_runtime[index].target_temp >> 2, c);
+  #endif
 }
 
 /// send temperatures to host
