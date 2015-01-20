@@ -3,13 +3,13 @@ import os
 import wx
 import re
 
-from configtool.data import (supportedCPUs, defineValueFormat,
+from configtool.data import (defineValueFormat,
                              defineBoolFormat, defineHeaterFormat, reCommDefBL,
                              reCommDefBoolBL, reHelpTextStart, reHelpTextEnd,
                              reStartSensors, reEndSensors, reStartHeaters,
-                             reEndHeaters, reStartProcessors, reEndProcessors,
-                             reCandHeatPins, reCandThermPins, reFloatAttr,
-                             reAVR, reDefine, reDefineBL, reDefQS, reDefQSm,
+                             reEndHeaters, reCandHeatPins, reCandThermPins,
+                             reCandProcessors, reCandCPUClocks, reFloatAttr,
+                             reDefine, reDefineBL, reDefQS, reDefQSm,
                              reDefQSm2, reDefBool, reDefBoolBL, reDefHT,
                              reDefTS, reHeater, reSensor3, reSensor4)
 from configtool.pinoutspage import PinoutsPage
@@ -20,32 +20,32 @@ from configtool.cpupage import CpuPage
 
 
 class BoardPanel(wx.Panel):
-  def __init__(self, parent, nb, font, folder):
+  def __init__(self, parent, nb, settings):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
     self.parent = parent
+    self.settings = settings
 
     self.configFile = None
 
     self.cfgValues = {}
     self.heaters = []
     self.sensors = []
-    self.processors = []
     self.candHeatPins = []
     self.candThermPins = []
-    self.dir = os.path.join(folder, "config")
+    self.dir = os.path.join(self.settings.folder, "config")
 
     sz = wx.BoxSizer(wx.HORIZONTAL)
 
     self.nb = wx.Notebook(self, wx.ID_ANY, size = (21, 21),
                           style = wx.BK_DEFAULT)
-    self.nb.SetFont(font)
+    self.nb.SetFont(self.settings.font)
 
     self.pages = []
     self.titles = []
     self.pageModified = []
     self.pageValid = []
 
-    self.pgCpu = CpuPage(self, self.nb, len(self.pages), font)
+    self.pgCpu = CpuPage(self, self.nb, len(self.pages), self.settings.font)
     text = "CPU"
     self.nb.AddPage(self.pgCpu, text)
     self.pages.append(self.pgCpu)
@@ -53,7 +53,8 @@ class BoardPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgPins = PinoutsPage(self, self.nb, len(self.pages), font)
+    self.pgPins = PinoutsPage(self, self.nb, len(self.pages),
+                              self.settings.font)
     text = "Pinouts"
     self.nb.AddPage(self.pgPins, text)
     self.pages.append(self.pgPins)
@@ -61,7 +62,8 @@ class BoardPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgSensors = SensorsPage(self, self.nb, len(self.pages), font)
+    self.pgSensors = SensorsPage(self, self.nb, len(self.pages),
+                                 self.settings.font)
     text = "Temperature Sensors"
     self.nb.AddPage(self.pgSensors, text)
     self.pages.append(self.pgSensors)
@@ -69,7 +71,8 @@ class BoardPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgHeaters = HeatersPage(self, self.nb, len(self.pages), font)
+    self.pgHeaters = HeatersPage(self, self.nb, len(self.pages),
+                                 self.settings.font)
     text = "Heaters"
     self.nb.AddPage(self.pgHeaters, text)
     self.pages.append(self.pgHeaters)
@@ -78,7 +81,7 @@ class BoardPanel(wx.Panel):
     self.pageValid.append(True)
 
     self.pgCommunications = CommunicationsPage(self, self.nb, len(self.pages),
-                                               font)
+                                               self.settings.font)
     text = "Communications"
     self.nb.AddPage(self.pgCommunications, text)
     self.pages.append(self.pgCommunications)
@@ -91,12 +94,32 @@ class BoardPanel(wx.Panel):
     self.SetSizer(sz)
     self.Fit()
 
+  def getCPUInfo(self):
+    vF_CPU = None
+    if 'F_CPU' in self.cfgValues.keys():
+      vF_CPU = self.cfgValues['F_CPU']
+
+    vCPU = None
+    if 'CPU' in self.cfgValues.keys():
+      vCPU = self.cfgValues['CPU']
+
+    # TODO: this is probably obsolete, because the build process doesn't need
+    #       the firmware baud rate, but the bootloader baud rate.
+    vBaud = None
+    if 'BAUD' in self.cfgValues.keys():
+      vBaud = self.cfgValues['BAUD']
+
+    return vF_CPU, vCPU, vBaud
+
   def assertModified(self, pg, flag = True):
     self.pageModified[pg] = flag
     self.modifyTab(pg)
 
   def isModified(self):
     return (True in self.pageModified)
+
+  def hasData(self):
+    return (self.configFile != None)
 
   def getFileName(self):
     return self.configFile
@@ -121,6 +144,15 @@ class BoardPanel(wx.Panel):
       pfx = ""
 
     self.nb.SetPageText(pg, pfx + self.titles[pg])
+    if True in self.pageModified and False in self.pageValid:
+      pfx = "?* "
+    elif True in self.pageModified:
+      pfx = "* "
+    elif False in self.pageValid:
+      pfx = "? "
+    else:
+      pfx = ""
+    self.parent.setBoardTabDecor(pfx)
 
   def setHeaters(self, ht):
     self.parent.setHeaters(ht)
@@ -190,6 +222,8 @@ class BoardPanel(wx.Panel):
     self.heaters = []
     self.candHeatPins = []
     self.candThermPins = []
+    self.candProcessors = []
+    self.candClocks = []
     gatheringHelpText = False
     helpTextString = ""
     helpKey = None
@@ -242,33 +276,20 @@ class BoardPanel(wx.Panel):
             self.candHeatPins.append(t[0])
             continue
 
-        continue
+        m = reCandProcessors.match(ln)
+        if m:
+          t = m.groups()
+          if len(t) == 1:
+            self.candProcessors.append(t[0])
+            continue
 
-      if ln.lstrip().startswith("#if"):
-        m = re.findall(reAVR, ln)
-        inv = []
-        for p in m:
-          if p in supportedCPUs:
-            self.processors.append(p)
-          else:
-            inv.append(p)
-        if len(inv) > 0:
-          if len(inv) == 1:
-            a = " is"
-            b = "it"
-          else:
-            a = "s are"
-            b = "them"
-          dlg = wx.MessageDialog(self,
-                                 ("The following processor type%s not "
-                                  "supported:\n   %s\nPlease add %s to "
-                                  "\"supportedCPUs\".") %
-                                 (a, ", ".join(inv), b),
-                                 "Unsupported processor type",
-                                 wx.OK + wx.ICON_INFORMATION)
+        m = reCandCPUClocks.match(ln)
+        if m:
+          t = m.groups()
+          if len(t) == 1:
+            self.candClocks.append(t[0])
+            continue
 
-          dlg.ShowModal()
-          dlg.Destroy()
         continue
 
       if ln.lstrip().startswith("#define"):
@@ -322,9 +343,11 @@ class BoardPanel(wx.Panel):
             continue
 
     self.parent.enableSaveBoard(True)
-    self.parent.setBoardTabText("Board <%s>" % os.path.basename(fn))
+    self.parent.setBoardTabFile(os.path.basename(fn))
     self.pgHeaters.setCandidatePins(self.candHeatPins)
     self.pgSensors.setCandidatePins(self.candThermPins)
+    self.pgCpu.setCandidateProcessors(self.candProcessors)
+    self.pgCpu.setCandidateClocks(self.candClocks)
 
     for pg in self.pages:
       pg.insertValues(self.cfgValues)
@@ -332,7 +355,6 @@ class BoardPanel(wx.Panel):
 
     self.pgSensors.setSensors(self.sensors)
     self.pgHeaters.setHeaters(self.heaters)
-    self.pgCpu.setProcessors(self.processors)
 
     return True
 
@@ -415,11 +437,8 @@ class BoardPanel(wx.Panel):
       for k in v1.keys():
         values[k] = v1[k]
 
-    self.processors = self.pgCpu.getProcessors()
-
     skipToSensorEnd = False
     skipToHeaterEnd = False
-    skipToProcessorEnd = False
     for ln in self.cfgBuffer:
       m = reStartSensors.match(ln)
       if m:
@@ -455,26 +474,6 @@ class BoardPanel(wx.Panel):
         if m:
           fp.write(ln)
           skipToHeaterEnd = False
-        continue
-
-      m = reStartProcessors.match(ln)
-      if m:
-        fp.write(ln)
-        for i in range(len(self.processors)):
-          fp.write("%s#ifndef __AVR_%s__\n" % (i * "  ", self.processors[i]))
-        fp.write("%s#error Wrong CPU type.\n" % ((i + 1) * "  "))
-        for s in self.processors:
-          fp.write("%s#endif\n" % (i * "  "))
-          i -= 1
-
-        skipToProcessorEnd = True
-        continue
-
-      if skipToProcessorEnd:
-        m = reEndProcessors.match(ln)
-        if m:
-          fp.write(ln)
-          skipToProcessorEnd = False
         continue
 
       m = reDefineBL.match(ln)
@@ -525,6 +524,6 @@ class BoardPanel(wx.Panel):
 
     fp.close()
 
-    self.parent.setBoardTabText("Board <%s>" % os.path.basename(path))
+    self.parent.setBoardTabFile(os.path.basename(path))
 
     return True

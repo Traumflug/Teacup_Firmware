@@ -5,16 +5,26 @@
 *                                                                           *
 \***************************************************************************/
 
-//PROCESSORS_START
-#ifndef __AVR_ATmega1280__
-  #ifndef __AVR_ATmega2560__
-    #error Wrong CPU type.
-  #endif
-#endif
-//PROCESSORS_END
+/** \def CPU_TYPE
+  CPU types a user should be able to choose from in configtool. All
+  commented out.
+*/
+//#define CPU_TYPE atmega1280
+//#define CPU_TYPE atmega2560
+
+/** \def CPU
+  CPU actually present on the board.
+*/
+#define CPU                      atmega2560
+
+/** \def F_CPU_OPT
+  CPU clock frequencies a user should be able to choose from in configtool.
+  All commented out.
+*/
+//#define F_CPU_OPT 16000000UL
 
 /** \def F_CPU
-  CPU clock rate. #ifndef required for Arduino compatibility.
+  Actual CPU clock rate. #ifndef required for Arduino compatibility.
 */
 #ifndef F_CPU
 #define F_CPU                    16000000UL
