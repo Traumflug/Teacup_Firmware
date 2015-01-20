@@ -194,6 +194,14 @@
 */
 #define TEMP_EWMA                1.0
 
+/** \def REPORT_TARGET_TEMPS
+  With this enabled, M105 commands will return the current temperatures along
+  with the target temps, separated by a slash: ok T:xxx.x/xxx.x B:xxx.x/xxx.x
+  With this disabled, only temps will be returned: ok T:xxx.x B:xxx.x
+  Enabling adds 78 bytes to the image.
+*/
+#define REPORT_TARGET_TEMPS
+
 /** \def HEATER_SANITY_CHECK
   Check if heater responds to changes in target temperature, disable and spit
   errors if not largely untested, please comment in forum if this works, or
