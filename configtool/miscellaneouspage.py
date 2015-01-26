@@ -18,6 +18,7 @@ class MiscellaneousPage(wx.Panel, Page):
                    'BANG_BANG': "Enable",
                    'BANG_BANG_ON': "On PWM Level:",
                    'BANG_BANG_OFF': "Off PWM Level:",
+                   'REPORT_TARGET_TEMPS': "Report Target Temperatures",
                    'MOVEBUFFER_SIZE': "Movebuffer Size:",
                    'DC_EXTRUDER': "Heater:", 'DC_EXTRUDER_PWM': "PWM:",
                    'USE_WATCHDOG': "Use the Watchdog Timer",
@@ -83,6 +84,10 @@ class MiscellaneousPage(wx.Panel, Page):
     k = 'HEATER_SANITY_CHECK'
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (7, 1))
+
+    k = 'REPORT_TARGET_TEMPS'
+    cb = self.addCheckBox(k, self.onCheckBox)
+    sz.Add(cb, pos = (8, 1))
 
     k = 'REFERENCE'
     ch = self.addChoice(k, self.references,
