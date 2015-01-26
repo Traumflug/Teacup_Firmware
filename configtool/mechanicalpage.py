@@ -216,4 +216,10 @@ class MechanicalPage(wx.Panel, Page):
         result['KINEMATICS'] = tag
         break
 
+    for tag in self.kinematicsKeys:
+      try:
+        del result[tag]
+      except:
+        pass
+
     return result

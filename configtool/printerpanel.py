@@ -6,8 +6,7 @@ import re
 from configtool.data import (defineValueFormat, defineBoolFormat, reCommDefBL,
                              reCommDefBoolBL, reHelpTextStart, reHelpTextEnd,
                              reDefine, reDefineBL, reDefQS, reDefQSm,
-                             reDefQSm2, reDefBool, reDefBoolBL, reFloatAttr,
-                             TYPE_FLOAT, TYPE_GENERAL)
+                             reDefQSm2, reDefBool, reDefBoolBL)
 from configtool.mechanicalpage import MechanicalPage
 from configtool.accelerationpage import AccelerationPage
 from configtool.miscellaneouspage import MiscellaneousPage
@@ -313,6 +312,7 @@ class PrinterPanel(wx.Panel):
     self.configFile = path
 
     values = {}
+    labelFound = []
 
     for pg in self.pages:
       v1 = pg.getValues()
@@ -326,8 +326,10 @@ class PrinterPanel(wx.Panel):
         if len(t) == 2:
           if t[0] in values.keys() and values[t[0]] != "":
             fp.write(defineValueFormat % (t[0], values[t[0]]))
+            labelFound.append(t[0])
           elif t[0] in values.keys():
             fp.write("//" + ln)
+            labelFound.append(t[0])
           else:
             fp.write(ln)
           continue
@@ -338,8 +340,10 @@ class PrinterPanel(wx.Panel):
         if len(t) == 1:
           if t[0] in values.keys() and values[t[0]]:
             fp.write(defineBoolFormat % t[0])
+            labelFound.append(t[0])
           elif t[0] in values.keys():
             fp.write("//" + ln)
+            labelFound.append(t[0])
           else:
             fp.write(ln)
           continue
@@ -350,6 +354,10 @@ class PrinterPanel(wx.Panel):
         if len(t) == 2:
           if t[0] in values.keys() and values[t[0]] != "":
             fp.write(defineValueFormat % (t[0], values[t[0]]))
+            labelFound.append(t[0])
+          elif t[0] in values.keys():
+            fp.write(ln)
+            labelFound.append(t[0])
           else:
             fp.write(ln)
           continue
@@ -360,12 +368,48 @@ class PrinterPanel(wx.Panel):
         if len(t) == 1:
           if t[0] in values.keys() and values[t[0]]:
             fp.write(defineBoolFormat % t[0])
+            labelFound.append(t[0])
+          elif t[0] in values.keys():
+            fp.write(ln)
+            labelFound.append(t[0])
           else:
             fp.write(ln)
           continue
 
       fp.write(ln)
 
+    for k in labelFound:
+      del values[k]
+
+    newLabels = ""
+    for k in values.keys():
+      if newLabels == "":
+        newLabels = k
+      else:
+        newLabels += ", " + k
+      self.addNewDefine(fp, k, values[k])
+
+    if newLabels != "":
+      dlg = wx.MessageDialog(self, "New defines added to printer config:\n" +
+                             newLabels, "New defines",
+                             wx.OK + wx.ICON_INFORMATION)
+      dlg.ShowModal()
+      dlg.Destroy()
+
     fp.close()
 
     return True
+
+  def addNewDefine(self, fp, key, val):
+    fp.write("\n")
+    fp.write("/** \\def %s\n" % key)
+    fp.write("  Add help text here.\n")
+    fp.write("*/\n")
+    if val == True:
+      fp.write(defineBoolFormat % key)
+    elif val == False:
+      fp.write("//#define %s\n" % key)
+    elif val == "":
+      fp.write("//#define %s\n" % key)
+    else:
+      fp.write(defineValueFormat % (key, val))

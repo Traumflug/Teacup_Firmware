@@ -410,6 +410,8 @@ class BoardPanel(wx.Panel):
     if self.saveConfigFile(path):
       dlg = wx.MessageDialog(self, "File %s successfully written." % path,
                              "Save successful", wx.OK + wx.ICON_INFORMATION)
+      self.parent.setBoardTabFile(os.path.basename(path))
+
     else:
       dlg = wx.MessageDialog(self, "Unable to write to file %s." % path,
                              "File error", wx.OK + wx.ICON_ERROR)
@@ -431,6 +433,7 @@ class BoardPanel(wx.Panel):
     self.configFile = path
 
     values = {}
+    labelFound = []
 
     for pg in self.pages:
       v1 = pg.getValues()
@@ -482,8 +485,10 @@ class BoardPanel(wx.Panel):
         if len(t) == 2:
           if t[0] in values.keys() and values[t[0]] != "":
             fp.write(defineValueFormat % (t[0], values[t[0]]))
+            labelFound.append(t[0])
           elif t[0] in values.keys():
             fp.write("//" + ln)
+            labelFound.append(t[0])
           else:
             fp.write(ln)
           continue
@@ -494,8 +499,10 @@ class BoardPanel(wx.Panel):
         if len(t) == 1:
           if t[0] in values.keys() and values[t[0]]:
             fp.write(defineBoolFormat % t[0])
+            labelFound.append(t[0])
           elif t[0] in values.keys():
             fp.write("//" + ln)
+            labelFound.append(t[0])
           else:
             fp.write(ln)
           continue
@@ -506,6 +513,10 @@ class BoardPanel(wx.Panel):
         if len(t) == 2:
           if t[0] in values.keys() and values[t[0]] != "":
             fp.write(defineValueFormat % (t[0], values[t[0]]))
+            labelFound.append(t[0])
+          elif t[0] in values.keys():
+            fp.write(ln)
+            labelFound.append(t[0])
           else:
             fp.write(ln)
           continue
@@ -516,14 +527,48 @@ class BoardPanel(wx.Panel):
         if len(t) == 1:
           if t[0] in values.keys() and values[t[0]]:
             fp.write(defineBoolFormat % t[0])
+            labelFound.append(t[0])
+          elif t[0] in values.keys():
+            fp.write(ln)
+            labelFound.append(t[0])
           else:
             fp.write(ln)
           continue
 
       fp.write(ln)
 
+    for k in labelFound:
+      del values[k]
+
+    newLabels = ""
+    for k in values.keys():
+      if newLabels == "":
+        newLabels = k
+      else:
+        newLabels += ", " + k
+      self.addNewDefine(fp, k, values[k])
+
+    if newLabels != "":
+      dlg = wx.MessageDialog(self, "New Defines added to board config:\n" +
+                             newLabels, "New Defines",
+                             wx.OK + wx.ICON_INFORMATION)
+      dlg.ShowModal()
+      dlg.Destroy()
+
     fp.close()
 
-    self.parent.setBoardTabFile(os.path.basename(path))
-
     return True
+
+  def addNewDefine(self, fp, key, val):
+    fp.write("\n")
+    fp.write("/** \\def %s\n" % key)
+    fp.write("  Add help text here.\n")
+    fp.write("*/\n")
+    if val == True:
+      fp.write(defineBoolFormat % key)
+    elif val == False:
+      fp.write("//#define %s\n" % key)
+    elif val == "":
+      fp.write("//#define %s\n" % key)
+    else:
+      fp.write(defineValueFormat % (key, val))
