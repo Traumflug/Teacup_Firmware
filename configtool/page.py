@@ -62,14 +62,15 @@ class Page:
 
     return rb
 
-  def addChoice(self, name, choices, selection, labelWidth, validator):
+  def addChoice(self, name, choices, selection, labelWidth, validator,
+                size = (-1, -1)):
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, self.labels[name],
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(self.font)
     lsz.Add(st)
 
-    ch = wx.Choice(self, wx.ID_ANY, choices = choices, name = name)
+    ch = wx.Choice(self, wx.ID_ANY, choices = choices, size = size, name = name)
     ch.SetFont(self.font)
     ch.Bind(wx.EVT_CHOICE, validator)
     ch.SetSelection(selection)
