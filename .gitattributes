@@ -1,0 +1,13 @@
+
+* text
+
+*.gcode -text
+
+*.gz    -text
+*.zip   -text
+
+*.png   -text
+*.jpg   -text
+*.jpeg  -text
+*.pdf   -text
+
