@@ -11,7 +11,7 @@ from configtool.settings import Settings, SettingsDlg
 from configtool.printerpanel import PrinterPanel
 from configtool.boardpanel import BoardPanel
 from configtool.build import Build, Upload
-from configtool.data import VERSION, reInclude
+from configtool.data import reInclude
 
 ID_LOAD_PRINTER = 1000
 ID_SAVE_PRINTER = 1001
@@ -29,9 +29,7 @@ ID_SETTINGS = 1040
 
 class ConfigFrame(wx.Frame):
   def __init__(self):
-    wx.Frame.__init__(self, None, -1,
-                      "Teacup Firmware Configurator - " + VERSION,
-                      size = (880, 550))
+    wx.Frame.__init__(self, None, -1, "Teacup Configtool", size = (880, 550))
     self.Bind(wx.EVT_CLOSE, self.onClose)
 
     panel = wx.Panel(self, -1)
