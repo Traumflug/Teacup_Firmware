@@ -169,6 +169,15 @@ class ConfigFrame(wx.Frame):
 
     menu_bar.Append(file_menu, "&File")
 
+    edit_menu = wx.Menu()
+
+    edit_menu.Append(ID_SETTINGS, "Settings", "Change settings.")
+    self.Bind(wx.EVT_MENU, self.onEditSettings, id = ID_SETTINGS)
+
+    self.editMenu = edit_menu
+
+    menu_bar.Append(edit_menu, "&Edit")
+
     build_menu = wx.Menu()
 
     build_menu.Append(ID_BUILD, "Build", "Build the executable.")
@@ -180,15 +189,6 @@ class ConfigFrame(wx.Frame):
     self.buildMenu = build_menu
 
     menu_bar.Append(build_menu, "&Build")
-
-    edit_menu = wx.Menu()
-
-    edit_menu.Append(ID_SETTINGS, "Settings", "Change settings.")
-    self.Bind(wx.EVT_MENU, self.onEditSettings, id = ID_SETTINGS)
-
-    self.editMenu = edit_menu
-
-    menu_bar.Append(edit_menu, "&Edit")
 
     self.SetMenuBar(menu_bar)
     self.checkEnableLoadConfig()
