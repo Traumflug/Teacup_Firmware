@@ -2,8 +2,6 @@
 import re
 
 
-VERSION = "0.1"
-
 supportedCPUs = ['ATmega168', 'ATmega328P', 'ATmega644', 'ATmega644P',
                  'ATmega644PA', 'ATmega1280', 'ATmega1284', 'ATmega1284P',
                  'ATmega2560', 'AT90USB1286']
