@@ -7,6 +7,7 @@
 */
 
 // Uncomment your controller board, comment out all others.
+//#include "config/board.3drag.h"
 //#include "config/board.gen3.h"
 //#include "config/board.gen6.h"
 //#include "config/board.gen7-v1.1-v1.3.h"
