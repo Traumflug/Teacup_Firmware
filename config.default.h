@@ -9,6 +9,7 @@
 // Uncomment your controller board, comment out all others.
 //#include "config/board.gen7-v1.1-v1.3.h"
 #include "config/board.gen7-v1.4.h"
+//#include "config/board.ramps-v1.2.h"
 //#include "config/board.ramps-v1.3.h"
 
 // Uncomment your printer type, comment out all others.
