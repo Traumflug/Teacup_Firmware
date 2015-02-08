@@ -17,6 +17,7 @@
 //#include "config/board.rumba.h"
 //#include "config/board.sanguinololu-v1.1.h"
 //#include "config/board.sanguinololu-v1.2.h"
+//#include "config/board.sanguish.h"
 
 // Uncomment your printer type, comment out all others.
 #include "config/printer.mendel.h"

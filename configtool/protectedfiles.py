@@ -10,6 +10,7 @@ protectedFiles = [
   "board.rumba.h",
   "board.sanguinololu-v1.1.h",
   "board.sanguinololu-v1.2.h",
+  "board.sanguish.h",
   "printer.mendel.h",
   "printer.wolfstrap.h"
 ]
