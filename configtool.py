@@ -20,8 +20,7 @@ ID_LOAD_BOARD = 1010
 ID_SAVE_BOARD = 1011
 ID_SAVE_BOARD_AS = 1012
 ID_LOAD_CONFIG = 1020
-ID_LOAD_DEFAULT = 1021
-ID_SAVE_CONFIG = 1022
+ID_SAVE_CONFIG = 1021
 ID_BUILD = 1030
 ID_UPLOAD = 1031
 ID_SETTINGS = 1040
@@ -115,11 +114,6 @@ class ConfigFrame(wx.Frame):
                      "Load config.h and its named printer and board files.")
     self.Bind(wx.EVT_MENU, self.onLoadConfig, id = ID_LOAD_CONFIG)
     file_menu.Enable(ID_LOAD_CONFIG, False)
-
-    file_menu.Append(ID_LOAD_DEFAULT, "Load default",
-                "Load default config.h and its named printer and board files.")
-    self.Bind(wx.EVT_MENU, self.onLoadDefault, id = ID_LOAD_DEFAULT)
-    file_menu.Enable(ID_LOAD_DEFAULT, False)
 
     file_menu.Append(ID_SAVE_CONFIG, "Save config.h", "Save config.h file.")
     self.Bind(wx.EVT_MENU, self.onSaveConfig, id = ID_SAVE_CONFIG)
@@ -217,12 +211,6 @@ class ConfigFrame(wx.Frame):
       self.fileMenu.Enable(ID_LOAD_CONFIG, False)
       self.buildMenu.Enable(ID_BUILD, False)
 
-    fn = os.path.join(cmd_folder, "config.default.h")
-    if os.path.isfile(fn):
-      self.fileMenu.Enable(ID_LOAD_DEFAULT, True)
-    else:
-      self.fileMenu.Enable(ID_LOAD_DEFAULT, False)
-
   def checkEnableUpload(self):
     fn = os.path.join(cmd_folder, "teacup.hex")
     if os.path.isfile(fn):
@@ -253,9 +241,6 @@ class ConfigFrame(wx.Frame):
 
   def onLoadConfig(self, evt):
     self.loadConfigFile("config.h")
-
-  def onLoadDefault(self, evt):
-    self.loadConfigFile("config.default.h")
 
   def loadConfigFile(self, fn):
     if not self.pgPrinter.confirmLoseChanges("load config"):
@@ -359,9 +344,8 @@ class ConfigFrame(wx.Frame):
 
     fp.close()
 
-    m = ("%s successfully saved.\n"
-         "%s successfully saved.\nconfig.h successfully saved.") % (rbfn, rpfn)
-    self.message(m, "Save configuration success", wx.OK + wx.ICON_INFORMATION)
+    self.message("config.h successfully saved.", "Save configuration success",
+                 wx.OK + wx.ICON_INFORMATION)
 
     self.checkEnableLoadConfig()
 
