@@ -127,7 +127,7 @@ class MiscellaneousPage(wx.Panel, Page):
     sbox.Add(tc)
     sbox.AddSpacer((5, 5))
 
-    sz.Add(sbox, pos = (8,3), flag = wx.ALIGN_CENTER_HORIZONTAL)
+    sz.Add(sbox, pos = (8, 3), flag = wx.ALIGN_CENTER_HORIZONTAL)
 
     labelWidth = 190;
 

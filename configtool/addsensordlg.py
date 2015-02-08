@@ -91,7 +91,7 @@ class AddSensorDlg(wx.Dialog):
 
     csz.Add(lsz)
 
-    csz.AddSpacer((10,10))
+    csz.AddSpacer((10, 10))
 
     bsz = wx.BoxSizer(wx.HORIZONTAL)
 

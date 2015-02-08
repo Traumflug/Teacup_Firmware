@@ -245,6 +245,7 @@ class ConfigFrame(wx.Frame):
   def loadConfigFile(self, fn):
     if not self.pgPrinter.confirmLoseChanges("load config"):
       return
+
     if not self.pgBoard.confirmLoseChanges("load config"):
       return
 
@@ -377,6 +378,7 @@ class ConfigFrame(wx.Frame):
         dlg.Destroy()
         if rc != wx.ID_YES:
           return
+
         self.onSavePrinterConfig(None)
 
       if self.pgBoard.isModified():
@@ -388,6 +390,7 @@ class ConfigFrame(wx.Frame):
         dlg.Destroy()
         if rc != wx.ID_YES:
           return
+
         self.onSaveBoardConfig(None)
 
     if not self.verifyConfigLoaded():
@@ -409,12 +412,14 @@ class ConfigFrame(wx.Frame):
       dlg.ShowModal()
       dlg.Destroy()
       return
+
     if not f_cpu:
       dlg = wx.MessageDialog(self, "Unable to determine CPU clock rate.",
                              "CPU clock rate error", wx.OK | wx.ICON_ERROR)
       dlg.ShowModal()
       dlg.Destroy()
       return
+
     if not baud:
       # TODO: It looks like serial port baud rate is confused with bootloader
       #       baud rate here. These two can be the same, but don't have to.

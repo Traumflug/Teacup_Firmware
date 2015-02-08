@@ -178,7 +178,7 @@ class Build(wx.Dialog):
       cmdpath = "avr-gcc"
 
     cfiles = [f for f in os.listdir(self.root)
-                  if isfile(join(self.root,f)) and f.endswith(".c")]
+                if isfile(join(self.root,f)) and f.endswith(".c")]
     for f in cfiles:
       basename = f[:-2]
       ofile = basename + ".o"
@@ -202,8 +202,8 @@ class Build(wx.Dialog):
       cmdpath = "avr-gcc"
 
     ofiles = ["\"" + join(self.root, "build", f) + "\""
-                for f in os.listdir(join(self.root, "build"))
-                  if isfile(join(self.root, "build", f)) and f.endswith(".o")]
+              for f in os.listdir(join(self.root, "build"))
+                if isfile(join(self.root, "build", f)) and f.endswith(".o")]
     opath = " ".join(ofiles)
     elfpath = "\"" + join(self.root, "build", "teacup.elf") + "\""
     hexpath = "\"" + join(self.root, "teacup.hex") + "\""

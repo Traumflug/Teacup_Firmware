@@ -17,7 +17,7 @@ class SensorsPage(wx.Panel, Page):
     self.sensorTypeKeys = {'TT_MAX6675': 'TEMP_MAX6675',
                            'TT_THERMISTOR': 'TEMP_THERMISTOR',
                            'TT_AD595': 'TEMP_AD595', 'TT_PT100': 'TEMP_PT100',
-                           'TT_INTERCOM': 'TEMP_INTERCOM' }
+                           'TT_INTERCOM': 'TEMP_INTERCOM'}
     self.labels = {'TEMP_MAX6675': "MAX6675", 'TEMP_THERMISTOR': "Thermistor",
                    'TEMP_AD595': "AD595", 'TEMP_PT100': "PT100",
                    'TEMP_INTERCOM': "Intercom"}
