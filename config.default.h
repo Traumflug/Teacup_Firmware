@@ -11,6 +11,7 @@
 #include "config/board.gen7-v1.4.h"
 //#include "config/board.ramps-v1.2.h"
 //#include "config/board.ramps-v1.3.h"
+//#include "config/board.sanguinololu-v1.1.h"
 
 // Uncomment your printer type, comment out all others.
 #include "config/printer.mendel.h"
