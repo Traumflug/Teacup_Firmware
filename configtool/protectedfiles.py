@@ -12,6 +12,7 @@ protectedFiles = [
   "board.sanguinololu-v1.2.h",
   "board.sanguish.h",
   "board.teensy-v2.0.h",
+  "board.teensy++-v2.0.h",
   "printer.mendel.h",
   "printer.wolfstrap.h"
 ]
