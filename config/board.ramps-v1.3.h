@@ -164,6 +164,7 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO14, THERMISTOR_BED)
   Heater pins a user should be able to choose from in configtool. All
   commented out.
 */
+//#define HEATER_PIN DIO4
 //#define HEATER_PIN DIO5
 //#define HEATER_PIN DIO8
 //#define HEATER_PIN DIO9
