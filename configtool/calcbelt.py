@@ -1,6 +1,7 @@
 
 import wx
-from configtool.data import BSIZESMALL, reFloat, reInteger
+from configtool.data import (BSIZESMALL, reFloat, reInteger, offsetChLabel,
+                             offsetTcLabel)
 
 
 class CalcBelt(wx.Dialog):
@@ -24,7 +25,7 @@ class CalcBelt(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Step Angle:", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
     lsz.AddSpacer((5, 5))
 
     stepAngles = ["1.8 (200 per revolution)", "0.9 (400 per revolution)",
@@ -45,7 +46,7 @@ class CalcBelt(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Microstepping:",
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
     lsz.AddSpacer((5, 5))
 
     microStepping = ["1 - full step", "1/2 - half step", "1/4 - quarter step",
@@ -69,7 +70,7 @@ class CalcBelt(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Belt Pitch (in mm):",
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
     lsz.AddSpacer((5, 5))
 
     tc = wx.TextCtrl(self, wx.ID_ANY, "2", style = wx.TE_RIGHT)
@@ -100,7 +101,7 @@ class CalcBelt(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Pulley Teeth Count:",
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
     lsz.AddSpacer((5, 5))
 
     tc = wx.TextCtrl(self, wx.ID_ANY, "8", style = wx.TE_RIGHT)

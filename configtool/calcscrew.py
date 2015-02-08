@@ -1,6 +1,6 @@
 
 import wx
-from configtool.data import BSIZESMALL, reFloat
+from configtool.data import BSIZESMALL, reFloat, offsetChLabel, offsetTcLabel
 
 
 class CalcScrew(wx.Dialog):
@@ -24,7 +24,7 @@ class CalcScrew(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Step Angle:", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
     lsz.AddSpacer((5, 5))
 
     stepAngles = ["1.8 (200 per revolution)", "0.9 (400 per revolution)",
@@ -45,7 +45,7 @@ class CalcScrew(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Microstepping:",
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
     lsz.AddSpacer((5, 5))
 
     microStepping = ["1 - full step", "1/2 - half step", "1/4 - quarter step",
@@ -69,7 +69,7 @@ class CalcScrew(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Screw Pitch (mm/rev):",
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
     lsz.AddSpacer((5, 5))
 
     tc = wx.TextCtrl(self, wx.ID_ANY, "2", style = wx.TE_RIGHT)
@@ -104,7 +104,7 @@ class CalcScrew(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Gear Ratio:", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
     lsz.AddSpacer((5, 5))
 
     tc = wx.TextCtrl(self, wx.ID_ANY, "1", size = (40, -1), style = wx.TE_RIGHT)

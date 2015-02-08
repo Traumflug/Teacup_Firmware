@@ -2,7 +2,7 @@
 import ConfigParser
 import os
 import wx
-from configtool.data import BSIZESMALL
+from configtool.data import BSIZESMALL, offsetTcLabel
 
 INIFILE = "configtool.default.ini"
 
@@ -108,7 +108,7 @@ class SettingsDlg(wx.Dialog):
       t = wx.StaticText(self, wx.ID_ANY, f[0], size = (labelWidth, -1),
                         style = wx.ALIGN_RIGHT)
       t.SetFont(settings.font)
-      lsz.Add(t)
+      lsz.Add(t, 1, wx.TOP, offsetTcLabel)
 
       lsz.AddSpacer((8, 8))
 

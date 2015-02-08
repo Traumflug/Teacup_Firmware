@@ -1,6 +1,7 @@
 
 import wx
-from configtool.data import pinNames, BSIZESMALL, sensorTypes
+from configtool.data import (pinNames, BSIZESMALL, sensorTypes, offsetTcLabel,
+                             offsetChLabel)
 
 
 class AddSensorDlg(wx.Dialog):
@@ -27,7 +28,7 @@ class AddSensorDlg(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Sensor Name:", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
 
     self.tcName = wx.TextCtrl(self, wx.ID_ANY, "")
     self.tcName.SetFont(font)
@@ -43,7 +44,7 @@ class AddSensorDlg(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Sensor Type:", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
 
     sl = sorted(sensorTypes.keys())
 
@@ -61,7 +62,7 @@ class AddSensorDlg(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Pin:", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
 
     self.choiceList = pinNames
     self.chPin = wx.Choice(self, wx.ID_ANY, choices = pins)
@@ -78,7 +79,7 @@ class AddSensorDlg(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Additional:", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
 
     self.tcAddtl = wx.TextCtrl(self, wx.ID_ANY, "")
     self.tcAddtl.SetFont(font)

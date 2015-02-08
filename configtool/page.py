@@ -1,7 +1,7 @@
 
 import wx
 
-from configtool.data import reInteger, reFloat
+from configtool.data import reInteger, reFloat, offsetChLabel, offsetTcLabel
 
 
 class Page:
@@ -31,7 +31,7 @@ class Page:
     st = wx.StaticText(self, wx.ID_ANY, self.labels[name] + " ",
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(self.font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
 
     tc = wx.TextCtrl(self, wx.ID_ANY, "", style = wx.TE_RIGHT, name = name)
     tc.SetFont(self.font)
@@ -68,7 +68,7 @@ class Page:
     st = wx.StaticText(self, wx.ID_ANY, self.labels[name],
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(self.font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
 
     ch = wx.Choice(self, wx.ID_ANY, choices = choices, size = size, name = name)
     ch.SetFont(self.font)
@@ -84,7 +84,7 @@ class Page:
     st = wx.StaticText(self, wx.ID_ANY, self.labels[name],
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(self.font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
 
     if allowBlank:
       opts = ["-"] + pins

@@ -1,6 +1,6 @@
 
 import wx
-from configtool.data import BSIZESMALL
+from configtool.data import BSIZESMALL, offsetChLabel, offsetTcLabel
 
 
 class AddHeaterDlg(wx.Dialog):
@@ -22,7 +22,7 @@ class AddHeaterDlg(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Heater Name:", size = (80, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
 
     self.tcName = wx.TextCtrl(self, wx.ID_ANY, "")
     self.tcName.SetFont(font)
@@ -37,7 +37,7 @@ class AddHeaterDlg(wx.Dialog):
     st = wx.StaticText(self, wx.ID_ANY, "Pin:", size = (80, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
-    lsz.Add(st)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
 
     self.chPin = wx.Choice(self, wx.ID_ANY, choices = pins)
     self.chPin.SetFont(font)
