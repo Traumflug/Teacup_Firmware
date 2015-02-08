@@ -564,8 +564,8 @@ class BoardPanel(wx.Panel):
       self.addNewDefine(fp, k, values[k])
 
     if newLabels != "":
-      dlg = wx.MessageDialog(self, "New Defines added to board config:\n" +
-                             newLabels, "New Defines",
+      dlg = wx.MessageDialog(self, "New defines added to board config:\n" +
+                             newLabels, "New defines",
                              wx.OK + wx.ICON_INFORMATION)
       dlg.ShowModal()
       dlg.Destroy()

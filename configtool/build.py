@@ -129,7 +129,7 @@ class Build(wx.Dialog):
     builddir = join(self.root, "build")
     if not os.path.exists(builddir):
       os.makedirs(builddir)
-      self.log.AppendText("Directory (%s) created.\n\n" % builddir)
+      self.log.AppendText("Directory %s created.\n\n" % builddir)
 
     self.compile()
 
@@ -265,8 +265,8 @@ class Build(wx.Dialog):
   def formatReportLine(self, m, name, v168, v328, v644, v1280):
     t = m.groups()
     v = int(t[0], 16)
-    self.log.AppendText(("%12s : %6d bytes     %6.2f%%     %6.2f%%"
-                         "     %6.2f%%     %6.2f%%\n") %
+    self.log.AppendText(("%12s:  %6d bytes   %6.2f%%   %6.2f%%"
+                         "   %6.2f%%   %6.2f%%\n") %
                         (name, v, v / float(v168 * 1024) * 100.0,
                          v / float(v328 * 1024) * 100.0,
                          v / float(v644 * 1024) * 100.0,
@@ -277,8 +277,8 @@ class Build(wx.Dialog):
     reBss = re.compile("\.bss\s+([0-9a-f]+)")
     reEEProm = re.compile("\.eeprom\s+([0-9a-f]+)")
 
-    self.log.AppendText("\n                    ATmega...      '168     '328(P)"
-                        "     '644(P)       '1280\n")
+    self.log.AppendText("\n          ATmega...    '168   '328(P)"
+                        "   '644(P)     '1280\n")
     for l in self.reportLines:
       m = reText.search(l)
       if m:

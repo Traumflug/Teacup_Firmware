@@ -391,9 +391,8 @@ class ConfigFrame(wx.Frame):
         self.onSaveBoardConfig(None)
 
     if not self.verifyConfigLoaded():
-      dlg = wx.MessageDialog(self, "Loaded configuration does not match what "
-                                   "the config.h file. Click Yes to load "
-                                   "config.h.",
+      dlg = wx.MessageDialog(self, "Loaded configuration does not match the "
+                                   "config.h file. Click Yes to load config.h.",
                              "Incorrect data loaded",
                              wx.YES_NO | wx.NO_DEFAULT | wx.ICON_INFORMATION)
       rc = dlg.ShowModal()

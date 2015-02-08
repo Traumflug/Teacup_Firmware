@@ -214,7 +214,7 @@ class CalcBelt(wx.Dialog):
     resultmm = steps / length
     self.result = int(resultmm * 1000.0)
 
-    self.tcResult.SetLabel("%d steps/m    (%.3f steps/mm)" %
+    self.tcResult.SetLabel("%d steps/m   (%.3f steps/mm)" %
                            (self.result, resultmm))
     self.tcResolution.SetLabel("%.3f micrometers" % (length / steps * 1000.0))
     self.enableUseButtons(True)

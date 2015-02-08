@@ -234,7 +234,7 @@ class CalcScrew(wx.Dialog):
     resultmm = steps / sp / ratio
     self.result = int(resultmm * 1000.0)
 
-    self.tcResult.SetLabel("%d   steps/m   (%.3f steps/mm)" %
+    self.tcResult.SetLabel("%d steps/m   (%.3f steps/mm)" %
                            (self.result, resultmm))
     self.tcResolution.SetLabel("%.3f micrometers" % (1.0 / resultmm * 1000.0))
     self.enableUseButtons(True)

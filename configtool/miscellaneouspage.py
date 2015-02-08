@@ -74,15 +74,15 @@ class MiscellaneousPage(wx.Panel, Page):
 
     k = 'FAST_PWM'
     cb = self.addCheckBox(k, self.onCheckBox)
-    sz.Add(cb, pos = (6, 1))
+    sz.Add(cb, pos = (5, 1))
 
     k = 'HEATER_SANITY_CHECK'
     cb = self.addCheckBox(k, self.onCheckBox)
-    sz.Add(cb, pos = (7, 1))
+    sz.Add(cb, pos = (6, 1))
 
     k = 'REPORT_TARGET_TEMPS'
     cb = self.addCheckBox(k, self.onCheckBox)
-    sz.Add(cb, pos = (8, 1))
+    sz.Add(cb, pos = (7, 1))
 
     k = 'REFERENCE'
     ch = self.addChoice(k, self.references,
@@ -129,7 +129,7 @@ class MiscellaneousPage(wx.Panel, Page):
 
     sz.Add(sbox, pos = (8,3), flag = wx.ALIGN_CENTER_HORIZONTAL)
 
-    labelWidth = 180;
+    labelWidth = 190;
 
     k = 'MOVEBUFFER_SIZE'
     tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
