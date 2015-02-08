@@ -1,6 +1,9 @@
 /** \file config.default.h
   In case you prefer to build with the makefile or with Arduino IDE instead
   of the config tool, copy this file to config.h and adjust it to your needs.
+
+  \note to developers: when adding a file here, also add it to
+  configtool/protectedfiles.py.
 */
 
 // Uncomment your controller board, comment out all others.

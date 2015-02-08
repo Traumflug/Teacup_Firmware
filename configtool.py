@@ -230,19 +230,19 @@ class ConfigFrame(wx.Frame):
     else:
       self.buildMenu.Enable(ID_UPLOAD, False)
 
-  def enableSavePrinter(self, flag):
-    self.fileMenu.Enable(ID_SAVE_PRINTER, flag)
-    self.fileMenu.Enable(ID_SAVE_PRINTER_AS, flag)
-    self.savePrtEna = flag
+  def enableSavePrinter(self, saveFlag, saveAsFlag):
+    self.fileMenu.Enable(ID_SAVE_PRINTER, saveFlag)
+    self.fileMenu.Enable(ID_SAVE_PRINTER_AS, saveAsFlag)
+    self.savePrtEna = saveAsFlag
     if self.savePrtEna and self.saveBrdEna:
       self.enableSaveConfig(True)
     else:
       self.enableSaveConfig(False)
 
-  def enableSaveBoard(self, flag):
-    self.fileMenu.Enable(ID_SAVE_BOARD, flag)
-    self.fileMenu.Enable(ID_SAVE_BOARD_AS, flag)
-    self.saveBrdEna = flag
+  def enableSaveBoard(self, saveFlag, saveAsFlag):
+    self.fileMenu.Enable(ID_SAVE_BOARD, saveFlag)
+    self.fileMenu.Enable(ID_SAVE_BOARD_AS, saveAsFlag)
+    self.saveBrdEna = saveAsFlag
     if self.savePrtEna and self.saveBrdEna:
       self.enableSaveConfig(True)
     else:
@@ -328,16 +328,14 @@ class ConfigFrame(wx.Frame):
       return
 
     bfn = self.pgBoard.getFileName()
-    if not self.pgBoard.saveConfigFile(bfn):
-      self.message("Unable to save board configuration %s." %
-                   os.path.basename(bfn), "File error")
-      return
+    if self.pgBoard.isModified() and self.pgBoard.isValid():
+      if not self.pgBoard.saveConfigFile(bfn):
+        return
 
     pfn = self.pgPrinter.getFileName()
-    if not self.pgPrinter.saveConfigFile(pfn):
-      self.message("Unable to save printer configuration %s." %
-                   os.path.basename(pfn), "File error")
-      return
+    if self.pgPrinter.isModified() and self.pgPrinter.isValid():
+      if not self.pgPrinter.saveConfigFile(pfn):
+        return
 
     prefix = cmd_folder + os.path.sep
     lpfx = len(prefix)

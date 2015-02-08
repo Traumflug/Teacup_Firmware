@@ -17,6 +17,7 @@ from configtool.sensorpage import SensorsPage
 from configtool.heaterspage import HeatersPage
 from configtool.communicationspage import CommunicationsPage
 from configtool.cpupage import CpuPage
+from configtool.protectedfiles import protectedFiles
 
 
 class BoardPanel(wx.Panel):
@@ -24,6 +25,7 @@ class BoardPanel(wx.Panel):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
     self.parent = parent
     self.settings = settings
+    self.protFileLoaded = False
 
     self.configFile = None
 
@@ -118,6 +120,9 @@ class BoardPanel(wx.Panel):
   def isModified(self):
     return (True in self.pageModified)
 
+  def isValid(self):
+    return not (False in self.pageValid)
+
   def hasData(self):
     return (self.configFile != None)
 
@@ -129,9 +134,9 @@ class BoardPanel(wx.Panel):
     self.modifyTab(pg)
 
     if False in self.pageValid:
-      self.parent.enableSaveBoard(False)
+      self.parent.enableSaveBoard(False, False)
     else:
-      self.parent.enableSaveBoard(True)
+      self.parent.enableSaveBoard(not self.protFileLoaded, True)
 
   def modifyTab(self, pg):
     if self.pageModified[pg] and not self.pageValid[pg]:
@@ -342,7 +347,12 @@ class BoardPanel(wx.Panel):
               self.heaters.append(s)
             continue
 
-    self.parent.enableSaveBoard(True)
+    if os.path.basename(fn) in protectedFiles:
+      self.parent.enableSaveBoard(False, True)
+      self.protFileLoaded = True
+    else:
+      self.protFileLoaded = False
+      self.parent.enableSaveBoard(True, True)
     self.parent.setBoardTabFile(os.path.basename(fn))
     self.pgHeaters.setCandidatePins(self.candHeatPins)
     self.pgSensors.setCandidatePins(self.candThermPins)
@@ -381,15 +391,7 @@ class BoardPanel(wx.Panel):
 
   def onSaveConfig(self, evt):
     path = self.configFile
-    if self.saveConfigFile(path):
-      dlg = wx.MessageDialog(self, "File %s successfully written." % path,
-                             "Save successful", wx.OK + wx.ICON_INFORMATION)
-    else:
-      dlg = wx.MessageDialog(self, "Unable to write to file %s." % path,
-                             "File error", wx.OK + wx.ICON_ERROR)
-    dlg.ShowModal()
-    dlg.Destroy()
-
+    self.saveConfigFile(path)
 
   def onSaveConfigAs(self, evt):
     wildcard = "Board configuration (board.*.h)|board.*.h"
@@ -408,17 +410,18 @@ class BoardPanel(wx.Panel):
     dlg.Destroy()
 
     if self.saveConfigFile(path):
-      dlg = wx.MessageDialog(self, "File %s successfully written." % path,
-                             "Save successful", wx.OK + wx.ICON_INFORMATION)
       self.parent.setBoardTabFile(os.path.basename(path))
-
-    else:
-      dlg = wx.MessageDialog(self, "Unable to write to file %s." % path,
-                             "File error", wx.OK + wx.ICON_ERROR)
-    dlg.ShowModal()
-    dlg.Destroy()
+      self.protFileLoaded = False
+      self.parent.enableSaveBoard(True, True)
 
   def saveConfigFile(self, path):
+    if os.path.basename(path) in protectedFiles:
+      dlg = wx.MessageDialog(self, "Unable to overwrite %s." % path,
+                             "Protected file error", wx.OK + wx.ICON_ERROR)
+      dlg.ShowModal()
+      dlg.Destroy()
+      return False
+
     ext = os.path.splitext(os.path.basename(path))[1]
     self.dir = os.path.dirname(path)
 
@@ -428,6 +431,10 @@ class BoardPanel(wx.Panel):
     try:
       fp = file(path, 'w')
     except:
+      dlg = wx.MessageDialog(self, "Unable to write to file %s." % path,
+                             "File error", wx.OK + wx.ICON_ERROR)
+      dlg.ShowModal()
+      dlg.Destroy()
       return False
 
     self.configFile = path
@@ -556,6 +563,11 @@ class BoardPanel(wx.Panel):
       dlg.Destroy()
 
     fp.close()
+
+    dlg = wx.MessageDialog(self, "File %s successfully written." % path,
+                           "Save successful", wx.OK + wx.ICON_INFORMATION)
+    dlg.ShowModal()
+    dlg.Destroy()
 
     return True
 

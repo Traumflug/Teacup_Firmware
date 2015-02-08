@@ -10,6 +10,7 @@ from configtool.data import (defineValueFormat, defineBoolFormat, reCommDefBL,
 from configtool.mechanicalpage import MechanicalPage
 from configtool.accelerationpage import AccelerationPage
 from configtool.miscellaneouspage import MiscellaneousPage
+from configtool.protectedfiles import protectedFiles
 
 
 class PrinterPanel(wx.Panel):
@@ -18,6 +19,7 @@ class PrinterPanel(wx.Panel):
     self.parent = parent
 
     self.configFile = None
+    self.protFileLoaded = False
 
     self.settings = settings
 
@@ -78,6 +80,9 @@ class PrinterPanel(wx.Panel):
   def isModified(self):
     return (True in self.pageModified)
 
+  def isValid(self):
+    return not (False in self.pageValid)
+
   def hasData(self):
     return (self.configFile != None)
 
@@ -86,9 +91,9 @@ class PrinterPanel(wx.Panel):
     self.modifyTab(pg)
 
     if False in self.pageValid:
-      self.parent.enableSavePrinter(False)
+      self.parent.enableSavePrinter(False, False)
     else:
-      self.parent.enableSavePrinter(True)
+      self.parent.enableSavePrinter(not self.protFileLoaded, True)
 
   def modifyTab(self, pg):
     if self.pageModified[pg] and not self.pageValid[pg]:
@@ -243,7 +248,12 @@ class PrinterPanel(wx.Panel):
           if len(t) == 1:
             self.cfgValues[t[0]] = True
 
-    self.parent.enableSavePrinter(True)
+    if os.path.basename(fn) in protectedFiles:
+      self.parent.enableSavePrinter(False, True)
+      self.protFileLoaded = True
+    else:
+      self.protFileLoaded = False
+      self.parent.enableSavePrinter(True, True)
     self.parent.setPrinterTabFile(os.path.basename(fn))
 
     for pg in self.pages:
@@ -260,15 +270,7 @@ class PrinterPanel(wx.Panel):
 
   def onSaveConfig(self, evt):
     path = self.configFile
-    if self.saveConfigFile(path):
-      dlg = wx.MessageDialog(self, "File %s successfully written." % path,
-                             "Save successful", wx.OK + wx.ICON_INFORMATION)
-
-    else:
-      dlg = wx.MessageDialog(self, "Unable to write to file %s." % path,
-                             "File error", wx.OK + wx.ICON_ERROR)
-    dlg.ShowModal()
-    dlg.Destroy()
+    self.saveConfigFile(path)
 
   def onSaveConfigAs(self, evt):
     wildcard = "Printer configuration (printer.*.h)|printer.*.h"
@@ -287,17 +289,18 @@ class PrinterPanel(wx.Panel):
     dlg.Destroy()
 
     if self.saveConfigFile(path):
-      dlg = wx.MessageDialog(self, "File %s successfully written." % path,
-                             "Save successful", wx.OK + wx.ICON_INFORMATION)
       self.parent.setPrinterTabFile(os.path.basename(path))
-
-    else:
-      dlg = wx.MessageDialog(self, "Unable to write to file %s." % path,
-                             "File error", wx.OK + wx.ICON_ERROR)
-    dlg.ShowModal()
-    dlg.Destroy()
+      self.protFileLoaded = False
+      self.parent.enableSavePrinter(True, True)
 
   def saveConfigFile(self, path):
+    if os.path.basename(path) in protectedFiles:
+      dlg = wx.MessageDialog(self, "Unable to overwrite %s." % path,
+                             "Protected file error", wx.OK + wx.ICON_ERROR)
+      dlg.ShowModal()
+      dlg.Destroy()
+      return False
+
     ext = os.path.splitext(os.path.basename(path))[1]
     self.dir = os.path.dirname(path)
 
@@ -307,6 +310,10 @@ class PrinterPanel(wx.Panel):
     try:
       fp = file(path, 'w')
     except:
+      dlg = wx.MessageDialog(self, "Unable to write to file %s." % path,
+                             "File error", wx.OK + wx.ICON_ERROR)
+      dlg.ShowModal()
+      dlg.Destroy()
       return False
 
     self.configFile = path
@@ -397,6 +404,11 @@ class PrinterPanel(wx.Panel):
       dlg.Destroy()
 
     fp.close()
+
+    dlg = wx.MessageDialog(self, "File %s successfully written." % path,
+                           "Save successful", wx.OK + wx.ICON_INFORMATION)
+    dlg.ShowModal()
+    dlg.Destroy()
 
     return True
 
