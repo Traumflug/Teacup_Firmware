@@ -422,6 +422,14 @@ class BoardPanel(wx.Panel):
       dlg.Destroy()
       return False
 
+    if not os.path.basename(path).startswith("board."):
+      dlg = wx.MessageDialog(self, "Illegal file name: %s.\n"
+                                   "File name must begin with \"board.\"" % path,
+                             "Illegal file name", wx.OK + wx.ICON_ERROR)
+      dlg.ShowModal()
+      dlg.Destroy()
+      return False
+
     ext = os.path.splitext(os.path.basename(path))[1]
     self.dir = os.path.dirname(path)
 
