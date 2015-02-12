@@ -120,27 +120,53 @@ void gcode_parse_char(uint8_t c) {
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
 						serwrite_uint8(next_target.M);
 					break;
+				#ifdef DELTA_PRINTER
+				case 'H':
+          delta_height = decfloat_to_int(&read_digit, 1000);
+          break;
+        #endif
 				case 'X':
-					if (next_target.option_inches)
-            next_target.target.axis[X] = decfloat_to_int(&read_digit, 25400);
-					else
-            next_target.target.axis[X] = decfloat_to_int(&read_digit, 1000);
+          if (next_target.M == 666) {
+             #ifdef DELTA_PRINTER
+             endstop_adj_x = decfloat_to_int(&read_digit, 1000);
+             #endif
+          }   
+          else {   
+					   if (next_target.option_inches)
+                next_target.target.axis[X] = decfloat_to_int(&read_digit, 25400);
+					   else
+                next_target.target.axis[X] = decfloat_to_int(&read_digit, 1000);
+          }     
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_int32(next_target.target.axis[X]);
+               serwrite_int32(next_target.target.axis[X]);
 					break;
 				case 'Y':
-					if (next_target.option_inches)
-            next_target.target.axis[Y] = decfloat_to_int(&read_digit, 25400);
-					else
-            next_target.target.axis[Y] = decfloat_to_int(&read_digit, 1000);
+          if (next_target.M == 666){
+             #ifdef DELTA_PRINTER
+             endstop_adj_y = decfloat_to_int(&read_digit, 1000);
+             #endif
+          }
+          else {   
+					   if (next_target.option_inches)
+               next_target.target.axis[Y] = decfloat_to_int(&read_digit, 25400);
+					   else
+               next_target.target.axis[Y] = decfloat_to_int(&read_digit, 1000);
+          }    
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
             serwrite_int32(next_target.target.axis[Y]);
 					break;
 				case 'Z':
-					if (next_target.option_inches)
-            next_target.target.axis[Z] = decfloat_to_int(&read_digit, 25400);
-					else
-            next_target.target.axis[Z] = decfloat_to_int(&read_digit, 1000);
+          if (next_target.M == 666){
+             #ifdef DELTA_PRINTER
+             endstop_adj_z = decfloat_to_int(&read_digit, 1000);
+             #endif
+          }   
+          else {   
+					   if (next_target.option_inches)
+                next_target.target.axis[Z] = decfloat_to_int(&read_digit, 25400);
+					   else
+                next_target.target.axis[Z] = decfloat_to_int(&read_digit, 1000);
+          }      
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
             serwrite_int32(next_target.target.axis[Z]);
 					break;
@@ -242,6 +268,11 @@ void gcode_parse_char(uint8_t c) {
           next_target.seen_G = 0;
           next_target.G = 0;
           break;
+        #ifdef DELTA_PRINTER
+        case 'H':
+          next_target.seen_H = 1;
+          break;
+        #endif  
         case 'X':
           next_target.seen_X = 1;
           break;
@@ -269,6 +300,11 @@ void gcode_parse_char(uint8_t c) {
         case 'N':
           next_target.seen_N = 1;
           break;
+        #ifdef DELTA_PRINTER
+        case 'L':
+          next_target.seen_L = 1;
+          break;
+        #endif  
         case '*':
           next_target.seen_checksum = 1;
           break;
@@ -324,7 +360,7 @@ void gcode_parse_char(uint8_t c) {
 			serial_writechar(c);
 
     // Assume G1 for unspecified movements.
-    if ( ! next_target.seen_G && ! next_target.seen_M && ! next_target.seen_T &&
+    if ( (! next_target.seen_G && ! next_target.seen_M && ! next_target.seen_T) &&
         (next_target.seen_X || next_target.seen_Y || next_target.seen_Z ||
          next_target.seen_E || next_target.seen_F)) {
       next_target.seen_G = 1;
@@ -367,6 +403,7 @@ void gcode_parse_char(uint8_t c) {
 
 		// reset variables
 		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
+		  next_target.seen_M = next_target.seen_L = next_target.seen_H = \
 			next_target.seen_E = next_target.seen_F = next_target.seen_S = \
 			next_target.seen_P = next_target.seen_T = next_target.seen_N = \
       next_target.seen_G = next_target.seen_M = next_target.seen_checksum = \

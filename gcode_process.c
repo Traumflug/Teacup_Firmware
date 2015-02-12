@@ -754,6 +754,17 @@ void process_gcode_command() {
 				break;
 
 			#endif /* DEBUG */
+			
+			#ifdef DELTA_PRINTER
+      case 666:
+      //adjust delta geometry
+      if (next_target.seen_L) {
+        sersendf_P(PSTR("M666 X:%lq Y:%lq Z:%lq H:%lq"),
+                endstop_adj_x, endstop_adj_y, endstop_adj_z,delta_height);
+      } else {
+      }
+      break;
+      #endif //DELTA_PRINTER
 
 				// unknown mcode: spit an error
 			default:
