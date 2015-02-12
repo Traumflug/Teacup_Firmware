@@ -59,9 +59,20 @@
   KINEMATICS_COREXY     A bot using CoreXY kinematics. Typical for CoreXY are
                         long and crossing toothed belts and a print head moving
                         on the X-Y-plane.
-*/
-#define KINEMATICS KINEMATICS_STRAIGHT
 
+  KINEMATICS_DELTA      A bot using delta geometry - Rostock or Kossel like.
+*/
+//#define KINEMATICS KINEMATICS_STRAIGHT
+
+//***** Delta Settings *****
+#define DELTA_PRINTER
+#define KINEMATICS KINEMATICS_DELTA
+#define DELTA_SEGMENTS_PER_SECOND 100
+#define DEFAULT_DELTA_DIAGONAL_ROD 288090 // um
+#define DEFAULT_DELTA_DIAGONAL_ROD_2 DEFAULT_DELTA_DIAGONAL_ROD * DEFAULT_DELTA_DIAGONAL_ROD)
+#define DEFAULT_DELTA_RADIUS 170550       //um
+#define COS_60 0.86602540378443864676372317075294
+#define SIN_60 0.5
 
 /** \def STEPS_PER_M
 	steps per meter ( = steps per mm * 1000 )
@@ -176,13 +187,13 @@
 	acceleration, reprap style.
 		Each movement starts at the speed of the previous command and accelerates or decelerates linearly to reach target speed at the end of the movement.
 */
-// #define ACCELERATION_REPRAP
+#define ACCELERATION_REPRAP
 
 /** \def ACCELERATION_RAMPING
 	acceleration and deceleration ramping.
 		Each movement starts at (almost) no speed, linearly accelerates to target speed and decelerates just in time to smoothly stop at the target. alternative to ACCELERATION_REPRAP
 */
-#define ACCELERATION_RAMPING
+//#define ACCELERATION_RAMPING
 
 /** \def ACCELERATION
 	how fast to accelerate when using ACCELERATION_RAMPING.
@@ -273,8 +284,8 @@
 
 #define	X_STEP_PIN  					AIO0
 #define	X_DIR_PIN   					AIO1
-#define	X_MIN_PIN   					DIO3
-//#define	X_MAX_PIN   					DIO2
+//#define	X_MIN_PIN   					DIO3
+#define	X_MAX_PIN   					DIO2
 #define X_ENABLE_PIN          DIO38
 //#define	X_INVERT_DIR
 //#define	X_INVERT_MIN
@@ -283,19 +294,19 @@
 
 #define	Y_STEP_PIN  					AIO6
 #define	Y_DIR_PIN   					AIO7
-#define	Y_MIN_PIN   					DIO14
-//#define	Y_MAX_PIN   					DIO15
+//#define	Y_MIN_PIN   					DIO14
+#define	Y_MAX_PIN   					DIO15
 #define Y_ENABLE_PIN          AIO2
-#define	Y_INVERT_DIR
+//#define	Y_INVERT_DIR
 //#define	Y_INVERT_MIN
 //#define	Y_INVERT_MAX
 #define Y_INVERT_ENABLE
 
 #define	Z_STEP_PIN  					DIO46
 #define	Z_DIR_PIN   					DIO48
-#define	Z_INVERT_DIR
-#define	Z_MIN_PIN   					DIO18
-//#define	Z_MAX_PIN   					DIO19
+//#define	Z_INVERT_DIR
+//#define	Z_MIN_PIN   					DIO18
+#define	Z_MAX_PIN   					DIO19
 #define Z_ENABLE_PIN          AIO8
 //#define	Z_INVERT_MIN
 //#define	Z_INVERT_MAX
@@ -536,7 +547,7 @@ PWM value for 'off'
 		note that each move takes a fair chunk of ram (69 bytes as of this writing) so don't make the buffer too big - a bigger serial readbuffer may help more than increasing this unless your gcodes are more than 70 characters long on average.
 		however, a larger movebuffer will probably help with lots of short consecutive moves, as each move takes a bunch of math (hence time) to set up so a longer buffer allows more of the math to be done during preceding longer moves
 */
-#define	MOVEBUFFER_SIZE	8
+#define	MOVEBUFFER_SIZE	48  //was 8
 
 /** \def DC_EXTRUDER
 	DC extruder
