@@ -55,7 +55,6 @@ void carthesian_to_delta(TARGET *startpoint, TARGET *target,
 
   if (bypass_delta==0)
   {
-      
      delkin_start  = delta_from_cartesian(startpoint);
      delkin_target = delta_from_cartesian(target);
      
@@ -64,7 +63,7 @@ void carthesian_to_delta(TARGET *startpoint, TARGET *target,
         steps[i]    = um_to_steps(delkin_target.axis[i], i);
      }
      
-     if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){   
+     if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
         sersendf_P(PSTR("Kin After: d_Start(%ld,%ld,%ld) d_Target(%ld,%ld,%ld) \n"),
                    delkin_start.axis[X], delkin_start.axis[Y], delkin_start.axis[Z],
                    delkin_target.axis[X], delkin_target.axis[Y], delkin_target.axis[Z]);
@@ -103,7 +102,7 @@ TARGET delta_from_cartesian(TARGET *t){
                      - (delta_tower3_x - t_d.axis[X]) * (delta_tower3_x - t_d.axis[X])
                      - (delta_tower3_y - t_d.axis[Y]) * (delta_tower3_y - t_d.axis[Y])
                      ) + t_d.axis[Z];
-
+                     
    t_d.axis[X] = delta_x << 4;
    t_d.axis[Y] = delta_y << 4;
    t_d.axis[Z] = delta_z << 4;
