@@ -59,9 +59,20 @@
   KINEMATICS_COREXY     A bot using CoreXY kinematics. Typical for CoreXY are
                         long and crossing toothed belts and a print head moving
                         on the X-Y-plane.
+                        
+  KINEMATICS_DELTA      A bot using Delta Geometery - Rostock or Kossel like                      
 */
-#define KINEMATICS KINEMATICS_STRAIGHT
+//#define KINEMATICS KINEMATICS_STRAIGHT
 
+//***** Delta Settings *****
+#define DELTA_PRINTER
+#define KINEMATICS KINEMATICS_DELTA
+#define DELTA_SEGMENTS_PER_SECOND 100
+#define DEFAULT_DELTA_DIAGONAL_ROD 288090 // um
+#define DEFAULT_DELTA_DIAGONAL_ROD_2 DEFAULT_DELTA_DIAGONAL_ROD * DEFAULT_DELTA_DIAGONAL_ROD)
+#define DEFAULT_DELTA_RADIUS 170550       //um
+#define COS_60 0.86602540378443864676372317075294
+#define SIN_60 0.5
 
 /** \def STEPS_PER_M
 	steps per meter ( = steps per mm * 1000 )
@@ -80,12 +91,12 @@
 
 	all numbers are integers, so no decimal point, please :-)
 */
-#define	STEPS_PER_M_X					80368
-#define	STEPS_PER_M_Y					80368
-#define	STEPS_PER_M_Z					3333592
+#define	STEPS_PER_M_X					100000
+#define	STEPS_PER_M_Y					100000
+#define	STEPS_PER_M_Z					100000
 
 /// http://blog.arcol.hu/?p=157 may help with this one
-#define	STEPS_PER_M_E					11036
+#define	STEPS_PER_M_E					880000
 
 
 /*
@@ -96,15 +107,15 @@
 */
 
 /// used for G0 rapid moves and as a cap for all other feedrates
-#define	MAXIMUM_FEEDRATE_X		200
-#define	MAXIMUM_FEEDRATE_Y		200
-#define	MAXIMUM_FEEDRATE_Z		100
-#define	MAXIMUM_FEEDRATE_E		600
+#define	MAXIMUM_FEEDRATE_X		4500
+#define	MAXIMUM_FEEDRATE_Y		4500  
+#define	MAXIMUM_FEEDRATE_Z		4500
+#define	MAXIMUM_FEEDRATE_E		3000
 
 /// Used when doing precision endstop search and as default feedrate.
-#define	SEARCH_FEEDRATE_X			50
-#define	SEARCH_FEEDRATE_Y			50
-#define	SEARCH_FEEDRATE_Z			1
+#define	SEARCH_FEEDRATE_X			1000
+#define	SEARCH_FEEDRATE_Y			1000
+#define	SEARCH_FEEDRATE_Z			1000
 // no SEARCH_FEEDRATE_E, as E can't be searched
 
 /** \def ENDSTOP_CLEARANCE_X
@@ -131,21 +142,21 @@
 */
 #define ENDSTOP_CLEARANCE_X 1000
 #define ENDSTOP_CLEARANCE_Y 1000
-#define ENDSTOP_CLEARANCE_Z 100
+#define ENDSTOP_CLEARANCE_Z 1000
 
 /**
 	Soft axis limits, in mm.
 	Define them to your machine's size relative to what your host considers to be the origin.
 */
 
-//#define	X_MIN			0.0
-//#define	X_MAX			200.0
+#define	X_MIN -120.0
+#define	X_MAX  229.0
 
-//#define	Y_MIN			0.0
-//#define	Y_MAX			200.0
+#define	Y_MIN -120.0
+#define	Y_MAX  229.0
 
-//#define	Z_MIN			0.0
-//#define	Z_MAX			140.0
+#define	Z_MIN   0.0
+#define	Z_MAX  229.0
 
 /**	\def E_ABSOLUTE
 	Some G-Code creators produce relative length commands for the extruder, others absolute ones. G-Code using absolute lengths can be recognized when there are G92 E0 commands from time to time. If you have G92 E0 in your G-Code, define this flag.
@@ -176,19 +187,19 @@
 	acceleration, reprap style.
 		Each movement starts at the speed of the previous command and accelerates or decelerates linearly to reach target speed at the end of the movement.
 */
-// #define ACCELERATION_REPRAP
+#define ACCELERATION_REPRAP
 
 /** \def ACCELERATION_RAMPING
 	acceleration and deceleration ramping.
 		Each movement starts at (almost) no speed, linearly accelerates to target speed and decelerates just in time to smoothly stop at the target. alternative to ACCELERATION_REPRAP
 */
-#define ACCELERATION_RAMPING
+//#define ACCELERATION_RAMPING
 
 /** \def ACCELERATION
 	how fast to accelerate when using ACCELERATION_RAMPING.
 		given in mm/s^2, decimal allowed, useful range 1. to 10'000. Start with 10. for milling (high precision) or 1000. for printing
 */
-#define ACCELERATION 1000.
+#define ACCELERATION 500.
 
 /** \def ACCELERATION_TEMPORAL
 	temporal step algorithm
@@ -209,7 +220,7 @@
   transition between moves instead of performing a dead stop every move.
   Enabling look-ahead requires about 3600 bytes of flash memory.
 */
-// #define LOOKAHEAD
+//#define LOOKAHEAD
 
 /** \def MAX_JERK_X
     \def MAX_JERK_Y
@@ -237,10 +248,10 @@
   Sane values: 0 to 400
   Valid range: 0 to 65535
 */
-#define MAX_JERK_X 20
-#define MAX_JERK_Y 20
-#define MAX_JERK_Z 0
-#define MAX_JERK_E 20
+#define MAX_JERK_X 2
+#define MAX_JERK_Y 2
+#define MAX_JERK_Z 2
+#define MAX_JERK_E 5
 
 
 
@@ -262,7 +273,7 @@
 	internal pullup resistors
 		the ATmega has internal pullup resistors on it's input pins which are counterproductive with the commonly used eletronic endstops, so they should be switched off. For other endstops, like mechanical ones, you may want to uncomment this.
 */
-//#define USE_INTERNAL_PULLUPS
+#define USE_INTERNAL_PULLUPS
 
 /*
 	This is for the RAMPS v1.3 shield
@@ -273,8 +284,8 @@
 
 #define	X_STEP_PIN  					AIO0
 #define	X_DIR_PIN   					AIO1
-#define	X_MIN_PIN   					DIO3
-//#define	X_MAX_PIN   					DIO2
+//#define	X_MIN_PIN   					DIO3
+#define	X_MAX_PIN   					DIO2
 #define X_ENABLE_PIN          DIO38
 //#define	X_INVERT_DIR
 //#define	X_INVERT_MIN
@@ -283,19 +294,19 @@
 
 #define	Y_STEP_PIN  					AIO6
 #define	Y_DIR_PIN   					AIO7
-#define	Y_MIN_PIN   					DIO14
-//#define	Y_MAX_PIN   					DIO15
+//#define	Y_MIN_PIN   					DIO14
+#define	Y_MAX_PIN   					DIO15
 #define Y_ENABLE_PIN          AIO2
-#define	Y_INVERT_DIR
+//#define	Y_INVERT_DIR
 //#define	Y_INVERT_MIN
 //#define	Y_INVERT_MAX
 #define Y_INVERT_ENABLE
 
 #define	Z_STEP_PIN  					DIO46
 #define	Z_DIR_PIN   					DIO48
-#define	Z_INVERT_DIR
-#define	Z_MIN_PIN   					DIO18
-//#define	Z_MAX_PIN   					DIO19
+//#define	Z_INVERT_DIR
+//#define	Z_MIN_PIN   					DIO18
+#define	Z_MAX_PIN   					DIO19
 #define Z_ENABLE_PIN          AIO8
 //#define	Z_INVERT_MIN
 //#define	Z_INVERT_MAX
@@ -397,7 +408,7 @@
 
 //                 name       type            pin        additional
 DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO13,     THERMISTOR_EXTRUDER)
-// DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO14,     THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO14,     THERMISTOR_EXTRUDER)
 
 
 
@@ -450,7 +461,8 @@ DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO13,     THERMISTOR_EXTRUDER)
 // NOTE: these pins are for RAMPS V1.1 and newer. V1.0 is different
 //            name      port   pwm
 DEFINE_HEATER(extruder, PB4,   1)
-//DEFINE_HEATER( bed,     PH5,   1)
+DEFINE_HEATER(bed,      PH5,   1)
+DEFINE_HEATER(fan,      PH6,   1)
 
 /// and now because the c preprocessor isn't as smart as it could be,
 /// uncomment the ones you've listed above and comment the rest.
@@ -459,9 +471,8 @@ DEFINE_HEATER(extruder, PB4,   1)
 /// I have searched high and low for a way to make the preprocessor do this for us, but so far I have not found a way.
 
 #define	HEATER_EXTRUDER HEATER_extruder
-//#define HEATER_BED HEATER_bed
-
-
+#define HEATER_BED HEATER_bed
+#define HEATER_FAN HEATER_fan
 
 /***************************************************************************\
 *                                                                           *
@@ -480,7 +491,7 @@ DEFINE_HEATER(extruder, PB4,   1)
   Define this for using USB instead of the serial RS232 protocol. Works on
   USB-equipped ATmegas, like the ATmega32U4, only.
 */
-// #define USB_SERIAL
+//#define USB_SERIAL
 
 /** \def XONXOFF
 	Xon/Xoff flow control.
@@ -512,7 +523,7 @@ DEFINE_HEATER(extruder, PB4,   1)
 		WARNING: this WILL break most host-side talkers that expect particular responses from firmware such as reprap host and replicatorG
 		use with serial terminal or other suitable talker only.
 */
-// #define	DEBUG
+#define	DEBUG
 
 /** \def BANG_BANG
 BANG_BANG
@@ -536,7 +547,7 @@ PWM value for 'off'
 		note that each move takes a fair chunk of ram (69 bytes as of this writing) so don't make the buffer too big - a bigger serial readbuffer may help more than increasing this unless your gcodes are more than 70 characters long on average.
 		however, a larger movebuffer will probably help with lots of short consecutive moves, as each move takes a bunch of math (hence time) to set up so a longer buffer allows more of the math to be done during preceding longer moves
 */
-#define	MOVEBUFFER_SIZE	8
+#define	MOVEBUFFER_SIZE	48  //was 8
 
 /** \def DC_EXTRUDER
 	DC extruder
@@ -589,7 +600,7 @@ PWM value for 'off'
 	number of steps to run into the endstops intentionally
 		As Endstops trigger false alarm sometimes, Teacup debounces them by counting a number of consecutive positives. Valid range is 1...255. Use 4 or less for reliable endstops, 8 or even more for flaky ones.
 */
-#define	ENDSTOP_STEPS	4
+#define	ENDSTOP_STEPS	2
 
 /** \def CANNED_CYCLE
 
