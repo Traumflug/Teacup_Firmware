@@ -2,6 +2,9 @@
 #define _HOME_H
 
 void home(void);
+#ifdef DELTA_PRINTER
+void home_delta(void);
+#endif
 
 void home_x_negative(void);
 void home_x_positive(void);

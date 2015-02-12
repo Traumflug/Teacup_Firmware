@@ -9,6 +9,7 @@
 #include	"dda_queue.h"
 #include	"pinio.h"
 #include	"gcode_parse.h"
+#include  "sersendf.h"
 
 // Check configuration.
 #if defined X_MIN_PIN || defined X_MAX_PIN
@@ -56,16 +57,157 @@
 
 /// home all 3 axes
 void home() {
+#ifdef DELTA_PRINTER
+    home_delta();
+#else
+   home_x_negative();
+   home_x_positive();
 
-  home_x_negative();
-  home_x_positive();
+   home_y_negative();
+   home_y_positive();
 
-  home_y_negative();
-  home_y_positive();
-
-  home_z_negative();
-  home_z_positive();
+   home_z_negative();
+   home_z_positive();
+#endif
 }
+
+#ifdef DELTA_PRINTER
+void home_delta(){
+   TARGET t = startpoint;
+
+   bypass_delta = 1;   //Turn off delta calculations
+
+   dda_new_startpoint();
+   queue_wait();
+   sersendf_P(PSTR("Homing...\n"));
+
+   //move all axis at the same time until an endstop is hit
+   t.axis[X] = 2 * delta_height;
+   t.axis[Y] = 2 * delta_height;
+   t.axis[Z] = 2 * delta_height;
+   t.axis[E] = 0;
+   t.F       = MAXIMUM_FEEDRATE_X;
+   enqueue_home(&t,0x2A,1);   //check for any endstop hit
+   queue_wait();
+
+   t.axis[X] = t.axis[X]-5000;   //back off 5mm
+   t.axis[Y] = t.axis[Y]-5000;
+   t.axis[Z] = t.axis[Z]-5000;
+   t.axis[E] = 0;
+   t.F       = SEARCH_FEEDRATE_X;
+   enqueue_home(&t,0,0);
+   queue_wait();
+
+   startpoint.axis[X] = next_target.target.axis[X] = 0;
+   startpoint.axis[Y] = next_target.target.axis[Y] = 0;
+   startpoint.axis[Z] = next_target.target.axis[Z] = 0;
+   dda_new_startpoint();
+
+   sersendf_P(PSTR("First the A..."));
+
+   //home x-axis
+   t = startpoint;
+   t.axis[X] = 2 * delta_height;
+
+   if (SEARCH_FAST_X > SEARCH_FEEDRATE_X)
+      t.F = SEARCH_FAST_X;
+   else
+      t.F = SEARCH_FEEDRATE_X;
+   enqueue_home(&t,0x02,1);
+   queue_wait();
+   sersendf_P(PSTR("Hit..."));
+   if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
+      t.axis[X] = -2 * delta_height;
+      t.F = SEARCH_FEEDRATE_X;
+      enqueue_home(&t,0x02,0);
+      sersendf_P(PSTR("Back off..."));
+   }
+   queue_wait();
+
+   //add adjustment for software endstop
+   t.axis[X] = t.axis[X] + endstop_adj_x;
+   t.F = SEARCH_FEEDRATE_X;
+   enqueue_home(&t,0,0);
+   queue_wait();
+   sersendf_P(PSTR("Adjust...\n"));
+
+   startpoint.axis[X] = next_target.target.axis[X] = 0;
+   startpoint.axis[Y] = next_target.target.axis[Y] = 0;
+   startpoint.axis[Z] = next_target.target.axis[Z] = 0;
+   dda_new_startpoint();
+
+   //Y Axis
+   t = startpoint;
+   sersendf_P(PSTR("Then the B..."));
+   t.axis[Y] = 2 * delta_height;
+
+   if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y)
+      t.F = SEARCH_FAST_Y;
+   else
+      t.F = SEARCH_FEEDRATE_Y;
+   enqueue_home(&t,0x08,1);
+   queue_wait();
+   sersendf_P(PSTR("Hit..."));
+
+   if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
+      t.axis[Y] = -2 * delta_height;
+      t.F = SEARCH_FEEDRATE_Y;
+      enqueue_home(&t,0x08,0);
+      queue_wait();
+      sersendf_P(PSTR("Back off..."));
+   }
+   queue_wait();
+
+   //add adjustment for software endstop
+   t.axis[Y] = t.axis[Y] + endstop_adj_y;
+   t.F = SEARCH_FEEDRATE_Y;
+   enqueue_home(&t,0,0);
+   sersendf_P(PSTR("Adjust...\n"));
+   queue_wait();
+
+   startpoint.axis[X] = next_target.target.axis[X] = 0;
+   startpoint.axis[Y] = next_target.target.axis[Y] = 0;
+   startpoint.axis[Z] = next_target.target.axis[Z] = 0;
+   dda_new_startpoint();
+
+   //Z Axis
+   t = startpoint;
+   sersendf_P(PSTR("Finally the C..."));
+   t.axis[Z] = 2 * delta_height;
+
+   if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z)
+      t.F = SEARCH_FAST_Z;
+   else
+      t.F = SEARCH_FEEDRATE_Z;
+   enqueue_home(&t,0x20,1);
+   queue_wait();
+   sersendf_P(PSTR("Hit..."));
+
+   if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z) {
+      t.axis[Z] = -2 * delta_height;
+      t.F = SEARCH_FEEDRATE_Z;
+      enqueue_home(&t,0x20,0);
+      queue_wait();
+      sersendf_P(PSTR("Back off..."));
+   }
+   queue_wait();
+
+   //add adjustment for software endstop
+   t.axis[Z] = t.axis[Z] + endstop_adj_z;
+   t.F = SEARCH_FEEDRATE_Z;
+   enqueue_home(&t,0,0);
+   queue_wait();
+   sersendf_P(PSTR("Adjust...\n"));
+   queue_wait();
+
+   bypass_delta=0;
+   sersendf_P(PSTR("Homing Complete.\n"));
+   startpoint.axis[X] = next_target.target.axis[X] = 0;
+   startpoint.axis[Y] = next_target.target.axis[Y] = 0;
+   startpoint.axis[Z] = next_target.target.axis[Z] = delta_height;
+   dda_new_startpoint();
+}
+#endif
 
 /// find X MIN endstop
 void home_x_negative() {
