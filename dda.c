@@ -31,6 +31,26 @@
 #endif
 
 
+#ifdef DELTA_PRINTER
+//Must scale by 16 because 2^32 = 4,294,967,296 - giving a maximum squareroot of 65536
+//If scaled by 8, maximum movement is 65,536 * 8 = 524,288um, 65,536 * 16 = 1,048,576um
+const uint32_t delta_radius         = (DEFAULT_DELTA_RADIUS >> 4);
+const uint32_t delta_diagonal_rod   = (DEFAULT_DELTA_DIAGONAL_ROD >> 4);
+const uint32_t DELTA_DIAGONAL_ROD_2 = (DEFAULT_DELTA_DIAGONAL_ROD >> 4) * (DEFAULT_DELTA_DIAGONAL_ROD >> 4);
+const int32_t  delta_tower1_x       = (-0.86602540378443864676372317075294 * (DEFAULT_DELTA_RADIUS >> 4));
+const int32_t  delta_tower1_y       = (-0.5 * (DEFAULT_DELTA_RADIUS >> 4));
+const int32_t  delta_tower2_x       = ( 0.86602540378443864676372317075294 * (DEFAULT_DELTA_RADIUS >> 4));
+const int32_t  delta_tower2_y       = (-0.5 * (DEFAULT_DELTA_RADIUS >> 4));
+const int32_t  delta_tower3_x       = 0;
+const int32_t  delta_tower3_y       = (DEFAULT_DELTA_RADIUS >> 4);
+int32_t delta_height = Z_MAX * 1000;
+int32_t endstop_adj_x;
+int32_t endstop_adj_y;
+int32_t endstop_adj_z;
+uint8_t bypass_delta;
+#endif
+
+
 /*
 	position tracking
 */
@@ -110,6 +130,13 @@ static int8_t get_direction(DDA *dda, enum axis_e n) {
 /*! Inititalise DDA movement structures
 */
 void dda_init(void) {
+//  debug_flags=128;  //delta kinematics debug flag
+
+#ifdef DELTA_PRINTER
+   sersendf_P(PSTR("\nUsing Delta Kinematics:\n"));
+   bypass_delta=0;
+   dda_new_startpoint();
+#endif
 	// set up default feedrate
 	if (startpoint.F == 0)
 		startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
@@ -121,9 +148,27 @@ void dda_init(void) {
 */
 void dda_new_startpoint(void) {
   enum axis_e i;
+  #ifdef DELTA_PRINTER
+     if (bypass_delta == 0)
+     {
+        TARGET temp;
+        temp = delta_from_cartesian(&startpoint);
+        for (i = X; i < AXIS_COUNT; i++)
+           startpoint_steps.axis[i] = um_to_steps(temp.axis[i], i);
 
+        if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
+            sersendf_P(PSTR("Trans_Delta: cart(%ld,%ld,%ld) delta(%ld,%ld,%ld) \n"),
+                      startpoint.axis[X], startpoint.axis[Y], startpoint.axis[Z],
+                      temp.axis[X],temp.axis[Y],temp.axis[Z]);
+        }
+     } else {
+        for (i = X; i < AXIS_COUNT; i++)
+           startpoint_steps.axis[i] = um_to_steps(startpoint.axis[i], i);
+     }
+  #else
   for (i = X; i < AXIS_COUNT; i++)
     startpoint_steps.axis[i] = um_to_steps(startpoint.axis[i], i);
+  #endif
 }
 
 /*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
@@ -191,6 +236,13 @@ void dda_create(DDA *dda, TARGET *target) {
   #endif
 
   code_axes_to_stepper_axes(&startpoint, target, delta_um, steps);
+
+  if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
+     sersendf_P(PSTR("DDA_c After: start_steps(%ld,%ld,%ld) steps(%ld,%ld,%ld) \n"),
+                startpoint_steps.axis[X],startpoint_steps.axis[Y],startpoint_steps.axis[Z],
+                steps[X],steps[Y],steps[Z]);
+  }
+
   for (i = X; i < E; i++) {
     int32_t delta_steps;
 
@@ -717,8 +769,10 @@ void dda_step(DDA *dda) {
 		#ifdef	DC_EXTRUDER
 			heater_set(DC_EXTRUDER, 0);
 		#endif
-		// z stepper is only enabled while moving
+		// z stepper is only enabled while moving - except for DELTA_PRINTER
+    #ifndef DELTA_PRINTER
 		z_disable();
+    #endif
 
     // No need to restart timer here.
     // After having finished, dda_start() will do it.
@@ -754,7 +808,9 @@ void dda_clock() {
   static volatile uint8_t busy = 0;
   DDA *dda;
   static DDA *last_dda = NULL;
-  uint8_t endstop_trigger = 0;
+  uint8_t endstop_trigger_x = 0;  //created a trigger for each tower so simulaneous detection could happen
+  uint8_t endstop_trigger_y = 0;
+  uint8_t endstop_trigger_z = 0;
   #ifdef ACCELERATION_RAMPING
   uint32_t move_step_no, move_c;
   uint8_t recalc_speed;
@@ -789,7 +845,7 @@ void dda_clock() {
         move_state.debounce_count_x++;
       else
         move_state.debounce_count_x = 0;
-      endstop_trigger = move_state.debounce_count_x >= ENDSTOP_STEPS;
+      endstop_trigger_x = move_state.debounce_count_x >= ENDSTOP_STEPS;
     }
     #endif
     #ifdef X_MAX_PIN
@@ -798,7 +854,7 @@ void dda_clock() {
         move_state.debounce_count_x++;
       else
         move_state.debounce_count_x = 0;
-      endstop_trigger = move_state.debounce_count_x >= ENDSTOP_STEPS;
+      endstop_trigger_x = move_state.debounce_count_x >= ENDSTOP_STEPS;
     }
     #endif
 
@@ -808,7 +864,7 @@ void dda_clock() {
         move_state.debounce_count_y++;
       else
         move_state.debounce_count_y = 0;
-      endstop_trigger = move_state.debounce_count_y >= ENDSTOP_STEPS;
+      endstop_trigger_y = move_state.debounce_count_y >= ENDSTOP_STEPS;
     }
     #endif
     #ifdef Y_MAX_PIN
@@ -817,7 +873,7 @@ void dda_clock() {
         move_state.debounce_count_y++;
       else
         move_state.debounce_count_y = 0;
-      endstop_trigger = move_state.debounce_count_y >= ENDSTOP_STEPS;
+      endstop_trigger_y = move_state.debounce_count_y >= ENDSTOP_STEPS;
     }
     #endif
 
@@ -827,7 +883,7 @@ void dda_clock() {
         move_state.debounce_count_z++;
       else
         move_state.debounce_count_z = 0;
-      endstop_trigger = move_state.debounce_count_z >= ENDSTOP_STEPS;
+      endstop_trigger_z = move_state.debounce_count_z >= ENDSTOP_STEPS;
     }
     #endif
     #ifdef Z_MAX_PIN
@@ -836,12 +892,12 @@ void dda_clock() {
         move_state.debounce_count_z++;
       else
         move_state.debounce_count_z = 0;
-      endstop_trigger = move_state.debounce_count_z >= ENDSTOP_STEPS;
+      endstop_trigger_z = move_state.debounce_count_z >= ENDSTOP_STEPS;
     }
     #endif
 
     // If an endstop is definitely triggered, stop the movement.
-    if (endstop_trigger) {
+    if (endstop_trigger_x || endstop_trigger_y || endstop_trigger_z) {
       #ifdef ACCELERATION_RAMPING
         // For always smooth operations, don't halt apruptly,
         // but start deceleration here.
