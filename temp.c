@@ -380,6 +380,16 @@ static void single_temp_print(temp_sensor_t index) {
   #endif
 }
 
+static void single_temp_lcd(temp_sensor_t index) {
+	uint8_t c = (temp_sensors_runtime[index].last_read_temp & 3) * 25;
+	lcdsendf_P(PSTR("%u"), temp_sensors_runtime[index].last_read_temp >> 2);
+  #ifdef REPORT_TARGET_TEMPS
+    lcdsendf_P(PSTR("/"));
+    c = (temp_sensors_runtime[index].target_temp & 3) * 25;
+    lcdsendf_P(PSTR("%u"), temp_sensors_runtime[index].target_temp >> 2);
+  #endif
+}
+
 /// send temperatures to host
 /// \param index sensor value to send
 void temp_print(temp_sensor_t index) {
@@ -399,6 +409,26 @@ void temp_print(temp_sensor_t index) {
 			return;
 		sersendf_P(PSTR("T[%su]:"), index);
 		single_temp_print(index);
+	}
+}
+
+void temp_lcd(temp_sensor_t index) {
+
+	if (index == TEMP_SENSOR_none) { // standard behaviour
+		#ifdef HEATER_EXTRUDER
+			lcdsendf_P(PSTR("T:"));
+			single_temp_lcd(HEATER_EXTRUDER);
+		#endif
+		#ifdef HEATER_BED
+			//lcdsendf_P(PSTR(" B:"));
+			single_temp_lcd(HEATER_BED);
+		#endif
+	}
+	else {
+		if (index >= NUM_TEMP_SENSORS)
+			return;
+		//lcdsendf_P(PSTR("T[%su]:"), index);
+		single_temp_lcd(index);
 	}
 }
 #endif

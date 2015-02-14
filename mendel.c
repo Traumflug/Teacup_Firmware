@@ -49,6 +49,7 @@
 #include	"clock.h"
 #include	"intercom.h"
 #include "simulator.h"
+#include "SimpleLCD.h"
 
 #ifdef SIMINFO
   #include "../simulavr/src/simulavr_info.h"
@@ -230,6 +231,13 @@ void init(void) {
 
   // prepare the power supply
   power_init();
+
+	#ifdef LCD
+	// initialize LCD
+	lcdInit();
+	lcdClear();
+	lcdWriteText("LCD Init");
+	#endif
 
 	// say hi to host
 	serial_writestr_P(PSTR("start\nok\n"));

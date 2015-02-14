@@ -69,10 +69,13 @@
 #define KINEMATICS KINEMATICS_DELTA
 #define DELTA_SEGMENTS_PER_SECOND 100
 #define DEFAULT_DELTA_DIAGONAL_ROD 288090 // um
-#define DEFAULT_DELTA_DIAGONAL_ROD_2 DEFAULT_DELTA_DIAGONAL_ROD * DEFAULT_DELTA_DIAGONAL_ROD)
+#define DEFAULT_DELTA_DIAGONAL_ROD_2 DEFAULT_DELTA_DIAGONAL_ROD * DEFAULT_DELTA_DIAGONAL_ROD
 #define DEFAULT_DELTA_RADIUS 170550       //um
 #define COS_60 0.86602540378443864676372317075294
 #define SIN_60 0.5
+
+//#define LCD
+#define REPRAPDISCOUNT_SMART_DISCOUNT_CONTROLLER
 
 /** \def STEPS_PER_M
 	steps per meter ( = steps per mm * 1000 )
@@ -187,13 +190,13 @@
 	acceleration, reprap style.
 		Each movement starts at the speed of the previous command and accelerates or decelerates linearly to reach target speed at the end of the movement.
 */
-#define ACCELERATION_REPRAP
+//#define ACCELERATION_REPRAP
 
 /** \def ACCELERATION_RAMPING
 	acceleration and deceleration ramping.
 		Each movement starts at (almost) no speed, linearly accelerates to target speed and decelerates just in time to smoothly stop at the target. alternative to ACCELERATION_REPRAP
 */
-//#define ACCELERATION_RAMPING
+#define ACCELERATION_RAMPING
 
 /** \def ACCELERATION
 	how fast to accelerate when using ACCELERATION_RAMPING.
@@ -220,7 +223,7 @@
   transition between moves instead of performing a dead stop every move.
   Enabling look-ahead requires about 3600 bytes of flash memory.
 */
-// #define LOOKAHEAD
+#define LOOKAHEAD
 
 /** \def MAX_JERK_X
     \def MAX_JERK_Y
@@ -327,6 +330,17 @@
 //#define	SD_CARD_DETECT				DIO2
 //#define	SD_WRITE_PROTECT			DIO3
 
+
+//REPRAPDISCOUNT SMART DISCOUNT CONTROLLER LCD Pin Mapping
+#ifdef REPRAPDISCOUNT_SMART_DISCOUNT_CONTROLLER
+#define LCD_RS_PIN  DIO16
+#define LCD_EN_PIN  DIO17
+#define LCD_D4_PIN  DIO23
+#define LCD_D5_PIN  DIO25
+#define LCD_D6_PIN  DIO27
+#define LCD_D7_PIN  DIO29
+#endif
+
 /** \def DEBUG_LED_PIN
 
   Enable flashing of a LED during motor stepping.
@@ -346,6 +360,7 @@
 * 4. TEMPERATURE SENSORS                                                    *
 *                                                                           *
 \***************************************************************************/
+#define REPORT_TARGET_TEMPS
 
 /** \def TEMP_HYSTERESIS
 
