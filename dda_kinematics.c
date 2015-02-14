@@ -45,8 +45,6 @@ carthesian_to_delta(TARGET *startpoint, TARGET *target,
   enum axis_e i;
   TARGET startpoint_d,target_d;
   TARGET delkin_start,delkin_target;
-  int32_t delkin_start_x,  delkin_start_y,  delkin_start_z;
-  int32_t delkin_target_x, delkin_target_y, delkin_target_z;
 
   if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
     sersendf_P(PSTR("Kin Before: Start(%ld,%ld,%ld,F:%ld) Target(%ld,%ld,%ld,F:%ld) \n"),
