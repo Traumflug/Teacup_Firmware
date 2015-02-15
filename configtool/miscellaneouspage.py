@@ -23,7 +23,6 @@ class MiscellaneousPage(wx.Panel, Page):
                    'DC_EXTRUDER': "Heater:", 'DC_EXTRUDER_PWM': "PWM:",
                    'USE_WATCHDOG': "Use the Watchdog Timer",
                    'REFERENCE': "Analog Reference:",
-                   'STEP_INTERRUPT_INTERRUPTIBLE': "STEP Interrupt",
                    'TH_COUNT': "Temperature History Size:",
                    'FAST_PWM': "Fast PWM",
                    'ENDSTOP_STEPS': "Endstop Steps:",
@@ -72,10 +71,6 @@ class MiscellaneousPage(wx.Panel, Page):
     k = 'USE_WATCHDOG'
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (4, 1))
-
-    k = 'STEP_INTERRUPT_INTERRUPTIBLE'
-    cb = self.addCheckBox(k, self.onCheckBox)
-    sz.Add(cb, pos = (5, 1))
 
     k = 'FAST_PWM'
     cb = self.addCheckBox(k, self.onCheckBox)
@@ -279,14 +274,7 @@ class MiscellaneousPage(wx.Panel, Page):
   def getValues(self):
     result = Page.getValues(self)
 
-    k = 'STEP_INTERRUPT_INTERRUPTIBLE'
-    cb = self.checkBoxes[k]
-    if cb.IsChecked():
-      result[k] = "1"
-    else:
-      result[k] = "0"
-
-    k = "DC_EXTRUDER"
+    k = 'DC_EXTRUDER'
     s = self.choices[k].GetSelection()
     v = self.choices[k].GetString(s)
     if v == self.heaterNameNone:

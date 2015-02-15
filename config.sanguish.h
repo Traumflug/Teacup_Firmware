@@ -556,13 +556,6 @@ PWM value for 'off'
 */
 #define REFERENCE     REFERENCE_AVCC
 
-/** \def STEP_INTERRUPT_INTERRUPTIBLE
-  this option makes the step interrupt interruptible (nested).
-  this should help immensely with dropped serial characters, but may also make debugging infuriating due to the complexities arising from nested interrupts
-  \note disable this option if you're using a '168 or for some reason your ram usage is above 90%. This option hugely increases likelihood of stack smashing.
-*/
-#define   STEP_INTERRUPT_INTERRUPTIBLE  1
-
 /**
   temperature history count. This is how many temperature readings to keep in order to calculate derivative in PID loop
   higher values make PID derivative term more stable at the expense of reaction time

@@ -628,15 +628,6 @@ void dda_step(DDA *dda) {
 	}
 #endif
 
-	#if STEP_INTERRUPT_INTERRUPTIBLE && ! defined ACCELERATION_RAMPING
-		// Since we have sent steps to all the motors that will be stepping
-		// and the rest of this function isn't so time critical, this interrupt
-		// can now be interruptible by other interrupts.
-		// The step interrupt is disabled before entering dda_step() to ensure
-		// that we don't step again while computing the below.
-		sei();
-	#endif
-
 	#ifdef ACCELERATION_REPRAP
 		// linear acceleration magic, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
 		if (dda->accel) {

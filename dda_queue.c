@@ -89,8 +89,6 @@ void queue_step() {
 			}
 		}
 		else {
-			// NOTE: dda_step makes this interrupt interruptible for some time,
-			//       see STEP_INTERRUPT_INTERRUPTIBLE.
 			dda_step(current_movebuffer);
 		}
 	}
