@@ -67,6 +67,7 @@
 //***** Delta Settings *****
 #define DELTA_PRINTER
 #define KINEMATICS KINEMATICS_DELTA
+#define DELTA_SEGMENTS_PER_SECOND 100
 #define DELTA_SEGMENT_UM 1000 //instead of segmenting on move time, it segments based on maximum um per segment
 #define DEFAULT_DELTA_DIAGONAL_ROD 288090 // um
 #define DEFAULT_DELTA_DIAGONAL_ROD_2 DEFAULT_DELTA_DIAGONAL_ROD * DEFAULT_DELTA_DIAGONAL_ROD
