@@ -253,10 +253,34 @@ void init(void) {
 	// initialize LCD
 	lcdInit();
 	lcdClear();
-	lcdWriteText("LCD Init");
+    lcdWriteText("->Teacup LCD Init<-");
+    lcdGoToAddr(0x54);
+    lcdWriteText("Teacup");
 	#endif
 
 	// say hi to host
+   sersendf_P(PSTR("\n------------------------------\n"));
+   sersendf_P(PSTR("Teacup Firmware\n"));
+   #ifdef DELTA_PRINTER
+   sersendf_P(PSTR("Using Delta Kinematics:\n"));
+   #endif
+   #ifdef ACCELERATION_REPRAP
+      sersendf_P(PSTR("Acceleration Reprap\n"));
+   #endif
+   #ifdef ACCELERATION_RAMPING
+      sersendf_P(PSTR("Acceleration Ramping\n"));
+   #endif
+   #ifdef LOOKAHEAD
+      sersendf_P(PSTR("  With Lookahead\n"));
+   #endif
+   #ifdef ACCELERATION_TEMPORAL
+      sersendf_P(PSTR("Acceleration Temporal\n"));
+   #endif
+   #ifdef ACCELERATION
+      sersendf_P(PSTR("Acceleration: %lu\n"),(uint32_t)ACCELERATION);
+   #endif
+   sersendf_P(PSTR("------------------------------\n"));
+
 	serial_writestr_P(PSTR("start\nok\n"));
 
 }
