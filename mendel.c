@@ -195,52 +195,76 @@ void io_init(void) {
 
 /// Startup code, run when we come out of reset
 void init(void) {
-	// set up watchdog
-	wd_init();
+  // set up watchdog
+  wd_init();
 
-	// set up serial
-	serial_init();
+  // set up serial
+  serial_init();
 
-	// set up G-code parsing
-	gcode_init();
+  // set up G-code parsing
+  gcode_init();
 
-	// set up inputs and outputs
-	io_init();
+  // set up inputs and outputs
+  io_init();
 
-	// set up timers
-	timer_init();
+  // set up timers
+  timer_init();
 
-	// read PID settings from EEPROM
-	heater_init();
+  // read PID settings from EEPROM
+  heater_init();
 
-	// set up dda
-	dda_init();
+  // set up dda
+  dda_init();
 
-	// start up analog read interrupt loop,
-	// if any of the temp sensors in your config.h use analog interface
-	analog_init();
+  // start up analog read interrupt loop,
+  // if any of the temp sensors in your config.h use analog interface
+  analog_init();
 
-	// set up temperature inputs
-	temp_init();
+  // set up temperature inputs
+  temp_init();
 
-	// enable interrupts
-	sei();
+  // enable interrupts
+  sei();
 
-	// reset watchdog
-	wd_reset();
+  // reset watchdog
+  wd_reset();
 
   // prepare the power supply
   power_init();
 
-	#ifdef LCD
-	// initialize LCD
-	lcdInit();
-	lcdClear();
-	lcdWriteText("LCD Init");
-	#endif
+  #ifdef LCD
+    // initialize LCD
+    lcdInit();
+    lcdClear();
+    lcdWriteText("->Teacup LCD Init<-");
+    lcdGoToAddr(0x54);
+    lcdWriteText("Teacup");
+    #endif
 	
-	// say hi to host
-	serial_writestr_P(PSTR("start\nok\n"));
+  // say hi to host
+   sersendf_P(PSTR("\n------------------------------\n"));
+   sersendf_P(PSTR("Teacup Firmware\n"));
+   #ifdef DELTA_PRINTER
+   sersendf_P(PSTR("Using Delta Kinematics:\n")); 
+   #endif
+   #ifdef ACCELERATION_REPRAP
+      sersendf_P(PSTR("Acceleration Reprap\n"));
+   #endif
+   #ifdef ACCELERATION_RAMPING
+      sersendf_P(PSTR("Acceleration Ramping\n"));
+   #endif   
+   #ifdef LOOKAHEAD
+      sersendf_P(PSTR("  With Lookahead\n"));
+   #endif
+   #ifdef ACCELERATION_TEMPORAL
+      sersendf_P(PSTR("Acceleration Temporal\n"));
+   #endif   
+   #ifdef ACCELERATION
+      sersendf_P(PSTR("Acceleration: %lu\n"),(uint32_t)ACCELERATION);
+   #endif
+   sersendf_P(PSTR("------------------------------\n"));
+
+  serial_writestr_P(PSTR("start\nok\n"));
 
 }
 
@@ -255,12 +279,12 @@ int main (int argc, char** argv)
 int main (void)
 {
 #endif
-	init();
+  init();
 
-	// main loop
-	for (;;)
-	{
-		// if queue is full, no point in reading chars- host will just have to wait
+  // main loop
+  for (;;)
+  {
+    // if queue is full, no point in reading chars- host will just have to wait
     if (queue_full() == 0) {
       if (serial_rxchars() != 0) {
         uint8_t c = serial_popchar();
@@ -294,8 +318,8 @@ int main (void)
           canned_gcode_pos = 0;
 
       #endif /* CANNED_CYCLE */
-		}
+    }
 
-		clock();
-	}
+    clock();
+  }
 }

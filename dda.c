@@ -12,8 +12,8 @@
 #endif
 
 #include	"dda_maths.h"
-#include "preprocessor_math.h"
-#include "dda_kinematics.h"
+#include        "preprocessor_math.h"
+#include        "dda_kinematics.h"
 #include	"dda_lookahead.h"
 #include	"timer.h"
 #include	"serial.h"
@@ -23,7 +23,7 @@
 #include	"debug.h"
 #include	"sersendf.h"
 #include	"pinio.h"
-#include "memory_barrier.h"
+#include        "memory_barrier.h"
 //#include "graycode.c"
 
 #ifdef	DC_EXTRUDER
@@ -132,16 +132,15 @@ static int8_t get_direction(DDA *dda, enum axis_e n) {
 /*! Inititalise DDA movement structures
 */
 void dda_init(void) {
-//  debug_flags=128;  //delta kinematics debug flag
   
 #ifdef DELTA_PRINTER
-   sersendf_P(PSTR("\nUsing Delta Kinematics:\n")); 
    bypass_delta=0;
    dda_new_startpoint();
 #endif
-	// set up default feedrate
-	 if (startpoint.F == 0)
-		  startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
+	
+   // set up default feedrate
+   if (startpoint.F == 0)
+      startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
 }
 
 /*! Distribute a new startpoint to DDA's internal structures without any movement.
@@ -159,9 +158,9 @@ void dda_new_startpoint(void) {
            startpoint_steps.axis[i] = um_to_steps(temp.axis[i], i);
         
         if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
-            sersendf_P(PSTR("Trans_Delta: cart(%ld,%ld,%ld) delta(%ld,%ld,%ld) \n"),
-                      startpoint.axis[X], startpoint.axis[Y], startpoint.axis[Z],
-                      temp.axis[X],temp.axis[Y],temp.axis[Z]);  
+            sersendf_P(PSTR("Delta Startpoint: cart(%ld,%ld,%ld,E:%ld) delta(%ld,%ld,%ld,E:%ld) \n"),
+                      startpoint.axis[X], startpoint.axis[Y], startpoint.axis[Z],startpoint.axis[E],
+                      temp.axis[X],temp.axis[Y],temp.axis[Z],temp.axis[E]);  
         }
      } else {
         for (i = X; i < AXIS_COUNT; i++)
@@ -205,7 +204,7 @@ void dda_new_startpoint(void) {
 void dda_create(DDA *dda, TARGET *target) {
   axes_uint32_t delta_um;
   axes_int32_t steps;
-	uint32_t	distance, c_limit, c_limit_calc;
+  uint32_t distance, c_limit, c_limit_calc;
   enum axis_e i;
   #ifdef LOOKAHEAD
   // Number the moves to identify them; allowed to overflow.
@@ -222,7 +221,7 @@ void dda_create(DDA *dda, TARGET *target) {
   // We end at the passed target.
   memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
-	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("\nCreate: X %lq  Y %lq  Z %lq  F %lu\n"),
                dda->endpoint.axis[X], dda->endpoint.axis[Y],
                dda->endpoint.axis[Z], dda->endpoint.F);
@@ -240,7 +239,7 @@ void dda_create(DDA *dda, TARGET *target) {
   code_axes_to_stepper_axes(&startpoint, target, delta_um, steps);
   
   if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
-     sersendf_P(PSTR("DDA_c After: start_steps(%ld,%ld,%ld) steps(%ld,%ld,%ld) \n"),
+     sersendf_P(PSTR("dda_create After: start_steps(%ld,%ld,%ld) steps(%ld,%ld,%ld) \n"),
                 startpoint_steps.axis[X],startpoint_steps.axis[Y],startpoint_steps.axis[Z],
                 steps[X],steps[Y],steps[Z]);
   }
@@ -283,6 +282,12 @@ void dda_create(DDA *dda, TARGET *target) {
     startpoint_steps.axis[E] = steps[E];
 
     set_direction(dda, E, delta_steps);
+    
+    if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
+     sersendf_P(PSTR("dda_create (NR) After: delta_um[E]=%ld steps[E]=%ld F:%ld ER:%u\n"),
+                delta_um[E],steps[E],target->F,target->e_relative);
+    }
+  
     #ifdef LOOKAHEAD
       // Also displacements in micrometers, but for the lookahead alogrithms.
       // TODO: this is redundant. delta_um[] and dda->delta_um[] differ by
@@ -295,16 +300,20 @@ void dda_create(DDA *dda, TARGET *target) {
   }
   else {
     // When we get more extruder axes:
-    // for (i = E; i < AXIS_COUNT; i++) { ...
+    // for (i = E; i < AXIS_COUNT; i++)  ...
     delta_um[E] = (uint32_t)labs(target->axis[E]);
     dda->delta[E] = (uint32_t)labs(um_to_steps(target->axis[E], E));
     #ifdef LOOKAHEAD
       dda->delta_um[E] = target->axis[E];
     #endif
     dda->e_direction = (target->axis[E] >= 0)?1:0;
-	}
+    if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
+     sersendf_P(PSTR("dda_create (R) After: delta_um[E]=%ld steps[E]=%ld F:%ld ER:%u\n"),
+                delta_um[E],steps[E],target->F,target->e_relative);
+    }
+  }
 
-	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("[%ld,%ld,%ld,%ld]"),
                target->axis[X] - startpoint.axis[X], target->axis[Y] - startpoint.axis[Y],
                target->axis[Z] - startpoint.axis[Z], target->axis[E] - startpoint.axis[E]);
@@ -323,8 +332,8 @@ void dda_create(DDA *dda, TARGET *target) {
     }
   }
 
-	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-    sersendf_P(PSTR(" [ts:%lu"), dda->total_steps);
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+        sersendf_P(PSTR(" [ts:%lu"), dda->total_steps);
 
 	if (dda->total_steps == 0) {
 		dda->nullmove = 1;
@@ -352,7 +361,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",ds:%lu"), distance);
 
-    #ifdef	ACCELERATION_TEMPORAL
+    #ifdef ACCELERATION_TEMPORAL
       // bracket part of this equation in an attempt to avoid overflow:
       // 60 * 16 MHz * 5 mm is > 32 bits
       uint32_t move_duration, md_candidate;
@@ -364,7 +373,7 @@ void dda_create(DDA *dda, TARGET *target) {
         if (md_candidate > move_duration)
           move_duration = md_candidate;
       }
-		#else
+    #else  // NOT ACCELERATION_TEMPORAL
 			// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 			// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
 			//   note: um (distance) * 60000 == mm * 60000000
@@ -381,10 +390,10 @@ void dda_create(DDA *dda, TARGET *target) {
 			// changed distance * 6000 .. * F_CPU / 100000 to
 			//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
 			uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
-		#endif
+    #endif //ACCELERATION_TEMPORAL
 
-		// similarly, find out how fast we can run our axes.
-		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
+    // similarly, find out how fast we can run our axes.
+    // do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
     // TODO: instead of calculating c_min directly, it's probably more simple
     //       to calculate (maximum) move_duration for each axis, like done for
     //       ACCELERATION_TEMPORAL above. This should make re-calculating the
@@ -398,8 +407,8 @@ void dda_create(DDA *dda, TARGET *target) {
         c_limit = c_limit_calc;
     }
 
-		#ifdef ACCELERATION_REPRAP
-		// c is initial step time in IOclk ticks
+    #ifdef ACCELERATION_REPRAP
+    // c is initial step time in IOclk ticks
     dda->c = move_duration / startpoint.F;
     if (dda->c < c_limit)
       dda->c = c_limit;
@@ -407,52 +416,53 @@ void dda_create(DDA *dda, TARGET *target) {
     if (dda->end_c < c_limit)
       dda->end_c = c_limit;
 
-		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
       sersendf_P(PSTR(",md:%lu,c:%lu"), move_duration, dda->c);
 
     if (dda->c != dda->end_c) {
-			uint32_t stF = startpoint.F / 4;
-			uint32_t enF = target->F / 4;
-			// now some constant acceleration stuff, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
-			uint32_t ssq = (stF * stF);
-			uint32_t esq = (enF * enF);
-			int32_t dsq = (int32_t) (esq - ssq) / 4;
+	uint32_t stF = startpoint.F / 4;
+	uint32_t enF = target->F / 4;
+	// now some constant acceleration stuff, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
+	uint32_t ssq = (stF * stF);
+	uint32_t esq = (enF * enF);
+	int32_t dsq = (int32_t) (esq - ssq) / 4;
 
-			uint8_t msb_ssq = msbloc(ssq);
-			uint8_t msb_tot = msbloc(dda->total_steps);
+	uint8_t msb_ssq = msbloc(ssq);
+	uint8_t msb_tot = msbloc(dda->total_steps);
 
 			// the raw equation WILL overflow at high step rates, but 64 bit math routines take waay too much space
 			// at 65536 mm/min (1092mm/s), ssq/esq overflows, and dsq is also close to overflowing if esq/ssq is small
 			// but if ssq-esq is small, ssq/dsq is only a few bits
 			// we'll have to do it a few different ways depending on the msb locations of each
-			if ((msb_tot + msb_ssq) <= 30) {
-				// we have room to do all the multiplies first
-				if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-					serial_writechar('A');
-				dda->n = ((int32_t) (dda->total_steps * ssq) / dsq) + 1;
-			}
-			else if (msb_tot >= msb_ssq) {
-				// total steps has more precision
-				if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-					serial_writechar('B');
-				dda->n = (((int32_t) dda->total_steps / dsq) * (int32_t) ssq) + 1;
-			}
-			else {
-				// otherwise
-				if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-					serial_writechar('C');
-				dda->n = (((int32_t) ssq / dsq) * (int32_t) dda->total_steps) + 1;
-			}
+	if ((msb_tot + msb_ssq) <= 30) {
+    	  // we have room to do all the multiplies first
+	  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+		serial_writechar('A');
+	  dda->n = ((int32_t) (dda->total_steps * ssq) / dsq) + 1;
+	}
+	else if (msb_tot >= msb_ssq) {
+	  // total steps has more precision
+	  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+	    serial_writechar('B');
+	    dda->n = (((int32_t) dda->total_steps / dsq) * (int32_t) ssq) + 1;
+	  }
+	  else {
+	    // otherwise
+	    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+	      serial_writechar('C');
+            dda->n = (((int32_t) ssq / dsq) * (int32_t) dda->total_steps) + 1;
+	  }
 
-			if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-        sersendf_P(PSTR("\n{DDA:CA end_c:%lu, n:%ld, md:%lu, ssq:%lu, esq:%lu, dsq:%lu, msbssq:%u, msbtot:%u}\n"), dda->end_c, dda->n, move_duration, ssq, esq, dsq, msb_ssq, msb_tot);
+          if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+            sersendf_P(PSTR("\n{DDA:CA end_c:%lu, n:%ld, md:%lu, ssq:%lu, esq:%lu, dsq:%lu, msbssq:%u, msbtot:%u}\n"), dda->end_c, dda->n, move_duration, ssq, esq, dsq, msb_ssq, msb_tot);
 
-			dda->accel = 1;
-		}
-		else
-			dda->accel = 0;
-		#elif defined ACCELERATION_RAMPING
-			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
+          dda->accel = 1;
+	}
+	else
+    	  dda->accel = 0;
+    
+    #elif defined ACCELERATION_RAMPING
+      // yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
       dda->c_min = move_duration / target->F;
       if (dda->c_min < c_limit) {
         dda->c_min = c_limit;
@@ -487,13 +497,13 @@ void dda_create(DDA *dda, TARGET *target) {
                     int_inv_sqrt(dda->n)) >> 13;
         if (dda->c < dda->c_min)
           dda->c = dda->c_min;
-      #else
+      #else //NOT LOOKAHEAD
         dda->n = 0;
         dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
-      #endif
+      #endif  //LOOKAHEAD
 
-		#elif defined ACCELERATION_TEMPORAL
-			// TODO: calculate acceleration/deceleration for each axis
+    #elif defined ACCELERATION_TEMPORAL
+      // TODO: calculate acceleration/deceleration for each axis
       for (i = X; i < AXIS_COUNT; i++) {
         dda->step_interval[i] = 0xFFFFFFFF;
         if (dda->delta[i])
@@ -509,18 +519,18 @@ void dda_create(DDA *dda, TARGET *target) {
         }
       }
 
-		#else
+    #else 
       dda->c = move_duration / target->F;
       if (dda->c < c_limit)
         dda->c = c_limit;
-		#endif
-	} /* ! dda->total_steps == 0 */
+    #endif 
+  } /* ! dda->total_steps == 0 */
 
-	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-		serial_writestr_P(PSTR("] }\n"));
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+	serial_writestr_P(PSTR("] }\n"));
 
-	// next dda starts where we finish
-	memcpy(&startpoint, target, sizeof(TARGET));
+  // next dda starts where we finish
+  memcpy(&startpoint, target, sizeof(TARGET));
   #ifdef LOOKAHEAD
     prev_dda = dda;
   #endif
@@ -538,54 +548,54 @@ void dda_create(DDA *dda, TARGET *target) {
 	Called both inside and outside of interrupts.
 */
 void dda_start(DDA *dda) {
-	// called from interrupt context: keep it simple!
+  // called from interrupt context: keep it simple!
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Start: X %lq  Y %lq  Z %lq  F %lu\n"),
-               dda->endpoint.axis[X], dda->endpoint.axis[Y],
-               dda->endpoint.axis[Z], dda->endpoint.F);
+      dda->endpoint.axis[X], dda->endpoint.axis[Y],
+      dda->endpoint.axis[Z], dda->endpoint.F);
 
-	if ( ! dda->nullmove) {
-		// get ready to go
-		psu_timeout = 0;
+  if ( ! dda->nullmove) {
+    // get ready to go
+    psu_timeout = 0;
     if (dda->delta[Z])
-			z_enable();
-		if (dda->endstop_check)
-			endstops_on();
+      z_enable();
+    if (dda->endstop_check)
+      endstops_on();
 
-		// set direction outputs
-		x_direction(dda->x_direction);
-		y_direction(dda->y_direction);
-		z_direction(dda->z_direction);
-		e_direction(dda->e_direction);
+    // set direction outputs
+    x_direction(dda->x_direction);
+    y_direction(dda->y_direction);
+    z_direction(dda->z_direction);
+    e_direction(dda->e_direction);
 
-		#ifdef	DC_EXTRUDER
-    if (dda->delta[E])
-			heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
-		#endif
+    #ifdef  DC_EXTRUDER
+      if (dda->delta[E])
+        heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
+    #endif
 
-		// initialise state variable
+    // initialise state variable
     move_state.counter[X] = move_state.counter[Y] = move_state.counter[Z] = \
       move_state.counter[E] = -(dda->total_steps >> 1);
     memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
     move_state.endstop_stop = 0;
-		#ifdef ACCELERATION_RAMPING
-			move_state.step_no = 0;
-		#endif
-		#ifdef ACCELERATION_TEMPORAL
+    #ifdef ACCELERATION_RAMPING
+      move_state.step_no = 0;
+    #endif
+    #ifdef ACCELERATION_TEMPORAL
       move_state.time[X] = move_state.time[Y] = \
         move_state.time[Z] = move_state.time[E] = 0UL;
-		#endif
+    #endif
 
-		// ensure this dda starts
-		dda->live = 1;
+    // ensure this dda starts
+    dda->live = 1;
 
-		// set timeout for first step
+    // set timeout for first step
     setTimer(dda->c);
-	}
-	// else just a speed change, keep dda->live = 0
+  }
+  // else just a speed change, keep dda->live = 0
 
-	current_position.F = dda->endpoint.F;
+  current_position.F = dda->endpoint.F;
 }
 
 /**
@@ -614,117 +624,117 @@ void dda_step(DDA *dda) {
   if (move_state.steps[X]) {
     move_state.counter[X] -= dda->delta[X];
     if (move_state.counter[X] < 0) {
-			x_step();
+      x_step();
       move_state.steps[X]--;
       move_state.counter[X] += dda->total_steps;
-		}
-	}
+    }
+  }
 #else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == X) {
-		x_step();
+  if (dda->axis_to_step == X) {
+    x_step();
     move_state.steps[X]--;
     move_state.time[X] += dda->step_interval[X];
     move_state.all_time = move_state.time[X];
-	}
+  }
 #endif
 
 #if ! defined ACCELERATION_TEMPORAL
   if (move_state.steps[Y]) {
     move_state.counter[Y] -= dda->delta[Y];
     if (move_state.counter[Y] < 0) {
-			y_step();
+      y_step();
       move_state.steps[Y]--;
       move_state.counter[Y] += dda->total_steps;
-		}
-	}
+    }
+  }
 #else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == Y) {
-		y_step();
+  if (dda->axis_to_step == Y) {
+    y_step();
     move_state.steps[Y]--;
     move_state.time[Y] += dda->step_interval[Y];
     move_state.all_time = move_state.time[Y];
-	}
+  }
 #endif
 
 #if ! defined ACCELERATION_TEMPORAL
   if (move_state.steps[Z]) {
     move_state.counter[Z] -= dda->delta[Z];
     if (move_state.counter[Z] < 0) {
-			z_step();
+      z_step();
       move_state.steps[Z]--;
       move_state.counter[Z] += dda->total_steps;
-		}
-	}
+    }
+  }
 #else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == Z) {
-		z_step();
+  if (dda->axis_to_step == Z) {
+    z_step();
     move_state.steps[Z]--;
     move_state.time[Z] += dda->step_interval[Z];
     move_state.all_time = move_state.time[Z];
-	}
+  }
 #endif
 
 #if ! defined ACCELERATION_TEMPORAL
   if (move_state.steps[E]) {
     move_state.counter[E] -= dda->delta[E];
     if (move_state.counter[E] < 0) {
-			e_step();
+      e_step();
       move_state.steps[E]--;
       move_state.counter[E] += dda->total_steps;
-		}
-	}
+    }
+  }
 #else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == E) {
-		e_step();
+  if (dda->axis_to_step == E) {
+    e_step();
     move_state.steps[E]--;
     move_state.time[E] += dda->step_interval[E];
     move_state.all_time = move_state.time[E];
-	}
+  }
 #endif
 
-	#if STEP_INTERRUPT_INTERRUPTIBLE && ! defined ACCELERATION_RAMPING
+#if STEP_INTERRUPT_INTERRUPTIBLE && ! defined ACCELERATION_RAMPING
 		// Since we have sent steps to all the motors that will be stepping
 		// and the rest of this function isn't so time critical, this interrupt
 		// can now be interruptible by other interrupts.
 		// The step interrupt is disabled before entering dda_step() to ensure
 		// that we don't step again while computing the below.
-		sei();
-	#endif
+  sei();
+#endif
 
-	#ifdef ACCELERATION_REPRAP
-		// linear acceleration magic, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
-		if (dda->accel) {
-      if ((dda->c > dda->end_c) && (dda->n > 0)) {
-				uint32_t new_c = dda->c - (dda->c * 2) / dda->n;
-        if (new_c <= dda->c && new_c > dda->end_c) {
-					dda->c = new_c;
-					dda->n += 4;
-				}
-				else
-          dda->c = dda->end_c;
-			}
+#ifdef ACCELERATION_REPRAP
+  // linear acceleration magic, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
+  if (dda->accel) {
+    if ((dda->c > dda->end_c) && (dda->n > 0)) {
+      uint32_t new_c = dda->c - (dda->c * 2) / dda->n;
+      if (new_c <= dda->c && new_c > dda->end_c) {
+        dda->c = new_c;
+        dda->n += 4;
+      }
+      else
+        dda->c = dda->end_c;
+      }
       else if ((dda->c < dda->end_c) && (dda->n < 0)) {
-				uint32_t new_c = dda->c + ((dda->c * 2) / -dda->n);
+        uint32_t new_c = dda->c + ((dda->c * 2) / -dda->n);
         if (new_c >= dda->c && new_c < dda->end_c) {
-					dda->c = new_c;
-					dda->n += 4;
-				}
-				else
+          dda->c = new_c;
+          dda->n += 4;
+        }
+        else
           dda->c = dda->end_c;
-			}
+      }
       else if (dda->c != dda->end_c) {
         dda->c = dda->end_c;
-			}
-			// else we are already at target speed
-		}
-	#endif
+      }
+      // else we are already at target speed
+  }
+#endif
 
-	#ifdef ACCELERATION_RAMPING
-		move_state.step_no++;
-	#endif
+#ifdef ACCELERATION_RAMPING
+  move_state.step_no++;
+#endif
 
-  #ifdef ACCELERATION_TEMPORAL
-    /** How is this ACCELERATION TEMPORAL expected to work?
+#ifdef ACCELERATION_TEMPORAL
+  /** How is this ACCELERATION TEMPORAL expected to work?
 
       All axes work independently of each other, as if they were on four
       different, synchronized timers. As we have not enough suitable timers,
@@ -744,19 +754,19 @@ void dda_step(DDA *dda) {
       later. In turn we promise here to send a maximum of four such
       short-delays consecutively and to give sufficient time on average.
    */
-		uint32_t c_candidate;
+  uint32_t c_candidate;
 
-		dda->c = 0xFFFFFFFF;
-    for (i = X; i < AXIS_COUNT; i++) {
-      if (move_state.steps[i]) {
-        c_candidate = move_state.time[i] + dda->step_interval[i] - move_state.last_time;
-        if (c_candidate < dda->c) {
-          dda->axis_to_step = i;
-          dda->c = c_candidate;
-        }
+  dda->c = 0xFFFFFFFF;
+  for (i = X; i < AXIS_COUNT; i++) {
+    if (move_state.steps[i]) {
+      c_candidate = move_state.time[i] + dda->step_interval[i] - move_state.last_time;
+      if (c_candidate < dda->c) {
+        dda->axis_to_step = i;
+        dda->c = c_candidate;
       }
     }
-	#endif
+  }
+#endif
 
   // If there are no steps left or an endstop stop happened, we have finished.
   if ((move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
@@ -765,33 +775,34 @@ void dda_step(DDA *dda) {
       || (move_state.endstop_stop && dda->n <= 0)
     #endif
       ) {
-		dda->live = 0;
-    dda->done = 1;
-    #ifdef LOOKAHEAD
-    // If look-ahead was using this move, it could have missed our activation:
-    // make sure the ids do not match.
-    dda->id--;
-    #endif
-		#ifdef	DC_EXTRUDER
-			heater_set(DC_EXTRUDER, 0);
-		#endif
-		// z stepper is only enabled while moving - except for DELTA_PRINTER
-    #ifndef DELTA_PRINTER
-		z_disable();
-    #endif
+      dda->live = 0;
+      dda->done = 1;
+      #ifdef LOOKAHEAD
+      // If look-ahead was using this move, it could have missed our activation:
+      // make sure the ids do not match.
+      dda->id--;
+      #endif
 
-    // No need to restart timer here.
-    // After having finished, dda_start() will do it.
-	}
+      #ifdef  DC_EXTRUDER
+        heater_set(DC_EXTRUDER, 0);
+      #endif
+      // z stepper is only enabled while moving - except for DELTA_PRINTER  
+      #ifndef DELTA_PRINTER
+        z_disable();
+      #endif
+
+      // No need to restart timer here.
+      // After having finished, dda_start() will do it.
+  }
   else {
-		psu_timeout = 0;
+    psu_timeout = 0;
     setTimer(dda->c);
   }
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
 	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something.
 	// we also hope that we don't step before the drivers register the low- limit maximum speed if you think this is a problem.
-	unstep();
+  unstep();
 }
 
 /*! Do regular movement maintenance.
@@ -1004,12 +1015,12 @@ void update_current_position() {
     ((STEPS_PER_M_E + 500) / 1000)
   };
 
-	if (queue_empty()) {
+  if (queue_empty()) {
     for (i = X; i < AXIS_COUNT; i++) {
       current_position.axis[i] = startpoint.axis[i];
     }
-	}
-	else if (dda->live) {
+  }
+  else if (dda->live) {
     for (i = X; i < AXIS_COUNT; i++) {
       current_position.axis[i] = dda->endpoint.axis[i] -
           (int32_t)get_direction(dda, i) *
@@ -1025,5 +1036,5 @@ void update_current_position() {
           (move_state.steps[E] * 1000) / pgm_read_dword(&steps_per_mm_P[E]);
 
 		// current_position.F is updated in dda_start()
-	}
+  }
 }

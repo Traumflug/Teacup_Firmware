@@ -494,6 +494,15 @@ void process_gcode_command() {
 					break;
         heater_set(next_target.P, next_target.S);
 				break;
+                        case 107:
+                                // Turn off Fan
+                                #ifdef ENFORCE_ORDER
+                                   queue_wait();
+                                #endif
+                                #ifdef HEATER_FAN
+                                    next_target.P = HEATER_FAN;
+                                    heater_set(next_target.P,0);
+                                #endif   
 
 			case 110:
 				//? --- M110: Set Current Line Number ---
@@ -764,6 +773,20 @@ void process_gcode_command() {
       } else {
       }
       break;
+      
+      #ifdef DEBUG
+      case 667:
+      //toggle on/off delta debug flags
+         if (debug_flags & DEBUG_DELTA){
+            debug_flags &= ~DEBUG_DELTA;
+            sersendf_P(PSTR("Debug Delta Off - Flags:%u"),debug_flags);
+         } else {
+            debug_flags |= DEBUG_DELTA;
+            sersendf_P(PSTR("Debug Delta On - Flags:%u"),debug_flags);
+         }  
+      break;
+      #endif //DEBUG
+      
       #endif //DELTA_PRINTER
 
 				// unknown mcode: spit an error
