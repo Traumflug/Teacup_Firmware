@@ -132,13 +132,12 @@ static int8_t get_direction(DDA *dda, enum axis_e n) {
 /*! Inititalise DDA movement structures
 */
 void dda_init(void) {
-//  debug_flags=128;  //delta kinematics debug flag
 
 #ifdef DELTA_PRINTER
-   sersendf_P(PSTR("\nUsing Delta Kinematics:\n"));
    bypass_delta=0;
    dda_new_startpoint();
 #endif
+
 	// set up default feedrate
 	if (startpoint.F == 0)
 		startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
@@ -159,9 +158,9 @@ void dda_new_startpoint(void) {
            startpoint_steps.axis[i] = um_to_steps(temp.axis[i], i);
 
         if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
-            sersendf_P(PSTR("Trans_Delta: cart(%ld,%ld,%ld) delta(%ld,%ld,%ld) \n"),
-                      startpoint.axis[X], startpoint.axis[Y], startpoint.axis[Z],
-                      temp.axis[X],temp.axis[Y],temp.axis[Z]);
+            sersendf_P(PSTR("Delta Startpoint: cart(%ld,%ld,%ld,E:%ld) delta(%ld,%ld,%ld,E:%ld) \n"),
+                      startpoint.axis[X], startpoint.axis[Y], startpoint.axis[Z],startpoint.axis[E],
+                      temp.axis[X],temp.axis[Y],temp.axis[Z],temp.axis[E]);
         }
      } else {
         for (i = X; i < AXIS_COUNT; i++)
@@ -240,7 +239,7 @@ void dda_create(DDA *dda, TARGET *target) {
   code_axes_to_stepper_axes(&startpoint, target, delta_um, steps);
 
   if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
-     sersendf_P(PSTR("DDA_c After: start_steps(%ld,%ld,%ld) steps(%ld,%ld,%ld) \n"),
+     sersendf_P(PSTR("dda_create After: start_steps(%ld,%ld,%ld) steps(%ld,%ld,%ld) \n"),
                 startpoint_steps.axis[X],startpoint_steps.axis[Y],startpoint_steps.axis[Z],
                 steps[X],steps[Y],steps[Z]);
   }
@@ -283,6 +282,12 @@ void dda_create(DDA *dda, TARGET *target) {
     startpoint_steps.axis[E] = steps[E];
 
     set_direction(dda, E, delta_steps);
+
+    if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
+     sersendf_P(PSTR("dda_create (NR) After: delta_um[E]=%ld steps[E]=%ld F:%ld ER:%u\n"),
+                delta_um[E],steps[E],target->F,target->e_relative);
+    }
+
     #ifdef LOOKAHEAD
       // Also displacements in micrometers, but for the lookahead alogrithms.
       // TODO: this is redundant. delta_um[] and dda->delta_um[] differ by
@@ -295,13 +300,17 @@ void dda_create(DDA *dda, TARGET *target) {
   }
   else {
     // When we get more extruder axes:
-    // for (i = E; i < AXIS_COUNT; i++) { ...
+    // for (i = E; i < AXIS_COUNT; i++)  ...
     delta_um[E] = (uint32_t)labs(target->axis[E]);
     dda->delta[E] = (uint32_t)labs(um_to_steps(target->axis[E], E));
     #ifdef LOOKAHEAD
       dda->delta_um[E] = target->axis[E];
     #endif
     dda->e_direction = (target->axis[E] >= 0)?1:0;
+    if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
+     sersendf_P(PSTR("dda_create (R) After: delta_um[E]=%ld steps[E]=%ld F:%ld ER:%u\n"),
+                delta_um[E],steps[E],target->F,target->e_relative);
+    }
 	}
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
@@ -364,7 +373,7 @@ void dda_create(DDA *dda, TARGET *target) {
         if (md_candidate > move_duration)
           move_duration = md_candidate;
       }
-		#else
+    #else  // NOT ACCELERATION_TEMPORAL
 			// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 			// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
 			//   note: um (distance) * 60000 == mm * 60000000
@@ -381,7 +390,7 @@ void dda_create(DDA *dda, TARGET *target) {
 			// changed distance * 6000 .. * F_CPU / 100000 to
 			//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
 			uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
-		#endif
+    #endif //ACCELERATION_TEMPORAL
 
 		// similarly, find out how fast we can run our axes.
 		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
@@ -451,6 +460,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		}
 		else
 			dda->accel = 0;
+
 		#elif defined ACCELERATION_RAMPING
 			// yes, this assumes always the x axis as the critical one regarding acceleration. If we want to implement per-axis acceleration, things get tricky ...
       dda->c_min = move_duration / target->F;
@@ -487,10 +497,10 @@ void dda_create(DDA *dda, TARGET *target) {
                     int_inv_sqrt(dda->n)) >> 13;
         if (dda->c < dda->c_min)
           dda->c = dda->c_min;
-      #else
+      #else //NOT LOOKAHEAD
         dda->n = 0;
         dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
-      #endif
+      #endif  //LOOKAHEAD
 
 		#elif defined ACCELERATION_TEMPORAL
 			// TODO: calculate acceleration/deceleration for each axis
@@ -768,6 +778,7 @@ void dda_step(DDA *dda) {
     // make sure the ids do not match.
     dda->id--;
     #endif
+
 		#ifdef	DC_EXTRUDER
 			heater_set(DC_EXTRUDER, 0);
 		#endif

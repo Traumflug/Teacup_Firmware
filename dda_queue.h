@@ -38,7 +38,6 @@ inline void enqueue(TARGET *t) {
   #else
      enqueue_home(t, 0, 0);
   #endif
-
 }
 
 // called from step timer when current move is complete

@@ -73,6 +73,7 @@ void home() {
 
 #ifdef DELTA_PRINTER
 void home_delta(){
+   //See M666 for Delta Geometry settings
    TARGET t = startpoint;
 
    bypass_delta = 1;   //Turn off delta calculations

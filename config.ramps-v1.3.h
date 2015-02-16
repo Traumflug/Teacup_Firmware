@@ -67,14 +67,14 @@
 //***** Delta Settings *****
 #define DELTA_PRINTER
 #define KINEMATICS KINEMATICS_DELTA
-#define DELTA_SEGMENTS_PER_SECOND 100
+#define DELTA_SEGMENT_UM 1000 //instead of segmenting on move time, it segments based on maximum um per segment
 #define DEFAULT_DELTA_DIAGONAL_ROD 288090 // um
 #define DEFAULT_DELTA_DIAGONAL_ROD_2 DEFAULT_DELTA_DIAGONAL_ROD * DEFAULT_DELTA_DIAGONAL_ROD
 #define DEFAULT_DELTA_RADIUS 170550       //um
 #define COS_60 0.86602540378443864676372317075294
 #define SIN_60 0.5
 
-//#define LCD
+#define LCD
 #define REPRAPDISCOUNT_SMART_DISCOUNT_CONTROLLER
 
 /** \def STEPS_PER_M
@@ -562,7 +562,7 @@ PWM value for 'off'
 		note that each move takes a fair chunk of ram (69 bytes as of this writing) so don't make the buffer too big - a bigger serial readbuffer may help more than increasing this unless your gcodes are more than 70 characters long on average.
 		however, a larger movebuffer will probably help with lots of short consecutive moves, as each move takes a bunch of math (hence time) to set up so a longer buffer allows more of the math to be done during preceding longer moves
 */
-#define	MOVEBUFFER_SIZE	48  //was 8
+#define	MOVEBUFFER_SIZE	64  //was 8
 
 /** \def DC_EXTRUDER
 	DC extruder

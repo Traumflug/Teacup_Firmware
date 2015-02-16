@@ -83,6 +83,7 @@ typedef struct {
 	#ifdef ACCELERATION_TEMPORAL
   axes_uint32_t     time;       ///< time of the last step on each axis
   uint32_t          last_time;  ///< time of the last step of any axis
+  uint32_t          all_time;
 	#endif
 
 	/// Endstop handling.
@@ -167,8 +168,8 @@ typedef struct {
   // are the same. Note: we do not need a lot of granularity here: more than
   // MOVEBUFFER_SIZE is already enough.
   uint8_t           id;
-  #endif
-	#endif
+  #endif //LOOKAHEAD
+	#endif //ACCELERATION_RAMPIN
 	#ifdef ACCELERATION_TEMPORAL
   axes_uint32_t     step_interval;   ///< time between steps on each axis
 	uint8_t						axis_to_step;    ///< axis to be stepped on the next interrupt
