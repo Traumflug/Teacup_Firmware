@@ -181,10 +181,10 @@ void process_gcode_command() {
 				//?
 				//? Example: G28
 				//?
-        //? This causes the RepRap machine to search for its X, Y and Z zero
-        //? endstops. It does so at high speed, so as to get there fast. When
-        //? it arrives it backs off slowly until the endstop is released again.
-        //? Backing off slowly ensures more accurate positioning.
+				//? This causes the RepRap machine to search for its X, Y and Z zero
+				//? endstops. It does so at high speed, so as to get there fast. When
+				//? it arrives it backs off slowly until the endstop is released again.
+				//? Backing off slowly ensures more accurate positioning.
 				//?
 				//? If you add coordinates, then just the axes with coordinates specified will be zeroed.  Thus
 				//?
@@ -212,12 +212,12 @@ void process_gcode_command() {
 					axisSelected = 1;
 				}
 				if (next_target.seen_Z) {
-          #if defined Z_MIN_PIN
-            home_z_negative();
-          #elif defined Z_MAX_PIN
-            home_z_positive();
-					#endif
-					axisSelected = 1;
+				#if defined Z_MIN_PIN
+					home_z_negative();
+				#elif defined Z_MAX_PIN
+					home_z_positive();
+				#endif
+				axisSelected = 1;
 				}
 				// there's no point in moving E, as E has no endstops
 
@@ -267,27 +267,27 @@ void process_gcode_command() {
 				queue_wait();
 
 				if (next_target.seen_X) {
-          startpoint.axis[X] = next_target.target.axis[X];
-					axisSelected = 1;
+					startpoint.axis[X] = next_target.target.axis[X];
+				axisSelected = 1;
 				}
 				if (next_target.seen_Y) {
-          startpoint.axis[Y] = next_target.target.axis[Y];
-					axisSelected = 1;
+					startpoint.axis[Y] = next_target.target.axis[Y];
+				axisSelected = 1;
 				}
 				if (next_target.seen_Z) {
-          startpoint.axis[Z] = next_target.target.axis[Z];
-					axisSelected = 1;
+					startpoint.axis[Z] = next_target.target.axis[Z];
+				axisSelected = 1;
 				}
 				if (next_target.seen_E) {
-          startpoint.axis[E] = next_target.target.axis[E];
-					axisSelected = 1;
+					startpoint.axis[E] = next_target.target.axis[E];
+				axisSelected = 1;
 				}
 
 				if (axisSelected == 0) {
-          startpoint.axis[X] = next_target.target.axis[X] =
-          startpoint.axis[Y] = next_target.target.axis[Y] =
-          startpoint.axis[Z] = next_target.target.axis[Z] =
-          startpoint.axis[E] = next_target.target.axis[E] = 0;
+					startpoint.axis[X] = next_target.target.axis[X] =
+					startpoint.axis[Y] = next_target.target.axis[Y] =
+					startpoint.axis[Z] = next_target.target.axis[Z] =
+					startpoint.axis[E] = next_target.target.axis[E] = 0;
 				}
 
 				dda_new_startpoint();
@@ -298,18 +298,18 @@ void process_gcode_command() {
 				//?
 				//? Find the minimum limit of the specified axes by searching for the limit switch.
 				//?
-        #if defined X_MIN_PIN
-          if (next_target.seen_X)
-            home_x_negative();
-        #endif
-        #if defined Y_MIN_PIN
-          if (next_target.seen_Y)
-            home_y_negative();
-        #endif
-        #if defined Z_MIN_PIN
-          if (next_target.seen_Z)
-            home_z_negative();
-        #endif
+				#if defined X_MIN_PIN
+					if (next_target.seen_X)
+						home_x_negative();
+				#endif
+				#if defined Y_MIN_PIN
+					if (next_target.seen_Y)
+						home_y_negative();
+				#endif
+				#if defined Z_MIN_PIN
+					if (next_target.seen_Z)
+						home_z_negative();
+				#endif
 				break;
 
 			case 162:
@@ -317,18 +317,18 @@ void process_gcode_command() {
 				//?
 				//? Find the maximum limit of the specified axes by searching for the limit switch.
 				//?
-        #if defined X_MAX_PIN
-          if (next_target.seen_X)
-            home_x_positive();
-        #endif
-        #if defined Y_MAX_PIN
-          if (next_target.seen_Y)
-            home_y_positive();
-        #endif
-        #if defined Z_MAX_PIN
-          if (next_target.seen_Z)
-            home_z_positive();
-        #endif
+				#if defined X_MAX_PIN
+					if (next_target.seen_X)
+						home_x_positive();
+				#endif
+				#if defined Y_MAX_PIN
+					if (next_target.seen_Y)
+						home_y_positive();
+				#endif
+				#if defined Z_MAX_PIN
+					if (next_target.seen_Z)
+						home_z_positive();
+				#endif
 				break;
 
 				// unknown gcode: spit an error
@@ -352,7 +352,7 @@ void process_gcode_command() {
 				//?
 
 			case 2:
-      case 84: // For compatibility with slic3rs default end G-code.
+			case 84: // For compatibility with slic3rs default end G-code.
 				//? --- M2: program end ---
 				//?
 				//? Example: M2
@@ -363,7 +363,7 @@ void process_gcode_command() {
 				for (i = 0; i < NUM_HEATERS; i++)
 					temp_set(i, 0);
 				power_off();
-        serial_writestr_P(PSTR("\nstop\n"));
+				serial_writestr_P(PSTR("\nstop\n"));
 				break;
 
 			case 6:
@@ -422,44 +422,42 @@ void process_gcode_command() {
 					heater_set(DC_EXTRUDER, 0);
 				#endif
 				break;
-
 			case 104:
 				//? --- M104: Set Extruder Temperature (Fast) ---
 				//?
 				//? Example: M104 S190
 				//?
-        //? Set the temperature of the current extruder to 190<sup>o</sup>C
-        //? and return control to the host immediately (''i.e.'' before that
-        //? temperature has been reached by the extruder). For waiting, see M116.
-        //?
-        //? Teacup supports an optional P parameter as a zero-based temperature
-        //? sensor index to address (e.g. M104 P1 S100 will set the temperature
-        //? of the heater connected to the second temperature sensor rather
-        //? than the extruder temperature).
-        //?
+				//? Set the temperature of the current extruder to 190<sup>o</sup>C
+				//? and return control to the host immediately (''i.e.'' before that
+				//? temperature has been reached by the extruder). For waiting, see M116.
+				//?
+				//? Teacup supports an optional P parameter as a zero-based temperature
+				//? sensor index to address (e.g. M104 P1 S100 will set the temperature
+				//? of the heater connected to the second temperature sensor rather
+				//? than the extruder temperature).
+				//?
 				if ( ! next_target.seen_S)
 					break;
-        #ifdef HEATER_EXTRUDER
-          if ( ! next_target.seen_P)
-            next_target.P = HEATER_EXTRUDER;
-        // else use the first available device
-        #endif
+				#ifdef HEATER_EXTRUDER
+					if ( ! next_target.seen_P)
+						next_target.P = HEATER_EXTRUDER;
+				// else use the first available device
+				#endif
 				temp_set(next_target.P, next_target.S);
 				break;
-
 			case 105:
-        //? --- M105: Get Temperature(s) ---
+				//? --- M105: Get Temperature(s) ---
 				//?
 				//? Example: M105
 				//?
-        //? Request the temperature of the current extruder and the build base
-        //? in degrees Celsius. For example, the line sent to the host in
-        //? response to this command looks like
+				//? Request the temperature of the current extruder and the build base
+				//? in degrees Celsius. For example, the line sent to the host in
+				//? response to this command looks like
 				//?
 				//? <tt>ok T:201 B:117</tt>
 				//?
-        //? Teacup supports an optional P parameter as a zero-based temperature
-        //? sensor index to address.
+				//? Teacup supports an optional P parameter as a zero-based temperature
+				//? sensor index to address.
 				//?
 				#ifdef ENFORCE_ORDER
 					queue_wait();
@@ -468,7 +466,6 @@ void process_gcode_command() {
 					next_target.P = TEMP_SENSOR_none;
 				temp_print(next_target.P);
 				break;
-
 			case 7:
 			case 106:
 				//? --- M106: Set Fan Speed / Set Device Power ---
@@ -477,33 +474,32 @@ void process_gcode_command() {
 				//?
 				//? Control the cooling fan (if any).
 				//?
-        //? Teacup supports an optional P parameter as a zero-based heater
-        //? index to address. The heater index can differ from the temperature
-        //? sensor index, see config.h.
+				//? Teacup supports an optional P parameter as a zero-based heater
+				//? index to address. The heater index can differ from the temperature
+				//? sensor index, see config.h.
 
 				#ifdef ENFORCE_ORDER
 					// wait for all moves to complete
 					queue_wait();
 				#endif
-        #ifdef HEATER_FAN
-          if ( ! next_target.seen_P)
-            next_target.P = HEATER_FAN;
-        // else use the first available device
-        #endif
-				if ( ! next_target.seen_S)
+				#ifdef HEATER_FAN
+					if ( ! next_target.seen_P)
+						next_target.P = HEATER_FAN;
+					// else use the first available device
+				#endif
+					if ( ! next_target.seen_S)
+						break;
+					heater_set(next_target.P, next_target.S);
 					break;
-        heater_set(next_target.P, next_target.S);
-				break;
-                        case 107:
-                                // Turn off Fan
-                                #ifdef ENFORCE_ORDER
-                                   queue_wait();
-                                #endif
-                                #ifdef HEATER_FAN
-                                    next_target.P = HEATER_FAN;
-                                    heater_set(next_target.P,0);
-                                #endif   
-
+			case 107:
+				// Turn off Fan
+				#ifdef ENFORCE_ORDER
+					queue_wait();
+				#endif
+				#ifdef HEATER_FAN
+					next_target.P = HEATER_FAN;
+					heater_set(next_target.P,0);
+				#endif   
 			case 110:
 				//? --- M110: Set Current Line Number ---
 				//?
@@ -533,26 +529,27 @@ void process_gcode_command() {
 				if ( ! next_target.seen_S)
 					break;
 				debug_flags = next_target.S;
+				sersendf_P(PSTR("Debug Flags:%u"),debug_flags);
 				break;
 			#endif
 
       case 112:
-        //? --- M112: Emergency Stop ---
-        //?
-        //? Example: M112
-        //?
-        //? Any moves in progress are immediately terminated, then the printer
-        //? shuts down. All motors and heaters are turned off. Only way to
-        //? restart is to press the reset button on the master microcontroller.
-        //? See also M0.
-        //?
-        timer_stop();
-        queue_flush();
-        power_off();
-        cli();
-        for (;;)
-          wd_reset();
-        break;
+				//? --- M112: Emergency Stop ---
+				//?
+				//? Example: M112
+				//?
+				//? Any moves in progress are immediately terminated, then the printer
+				//? shuts down. All motors and heaters are turned off. Only way to
+				//? restart is to press the reset button on the master microcontroller.
+				//? See also M0.
+				//?
+				timer_stop();
+				queue_flush();
+				power_off();
+				cli();
+				for (;;)
+					wd_reset();
+				break;
 
 			case 114:
 				//? --- M114: Get Current Position ---
@@ -621,115 +618,111 @@ void process_gcode_command() {
 				break;
 
       case 119:
-        //? --- M119: report endstop status ---
-        //? Report the current status of the endstops configured in the
-        //? firmware to the host.
-        power_on();
-        endstops_on();
-        delay_ms(10); // allow the signal to stabilize
-        {
-          const char* const open = PSTR("open ");
-          const char* const triggered = PSTR("triggered ");
+				//? --- M119: report endstop status ---
+				//? Report the current status of the endstops configured in the
+				//? firmware to the host.
+				power_on();
+				endstops_on();
+				delay_ms(10); // allow the signal to stabilize
+				{
+					const char* const open = PSTR("open ");
+					const char* const triggered = PSTR("triggered ");
 
-          #if defined(X_MIN_PIN)
-            sersendf_P(PSTR("x_min:"));
-            x_min() ? sersendf_P(triggered) : sersendf_P(open);
-          #endif
-          #if defined(X_MAX_PIN)
-            sersendf_P(PSTR("x_max:"));
-            x_max() ? sersendf_P(triggered) : sersendf_P(open);
-          #endif
-          #if defined(Y_MIN_PIN)
-            sersendf_P(PSTR("y_min:"));
-            y_min() ? sersendf_P(triggered) : sersendf_P(open);
-          #endif
-          #if defined(Y_MAX_PIN)
-            sersendf_P(PSTR("y_max:"));
-            y_max() ? sersendf_P(triggered) : sersendf_P(open);
-          #endif
-          #if defined(Z_MIN_PIN)
-            sersendf_P(PSTR("z_min:"));
-            z_min() ? sersendf_P(triggered) : sersendf_P(open);
-          #endif
-          #if defined(Z_MAX_PIN)
-            sersendf_P(PSTR("z_max:"));
-            z_max() ? sersendf_P(triggered) : sersendf_P(open);
-          #endif
-          #if ! (defined(X_MIN_PIN) || defined(X_MAX_PIN) || \
-                 defined(Y_MIN_PIN) || defined(Y_MAX_PIN) || \
-                 defined(Z_MIN_PIN) || defined(Z_MAX_PIN))
-            sersendf_P(PSTR("no endstops defined"));
-          #endif
-        }
-        endstops_off();
-        break;
+				#if defined(X_MIN_PIN)
+					sersendf_P(PSTR("x_min:"));
+						x_min() ? sersendf_P(triggered) : sersendf_P(open);
+				#endif
+				#if defined(X_MAX_PIN)
+					sersendf_P(PSTR("x_max:"));
+						x_max() ? sersendf_P(triggered) : sersendf_P(open);
+				#endif
+				#if defined(Y_MIN_PIN)
+					sersendf_P(PSTR("y_min:"));
+						y_min() ? sersendf_P(triggered) : sersendf_P(open);
+				#endif
+				#if defined(Y_MAX_PIN)
+					sersendf_P(PSTR("y_max:"));
+						y_max() ? sersendf_P(triggered) : sersendf_P(open);
+				#endif
+				#if defined(Z_MIN_PIN)
+					sersendf_P(PSTR("z_min:"));
+						z_min() ? sersendf_P(triggered) : sersendf_P(open);
+				#endif
+				#if defined(Z_MAX_PIN)
+					sersendf_P(PSTR("z_max:"));
+						z_max() ? sersendf_P(triggered) : sersendf_P(open);
+				#endif
+				#if ! (defined(X_MIN_PIN) || defined(X_MAX_PIN) || \
+					defined(Y_MIN_PIN) || defined(Y_MAX_PIN) || \
+					defined(Z_MIN_PIN) || defined(Z_MAX_PIN))
+						sersendf_P(PSTR("no endstops defined"));
+				#endif
+				}
+				endstops_off();
+				break;
 
-      #ifdef EECONFIG
+		#ifdef EECONFIG
 			case 130:
 				//? --- M130: heater P factor ---
 				//? Undocumented.
 			  	//  P factor in counts per degreeC of error
-        #ifdef HEATER_EXTRUDER
-          if ( ! next_target.seen_P)
-            next_target.P = HEATER_EXTRUDER;
-        // else use the first available device
-        #endif
+				#ifdef HEATER_EXTRUDER
+					if ( ! next_target.seen_P)
+						next_target.P = HEATER_EXTRUDER;
+				// else use the first available device
+				#endif
 				if (next_target.seen_S)
 					pid_set_p(next_target.P, next_target.S);
 				break;
-
 			case 131:
 				//? --- M131: heater I factor ---
 				//? Undocumented.
 			  	// I factor in counts per C*s of integrated error
-        #ifdef HEATER_EXTRUDER
-          if ( ! next_target.seen_P)
-            next_target.P = HEATER_EXTRUDER;
-        #endif
+				#ifdef HEATER_EXTRUDER
+					if ( ! next_target.seen_P)
+						next_target.P = HEATER_EXTRUDER;
+				#endif
 				if (next_target.seen_S)
 					pid_set_i(next_target.P, next_target.S);
 				break;
-
 			case 132:
 				//? --- M132: heater D factor ---
 				//? Undocumented.
 			  	// D factor in counts per degreesC/second
-        #ifdef HEATER_EXTRUDER
-          if ( ! next_target.seen_P)
-            next_target.P = HEATER_EXTRUDER;
-        #endif
+				#ifdef HEATER_EXTRUDER
+					if ( ! next_target.seen_P)
+						next_target.P = HEATER_EXTRUDER;
+				#endif
 				if (next_target.seen_S)
 					pid_set_d(next_target.P, next_target.S);
 				break;
-
 			case 133:
 				//? --- M133: heater I limit ---
 				//? Undocumented.
-        #ifdef HEATER_EXTRUDER
-          if ( ! next_target.seen_P)
-            next_target.P = HEATER_EXTRUDER;
-        #endif
+				#ifdef HEATER_EXTRUDER
+					if ( ! next_target.seen_P)
+						next_target.P = HEATER_EXTRUDER;
+				#endif
 				if (next_target.seen_S)
 					pid_set_i_limit(next_target.P, next_target.S);
 				break;
-
 			case 134:
 				//? --- M134: save PID settings to eeprom ---
 				//? Undocumented.
 				heater_save_settings();
 				break;
-      #endif /* EECONFIG */
+		#endif /* EECONFIG */
 
-			#ifdef	DEBUG
+		#ifdef	DEBUG
 			case 136:
 				//? --- M136: PRINT PID settings to host ---
 				//? Undocumented.
-				//? This comand is only available in DEBUG builds.
-        #ifdef HEATER_EXTRUDER
-				if ( ! next_target.seen_P)
-					next_target.P = HEATER_EXTRUDER;
-				heater_print(next_target.P);
-        #endif
+				//? This command is only available in DEBUG builds.
+				#ifdef HEATER_EXTRUDER
+					if ( ! next_target.seen_P)
+						next_target.P = HEATER_EXTRUDER;
+					heater_print(next_target.P);
+				#endif
 				break;
 			#endif
 
@@ -765,29 +758,16 @@ void process_gcode_command() {
 			#endif /* DEBUG */
 			
 			#ifdef DELTA_PRINTER
-      case 666:
-      //adjust delta geometry
-      if (next_target.seen_L) {
-        sersendf_P(PSTR("M666 X:%lq Y:%lq Z:%lq H:%lq"),
-                endstop_adj_x, endstop_adj_y, endstop_adj_z,delta_height);
-      } else {
-      }
-      break;
+			case 666:
+			//adjust delta geometry
+				if (next_target.seen_L) {
+					sersendf_P(PSTR("M666 X:%lq Y:%lq Z:%lq H:%lq R:%lq"),
+					endstop_adj_x, endstop_adj_y, endstop_adj_z, delta_height, (delta_radius << 4));
+				} else {
+				}
+			break;
       
-      #ifdef DEBUG
-      case 667:
-      //toggle on/off delta debug flags
-         if (debug_flags & DEBUG_DELTA){
-            debug_flags &= ~DEBUG_DELTA;
-            sersendf_P(PSTR("Debug Delta Off - Flags:%u"),debug_flags);
-         } else {
-            debug_flags |= DEBUG_DELTA;
-            sersendf_P(PSTR("Debug Delta On - Flags:%u"),debug_flags);
-         }  
-      break;
-      #endif //DEBUG
-      
-      #endif //DELTA_PRINTER
+			#endif //DELTA_PRINTER
 
 				// unknown mcode: spit an error
 			default:
