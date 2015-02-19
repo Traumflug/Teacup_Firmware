@@ -22,7 +22,7 @@
 
 
 void delta_segments_create(TARGET *target) {
-  uint32_t dist;
+  int32_t dist;
   int32_t s,seg_size,cartesian_move_sec;
   int32_t segment_total;
 
@@ -59,27 +59,44 @@ void delta_segments_create(TARGET *target) {
   }
 
   //The Marlin/Repetier Approach
+#ifdef DELTA_TIME_SEGMENTS
   cartesian_move_sec = (dist / target->F) * 60 * 0.001;   //distance(um) * 1mm/1000um * (Feedrate)1min/mm * 60sec/min
 
   if (target->F > 0)
     segment_total = DELTA_SEGMENTS_PER_SECOND * (dist / target->F) * 60 * 0.001;   //distance(um) * 1mm/1000um * (Feedrate)1min/mm * 60sec/min
   else
     segment_total = 0;
+#endif /* DELTA_TIME_SEGMENTS */
 
-//  if ((diff.axis[X] == 0 && diff.axis[Y] == 0) || dist < (2 * seg_size))
+#ifdef DELTA_DISTANCE_SEGMENTS
+  if ((diff.axis[X] == 0 && diff.axis[Y] == 0) || dist < (2 * seg_size))
+#endif /* DELTA_DISTANCE_SEGMENTS */
+#ifdef DELTA_TIME_SEGMENTS
   if ((diff.axis[X] == 0 && diff.axis[Y] == 0) || segment_total < 2)
+#endif /* DELTA_TIME_SEGMENTS */
   {
     segment_total = 1;
 
+#ifdef DELTA_TIME_SEGMENTS
     if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
       sersendf_P(PSTR("SEG:Z or small: dist: %lu segs: %lu move_sec: %lu\n"),
                   dist,segment_total,cartesian_move_sec);
     }
+#endif
+#ifdef DELTA_DISTANCE_SEGMENTS
+  if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
+    sersendf_P(PSTR("SEG:Z or small: dist: %lu segs: %lu seg_size: %lu\n"),
+        dist,segment_total,seg_size);
+}
+#endif
 
     segment = *target;
     enqueue_home(&segment,0,0);
   } else {
-    //segment_total = dist / seg_size;
+
+#ifdef DELTA_DISTANCE_SEGMENTS
+     segment_total = dist / seg_size;
+#endif
 
     for (i = X; i < AXIS_COUNT; i++)
       diff_frac.axis[i] = diff.axis[i] / segment_total;

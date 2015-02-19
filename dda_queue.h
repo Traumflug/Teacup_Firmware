@@ -3,6 +3,7 @@
 
 #include	"dda.h"
 #include	"timer.h"
+#include        "dda_delta_segments.h"
 
 #define HEATER_WAIT_TIMEOUT 1000 MS
 
