@@ -424,7 +424,6 @@ void process_gcode_command() {
 					heater_set(DC_EXTRUDER, 0);
 				#endif
 				break;
-
 			case 104:
 				//? --- M104: Set Extruder Temperature (Fast) ---
 				//?
@@ -449,7 +448,6 @@ void process_gcode_command() {
           #endif
 				temp_set(next_target.P, next_target.S);
 				break;
-
 			case 105:
         //? --- M105: Get Temperature(s) ---
 				//?
@@ -471,7 +469,6 @@ void process_gcode_command() {
 					next_target.P = TEMP_SENSOR_none;
 				temp_print(next_target.P);
 				break;
-
 			case 7:
 			case 106:
 				//? --- M106: Set Fan Speed / Set Device Power ---
@@ -507,7 +504,6 @@ void process_gcode_command() {
                                     next_target.P = HEATER_FAN;
                                     heater_set(next_target.P,0);
                                 #endif
-
 			case 110:
 				//? --- M110: Set Current Line Number ---
 				//?
@@ -537,6 +533,7 @@ void process_gcode_command() {
 				if ( ! next_target.seen_S)
 					break;
 				debug_flags = next_target.S;
+				sersendf_P(PSTR("Debug Flags:%u"),debug_flags);
 				break;
 			#endif
 
@@ -682,7 +679,6 @@ void process_gcode_command() {
 				if (next_target.seen_S)
 					pid_set_p(next_target.P, next_target.S);
 				break;
-
 			case 131:
 				//? --- M131: heater I factor ---
 				//? Undocumented.
@@ -696,7 +692,6 @@ void process_gcode_command() {
 				if (next_target.seen_S)
 					pid_set_i(next_target.P, next_target.S);
 				break;
-
 			case 132:
 				//? --- M132: heater D factor ---
 				//? Undocumented.
@@ -710,7 +705,6 @@ void process_gcode_command() {
 				if (next_target.seen_S)
 					pid_set_d(next_target.P, next_target.S);
 				break;
-
 			case 133:
 				//? --- M133: heater I limit ---
 				//? Undocumented.
@@ -723,7 +717,6 @@ void process_gcode_command() {
 				if (next_target.seen_S)
 					pid_set_i_limit(next_target.P, next_target.S);
 				break;
-
 			case 134:
 				//? --- M134: save PID settings to eeprom ---
 				//? Undocumented.
@@ -735,7 +728,7 @@ void process_gcode_command() {
 			case 136:
 				//? --- M136: PRINT PID settings to host ---
 				//? Undocumented.
-				//? This comand is only available in DEBUG builds.
+				//? This command is only available in DEBUG builds.
         if ( ! next_target.seen_P)
           #ifdef HEATER_EXTRUDER
             next_target.P = HEATER_EXTRUDER;
@@ -781,24 +774,11 @@ void process_gcode_command() {
       case 666:
       //adjust delta geometry
       if (next_target.seen_L) {
-        sersendf_P(PSTR("M666 X:%lq Y:%lq Z:%lq H:%lq"),
-                endstop_adj_x, endstop_adj_y, endstop_adj_z,delta_height);
-      } else {
-      }
-      break;
-
-      #ifdef DEBUG
-      case 667:
-      //toggle on/off delta debug flags
-         if (debug_flags & DEBUG_DELTA){
-            debug_flags &= ~DEBUG_DELTA;
-            sersendf_P(PSTR("Debug Delta Off - Flags:%u"),debug_flags);
+					sersendf_P(PSTR("M666 X:%lq Y:%lq Z:%lq H:%lq R:%lq"),
+					endstop_adj_x, endstop_adj_y, endstop_adj_z, delta_height, (delta_radius << 4));
          } else {
-            debug_flags |= DEBUG_DELTA;
-            sersendf_P(PSTR("Debug Delta On - Flags:%u"),debug_flags);
          }
       break;
-      #endif //DEBUG
 
       #endif //DELTA_PRINTER
 
