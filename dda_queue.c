@@ -87,6 +87,10 @@ void queue_step() {
 				current_movebuffer->live = current_movebuffer->done = 0;
 				serial_writestr_P(PSTR("Temp achieved\n"));
 			}
+      else {
+        temp_print(TEMP_SENSOR_none);
+        serial_writechar('\n');
+      }
 		}
 		else {
 			dda_step(current_movebuffer);
