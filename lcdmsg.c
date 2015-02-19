@@ -10,11 +10,16 @@
 	\param v hex digit to write, higher nibble ignored
 */
 void lcdwrite_hex4(uint8_t v) {
+        char ch;
 	v &= 0xF;
-	if (v < 10)
-		lcdWriteText('0' + v);
-	else
-		lcdWriteText('A' - 10 + v);
+	if (v < 10){
+                ch='0'+v;
+		lcdWriteChar(&ch);
+        }
+	else {
+                ch='A' - 10 + v;
+		lcdWriteChar(&ch);
+}
 }
 
 /** write a pair of hex digits

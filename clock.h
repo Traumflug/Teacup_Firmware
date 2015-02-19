@@ -7,6 +7,7 @@
 extern volatile uint8_t clock_flag_10ms;
 extern volatile uint8_t clock_flag_250ms;
 extern volatile uint8_t clock_flag_1s;
+extern volatile uint8_t clock_flag_3s;
 
 
 // If the specific bit is set, execute the following block exactly once
