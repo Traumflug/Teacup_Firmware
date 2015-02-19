@@ -40,7 +40,6 @@ void carthesian_to_delta(TARGET *startpoint, TARGET *target,
                      axes_uint32_t delta_um, axes_int32_t steps) {
 
   enum axis_e i;
-  TARGET startpoint_d,target_d;
   TARGET delkin_start,delkin_target;
 
   if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
@@ -88,20 +87,6 @@ TARGET delta_from_cartesian(TARGET *t){
    for (i = X; i < E; i++){
       t_d.axis[i] = (t->axis[i] >> 4); //scale to allow squares
    }
-   /*
-   delta_x = sqrt(DELTA_DIAGONAL_ROD_2
-                     - (delta_tower1_x - t_d.axis[X]) * (delta_tower1_x - t_d.axis[X])
-                     - (delta_tower1_y - t_d.axis[Y]) * (delta_tower1_y - t_d.axis[Y])
-                     ) + t_d.axis[Z];
-   delta_y = sqrt(DELTA_DIAGONAL_ROD_2
-                     - (delta_tower2_x - t_d.axis[X]) * (delta_tower2_x - t_d.axis[X])
-                     - (delta_tower2_y - t_d.axis[Y]) * (delta_tower2_y - t_d.axis[Y])
-                     ) + t_d.axis[Z];
-   delta_z = sqrt(DELTA_DIAGONAL_ROD_2
-                     - (delta_tower3_x - t_d.axis[X]) * (delta_tower3_x - t_d.axis[X])
-                     - (delta_tower3_y - t_d.axis[Y]) * (delta_tower3_y - t_d.axis[Y])
-                     ) + t_d.axis[Z];
-   */                  
                      
    delta_x = SquareRoot32(DELTA_DIAGONAL_ROD_2
                      - (delta_tower1_x - t_d.axis[X]) * (delta_tower1_x - t_d.axis[X])

@@ -60,15 +60,17 @@
                         long and crossing toothed belts and a print head moving
                         on the X-Y-plane.
                         
-  KINEMATICS_DELTA      A bot using Delta Geometery - Rostock or Kossel like                      
+  KINEMATICS_DELTA      A bot using Delta Geometry - Rostock or Kossel like                      
 */
 //#define KINEMATICS KINEMATICS_STRAIGHT
 
 //***** Delta Settings *****
 #define DELTA_PRINTER
 #define KINEMATICS KINEMATICS_DELTA
-#define DELTA_SEGMENTS_PER_SECOND 100
-#define DELTA_SEGMENT_UM 1000 //instead of segmenting on move time, it segments based on maximum um per segment
+//#define DELTA_TIME_SEGMENTS
+#define DELTA_DISTANCE_SEGMENTS
+#define DELTA_SEGMENTS_PER_SECOND 200
+#define DELTA_SEGMENT_UM 500 //instead of segmenting on move time, it segments based on maximum um per segment
 #define DEFAULT_DELTA_DIAGONAL_ROD 288090 // um
 #define DEFAULT_DELTA_DIAGONAL_ROD_2 DEFAULT_DELTA_DIAGONAL_ROD * DEFAULT_DELTA_DIAGONAL_ROD
 #define DEFAULT_DELTA_RADIUS 170550       //um
@@ -252,9 +254,9 @@
   Sane values: 0 to 400
   Valid range: 0 to 65535
 */
-#define MAX_JERK_X 400
-#define MAX_JERK_Y 400
-#define MAX_JERK_Z 400
+#define MAX_JERK_X 600
+#define MAX_JERK_Y 600
+#define MAX_JERK_Z 600
 #define MAX_JERK_E 5
 
 
@@ -283,14 +285,14 @@
 	This is for the RAMPS v1.3 shield
 */
 // TODO: 20110813 SJL - the following two are not yet used&verified for RAMPS1.3
-//#define TX_ENABLE_PIN					DIO12
+//#define	TX_ENABLE_PIN					DIO12
 //#define	RX_ENABLE_PIN					DIO13
 
 #define	X_STEP_PIN  					AIO0
 #define	X_DIR_PIN   					AIO1
 //#define	X_MIN_PIN   					DIO3
 #define	X_MAX_PIN   					DIO2
-#define X_ENABLE_PIN          DIO38
+#define X_ENABLE_PIN					DIO38
 //#define	X_INVERT_DIR
 //#define	X_INVERT_MIN
 //#define	X_INVERT_MAX
@@ -300,7 +302,7 @@
 #define	Y_DIR_PIN   					AIO7
 //#define	Y_MIN_PIN   					DIO14
 #define	Y_MAX_PIN   					DIO15
-#define Y_ENABLE_PIN          AIO2
+#define Y_ENABLE_PIN					AIO2
 //#define	Y_INVERT_DIR
 //#define	Y_INVERT_MIN
 //#define	Y_INVERT_MAX
@@ -311,20 +313,20 @@
 //#define	Z_INVERT_DIR
 //#define	Z_MIN_PIN   					DIO18
 #define	Z_MAX_PIN   					DIO19
-#define Z_ENABLE_PIN          AIO8
+#define Z_ENABLE_PIN					AIO8
 //#define	Z_INVERT_MIN
 //#define	Z_INVERT_MAX
 #define Z_INVERT_ENABLE
 
 #define	E_STEP_PIN  					DIO26
 #define	E_DIR_PIN   					DIO28
-#define E_ENABLE_PIN          DIO24
+#define E_ENABLE_PIN					DIO24
 //#define	E_INVERT_DIR
 #define E_INVERT_ENABLE
 
-//#define	PS_ON_PIN							xxxx
-//#define PS_MOSFET_PIN         xxxx
-//#define	STEPPER_ENABLE_PIN		xxxx
+//#define	PS_ON_PIN						xxxx
+//#define	PS_MOSFET_PIN					xxxx
+//#define	STEPPER_ENABLE_PIN				xxxx
 //#define	STEPPER_INVERT_ENABLE
 
 // TODO: 20110813 SJL - the following two are not yet used&verified for RAMPS1.3
@@ -371,14 +373,14 @@
 
   Unit: degree Celsius
 */
-#define TEMP_HYSTERESIS 10
+#define TEMP_HYSTERESIS 5
 
 /**
 	TEMP_RESIDENCY_TIME: actual temperature must be close to target (within
 	set temperature +- TEMP_HYSTERESIS) for this long before target is achieved
 	(and a M116 succeeds). Unit is seconds.
 */
-#define	TEMP_RESIDENCY_TIME		60
+#define	TEMP_RESIDENCY_TIME	10
 
 /**
   TEMP_EWMA: Smooth noisy temperature sensors. Good hardware shouldn't be
@@ -501,7 +503,7 @@ DEFINE_HEATER(fan,      PH6,   1)
   115200, other common values are 19200, 38400 or 57600. Ignored when USB_SERIAL
   is defined.
 */
-#define BAUD 115200
+#define BAUD 250000  //was 115200
 
 /** \def USB_SERIAL
   Define this for using USB instead of the serial RS232 protocol. Works on

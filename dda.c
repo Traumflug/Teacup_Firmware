@@ -12,8 +12,8 @@
 #endif
 
 #include	"dda_maths.h"
-#include        "preprocessor_math.h"
-#include        "dda_kinematics.h"
+#include	"preprocessor_math.h"
+#include	"dda_kinematics.h"
 #include	"dda_lookahead.h"
 #include	"timer.h"
 #include	"serial.h"
@@ -23,7 +23,7 @@
 #include	"debug.h"
 #include	"sersendf.h"
 #include	"pinio.h"
-#include        "memory_barrier.h"
+#include	"memory_barrier.h"
 //#include "graycode.c"
 
 #ifdef	DC_EXTRUDER
@@ -35,17 +35,17 @@
 //Must scale by 16 because 2^32 = 4,294,967,296 - giving a maximum squareroot of 65536
 //If scaled by 8, maximum movement is 65,536 * 8 = 524,288um, 65,536 * 16 = 1,048,576um
 
-const uint32_t delta_radius         = (DEFAULT_DELTA_RADIUS >> 4);
 const uint32_t delta_diagonal_rod   = (DEFAULT_DELTA_DIAGONAL_ROD >> 4);
 const uint32_t DELTA_DIAGONAL_ROD_2 = (DEFAULT_DELTA_DIAGONAL_ROD >> 4) * (DEFAULT_DELTA_DIAGONAL_ROD >> 4);
-const int32_t  delta_tower1_x       = (int32_t)(-0.86602540378443864676372317075294 * DEFAULT_DELTA_RADIUS) >> 4;
-const int32_t  delta_tower1_y       = (int32_t)(-0.5 * DEFAULT_DELTA_RADIUS) >> 4;
-const int32_t  delta_tower2_x       = (int32_t)( 0.86602540378443864676372317075294 * DEFAULT_DELTA_RADIUS) >> 4;
-const int32_t  delta_tower2_y       = (int32_t)(-0.5 * DEFAULT_DELTA_RADIUS) >> 4;
-const int32_t  delta_tower3_x       = (int32_t)( 0.0 * DEFAULT_DELTA_RADIUS) >> 4;
-const int32_t  delta_tower3_y       = (DEFAULT_DELTA_RADIUS >> 4);
 
-int32_t delta_height = Z_MAX * 1000;
+int32_t delta_tower1_x       = (int32_t)(-0.86602540378443864676372317075294 * DEFAULT_DELTA_RADIUS) >> 4;
+int32_t delta_tower1_y       = (int32_t)(-0.5 * DEFAULT_DELTA_RADIUS) >> 4;
+int32_t delta_tower2_x       = (int32_t)( 0.86602540378443864676372317075294 * DEFAULT_DELTA_RADIUS) >> 4;
+int32_t delta_tower2_y       = (int32_t)(-0.5 * DEFAULT_DELTA_RADIUS) >> 4;
+int32_t delta_tower3_x       = (int32_t)( 0.0 * DEFAULT_DELTA_RADIUS) >> 4;
+int32_t delta_tower3_y       = (DEFAULT_DELTA_RADIUS >> 4);
+int32_t delta_radius         = (DEFAULT_DELTA_RADIUS >> 4);
+int32_t delta_height         = Z_MAX * 1000;
 int32_t endstop_adj_x;
 int32_t endstop_adj_y;
 int32_t endstop_adj_z;
@@ -206,6 +206,7 @@ void dda_create(DDA *dda, TARGET *target) {
   axes_int32_t steps;
   uint32_t distance, c_limit, c_limit_calc;
   enum axis_e i;
+
   #ifdef LOOKAHEAD
   // Number the moves to identify them; allowed to overflow.
   static uint8_t idcnt = 0;
@@ -236,12 +237,13 @@ void dda_create(DDA *dda, TARGET *target) {
     dda->id = idcnt++;
   #endif
 
+  //correct target to proper kinematics for axis movement
   code_axes_to_stepper_axes(&startpoint, target, delta_um, steps);
-  
+
   if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
-     sersendf_P(PSTR("dda_create After: start_steps(%ld,%ld,%ld) steps(%ld,%ld,%ld) \n"),
+     sersendf_P(PSTR("dda_create After: start_steps(%ld,%ld,%ld) steps(%ld,%ld,%ld) time:%lu\n"),
                 startpoint_steps.axis[X],startpoint_steps.axis[Y],startpoint_steps.axis[Z],
-                steps[X],steps[Y],steps[Z]);
+                steps[X],steps[Y],steps[Z],cart_delta_time);
   }
   
   for (i = X; i < E; i++) {
@@ -430,10 +432,10 @@ void dda_create(DDA *dda, TARGET *target) {
 	uint8_t msb_ssq = msbloc(ssq);
 	uint8_t msb_tot = msbloc(dda->total_steps);
 
-			// the raw equation WILL overflow at high step rates, but 64 bit math routines take waay too much space
-			// at 65536 mm/min (1092mm/s), ssq/esq overflows, and dsq is also close to overflowing if esq/ssq is small
-			// but if ssq-esq is small, ssq/dsq is only a few bits
-			// we'll have to do it a few different ways depending on the msb locations of each
+	// the raw equation WILL overflow at high step rates, but 64 bit math routines take waay too much space
+	// at 65536 mm/min (1092mm/s), ssq/esq overflows, and dsq is also close to overflowing if esq/ssq is small
+	// but if ssq-esq is small, ssq/dsq is only a few bits
+	// we'll have to do it a few different ways depending on the msb locations of each
 	if ((msb_tot + msb_ssq) <= 30) {
     	  // we have room to do all the multiplies first
 	  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
