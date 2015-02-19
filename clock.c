@@ -12,7 +12,7 @@
 #include	"debug.h"
 #include	"heater.h"
 #include	"serial.h"
-#include        "temp.h"
+#include	"temp.h"
 #ifdef	TEMP_INTERCOM
 	#include	"intercom.h"
 #endif
@@ -26,11 +26,14 @@ uint8_t clock_counter_10ms = 0;
 uint8_t clock_counter_250ms = 0;
 /// Keep track of when 1s has elapsed.
 uint8_t clock_counter_1s = 0;
+/// Keep track of when 1s has elapsed.
+uint8_t clock_counter_3s = 0;
 
 /// Flags to tell main loop when above have elapsed.
 volatile uint8_t clock_flag_10ms = 0;
 volatile uint8_t clock_flag_250ms = 0;
 volatile uint8_t clock_flag_1s = 0;
+volatile uint8_t clock_flag_3s = 0;
 
 
 /** Advance our clock by a tick.
@@ -54,6 +57,11 @@ void clock_tick(void) {
         clock_counter_1s = 0;
         clock_flag_1s = 1;
       }
+	  clock_counter_3s++;
+	  if (clock_counter_3s >= 12) {
+		  clock_counter_3s = 0;
+		  clock_flag_3s = 1;
+	  }
     }
   }
 }
@@ -126,6 +134,24 @@ static void clock_250ms(void) {
 		// temperature
 		/*		if (temp_get_target())
 		temp_print();*/
+	}
+	ifclock(clock_flag_3s) {
+		#ifdef LCD
+			#ifdef HEATER_EXTRUDER
+			lcdGoToAddr(0xD);
+			lcdsendf_P(PSTR("       "));
+			lcdGoToAddr(0x09);
+			lcdsendf_P(PSTR("Ext:"));
+			temp_lcd(HEATER_EXTRUDER);
+			#endif
+			#ifdef HEATER_EXTRUDER
+			lcdGoToAddr(0x4D);
+			lcdsendf_P(PSTR("       "));
+			lcdGoToAddr(0x49);
+			lcdsendf_P(PSTR("Bed:"));
+			temp_lcd(HEATER_BED);
+			#endif
+		#endif
 	}
 	#ifdef	TEMP_INTERCOM
 	start_send();

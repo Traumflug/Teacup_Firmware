@@ -223,6 +223,15 @@ void init(void) {
   // set up temperature inputs
   temp_init();
 
+  #ifdef LCD
+    // initialize LCD
+    lcdInit();
+    lcdClear();
+    lcdWriteText("->Teacup LCD Init<-");
+    lcdGoToAddr(0x54);
+    lcdWriteText("Teacup Firmware");
+    #endif
+
   // enable interrupts
   sei();
 
@@ -232,21 +241,20 @@ void init(void) {
   // prepare the power supply
   power_init();
 
-  #ifdef LCD
-    // initialize LCD
-    lcdInit();
-    lcdClear();
-    lcdWriteText("->Teacup LCD Init<-");
-    lcdGoToAddr(0x54);
-    lcdWriteText("Teacup");
-    #endif
-	
   // say hi to host
+  serial_writestr_P(PSTR("start\nok\n"));
+  
    sersendf_P(PSTR("\n------------------------------\n"));
    sersendf_P(PSTR("Teacup Firmware\n"));
    #ifdef DELTA_PRINTER
-   sersendf_P(PSTR("Using Delta Kinematics:\n")); 
-   #endif
+	sersendf_P(PSTR("Using Delta Kinematics:\n"));
+	#ifdef DELTA_TIME_SEGMENTS
+		sersendf_P(PSTR("   Using Time Segments: %lu\n segs/sec"),(uint32_t)DELTA_SEGMENTS_PER_SECOND);
+	#endif
+	#ifdef DELTA_DISTANCE_SEGMENTS
+		sersendf_P(PSTR("   Using Distance Segments: %lu segs/um\n"),(uint32_t)DELTA_SEGMENT_UM);
+	#endif
+   #endif	
    #ifdef ACCELERATION_REPRAP
       sersendf_P(PSTR("Acceleration Reprap\n"));
    #endif
@@ -263,8 +271,6 @@ void init(void) {
       sersendf_P(PSTR("Acceleration: %lu\n"),(uint32_t)ACCELERATION);
    #endif
    sersendf_P(PSTR("------------------------------\n"));
-
-  serial_writestr_P(PSTR("start\nok\n"));
 
 }
 

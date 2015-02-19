@@ -13,6 +13,7 @@
 #include	"sermsg.h"
 #ifdef LCD
 #include	"lcdmsg.h"
+#include        "SimpleLCD.h"
 #endif
 
 // void sersendf(char *format, ...) {
@@ -177,7 +178,6 @@ void sersendf_P(PGM_P format_P, ...) {
 void lcdsendf_P(PGM_P format_P, ...) {
 	va_list args;
 	va_start(args, format_P);
-
 	uint16_t i = 0;
 	uint8_t c = 1, j = 0;
 	while ((c = pgm_read_byte(&format_P[i++]))) {
@@ -204,7 +204,9 @@ void lcdsendf_P(PGM_P format_P, ...) {
 					j = 0;
 					break;
 				case 'c':
-          lcdWriteText(GET_ARG(uint16_t));
+          c=GET_ARG(uint16_t);
+          lcdWriteText(&c);
+          //lcdWriteText(GET_ARG(uint16_t));
 					j = 0;
 					break;
 				case 'x':
