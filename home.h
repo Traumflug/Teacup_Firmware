@@ -3,7 +3,7 @@
 
 void home(void);
 #ifdef DELTA_PRINTER
-void home_delta(void);
+  void home_delta(void);
 #endif
 
 void home_x_negative(void);

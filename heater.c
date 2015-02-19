@@ -11,7 +11,7 @@
 #include	"arduino.h"
 #include	"debug.h"
 #include	"temp.h"
-#include "pinio.h"
+#include	"pinio.h"
 #include	"crc.h"
 
 #ifndef	EXTRUDER
@@ -22,7 +22,7 @@
 /// \brief simply holds pinout data- port, pin, pwm channel if used
 typedef struct {
 	volatile uint8_t *heater_port; ///< pointer to port. DDR is inferred from this pointer too
-	uint8_t						heater_pin;  ///< heater pin, not masked. eg for PB3 enter '3' here, or PB3_PIN or similar
+	uint8_t	heater_pin;  ///< heater pin, not masked. eg for PB3 enter '3' here, or PB3_PIN or similar
 	volatile uint8_t *heater_pwm;  ///< pointer to 8-bit PWM register, eg OCR0A (8-bit) or ORC3L (low byte, 16-bit)
 } heater_definition_t;
 
@@ -40,7 +40,7 @@ static const heater_definition_t heaters[NUM_HEATERS] =
 	\var heaters_pid
 	\brief this struct holds the heater PID factors
 
-	PID is a fascinating way to control any closed loop control, combining the error (P), cumulative error (I) and rate at which we're approacing the setpoint (D) in such a way that when correctly tuned, the system will achieve target temperature quickly and with little to no overshoot
+	PID is a fascinating way to control any closed loop control, combining the error (P), cumulative error (I) and rate at which we're approaching the setpoint (D) in such a way that when correctly tuned, the system will achieve target temperature quickly and with little to no overshoot
 
 	At every sample, we calculate \f$OUT = k_P (S - T) + k_I \int (S - T) + k_D \frac{dT}{dt}\f$ where S is setpoint and T is temperature.
 
@@ -76,14 +76,14 @@ struct {
 	#define HEATER_THRESHOLD 8
 #endif
 
-/// default scaled P factor, equivalent to 8.0 counts/qC or 32 counts/C
-#define		DEFAULT_P				8192
+/// default scaled P factor, equivalent to 8.0 counts/qC or 32 counts/C (Marlin P=24.45,I=3.06,D=48.86)
+#define		DEFAULT_P				6113		//was 8192
 /// default scaled I factor, equivalent to 0.5 counts/(qC*qs) or 8 counts/C*s
-#define		DEFAULT_I				512
+#define		DEFAULT_I				196			//was 512
 /// default scaled D factor, equivalent to 24 counts/(qc/(TH_COUNT*qs)) or 192 counts/(C/s)
-#define		DEFAULT_D				24576
+#define		DEFAULT_D				6254		//was 24576
 /// default scaled I limit, equivalent to 384 qC*qs, or 24 C*s
-#define		DEFAULT_I_LIMIT	384
+#define		DEFAULT_I_LIMIT			782			//was 384
 
 #ifdef EECONFIG
 /// this lives in the eeprom so we can save our PID settings for each heater

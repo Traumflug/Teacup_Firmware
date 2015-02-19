@@ -17,7 +17,7 @@
 
 #include	"arduino.h"
 #include	"config_wrapper.h"
-#include "clock.h"
+#include	"clock.h"
 
 #ifdef	MOTHERBOARD
 #include	"dda_queue.h"
