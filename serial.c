@@ -106,7 +106,7 @@ void serial_init()
 ///
 /// we have received a character, stuff it in the rx buffer if we can, or drop it if we can't
 // Using the pragma inside the function is incompatible with Arduinos' gcc.
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+//#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #ifdef	USART_RX_vect
 ISR(USART_RX_vect)
 #else
