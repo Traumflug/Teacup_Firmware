@@ -682,6 +682,7 @@ void dda_step(DDA *dda) {
       short-delays consecutively and to give sufficient time on average.
    */
 		uint32_t c_candidate;
+    uint8_t i;
 
 		dda->c = 0xFFFFFFFF;
     for (i = X; i < AXIS_COUNT; i++) {
