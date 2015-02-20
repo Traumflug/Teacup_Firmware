@@ -91,8 +91,9 @@ for GCODE_FILE in $*; do
       echo "${LINE}"
       case "${LINE}" in
         stop)
-          echo "Got \"stop\", killing ${SIMULAVR}."
-          kill -INT $(pidof -x "${SIMULAVR}")
+          echo "Got \"stop\", killing $(basename ${SIMULAVR})."
+          killall -INT $(basename "${SIMULAVR}") 2> /dev/null || \
+            killall -INT "lt-"$(basename "${SIMULAVR}")
           ;;
       esac
     done 
