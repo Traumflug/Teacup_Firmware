@@ -570,7 +570,7 @@ void dda_step(DDA *dda) {
 		x_step();
     move_state.steps[X]--;
     move_state.time[X] += dda->step_interval[X];
-    move_state.all_time = move_state.time[X];
+    move_state.last_time = move_state.time[X];
 	}
 #endif
 
@@ -588,7 +588,7 @@ void dda_step(DDA *dda) {
 		y_step();
     move_state.steps[Y]--;
     move_state.time[Y] += dda->step_interval[Y];
-    move_state.all_time = move_state.time[Y];
+    move_state.last_time = move_state.time[Y];
 	}
 #endif
 
@@ -606,7 +606,7 @@ void dda_step(DDA *dda) {
 		z_step();
     move_state.steps[Z]--;
     move_state.time[Z] += dda->step_interval[Z];
-    move_state.all_time = move_state.time[Z];
+    move_state.last_time = move_state.time[Z];
 	}
 #endif
 
@@ -624,7 +624,7 @@ void dda_step(DDA *dda) {
 		e_step();
     move_state.steps[E]--;
     move_state.time[E] += dda->step_interval[E];
-    move_state.all_time = move_state.time[E];
+    move_state.last_time = move_state.time[E];
 	}
 #endif
 
