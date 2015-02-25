@@ -40,13 +40,15 @@
 #                                                                            #
 ##############################################################################
 
-# MCU_TARGET ?= atmega168
-# MCU_TARGET ?= atmega328p
-MCU_TARGET ?= atmega644p
-# MCU_TARGET ?= atmega1280
-# MCU_TARGET ?= atmega2560
-# MCU_TARGET ?= at90usb1286
-# MCU_TARGET ?= atmega32u4
+# MCU ?= atmega168
+# MCU ?= atmega328p
+MCU ?= atmega644
+# MCU ?= atmega644
+# MCU ?= atmega1284p
+# MCU ?= atmega1280
+# MCU ?= atmega2560
+# MCU ?= at90usb1286
+# MCU ?= atmega32u4
 
 # CPU clock rate
 # F_CPU ?= 8000000L
@@ -76,7 +78,7 @@ TOOLCHAIN = avr-
 #   -c <programmer-type>      Typically stk500 or stk500v2.
 #   -b <baudrate>             Upload baud rate. Depends on the bootloader in
 #                             use. Not used for USB programmers.
-#   -p <mcu type>             See MCU_TARGET above.
+#   -p <mcu type>             See MCU above.
 #   -P <port>                 Serial port the electronics is connected to.
 #   -C <config file>          Optional, default is /etc/avrdude.conf.
 
@@ -88,7 +90,7 @@ UPLOADER_FLAGS  = -c stk500v2
 # UPLOADER_FLAGS += -b 19200
 # UPLOADER_FLAGS += -b 57600
 UPLOADER_FLAGS += -b 115200
-UPLOADER_FLAGS += -p $(MCU_TARGET)
+UPLOADER_FLAGS += -p $(MCU)
 # UPLOADER_FLAGS += -P COM1
 # UPLOADER_FLAGS += -P /dev/ttyACM0
 UPLOADER_FLAGS += -P /dev/ttyUSB0
@@ -112,7 +114,7 @@ TARGET = $(PROGRAM).hex
 SOURCES = $(wildcard *.c)
 
 CFLAGS += -DF_CPU=$(F_CPU)
-CFLAGS += -mmcu=$(MCU_TARGET)
+CFLAGS += -mmcu=$(MCU)
 CFLAGS += -g
 CFLAGS += -Wall
 CFLAGS += -Wstrict-prototypes

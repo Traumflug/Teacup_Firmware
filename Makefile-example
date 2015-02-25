@@ -16,7 +16,7 @@
 
 # Override variables in the stock makefiles
 export F_CPU = 20000000L
-export MCU_TARGET = atmega644p
+export MCU = atmega644p
 
 default: avr
 
@@ -29,7 +29,7 @@ sim:
 
 # Build Teacup for an Atmel processor
 avr:
-	@echo "----[ $(MCU_TARGET) ]----"
+	@echo "----[ $(MCU) ]----"
 	@make -sf Makefile-AVR
 
 clean:
