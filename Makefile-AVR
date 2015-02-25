@@ -2,7 +2,7 @@
 #                                                                            #
 # Teacup - Lean and efficient firmware for RepRap printers                   #
 #                                                                            #
-# by Triffid Hunter, Traumflug, jakepoz, Markus Hitter, many others          #
+# by Triffid Hunter, Traumflug, jakepoz, many others.                        #
 #                                                                            #
 # This firmware is Copyright (c) ...                                         #
 #   2009 - 2010 Michael Moon aka Triffid_Hunter                              #
@@ -49,8 +49,9 @@ MCU_TARGET ?= atmega644p
 # MCU_TARGET ?= atmega32u4
 
 # CPU clock rate
-F_CPU ?= 16000000L
 # F_CPU ?= 8000000L
+F_CPU ?= 16000000L
+# F_CPU ?= 20000000L
 
 ##############################################################################
 #                                                                            #
