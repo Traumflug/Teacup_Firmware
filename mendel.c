@@ -52,7 +52,7 @@
 
 #ifdef SIMINFO
   #include "../simulavr/src/simulavr_info.h"
-  SIMINFO_DEVICE("atmega644");
+  SIMINFO_DEVICE(MCU_STR);
   SIMINFO_CPUFREQUENCY(F_CPU);
   SIMINFO_SERIAL_IN("D0", "-", BAUD);
   SIMINFO_SERIAL_OUT("D1", "-", BAUD);

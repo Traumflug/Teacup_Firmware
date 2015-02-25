@@ -114,6 +114,7 @@ TARGET = $(PROGRAM).hex
 SOURCES = $(wildcard *.c)
 
 CFLAGS += -DF_CPU=$(F_CPU)
+CFLAGS += -DMCU_STR=\"$(MCU)\"
 CFLAGS += -mmcu=$(MCU)
 CFLAGS += -g
 CFLAGS += -Wall
