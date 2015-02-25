@@ -395,15 +395,15 @@ class ConfigFrame(wx.Frame):
 
     if not self.verifyConfigLoaded():
       dlg = wx.MessageDialog(self, "Loaded configuration does not match the "
-                                   "config.h file. Click Yes to load config.h.",
-                             "Incorrect data loaded",
+                                   "config.h file. Click Yes to save config.h.",
+                             "Configuration changed",
                              wx.YES_NO | wx.NO_DEFAULT | wx.ICON_INFORMATION)
       rc = dlg.ShowModal()
       dlg.Destroy()
       if rc != wx.ID_YES:
         return
 
-      self.loadConfigFile("config.h")
+      self.onSaveConfig(None)
 
     f_cpu, cpu, baud = self.pgBoard.getCPUInfo()
     if not cpu:
