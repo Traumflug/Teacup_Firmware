@@ -454,11 +454,6 @@ class ConfigFrame(wx.Frame):
     dlg = SettingsDlg(self, self.settings)
     rc = dlg.ShowModal()
     dlg.Destroy()
-    if rc != wx.ID_OK:
-      return
-
-    m = "configtool.default.ini successfully saved.\n"
-    self.message(m, "Save settings success", wx.OK + wx.ICON_INFORMATION)
 
   def message(self, text, title, style = wx.OK + wx.ICON_ERROR):
     dlg = wx.MessageDialog(self, text, title, style)

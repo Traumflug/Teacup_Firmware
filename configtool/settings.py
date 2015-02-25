@@ -70,6 +70,9 @@ class Settings:
     self.cfg.write(cfp)
     cfp.close()
 
+    self.app.message(INIFILE + " successfully saved.\n",
+                     "Save settings success", wx.OK + wx.ICON_INFORMATION)
+
 
 ARDUINODIR = 0
 CFLAGS = 1
