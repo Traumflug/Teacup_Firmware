@@ -4,7 +4,8 @@ import os
 import wx
 from configtool.data import BSIZESMALL, offsetTcLabel
 
-INIFILE = "configtool.default.ini"
+INIFILE = "configtool.ini"
+DEFAULT_INIFILE = "configtool.default.ini"
 
 
 class Settings:
@@ -24,9 +25,10 @@ class Settings:
     self.cfg = ConfigParser.ConfigParser()
     self.cfg.optionxform = str
     if not self.cfg.read(self.inifile):
-      print "Settings file %s does not exist. Using default values." % INIFILE
-
-      return
+      if not self.cfg.read(os.path.join(folder, DEFAULT_INIFILE)):
+        print ("Neither of settings files %s or %s exist. Using default values."
+               % (INIFILE, DEFAULT_INIFILE))
+        return
 
     if self.cfg.has_section(self.section):
       for opt, value in self.cfg.items(self.section):
