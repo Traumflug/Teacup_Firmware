@@ -615,11 +615,14 @@ class BoardPanel(wx.Panel):
       dlg = wx.MessageDialog(self,
                              "File ThermistorTable.h successfully written.",
                              "Save successful", wx.OK + wx.ICON_INFORMATION)
+      dlg.ShowModal()
+      dlg.Destroy()
     else:
       dlg = wx.MessageDialog(self, "Error writing to file ThermistorTable.h.",
                              "File error", wx.OK + wx.ICON_ERROR)
-    dlg.ShowModal()
-    dlg.Destroy()
+      dlg.ShowModal()
+      dlg.Destroy()
+      return False
 
     return True
 
