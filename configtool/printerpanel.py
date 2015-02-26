@@ -270,7 +270,7 @@ class PrinterPanel(wx.Panel):
 
   def onSaveConfig(self, evt):
     path = self.configFile
-    self.saveConfigFile(path)
+    return self.saveConfigFile(path)
 
   def onSaveConfigAs(self, evt):
     wildcard = "Printer configuration (printer.*.h)|printer.*.h"
@@ -288,10 +288,12 @@ class PrinterPanel(wx.Panel):
     path = dlg.GetPath()
     dlg.Destroy()
 
-    if self.saveConfigFile(path):
+    rc = self.saveConfigFile(path)
+    if rc:
       self.parent.setPrinterTabFile(os.path.basename(path))
       self.protFileLoaded = False
       self.parent.enableSavePrinter(True, True)
+    return rc
 
   def saveConfigFile(self, path):
     if os.path.basename(path) in protectedFiles:

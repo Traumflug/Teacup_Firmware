@@ -43,6 +43,14 @@ class SensorsPage(wx.Panel, Page):
     bsz.Add(self.bAdd)
 
     bsz.AddSpacer((10, 10))
+    self.bModify = wx.Button(self, wx.ID_ANY, "Modify", size = BSIZESMALL)
+    self.bModify.SetFont(font)
+    self.bModify.Enable(False)
+    self.Bind(wx.EVT_BUTTON, self.doModify, self.bModify)
+    bsz.Add(self.bModify)
+    self.bModify.SetToolTipString("Modify the selected temperature sensor.")
+
+    bsz.AddSpacer((10, 10))
     self.bDelete = wx.Button(self, wx.ID_ANY, "Delete", size = BSIZESMALL)
     self.bDelete.SetFont(font)
     self.bDelete.Enable(False)
@@ -60,8 +68,10 @@ class SensorsPage(wx.Panel, Page):
     self.selection = n
     if n is None:
       self.bDelete.Enable(False)
+      self.bModify.Enable(False)
     else:
       self.bDelete.Enable(True)
+      self.bModify.Enable(True)
 
   def doAdd(self, evt):
     nm = []
@@ -79,6 +89,34 @@ class SensorsPage(wx.Panel, Page):
       return
 
     self.sensors.append(tt)
+    self.lb.updateList(self.sensors)
+    self.validateTable()
+    self.assertModified(True)
+
+  def doModify(self, evt):
+    if self.selection is None:
+      return
+    nm = []
+    for s in self.sensors:
+      nm.append(s[0])
+
+    s = self.sensors[self.selection]
+    dlg = AddSensorDlg(self, nm, self.validPins, self.font,
+                       name = s[0], stype = s[1], pin = s[2],
+                       r0 = s[3][0], beta = s[3][1], r2 = s[3][2],
+                       vadc = s[3][3], modify = True)
+    rc = dlg.ShowModal()
+    if rc == wx.ID_OK:
+      tt = dlg.getValues()
+
+    dlg.Destroy()
+
+    if rc != wx.ID_OK:
+      return
+
+    self.assertModified(True)
+
+    self.sensors[self.selection] = tt
     self.lb.updateList(self.sensors)
     self.validateTable()
     self.assertModified(True)

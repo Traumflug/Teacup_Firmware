@@ -143,6 +143,9 @@
 //DEFINE_TEMP_SENSORS_START
 //                 name      type           pin    additional
 DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, AIO5,  THERMISTOR_EXTRUDER)
+
+//                     r0      beta  r2    vadc
+//TEMP_TABLE EXTRUDER (100000, 4092, 4700, 5.0)
 //DEFINE_TEMP_SENSORS_END
 
 
