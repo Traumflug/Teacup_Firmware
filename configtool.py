@@ -492,7 +492,7 @@ class ConfigFrame(wx.Frame):
 
 
 if __name__ == '__main__':
-  app = wx.PySimpleApp()
+  app = wx.App(False)
   frame = ConfigFrame()
   frame.Show(True)
   app.MainLoop()
