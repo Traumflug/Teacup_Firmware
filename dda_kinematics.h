@@ -23,6 +23,7 @@ void carthesian_to_delta(TARGET *startpoint, TARGET *target,
                           axes_uint32_t delta_um, axes_int32_t steps);
 
 TARGET delta_from_cartesian(TARGET *t);
+uint32_t cartesian_move_dist(TARGET *start, TARGET *end);
 
 //void carthesian_to_scara(TARGET *startpoint, TARGET *target,
 //                         axes_uint32_t delta_um, axes_int32_t steps);

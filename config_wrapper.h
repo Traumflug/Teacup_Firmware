@@ -25,3 +25,12 @@
 #ifdef USB_SERIAL
   #undef BAUD
 #endif
+
+/**
+  ACCELERATION_TEMPORAL doesn't support lookahead, yet.
+*/
+#if defined ACCELERATION_TEMPORAL && defined LOOKAHEAD
+  #warning Acceleration temporal doesnt support lookahead, yet. \
+           Lookahead disabled.
+  #undef LOOKAHEAD
+#endif

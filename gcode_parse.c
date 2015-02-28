@@ -122,61 +122,71 @@ void gcode_parse_char(uint8_t c) {
 					break;
 				#ifdef DELTA_PRINTER
 				case 'H':
-          delta_height = decfloat_to_int(&read_digit, 1000);
-          break;
-        #endif
+					delta_height = decfloat_to_int(&read_digit, 1000);
+					break;
+				case 'R':
+					delta_radius = decfloat_to_int(&read_digit, 1000) ;
+					delta_tower1_x = (int32_t)(-0.86602540378443864676372317075294 * delta_radius) >> 4;
+					delta_tower1_y = (int32_t)(-0.5 * delta_radius) >> 4;
+					delta_tower2_x = (int32_t)( 0.86602540378443864676372317075294 * delta_radius) >> 4;
+					delta_tower2_y = (int32_t)(-0.5 * delta_radius) >> 4;
+					delta_tower3_x = (int32_t)( 0.0 * delta_radius) >> 4;
+					delta_tower3_y = (delta_radius >> 4);
+					delta_radius   = (delta_radius >> 4);
+					break;  
+				#endif
 				case 'X':
-          if (next_target.M == 666) {
-             #ifdef DELTA_PRINTER
-             endstop_adj_x = decfloat_to_int(&read_digit, 1000);
-             #endif
-          }   
-          else {   
+					if (next_target.M == 666) {
+						#ifdef DELTA_PRINTER
+							endstop_adj_x = decfloat_to_int(&read_digit, 1000);
+						#endif
+					}   
+					else {   
 					   if (next_target.option_inches)
-                next_target.target.axis[X] = decfloat_to_int(&read_digit, 25400);
+							next_target.target.axis[X] = decfloat_to_int(&read_digit, 25400);
 					   else
-                next_target.target.axis[X] = decfloat_to_int(&read_digit, 1000);
-          }     
+							next_target.target.axis[X] = decfloat_to_int(&read_digit, 1000);
+					}
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-               serwrite_int32(next_target.target.axis[X]);
+						serwrite_int32(next_target.target.axis[X]);
 					break;
 				case 'Y':
-          if (next_target.M == 666){
-             #ifdef DELTA_PRINTER
-             endstop_adj_y = decfloat_to_int(&read_digit, 1000);
-             #endif
-          }
-          else {   
+					if (next_target.M == 666){
+						#ifdef DELTA_PRINTER
+							endstop_adj_y = decfloat_to_int(&read_digit, 1000);
+						#endif
+					}
+					else {   
 					   if (next_target.option_inches)
-               next_target.target.axis[Y] = decfloat_to_int(&read_digit, 25400);
+							next_target.target.axis[Y] = decfloat_to_int(&read_digit, 25400);
 					   else
-               next_target.target.axis[Y] = decfloat_to_int(&read_digit, 1000);
-          }    
+							next_target.target.axis[Y] = decfloat_to_int(&read_digit, 1000);
+					}
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_int32(next_target.target.axis[Y]);
+						serwrite_int32(next_target.target.axis[Y]);
 					break;
 				case 'Z':
-          if (next_target.M == 666){
-             #ifdef DELTA_PRINTER
-             endstop_adj_z = decfloat_to_int(&read_digit, 1000);
-             #endif
-          }   
-          else {   
+					if (next_target.M == 666){
+						#ifdef DELTA_PRINTER
+							endstop_adj_z = decfloat_to_int(&read_digit, 1000);
+						#endif
+					}
+					else {   
 					   if (next_target.option_inches)
-                next_target.target.axis[Z] = decfloat_to_int(&read_digit, 25400);
+							next_target.target.axis[Z] = decfloat_to_int(&read_digit, 25400);
 					   else
-                next_target.target.axis[Z] = decfloat_to_int(&read_digit, 1000);
-          }      
+							next_target.target.axis[Z] = decfloat_to_int(&read_digit, 1000);
+					}
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_int32(next_target.target.axis[Z]);
+						serwrite_int32(next_target.target.axis[Z]);
 					break;
 				case 'E':
 					if (next_target.option_inches)
-            next_target.target.axis[E] = decfloat_to_int(&read_digit, 25400);
+						next_target.target.axis[E] = decfloat_to_int(&read_digit, 25400);
 					else
-            next_target.target.axis[E] = decfloat_to_int(&read_digit, 1000);
+						next_target.target.axis[E] = decfloat_to_int(&read_digit, 1000);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_uint32(next_target.target.axis[E]);
+						serwrite_uint32(next_target.target.axis[E]);
 					break;
 				case 'F':
 					// just use raw integer, we need move distance and n_steps to convert it to a useful value, so wait until we have those to convert it
@@ -272,6 +282,9 @@ void gcode_parse_char(uint8_t c) {
         case 'H':
           next_target.seen_H = 1;
           break;
+        case 'R':
+          next_target.seen_R = 1;
+          break;  
         #endif  
         case 'X':
           next_target.seen_X = 1;
@@ -403,19 +416,19 @@ void gcode_parse_char(uint8_t c) {
 
 		// reset variables
 		next_target.seen_X = next_target.seen_Y = next_target.seen_Z = \
-		  next_target.seen_M = next_target.seen_L = next_target.seen_H = \
-			next_target.seen_E = next_target.seen_F = next_target.seen_S = \
-			next_target.seen_P = next_target.seen_T = next_target.seen_N = \
-      next_target.seen_G = next_target.seen_M = next_target.seen_checksum = \
-      next_target.seen_semi_comment = next_target.seen_parens_comment = \
-      next_target.checksum_read = next_target.checksum_calculated = 0;
+		next_target.seen_M = next_target.seen_L = next_target.seen_H = next_target.seen_R =\
+		next_target.seen_E = next_target.seen_F = next_target.seen_S = \
+		next_target.seen_P = next_target.seen_T = next_target.seen_N = \
+		next_target.seen_G = next_target.seen_M = next_target.seen_checksum = \
+		next_target.seen_semi_comment = next_target.seen_parens_comment = \
+		next_target.checksum_read = next_target.checksum_calculated = 0;
 		// last_field and read_digit are reset above already
 
 		if (next_target.option_all_relative) {
-      next_target.target.axis[X] = next_target.target.axis[Y] = next_target.target.axis[Z] = 0;
+			next_target.target.axis[X] = next_target.target.axis[Y] = next_target.target.axis[Z] = 0;
 		}
 		if (next_target.option_all_relative || next_target.option_e_relative) {
-      next_target.target.axis[E] = 0;
+			next_target.target.axis[E] = 0;
 		}
 	}
 }

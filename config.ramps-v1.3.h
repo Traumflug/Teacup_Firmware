@@ -67,6 +67,7 @@
 //***** Delta Settings *****
 #define DELTA_PRINTER
 #define KINEMATICS KINEMATICS_DELTA
+//#define DELTA_USE_SEGMENTS
 //#define DELTA_TIME_SEGMENTS
 #define DELTA_DISTANCE_SEGMENTS
 #define DELTA_SEGMENTS_PER_SECOND 200
@@ -199,7 +200,7 @@
 	acceleration and deceleration ramping.
 		Each movement starts at (almost) no speed, linearly accelerates to target speed and decelerates just in time to smoothly stop at the target. alternative to ACCELERATION_REPRAP
 */
-#define ACCELERATION_RAMPING
+//#define ACCELERATION_RAMPING
 
 /** \def ACCELERATION
 	how fast to accelerate when using ACCELERATION_RAMPING.
@@ -219,14 +220,14 @@
 
 		// TODO: figure out how to add acceleration to this algorithm
 */
-// #define ACCELERATION_TEMPORAL
+#define ACCELERATION_TEMPORAL
 
 /** \def LOOKAHEAD
   Define this to enable look-ahead during *ramping* acceleration to smoothly
   transition between moves instead of performing a dead stop every move.
   Enabling look-ahead requires about 3600 bytes of flash memory.
 */
-#define LOOKAHEAD
+//#define LOOKAHEAD
 
 /** \def MAX_JERK_X
     \def MAX_JERK_Y
@@ -354,7 +355,7 @@
   a LED in hardware), see
   http://reprap.org/wiki/Teacup_Firmware#Doing_precision_profiling
 */
-// #define DEBUG_LED_PIN DIO13
+ #define DEBUG_LED_PIN DIO13
 
 
 
@@ -565,7 +566,7 @@ PWM value for 'off'
 		note that each move takes a fair chunk of ram (69 bytes as of this writing) so don't make the buffer too big - a bigger serial readbuffer may help more than increasing this unless your gcodes are more than 70 characters long on average.
 		however, a larger movebuffer will probably help with lots of short consecutive moves, as each move takes a bunch of math (hence time) to set up so a longer buffer allows more of the math to be done during preceding longer moves
 */
-#define	MOVEBUFFER_SIZE	64  //was 8
+#define	MOVEBUFFER_SIZE	16  //was 8
 
 /** \def DC_EXTRUDER
 	DC extruder
@@ -590,7 +591,7 @@ PWM value for 'off'
 	this should help immensely with dropped serial characters, but may also make debugging infuriating due to the complexities arising from nested interrupts
 	\note disable this option if you're using a '168 or for some reason your ram usage is above 90%. This option hugely increases likelihood of stack smashing.
 */
-#define		STEP_INTERRUPT_INTERRUPTIBLE	1
+#define		STEP_INTERRUPT_INTERRUPTIBLE	0
 
 /**
 	temperature history count. This is how many temperature readings to keep in order to calculate derivative in PID loop
