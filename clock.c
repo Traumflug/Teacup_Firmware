@@ -105,7 +105,7 @@ static void clock_10ms(void) {
 	// reset watchdog
 	wd_reset();
 
-	temp_tick();
+	temp_sensor_tick();
 
 	ifclock(clock_flag_250ms) {
 		clock_250ms();
