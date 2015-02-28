@@ -18,11 +18,12 @@
 #endif
 
 #ifdef DELTA_PRINTER
-extern const int32_t delta_tower1_x,delta_tower1_y;
-extern const int32_t delta_tower2_x,delta_tower2_y;
-extern const int32_t delta_tower3_x,delta_tower3_y;
+extern int32_t delta_tower1_x,delta_tower1_y;
+extern int32_t delta_tower2_x,delta_tower2_y;
+extern int32_t delta_tower3_x,delta_tower3_y;
 extern const uint32_t DELTA_DIAGONAL_ROD_2;
 extern int32_t endstop_adj_x,endstop_adj_y,endstop_adj_z;
+extern int32_t delta_radius;
 extern int32_t delta_height;
 extern uint8_t bypass_delta;
 #endif
@@ -83,7 +84,7 @@ typedef struct {
 	#ifdef ACCELERATION_TEMPORAL
   axes_uint32_t     time;       ///< time of the last step on each axis
   uint32_t          last_time;  ///< time of the last step of any axis
-  uint32_t          all_time;
+  //uint32_t          all_time;		//not used - all changed to last_time
 	#endif
 
 	/// Endstop handling.
@@ -101,6 +102,12 @@ typedef struct {
 typedef struct {
 	/// this is where we should finish
 	TARGET						endpoint;
+
+	#if defined(DELTA_PRINTER) && defined(ACCELERATION_TEMPORAL)
+		TARGET					delta_startpoint;
+		TARGET					cart_startpoint;
+		TARGET					cart_target;
+	#endif
 
 	union {
 		struct {
@@ -128,7 +135,7 @@ typedef struct {
 	};
 
 	// distances
-  axes_uint32_t     delta;       ///< number of steps on each axis
+  axes_uint32_t     delta;       ///< number of steps on each axis for total move
 
   // uint8_t        fast_axis;   (see below)
   uint32_t          total_steps; ///< steps of the "fast" axis
@@ -169,10 +176,16 @@ typedef struct {
   // MOVEBUFFER_SIZE is already enough.
   uint8_t           id;
   #endif //LOOKAHEAD
-	#endif //ACCELERATION_RAMPIN
+	#endif //ACCELERATION_RAMPING
 	#ifdef ACCELERATION_TEMPORAL
-  axes_uint32_t     step_interval;   ///< time between steps on each axis
-	uint8_t						axis_to_step;    ///< axis to be stepped on the next interrupt
+		axes_uint32_t	step_interval;   ///< time between steps on each axis
+		uint8_t			axis_to_step;    ///< axis to be stepped on the next interrupt
+		#if defined(DELTA_PRINTER)
+			int32_t			cart_move_duration;	 ///< clock time based on distance of cartesian move
+			uint32_t		last_move_time_elapsed;
+			axes_uint32_t	next_step_interval;
+			uint32_t		interval_num;
+		#endif
 	#endif
 
   /// Small variables. Many CPUs can access 32-bit variables at word or double

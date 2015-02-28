@@ -34,7 +34,7 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond);
 
 static void enqueue(TARGET *) __attribute__ ((always_inline));
 inline void enqueue(TARGET *t) {
-  #ifdef DELTA_PRINTER
+  #if defined(DELTA_PRINTER) && defined(DELTA_USE_SEGMENTS)
      delta_segments_create(t);
   #else
      enqueue_home(t, 0, 0);

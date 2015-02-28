@@ -67,6 +67,7 @@
 //***** Delta Settings *****
 #define DELTA_PRINTER
 #define KINEMATICS KINEMATICS_DELTA
+//#define DELTA_USE_SEGMENTS
 //#define DELTA_TIME_SEGMENTS
 #define DELTA_DISTANCE_SEGMENTS
 #define DELTA_SEGMENTS_PER_SECOND 200
@@ -219,14 +220,14 @@
 
 		// TODO: figure out how to add acceleration to this algorithm
 */
-// #define ACCELERATION_TEMPORAL
+#define ACCELERATION_TEMPORAL
 
 /** \def LOOKAHEAD
   Define this to enable look-ahead during *ramping* acceleration to smoothly
   transition between moves instead of performing a dead stop every move.
   Enabling look-ahead requires about 3600 bytes of flash memory.
 */
-#define LOOKAHEAD
+//#define LOOKAHEAD
 
 /** \def MAX_JERK_X
     \def MAX_JERK_Y
@@ -285,14 +286,14 @@
 	This is for the RAMPS v1.3 shield
 */
 // TODO: 20110813 SJL - the following two are not yet used&verified for RAMPS1.3
-//#define	TX_ENABLE_PIN					DIO12
+//#define TX_ENABLE_PIN					DIO12
 //#define	RX_ENABLE_PIN					DIO13
 
 #define	X_STEP_PIN  					AIO0
 #define	X_DIR_PIN   					AIO1
 //#define	X_MIN_PIN   					DIO3
 #define	X_MAX_PIN   					DIO2
-#define X_ENABLE_PIN					DIO38
+#define X_ENABLE_PIN          DIO38
 //#define	X_INVERT_DIR
 //#define	X_INVERT_MIN
 //#define	X_INVERT_MAX
@@ -302,7 +303,7 @@
 #define	Y_DIR_PIN   					AIO7
 //#define	Y_MIN_PIN   					DIO14
 #define	Y_MAX_PIN   					DIO15
-#define Y_ENABLE_PIN					AIO2
+#define Y_ENABLE_PIN          AIO2
 //#define	Y_INVERT_DIR
 //#define	Y_INVERT_MIN
 //#define	Y_INVERT_MAX
@@ -313,20 +314,20 @@
 //#define	Z_INVERT_DIR
 //#define	Z_MIN_PIN   					DIO18
 #define	Z_MAX_PIN   					DIO19
-#define Z_ENABLE_PIN					AIO8
+#define Z_ENABLE_PIN          AIO8
 //#define	Z_INVERT_MIN
 //#define	Z_INVERT_MAX
 #define Z_INVERT_ENABLE
 
 #define	E_STEP_PIN  					DIO26
 #define	E_DIR_PIN   					DIO28
-#define E_ENABLE_PIN					DIO24
+#define E_ENABLE_PIN          DIO24
 //#define	E_INVERT_DIR
 #define E_INVERT_ENABLE
 
-//#define	PS_ON_PIN						xxxx
-//#define	PS_MOSFET_PIN					xxxx
-//#define	STEPPER_ENABLE_PIN				xxxx
+//#define	PS_ON_PIN							xxxx
+//#define PS_MOSFET_PIN         xxxx
+//#define	STEPPER_ENABLE_PIN		xxxx
 //#define	STEPPER_INVERT_ENABLE
 
 // TODO: 20110813 SJL - the following two are not yet used&verified for RAMPS1.3
@@ -354,7 +355,7 @@
   a LED in hardware), see
   http://reprap.org/wiki/Teacup_Firmware#Doing_precision_profiling
 */
-// #define DEBUG_LED_PIN DIO13
+ #define DEBUG_LED_PIN DIO13
 
 
 
