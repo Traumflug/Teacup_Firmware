@@ -82,7 +82,7 @@ void queue_step() {
 	DDA* current_movebuffer = &movebuffer[mb_tail];
 	if (current_movebuffer->live) {
 		if (current_movebuffer->waitfor_temp) {
-      timer_set(HEATER_WAIT_TIMEOUT);
+      timer_set(HEATER_WAIT_TIMEOUT, 0);
 			if (temp_achieved()) {
 				current_movebuffer->live = current_movebuffer->done = 0;
 				serial_writestr_P(PSTR("Temp achieved\n"));
@@ -165,7 +165,7 @@ void next_move() {
 		if (current_movebuffer->waitfor_temp) {
 			serial_writestr_P(PSTR("Waiting for target temp\n"));
 			current_movebuffer->live = 1;
-      timer_set(HEATER_WAIT_TIMEOUT);
+      timer_set(HEATER_WAIT_TIMEOUT, 0);
 		}
 		else {
 			dda_start(current_movebuffer);

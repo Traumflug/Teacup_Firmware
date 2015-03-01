@@ -527,7 +527,7 @@ void dda_start(DDA *dda) {
 		dda->live = 1;
 
 		// set timeout for first step
-    timer_set(dda->c);
+    timer_set(dda->c, 0);
 	}
 	// else just a speed change, keep dda->live = 0
 
@@ -644,47 +644,63 @@ void dda_step(DDA *dda) {
       later. In turn we promise here to send a maximum of four such
       short-delays consecutively and to give sufficient time on average.
     */
-		uint32_t c_candidate;
-    uint8_t i;
+    // This is the time which led to this call of dda_step().
+    move_state.last_time = move_state.time[dda->axis_to_step] +
+                           dda->step_interval[dda->axis_to_step];
 
-    if (dda->axis_to_step == X) {
-      x_step();
-      move_state.steps[X]--;
-      move_state.time[X] += dda->step_interval[X];
-      move_state.last_time = move_state.time[X];
-    }
-    if (dda->axis_to_step == Y) {
-      y_step();
-      move_state.steps[Y]--;
-      move_state.time[Y] += dda->step_interval[Y];
-      move_state.last_time = move_state.time[Y];
-    }
-    if (dda->axis_to_step == Z) {
-      z_step();
-      move_state.steps[Z]--;
-      move_state.time[Z] += dda->step_interval[Z];
-      move_state.last_time = move_state.time[Z];
-    }
-    if (dda->axis_to_step == E) {
-      e_step();
-      move_state.steps[E]--;
-      move_state.time[E] += dda->step_interval[E];
-      move_state.last_time = move_state.time[E];
-    }
+    do {
+      uint32_t c_candidate;
+      enum axis_e i;
 
-		dda->c = 0xFFFFFFFF;
-    for (i = X; i < AXIS_COUNT; i++) {
-      if (move_state.steps[i]) {
-        c_candidate = move_state.time[i] + dda->step_interval[i] - move_state.last_time;
-        if (c_candidate < dda->c) {
-          dda->axis_to_step = i;
-          dda->c = c_candidate;
+      if (dda->axis_to_step == X) {
+        x_step();
+        move_state.steps[X]--;
+        move_state.time[X] += dda->step_interval[X];
+      }
+      if (dda->axis_to_step == Y) {
+        y_step();
+        move_state.steps[Y]--;
+        move_state.time[Y] += dda->step_interval[Y];
+      }
+      if (dda->axis_to_step == Z) {
+        z_step();
+        move_state.steps[Z]--;
+        move_state.time[Z] += dda->step_interval[Z];
+      }
+      if (dda->axis_to_step == E) {
+        e_step();
+        move_state.steps[E]--;
+        move_state.time[E] += dda->step_interval[E];
+      }
+      unstep();
+
+      // Find the next stepper to step.
+      dda->c = 0xFFFFFFFF;
+      for (i = X; i < AXIS_COUNT; i++) {
+        if (move_state.steps[i]) {
+          c_candidate = move_state.time[i] + dda->step_interval[i] -
+                        move_state.last_time;
+          if (c_candidate < dda->c) {
+            dda->axis_to_step = i;
+            dda->c = c_candidate;
+          }
         }
       }
-    }
-	#endif
+
+      // No stepper to step found? Then we're done.
+      if (dda->c == 0xFFFFFFFF) {
+        dda->live = 0;
+        dda->done = 1;
+        break;
+      }
+    } while (timer_set(dda->c, 1));
+
+  #endif /* ACCELERATION_TEMPORAL */
 
   // If there are no steps left or an endstop stop happened, we have finished.
+  //
+  // TODO: with ACCELERATION_TEMPORAL this duplicates some code. See where
+  //       dda->live is zero'd, about 10 lines above.
   if ((move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
        move_state.steps[Z] == 0 && move_state.steps[E] == 0)
     #ifdef ACCELERATION_RAMPING
@@ -709,7 +725,9 @@ void dda_step(DDA *dda) {
 	}
   else {
 		psu_timeout = 0;
-    timer_set(dda->c);
+    #ifndef ACCELERATION_TEMPORAL
+      timer_set(dda->c, 0);
+    #endif
   }
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
