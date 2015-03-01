@@ -343,9 +343,12 @@ class PrinterPanel(wx.Panel):
         if len(t) == 2:
           if t[0] in values.keys() and values[t[0]] != "":
             fp.write(defineValueFormat % (t[0], values[t[0]]))
+            self.cfgValues[t[0]] = values[t[0]]
             labelFound.append(t[0])
           elif t[0] in values.keys():
             fp.write("//" + ln)
+            if t[0] in self.cfgValues.keys():
+              del self.cfgValues[t[0]]
             labelFound.append(t[0])
           else:
             fp.write(ln)
@@ -357,9 +360,12 @@ class PrinterPanel(wx.Panel):
         if len(t) == 1:
           if t[0] in values.keys() and values[t[0]]:
             fp.write(defineBoolFormat % t[0])
+            self.cfgValues[t[0]] = True
             labelFound.append(t[0])
           elif t[0] in values.keys():
             fp.write("//" + ln)
+            if t[0] in self.cfgValues.keys():
+              del self.cfgValues[t[0]]
             labelFound.append(t[0])
           else:
             fp.write(ln)
@@ -371,6 +377,7 @@ class PrinterPanel(wx.Panel):
         if len(t) == 2:
           if t[0] in values.keys() and values[t[0]] != "":
             fp.write(defineValueFormat % (t[0], values[t[0]]))
+            self.cfgValues[t[0]] =  values[t[0]]
             labelFound.append(t[0])
           elif t[0] in values.keys():
             fp.write(ln)
@@ -385,6 +392,7 @@ class PrinterPanel(wx.Panel):
         if len(t) == 1:
           if t[0] in values.keys() and values[t[0]]:
             fp.write(defineBoolFormat % t[0])
+            self.cfgValues[t[0]] = True
             labelFound.append(t[0])
           elif t[0] in values.keys():
             fp.write(ln)
