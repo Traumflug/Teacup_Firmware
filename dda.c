@@ -565,16 +565,6 @@ void dda_step(DDA *dda) {
       move_state.counter[X] += dda->total_steps;
 		}
 	}
-#else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == X) {
-		x_step();
-    move_state.steps[X]--;
-    move_state.time[X] += dda->step_interval[X];
-    move_state.last_time = move_state.time[X];
-	}
-#endif
-
-#if ! defined ACCELERATION_TEMPORAL
   if (move_state.steps[Y]) {
     move_state.counter[Y] -= dda->delta[Y];
     if (move_state.counter[Y] < 0) {
@@ -583,16 +573,6 @@ void dda_step(DDA *dda) {
       move_state.counter[Y] += dda->total_steps;
 		}
 	}
-#else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == Y) {
-		y_step();
-    move_state.steps[Y]--;
-    move_state.time[Y] += dda->step_interval[Y];
-    move_state.last_time = move_state.time[Y];
-	}
-#endif
-
-#if ! defined ACCELERATION_TEMPORAL
   if (move_state.steps[Z]) {
     move_state.counter[Z] -= dda->delta[Z];
     if (move_state.counter[Z] < 0) {
@@ -601,16 +581,6 @@ void dda_step(DDA *dda) {
       move_state.counter[Z] += dda->total_steps;
 		}
 	}
-#else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == Z) {
-		z_step();
-    move_state.steps[Z]--;
-    move_state.time[Z] += dda->step_interval[Z];
-    move_state.last_time = move_state.time[Z];
-	}
-#endif
-
-#if ! defined ACCELERATION_TEMPORAL
   if (move_state.steps[E]) {
     move_state.counter[E] -= dda->delta[E];
     if (move_state.counter[E] < 0) {
@@ -618,13 +588,6 @@ void dda_step(DDA *dda) {
       move_state.steps[E]--;
       move_state.counter[E] += dda->total_steps;
 		}
-	}
-#else	// ACCELERATION_TEMPORAL
-	if (dda->axis_to_step == E) {
-		e_step();
-    move_state.steps[E]--;
-    move_state.time[E] += dda->step_interval[E];
-    move_state.last_time = move_state.time[E];
 	}
 #endif
 
@@ -680,9 +643,34 @@ void dda_step(DDA *dda) {
       timer shall do the step as soon as possible and compensate for the delay
       later. In turn we promise here to send a maximum of four such
       short-delays consecutively and to give sufficient time on average.
-   */
+    */
 		uint32_t c_candidate;
     uint8_t i;
+
+    if (dda->axis_to_step == X) {
+      x_step();
+      move_state.steps[X]--;
+      move_state.time[X] += dda->step_interval[X];
+      move_state.last_time = move_state.time[X];
+    }
+    if (dda->axis_to_step == Y) {
+      y_step();
+      move_state.steps[Y]--;
+      move_state.time[Y] += dda->step_interval[Y];
+      move_state.last_time = move_state.time[Y];
+    }
+    if (dda->axis_to_step == Z) {
+      z_step();
+      move_state.steps[Z]--;
+      move_state.time[Z] += dda->step_interval[Z];
+      move_state.last_time = move_state.time[Z];
+    }
+    if (dda->axis_to_step == E) {
+      e_step();
+      move_state.steps[E]--;
+      move_state.time[E] += dda->step_interval[E];
+      move_state.last_time = move_state.time[E];
+    }
 
 		dda->c = 0xFFFFFFFF;
     for (i = X; i < AXIS_COUNT; i++) {
