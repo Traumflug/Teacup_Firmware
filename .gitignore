@@ -11,3 +11,4 @@ Makefile
 sim
 doc
 datalog.out
+configtool.ini
