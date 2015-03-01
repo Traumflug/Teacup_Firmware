@@ -26,7 +26,7 @@ timer stuff
 */
 void timer_init(void) __attribute__ ((cold));
 
-void setTimer(uint32_t delay);
+void timer_set(uint32_t delay);
 
 void timer_stop(void);
 

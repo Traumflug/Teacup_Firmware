@@ -322,7 +322,7 @@ void dda_create(DDA *dda, TARGET *target) {
 			// 2^32/6000 is about 715mm which should be plenty
 
 			// changed * 10 to * (F_CPU / 100000) so we can work in cpu_ticks rather than microseconds.
-			// timer.c setTimer() routine altered for same reason
+			// timer.c timer_set() routine altered for same reason
 
 			// changed distance * 6000 .. * F_CPU / 100000 to
 			//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
@@ -527,7 +527,7 @@ void dda_start(DDA *dda) {
 		dda->live = 1;
 
 		// set timeout for first step
-    setTimer(dda->c);
+    timer_set(dda->c);
 	}
 	// else just a speed change, keep dda->live = 0
 
@@ -721,7 +721,7 @@ void dda_step(DDA *dda) {
 	}
   else {
 		psu_timeout = 0;
-    setTimer(dda->c);
+    timer_set(dda->c);
   }
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers

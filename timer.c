@@ -69,7 +69,7 @@ ISR(TIMER1_COMPA_vect) {
 
 	next_step_time -= 65536;
 
-	// similar algorithm as described in setTimer below.
+  // Similar algorithm as described in timer_set() below.
 	if (next_step_time < 65536) {
 		OCR1A = (OCR1A + next_step_time) & 0xFFFF;
 	} else if(next_step_time < 75536){
@@ -82,8 +82,7 @@ ISR(TIMER1_COMPA_vect) {
 
 /// initialise timer and enable system clock interrupt.
 /// step interrupt is enabled later when we start using it
-void timer_init()
-{
+void timer_init() {
 	// no outputs
 	TCCR1A = 0;
 	// Normal Mode
@@ -94,7 +93,7 @@ void timer_init()
 	TIMSK1 = MASK(OCIE1B);
 #ifdef SIMULATOR
   // Tell simulator
-  sim_setTimer();
+  sim_timer_set();
 #endif
 }
 
@@ -107,8 +106,7 @@ void timer_init()
 	as late as possible. If you use it from outside the step interrupt,
 	do a sei() after it to make the interrupt actually fire.
 */
-void setTimer(uint32_t delay)
-{
+void timer_set(uint32_t delay) {
 	uint16_t step_start = 0;
 	#ifdef ACCELERATION_TEMPORAL
 	uint16_t current_time;
@@ -177,7 +175,7 @@ void setTimer(uint32_t delay)
 	TIMSK1 |= MASK(OCIE1A);
   #ifdef SIMULATOR
     // Tell simulator
-    sim_setTimer();
+    sim_timer_set();
   #endif
 }
 

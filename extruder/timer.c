@@ -90,7 +90,7 @@ ISR(TIMER1_COMPA_vect) {
 
 	next_step_time -= 65536;
 
-	// similar algorithm as described in setTimer below.
+  // Similar algorithm as described in timer_set() below.
 	if (next_step_time < 65536) {
 		OCR1A = (OCR1A + next_step_time) & 0xFFFF;
 	} else if(next_step_time < 75536){
@@ -103,8 +103,7 @@ ISR(TIMER1_COMPA_vect) {
 
 /// initialise timer and enable system clock interrupt.
 /// step interrupt is enabled later when we start using it
-void timer_init()
-{
+void timer_init() {
 	// no outputs
 	TCCR1A = 0;
 	// Normal Mode
@@ -117,8 +116,7 @@ void timer_init()
 
 #ifdef	HOST
 /// specify how long until the step timer should fire
-void setTimer(uint32_t delay)
-{
+void timer_set(uint32_t delay) {
 	// save interrupt flag
 	uint8_t sreg = SREG;
 	uint16_t step_start = 0;
