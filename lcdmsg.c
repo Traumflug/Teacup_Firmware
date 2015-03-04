@@ -1,3 +1,6 @@
+
+#ifdef LCD
+
 #include	"lcdmsg.h"
 
 /** \file lcdmsg.c
@@ -129,3 +132,4 @@ void lcdwrite_int32_vf(int32_t v, uint8_t fp) {
 
 	lcdwrite_uint32_vf(v, fp);
 }
+#endif /* LCD */

@@ -1,3 +1,5 @@
+#ifdef LCD
+
 #ifndef	_LCDMSG_H
 #define	_LCDMSG_H
 
@@ -22,3 +24,5 @@ void lcdwrite_uint32_vf(uint32_t v, uint8_t fp);
 void lcdwrite_int32_vf(int32_t v, uint8_t fp);
 
 #endif	/* _LCDMSG_H */
+
+#endif /* LCD */
