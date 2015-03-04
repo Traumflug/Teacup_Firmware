@@ -69,7 +69,7 @@ ISR(TIMER1_COMPA_vect) {
 
 	next_step_time -= 65536;
 
-	// similar algorithm as described in setTimer below.
+	// similar algorithm as described in timer_set below.
 	if (next_step_time < 65536) {
 		OCR1A = (OCR1A + next_step_time) & 0xFFFF;
 	} else if(next_step_time < 75536){
@@ -94,25 +94,42 @@ void timer_init()
 	TIMSK1 = MASK(OCIE1B);
 #ifdef SIMULATOR
   // Tell simulator
-  sim_setTimer();
+  sim_timer_set();
 #endif
 }
 
 #ifdef	MOTHERBOARD
 /*! Specify how long until the step timer should fire.
 	\param delay in CPU ticks
-
+  \param check_short tells wether to check for impossibly short requests. This
+         should be set to 1 for calls from the step interrupt. Short requests
+         then return 1 and do not schedule a timer interrupt. The calling code
+         usually wants to handle this case.
+         Calls from elsewhere should set it to 0. In this case a timer
+         interrupt is always scheduled. At the risk that this scheduling
+         doesn't delay the requested time, but up to a full timer counter
+         overflow ( = 65536 / F_CPU = 3 to 4 milliseconds).
+  \return a flag wether the requested time was too short to allow scheduling
+          an interrupt. This is meaningful for ACCELERATION_TEMPORAL, where
+          requested delays can be zero or even negative. In this case, the
+          calling code should repeat the stepping code immediately and also
+          assume the timer to not change his idea of when the last step
+          happened.
+  Strategy of this timer is to schedule timer interrupts not starting at the
+  time of the call, but starting at the time of the previous timer interrupt
+  fired. This ignores the processing time taken in the step interrupt so far,
+  offering smooth and even step distribution. Flipside of this coin is,
+  schedules issued at an arbitrary time can result in drastically wrong delays.
+  See also discussion of parameter check_short and the return value.
 	This enables the step interrupt, but also disables interrupts globally.
 	So, if you use it from inside the step interrupt, make sure to do so
 	as late as possible. If you use it from outside the step interrupt,
 	do a sei() after it to make the interrupt actually fire.
 */
-void setTimer(uint32_t delay)
-{
+char timer_set(int32_t delay, char check_short) {
 	uint16_t step_start = 0;
 	#ifdef ACCELERATION_TEMPORAL
 	uint16_t current_time;
-	uint32_t earliest_time, actual_time;
 	#endif /* ACCELERATION_TEMPORAL */
 
 	// An interrupt would make all our timing calculations invalid,
@@ -126,60 +143,57 @@ void setTimer(uint32_t delay)
 	// at OCR1A, so start delay from there.
 	step_start = OCR1A;
 	next_step_time = delay;
+	
+		#ifdef ACCELERATION_TEMPORAL
+		if (check_short) {
+			current_time = TCNT1;
 
-	#ifdef ACCELERATION_TEMPORAL
-	// 300 = safe number of cpu cycles until the interrupt actually happens
-	current_time = TCNT1;
-	earliest_time = (uint32_t)current_time + 300;
-	if (current_time < step_start) // timer counter did overflow recently
-		earliest_time += 0x00010000;
-	actual_time = (uint32_t)step_start + next_step_time;
+			//sersendf_P(PSTR("%ld"), (int32_t)step_start);
+			//serial_writechar('i');
+			//serwrite_uint32((uint32_t)(delay));
+			//serial_writechar('i');
+			//serwrite_uint32((uint32_t)(current_time - step_start));
 
-	// Setting the interrupt earlier than it can happen obviously doesn't
-	// make sense. To keep the "belongs to one move" idea, add an extra,
-	// remember this extra and compensate the extra if a longer delay comes in.
-	if (earliest_time > actual_time) {
-		step_extra_time += (earliest_time - actual_time);
-		next_step_time = earliest_time - (uint32_t)step_start;
-	}
-	else if (step_extra_time) {
-		if (step_extra_time < actual_time - earliest_time) {
-			next_step_time -= step_extra_time;
-			step_extra_time = 0;
+			// 200 = safe number of cpu cycles after current_time to allow a new
+			// interrupt happening. This is mostly the time needed to complete the
+			// current interrupt.
+			if (current_time - step_start + 200 > delay)
+			return 1;
+		}
+		#endif /* ACCELERATION_TEMPORAL */
+
+		// From here on we assume the requested delay is long enough to allow
+		// completion of the current interrupt before the next one is about to
+		// happen.
+
+		// Now we know how long we actually want to delay, so set the timer.
+		if (next_step_time < 65536) {
+			// set the comparator directly to the next real step
+			OCR1A = (next_step_time + step_start) & 0xFFFF;
+		}
+		else if (next_step_time < 75536) {
+			// Next comparator interrupt would have to trigger another
+			// interrupt within a short time (possibly within 1 cycle).
+			// Avoid the impossible by firing the interrupt earlier.
+			OCR1A = (step_start - 10000) & 0xFFFF;
+			next_step_time += 10000;
 		}
 		else {
-			step_extra_time -= (actual_time - earliest_time);
-			next_step_time -= (actual_time - earliest_time);
+			OCR1A = step_start;
 		}
-	}
-	#endif /* ACCELERATION_TEMPORAL */
 
-	// Now we know how long we actually want to delay, so set the timer.
-	if (next_step_time < 65536) {
-		// set the comparator directly to the next real step
-		OCR1A = (next_step_time + step_start) & 0xFFFF;
-	}
-	else if (next_step_time < 75536) {
-		// Next comparator interrupt would have to trigger another
-		// interrupt within a short time (possibly within 1 cycle).
-		// Avoid the impossible by firing the interrupt earlier.
-		OCR1A = (step_start - 10000) & 0xFFFF;
-		next_step_time += 10000;
-	}
-	else {
-		OCR1A = step_start;
-	}
+		// Enable this interrupt, but only do it after disabling
+		// global interrupts (see above). This will cause push any possible
+		// timer1a interrupt to the far side of the return, protecting the
+		// stack from recursively clobbering memory.
+		TIMSK1 |= MASK(OCIE1A);
+		#ifdef SIMULATOR
+		// Tell simulator
+		sim_timer_set();
+		#endif
 
-	// Enable this interrupt, but only do it after disabling
-	// global interrupts (see above). This will cause push any possible
-	// timer1a interrupt to the far side of the return, protecting the 
-	// stack from recursively clobbering memory.
-	TIMSK1 |= MASK(OCIE1A);
-  #ifdef SIMULATOR
-    // Tell simulator
-    sim_setTimer();
-  #endif
-}
+		return 0;
+	}
 
 /// stop timers - emergency stop
 void timer_stop() {

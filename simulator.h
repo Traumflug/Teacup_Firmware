@@ -171,7 +171,7 @@ void sim_gcode(const char msg[]);
 void sim_timer_init(uint8_t scale);
 
 void sim_timer_stop(void);
-void sim_setTimer(void);
+void sim_timer_set(void);
 uint16_t sim_tick_counter(void);
 uint64_t sim_runtime_ns(void); ///< Simulated run-time in nanoseconds
 void sim_time_warp(void); ///< skip ahead to next timer interrupt, when time_scale==0
