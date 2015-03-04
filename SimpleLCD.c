@@ -1,3 +1,4 @@
+#ifdef LCD
 /*
   SimpleLCD.h - Library for interfacing 20x4 LCD character display.
   Created by Raivis Strogonovs, August 6, 2013.
@@ -237,3 +238,4 @@ void sendCommand4Bit(uint8_t opCode)
   delay_us(750);
 
 }
+#endif /* LCD */
