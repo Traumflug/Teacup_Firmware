@@ -101,7 +101,7 @@
 #endif
 #endif /* SIMULATOR */
 
-#if defined (_mk20dx128_h_) // Teensy 3.0 uses a MK20DX128 32 bit ARM Cortex-M4 48 MHz Test on this for config.h
+#if defined (_mk20dx128_h_) || defined ( __MK20DX128__ ) // Teensy 3.0 uses a MK20DX128 32 bit ARM Cortex-M4 48 MHz Test on this for config.h
 	#include    "arduino_teensy3.h"
 #endif
 
