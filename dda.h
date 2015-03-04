@@ -184,7 +184,6 @@ typedef struct {
 			int32_t			cart_move_duration;	 ///< clock time based on distance of cartesian move
 			uint32_t		last_move_time_elapsed;
 			axes_uint32_t	next_step_interval;
-			uint32_t		interval_num;
 		#endif
 	#endif
 
