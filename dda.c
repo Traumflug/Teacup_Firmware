@@ -523,6 +523,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		#elif defined ACCELERATION_TEMPORAL
 			// TODO: calculate acceleration/deceleration for each axis
 	  //set each axis step_interval relative to longest axis move_duration
+      dda->last_move_time_elapsed = 0;
       for (i = X; i < AXIS_COUNT; i++) {
         dda->step_interval[i] = 0xFFFFFFFF;
         if (dda->delta[i])
@@ -866,13 +867,10 @@ void dda_clock() {
 	enum axis_e i;
 	int32_t move_time_elapsed;
 	int32_t move_time_elapsed_scaled;
-	float fraction;
 	int32_t interrupt_interval;
-	axes_int32_t steps_remaining;
 	axes_int32_t actual_steps_elapsed;
-	axes_int32_t axis_time_elapsed;
 	axes_int32_t opt_steps_elapsed;
-	axes_int32_t opt_step_interval;
+	axes_int32_t axis_time_elapsed;
 	axes_int32_t adj_step_interval;
 	int32_t step_error;
 	int32_t axis_intr_int;
@@ -1070,11 +1068,6 @@ void dda_clock() {
 			opt_cartesian.axis[Y] = dda->cart_startpoint.axis[Y] + muldiv((dda->cart_target.axis[Y] - dda->cart_startpoint.axis[Y]),move_time_elapsed,dda->cart_move_duration);
 			opt_cartesian.axis[Z] = dda->cart_startpoint.axis[Z] + muldiv((dda->cart_target.axis[Z] - dda->cart_startpoint.axis[Z]),move_time_elapsed,dda->cart_move_duration);
 			opt_cartesian.axis[E] = dda->cart_startpoint.axis[E] + muldiv((dda->cart_target.axis[E] - dda->cart_startpoint.axis[E]),move_time_elapsed,dda->cart_move_duration);
-			//fraction = ((float)move_time_elapsed / dda->cart_move_duration);  //is one float divison + four multiplies faster than four integer multiplies + four integer divisions?
-			//opt_cartesian.axis[X] = dda->cart_startpoint.axis[X] + (dda->cart_target.axis[X] - dda->cart_startpoint.axis[X]) * fraction;
-			//opt_cartesian.axis[Y] = dda->cart_startpoint.axis[Y] + (dda->cart_target.axis[Y] - dda->cart_startpoint.axis[Y]) * fraction;
-			//opt_cartesian.axis[Z] = dda->cart_startpoint.axis[Z] + (dda->cart_target.axis[Z] - dda->cart_startpoint.axis[Z]) * fraction;
-			//opt_cartesian.axis[E] = dda->cart_startpoint.axis[E] + (dda->cart_target.axis[E] - dda->cart_startpoint.axis[E]) * fraction;
 
 			//convert cartesian to delta
 			opt_delta = delta_from_cartesian(&opt_cartesian);
@@ -1085,16 +1078,19 @@ void dda_clock() {
 			for (i=X;i<E;i++){
 				axis_time_elapsed[i] = (move_time_elapsed - axis_time_elapsed[i]) >> 5;
 				if (axis_time_elapsed[i] < 0) axis_time_elapsed[i] = 0;
+
 				opt_steps_elapsed[i] = labs(um_to_steps(dda->delta_startpoint.axis[i] - opt_delta.axis[i], i));  //the number of steps that should have elapsed
-				step_error = (opt_steps_elapsed[i] - actual_steps_elapsed[i]);
+
+				step_error = (opt_steps_elapsed[i] - actual_steps_elapsed[i]) >> 1;  //dividing by two here reduces "whipsaw" - not sure why...
+
 				if ((opt_steps_elapsed[i]) || (actual_steps_elapsed[i])){
 					axis_intr_int = (interrupt_interval + axis_time_elapsed[i]);
 					//calculate step interval that would have achieved the correct delta steps
-					//opt_step_interval[i] = (move_time_elapsed_scaled / opt_steps_elapsed[i]);
+					//adj_step_interval[i] = (move_time_remaining_scaled / opt_steps_remaining[i]);
 					//add a correction factor to "catch up or slow down" actual to meet optimum by next calculation
 					//this will go negative if the correction is larger than the time between calculations
 					//adj_step_interval[i] = ((interrupt_interval * opt_step_interval[i]) / (interrupt_interval + step_error * opt_step_interval[i]));  //does not account for axis being behind current total move time - two divisions required
-					//adj_step_interval[i] = ((axis_intr_int * opt_step_interval[i]) / (axis_intr_int + step_error * opt_step_interval[i]));		//accounts for axis being behind current total move time - two divisions required
+					//adj_step_interval[i] = ((axis_intr_int * adj_step_interval[i]) / (axis_intr_int + step_error * adj_step_interval[i]));		//accounts for axis being behind current total move time - two divisions required
 					adj_step_interval[i] = (move_time_elapsed_scaled * axis_intr_int)
 										/ ((axis_intr_int * opt_steps_elapsed[i]) + (step_error * move_time_elapsed_scaled));	//a bit of algebra and only one division required
 					if (adj_step_interval[i] <= 0)
@@ -1106,16 +1102,15 @@ void dda_clock() {
 					adj_step_interval[i] = dda->step_interval[i];
 				}
 			}
-			//opt_step_interval[E] = dda->step_interval[E];
 			adj_step_interval[E] = dda->step_interval[E];
 
 			//These really, really slow this routine down
 			sersendf_P(PSTR("%ld,%ld,%ld,,"),axis_time_elapsed[X],axis_time_elapsed[Y],axis_time_elapsed[Z]);
 			sersendf_P(PSTR("%ld,%ld,%ld,E:%ld,,"),dda->step_interval[X],dda->step_interval[Y],dda->step_interval[Z],dda->step_interval[E]);
-				//sersendf_P(PSTR("%ld,%ld,%ld,E:%ld,,"),opt_step_interval[X],opt_step_interval[Y],opt_step_interval[Z],opt_step_interval[E]);
 			sersendf_P(PSTR("%ld,%ld,%ld,E:%ld,,"),adj_step_interval[X],adj_step_interval[Y],adj_step_interval[Z],adj_step_interval[E]);
 			sersendf_P(PSTR("%ld,%ld,%ld,%ld,E:%ld,,"),move_time_elapsed,actual_steps_elapsed[X],actual_steps_elapsed[Y],actual_steps_elapsed[Z],actual_steps_elapsed[E]);
 			sersendf_P(PSTR("%ld,%ld,%ld,E:%ld\n"),opt_steps_elapsed[X],opt_steps_elapsed[Y],opt_steps_elapsed[Z],actual_steps_elapsed[E]);
+			//sersendf_P(PSTR("%ld,%ld,%ld,%ld\n"),move_time_elapsed,opt_steps_elapsed[X]-actual_steps_elapsed[X],opt_steps_elapsed[Y]-actual_steps_elapsed[Y],opt_steps_elapsed[Z]-actual_steps_elapsed[Z]);
 
 			//next_step_interval was added to prevent the updated step interval from being applied before the next
 			//axis to step is calculated in dda_step().  See dda_step().
