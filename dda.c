@@ -237,10 +237,11 @@ void dda_create(DDA *dda, TARGET *target) {
     dda->id = idcnt++;
   #endif
 
-  #if defined(DELTA_PRINTER) && defined(ACCELERATION_TEMPORAL)
+  #if defined(DELTA_TEMPORAL)
 	dda->cart_startpoint = startpoint;
 	dda->cart_target = *target;
 	dda->delta_startpoint = delta_from_cartesian(&startpoint);
+	dda->delta_target = delta_from_cartesian(target);
   #endif
 
 
@@ -359,7 +360,7 @@ void dda_create(DDA *dda, TARGET *target) {
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
 
-		#if defined(DELTA_PRINTER) && defined(ACCELERATION_TEMPORAL)
+		#if defined(DELTA_PRINTER)
 			distance = cartesian_move_dist(&startpoint,target);
 		#else
 		if (delta_um[Z] == 0)
@@ -376,13 +377,13 @@ void dda_create(DDA *dda, TARGET *target) {
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",ds:%lu"), distance);
 
-    #ifdef	ACCELERATION_TEMPORAL
+    #if defined(ACCELERATION_TEMPORAL) || defined(DELTA_TEMPORAL)
       // bracket part of this equation in an attempt to avoid overflow:
       // 60 * 16 MHz * 5 mm is > 32 bits
       uint32_t move_duration, md_candidate;
 
       move_duration = distance * ((60 * F_CPU) / (target->F * 1000UL));
-	  #if defined(DELTA_PRINTER) && defined(ACCELERATION_TEMPORAL)
+	  #if defined(DELTA_TEMPORAL)
 		dda->cart_move_duration = move_duration;
 	  #endif
       for (i = X; i < AXIS_COUNT; i++) {
@@ -520,15 +521,16 @@ void dda_create(DDA *dda, TARGET *target) {
         dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
       #endif  //LOOKAHEAD
 
-		#elif defined ACCELERATION_TEMPORAL
+    #elif defined(ACCELERATION_TEMPORAL) || defined(DELTA_TEMPORAL)
 			// TODO: calculate acceleration/deceleration for each axis
 	  //set each axis step_interval relative to longest axis move_duration
       dda->last_move_time_elapsed = 0;
       for (i = X; i < AXIS_COUNT; i++) {
+		dda->prev_opt_steps_elapsed[i] = 0;
         dda->step_interval[i] = 0xFFFFFFFF;
         if (dda->delta[i])
           dda->step_interval[i] = move_duration / dda->delta[i];
-		  #ifdef DELTA_PRINTER
+		  #ifdef DELTA_TEMPORAL
 			dda->next_step_interval[i] = dda->step_interval[i];
 		  #endif
       }
@@ -606,7 +608,7 @@ void dda_start(DDA *dda) {
 		#ifdef ACCELERATION_RAMPING
 			move_state.step_no = 0;
 		#endif
-		#ifdef ACCELERATION_TEMPORAL
+    #if defined(ACCELERATION_TEMPORAL) || defined(DELTA_TEMPORAL)
       move_state.time[X] = move_state.time[Y] = \
         move_state.time[Z] = move_state.time[E] = 0UL;
 		#endif
@@ -640,7 +642,7 @@ void dda_start(DDA *dda) {
 */
 void dda_step(DDA *dda) {
 
-#if ! defined ACCELERATION_TEMPORAL
+#if (! defined(ACCELERATION_TEMPORAL)) && (! defined(DELTA_TEMPORAL))
   if (move_state.steps[X]) {
     move_state.counter[X] -= dda->delta[X];
     if (move_state.counter[X] < 0) {
@@ -779,6 +781,70 @@ void dda_step(DDA *dda) {
       }
 
       // No stepper to step found? Then we're done.
+	   if (dda->c == 0x7FFFFFFF) {
+		   dda->live = 0;
+		   dda->done = 1;
+		   break;
+	   }
+	   // Printing numbers here actually works for very slow movements, like F2 or F5. :-)
+	   //sersendf_P(PSTR("x %lu %lu %lu\n"), move_state.steps[X], move_state.steps[Y], dda->c);
+   } while ((bla = timer_set(dda->c, 1)));
+
+#endif /* ACCELERATION_TEMPORAL */
+
+#ifdef DELTA_TEMPORAL
+
+	char bla = 0;
+
+    // This is the time which led to this call of dda_step().
+	move_state.last_time = move_state.time[dda->axis_to_step] +
+							dda->step_interval[dda->axis_to_step];
+
+	do {
+		int32_t c_candidate;
+		enum axis_e i;
+
+		if (dda->axis_to_step == X) {
+			x_step();
+			move_state.steps[X]--;
+			move_state.time[X] += dda->step_interval[X];
+		}
+		if (dda->axis_to_step == Y) {
+			y_step();
+			move_state.steps[Y]--;
+			move_state.time[Y] += dda->step_interval[Y];
+		}
+		if (dda->axis_to_step == Z) {
+			z_step();
+			move_state.steps[Z]--;
+			move_state.time[Z] += dda->step_interval[Z];
+		}
+		if (dda->axis_to_step == E) {
+			e_step();
+			move_state.steps[E]--;
+			move_state.time[E] += dda->step_interval[E];
+		}
+	   unstep();
+
+	   // Find the next stepper to step.
+	   dda->c = 0x7FFFFFFF;
+	   for (i = X; i < AXIS_COUNT; i++) {
+		   if (move_state.steps[i]) {
+		//next_step_interval was added so that the updated step interval would not be applied until now rather
+			   //than during the stepping section above
+		dda->step_interval[i] = dda->next_step_interval[i];
+      c_candidate = (int32_t)move_state.time[i] + (int32_t)dda->step_interval[i] - (int32_t)move_state.last_time;
+      if (c_candidate < (int32_t)dda->c) {
+            dda->axis_to_step = i;
+				   if (c_candidate > 0)
+              dda->c = c_candidate;
+            else
+              dda->c = 1;
+          }
+        }
+      }
+
+      // No stepper to step found? Then we're done.
       if (dda->c == 0xFFFFFFFF) {
         dda->live = 0;
         dda->done = 1;
@@ -786,7 +852,7 @@ void dda_step(DDA *dda) {
       }
     } while (timer_set(dda->c, 1));
 
-  #endif /* ACCELERATION_TEMPORAL */
+#endif /* DELTA_TEMPORAL */
 
   // If there are no steps left or an endstop stop happened, we have finished.
   //
@@ -824,7 +890,7 @@ void dda_step(DDA *dda) {
 	}
   else {
 		psu_timeout = 0;
-    #ifndef ACCELERATION_TEMPORAL
+    #if ! defined ACCELERATION_TEMPORAL && ! defined DELTA_TEMPORAL
       timer_set(dda->c, 0);
     #endif
   }
@@ -863,17 +929,16 @@ void dda_clock() {
   uint32_t move_step_no, move_c;
   uint8_t recalc_speed;
   #endif
-  #if defined(DELTA_PRINTER) && defined(ACCELERATION_TEMPORAL)
+  #if defined(DELTA_TEMPORAL)
 	enum axis_e i;
 	int32_t move_time_elapsed;
-	int32_t move_time_elapsed_scaled;
-	int32_t interrupt_interval;
+	int32_t calculation_interval;
 	axes_int32_t actual_steps_elapsed;
 	axes_int32_t opt_steps_elapsed;
 	axes_int32_t axis_time_elapsed;
 	axes_int32_t adj_step_interval;
 	int32_t step_error;
-	int32_t axis_intr_int;
+	int32_t axis_calc_interval;
 	TARGET opt_delta;
 	TARGET opt_cartesian;
   #endif
@@ -1045,7 +1110,7 @@ void dda_clock() {
     }
   #endif
 
-  #if defined(DELTA_PRINTER) && defined(ACCELERATION_TEMPORAL)
+  #if defined(DELTA_TEMPORAL)
 	// Get the current move status
 	ATOMIC_START
 		move_time_elapsed = move_state.last_time;
@@ -1057,11 +1122,11 @@ void dda_clock() {
 		actual_steps_elapsed[Y] = dda->delta[Y] - move_state.steps[Y];
 		actual_steps_elapsed[Z] = dda->delta[Z] - move_state.steps[Z];
 		actual_steps_elapsed[E] = dda->delta[E] - move_state.steps[E];
-		interrupt_interval = (move_state.last_time - dda->last_move_time_elapsed);
+		calculation_interval = (move_state.last_time - dda->last_move_time_elapsed);
 	ATOMIC_END
 
 	//do not update step intervals before some time has elapsed
-	if (interrupt_interval > 29000){
+	if (calculation_interval > 59000){
 		//calculate fraction of cartesian move elapsed
 		if ((dda->cart_move_duration) && (move_time_elapsed)){
 			opt_cartesian.axis[X] = dda->cart_startpoint.axis[X] + muldiv((dda->cart_target.axis[X] - dda->cart_startpoint.axis[X]),move_time_elapsed,dda->cart_move_duration);
@@ -1072,35 +1137,27 @@ void dda_clock() {
 			//convert cartesian to delta
 			opt_delta = delta_from_cartesian(&opt_cartesian);
 
-			//scaling by 32 is required to keep multiplies from overflowing int32_t
-			move_time_elapsed_scaled = move_time_elapsed >> 5;
-			interrupt_interval = interrupt_interval >> 5;
 			for (i=X;i<E;i++){
-				axis_time_elapsed[i] = (move_time_elapsed - axis_time_elapsed[i]) >> 5;
-				if (axis_time_elapsed[i] < 0) axis_time_elapsed[i] = 0;
+				axis_time_elapsed[i] = (move_time_elapsed - axis_time_elapsed[i]); //time difference between calculation time and axis move time
+				if (axis_time_elapsed[i] < 0)
+					axis_time_elapsed[i] = 0;
+				axis_calc_interval = (calculation_interval + axis_time_elapsed[i]);  //time difference between calculations for the axis
 
 				opt_steps_elapsed[i] = labs(um_to_steps(dda->delta_startpoint.axis[i] - opt_delta.axis[i], i));  //the number of steps that should have elapsed
 
-				step_error = (opt_steps_elapsed[i] - actual_steps_elapsed[i]) >> 1;  //dividing by two here reduces "whipsaw" - not sure why...
+				step_error = (opt_steps_elapsed[i] - actual_steps_elapsed[i]) >> 1;
 
 				if ((opt_steps_elapsed[i]) || (actual_steps_elapsed[i])){
-					axis_intr_int = (interrupt_interval + axis_time_elapsed[i]);
-					//calculate step interval that would have achieved the correct delta steps
-					//adj_step_interval[i] = (move_time_remaining_scaled / opt_steps_remaining[i]);
-					//add a correction factor to "catch up or slow down" actual to meet optimum by next calculation
-					//this will go negative if the correction is larger than the time between calculations
-					//adj_step_interval[i] = ((interrupt_interval * opt_step_interval[i]) / (interrupt_interval + step_error * opt_step_interval[i]));  //does not account for axis being behind current total move time - two divisions required
-					//adj_step_interval[i] = ((axis_intr_int * adj_step_interval[i]) / (axis_intr_int + step_error * adj_step_interval[i]));		//accounts for axis being behind current total move time - two divisions required
-					adj_step_interval[i] = (move_time_elapsed_scaled * axis_intr_int)
-										/ ((axis_intr_int * opt_steps_elapsed[i]) + (step_error * move_time_elapsed_scaled));	//a bit of algebra and only one division required
+					adj_step_interval[i] = (axis_calc_interval / (opt_steps_elapsed[i] - dda->prev_opt_steps_elapsed[i] + step_error));
 					if (adj_step_interval[i] <= 0)
-						adj_step_interval[i] = (interrupt_interval - adj_step_interval[i]) << 5;
+						adj_step_interval[i] = (calculation_interval - adj_step_interval[i]);
 					else
-						adj_step_interval[i] = adj_step_interval[i] << 5;
+						adj_step_interval[i] = adj_step_interval[i];
 				}
 				else{
 					adj_step_interval[i] = dda->step_interval[i];
 				}
+				dda->prev_opt_steps_elapsed[i] = opt_steps_elapsed[i];
 			}
 			adj_step_interval[E] = dda->step_interval[E];
 
@@ -1123,7 +1180,7 @@ void dda_clock() {
 		}
 	}
 
-  #endif //DELTA_PRINTER && ACCELERATION_TEMPORAL
+  #endif //DELTA_TEMPORAL
 
   cli(); // Compensate sei() above.
   busy = 0;

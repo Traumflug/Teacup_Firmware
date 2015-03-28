@@ -68,10 +68,15 @@
 #define DELTA_PRINTER
 #define KINEMATICS KINEMATICS_DELTA
 //#define DELTA_USE_SEGMENTS
-//#define DELTA_TIME_SEGMENTS
-#define DELTA_DISTANCE_SEGMENTS
-#define DELTA_SEGMENTS_PER_SECOND 200
+#define DELTA_TEMPORAL
+#define DELTA_SEGMENT_BY_TIME
+#ifdef DELTA_SEGMENT_BY_TIME
+	#define DELTA_SEGMENTS_PER_SECOND 100
+#endif
+//#define DELTA_SEGMENT_BY_DISTANCE
+#ifdef DELTA_SEGMENT_BY_DISTANCE
 #define DELTA_SEGMENT_UM 500 //instead of segmenting on move time, it segments based on maximum um per segment
+#endif
 #define DEFAULT_DELTA_DIAGONAL_ROD 288090 // um
 #define DEFAULT_DELTA_DIAGONAL_ROD_2 DEFAULT_DELTA_DIAGONAL_ROD * DEFAULT_DELTA_DIAGONAL_ROD
 #define DEFAULT_DELTA_RADIUS 170550       //um
@@ -220,7 +225,7 @@
 
 		// TODO: figure out how to add acceleration to this algorithm
 */
-#define ACCELERATION_TEMPORAL
+//#define ACCELERATION_TEMPORAL
 
 /** \def LOOKAHEAD
   Define this to enable look-ahead during *ramping* acceleration to smoothly

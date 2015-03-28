@@ -37,7 +37,18 @@ void delta_segments_create(TARGET *target) {
     return;
   }
 
-  orig_startpoint = startpoint;
+   orig_startpoint = startpoint;
+   #ifdef DELTA_SEGMENT_BY_DISTANCE
+      seg_size = DELTA_SEGMENT_UM;
+   #endif
+
+   for (i = X; i < AXIS_COUNT; i++){
+      diff.axis[i] = target->axis[i] - orig_startpoint.axis[i];
+      diff_scaled.axis[i] = diff.axis[i] >> 4;
+   }
+
+//   if (diff.axis[X] == 0 && diff.axis[Y] == 0 && diff.axis[Z] == 0)
+//      return;
 
    seg_size = DELTA_SEGMENT_UM;
 
@@ -53,35 +64,35 @@ void delta_segments_create(TARGET *target) {
   //dist = dist << 4;
 
   if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
-    sersendf_P(PSTR("\n\nSeg_Start (%ld,%ld,%ld,E:%ld F:%lu ER:%u)Seg_Target(%ld,%ld,%ld,E:%ld F:%lu ER:%u) dist:%lu\n"),
+     sersendf_P(PSTR("\n\nSeg_Start (%ld,%ld,%ld,E:%ld F:%lu ER:%u)Seg_Target(%ld,%ld,%ld,E:%ld F:%lu ER:%u) dist:%lu\n"),
                 orig_startpoint.axis[X], orig_startpoint.axis[Y], orig_startpoint.axis[Z],orig_startpoint.axis[E],orig_startpoint.F,orig_startpoint.e_relative,
                 target->axis[X], target->axis[Y], target->axis[Z],target->axis[E],target->F,target->e_relative,dist);
   }
 
   //The Marlin/Repetier Approach
-#ifdef DELTA_TIME_SEGMENTS
+#ifdef DELTA_SEGMENT_BY_TIME
   cartesian_move_sec = (dist / target->F) * 60 * 0.001;   //distance(um) * 1mm/1000um * (Feedrate)1min/mm * 60sec/min
 
   if (target->F > 0)
-    segment_total = DELTA_SEGMENTS_PER_SECOND * (dist / target->F) * 60 * 0.001;   //distance(um) * 1mm/1000um * (Feedrate)1min/mm * 60sec/min
+       segment_total = DELTA_SEGMENTS_PER_SECOND * (dist / target->F) * 60 * 0.001;   //distance(um) * 1mm/1000um * (Feedrate)1min/mm * 60sec/min
   else
-    segment_total = 0;
-#endif /* DELTA_TIME_SEGMENTS */
+       segment_total = 0;
+#endif /* DELTA_SEGMENT_BY_TIME */
 
-#ifdef DELTA_DISTANCE_SEGMENTS
+#ifdef DELTA_SEGMENT_BY_DISTANCE
   if ((diff.axis[X] == 0 && diff.axis[Y] == 0) || dist < (2 * seg_size))
-#endif /* DELTA_DISTANCE_SEGMENTS */
-#ifdef DELTA_TIME_SEGMENTS
+#endif /* DELTA_SEGMENT_BY_DISTANCE */
+#ifdef DELTA_SEGMENT_BY_TIME
   if ((diff.axis[X] == 0 && diff.axis[Y] == 0) || segment_total < 2)
-#endif /* DELTA_TIME_SEGMENTS */
+#endif /* DELTA_SEGMENT_BY_TIME */
   {
-    segment_total = 1;
+     segment_total = 1;
 
-#ifdef DELTA_TIME_SEGMENTS
-    if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
-      sersendf_P(PSTR("SEG:Z or small: dist: %lu segs: %lu move_sec: %lu\n"),
+#ifdef DELTA_SEGMENT_BY_TIME
+     if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
+         sersendf_P(PSTR("SEG:Z or small: dist: %lu segs: %lu move_sec: %lu\n"),
                   dist,segment_total,cartesian_move_sec);
-    }
+     }
 #endif
 #ifdef DELTA_DISTANCE_SEGMENTS
   if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
@@ -94,34 +105,34 @@ void delta_segments_create(TARGET *target) {
     enqueue_home(&segment,0,0);
   } else {
 
-#ifdef DELTA_DISTANCE_SEGMENTS
+#ifdef DELTA_SEGMENT_BY_DISTANCE
      segment_total = dist / seg_size;
 #endif
 
-    for (i = X; i < AXIS_COUNT; i++)
-      diff_frac.axis[i] = diff.axis[i] / segment_total;
+     for (i = X; i < AXIS_COUNT; i++)
+        diff_frac.axis[i] = diff.axis[i] / segment_total;
 
-    if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
-      sersendf_P(PSTR("SEG: Frac(%ld,%ld,%ld,E:%ld) dist: %lu segs: %lu move_sec: %lu\n"),
+     if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
+        sersendf_P(PSTR("SEG: Frac(%ld,%ld,%ld,E:%ld) dist: %lu segs: %lu move_sec: %lu\n"),
                 diff_frac.axis[X],diff_frac.axis[Y],diff_frac.axis[Z],diff_frac.axis[E],
                 dist, segment_total,cartesian_move_sec);
-    }
-    //if you do all segments, rounding error reduces total - error will accumulate
-    for (s=1; s<segment_total; s++){
-      if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
-        sersendf_P(PSTR("SEG: %d\n"),s);
-      }
-      for (i = X; i < AXIS_COUNT; i++)
-        segment.axis[i] = (orig_startpoint.axis[i] + (s * diff_frac.axis[i]));
+     }
+     //if you do all segments, rounding error reduces total - error will accumulate
+     for (s=1; s<segment_total; s++){
+        if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
+           sersendf_P(PSTR("SEG: %d\n"),s);
+        }
+        for (i = X; i < AXIS_COUNT; i++)
+           segment.axis[i] = (orig_startpoint.axis[i] + (s * diff_frac.axis[i]));
         segment.F = target->F;
         segment.e_relative = target->e_relative;
         enqueue_home(&segment,0,0);
-    }
-    //last bit to make sure we end up at the unsegmented target
-    if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
-      sersendf_P(PSTR("Seg: Final\n"));
-    }
-    segment = *target;
-    enqueue_home(&segment,0,0);
+     }
+     //last bit to make sure we end up at the unsegmented target
+     if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
+        sersendf_P(PSTR("Seg: Final\n"));
+     }
+     segment = *target;
+     enqueue_home(&segment,0,0);
   }
 }

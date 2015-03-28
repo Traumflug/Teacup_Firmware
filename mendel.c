@@ -248,11 +248,16 @@ void init(void) {
    sersendf_P(PSTR("Teacup Firmware\n"));
    #ifdef DELTA_PRINTER
    sersendf_P(PSTR("Using Delta Kinematics:\n"));
-	#ifdef DELTA_TIME_SEGMENTS
-		sersendf_P(PSTR("   Using Time Segments: %lu\n segs/sec"),(uint32_t)DELTA_SEGMENTS_PER_SECOND);
+	#ifdef DELTA_USE_SEGMENTS
+		#ifdef DELTA_SEGMENT_BY_TIME
+			sersendf_P(PSTR("   Using Time Segments: %lu segs/sec\n"),(uint32_t)DELTA_SEGMENTS_PER_SECOND);
 	#endif
-	#ifdef DELTA_DISTANCE_SEGMENTS
+		#ifdef DELTA_SEGMENT_BY_DISTANCE
 		sersendf_P(PSTR("   Using Distance Segments: %lu segs/um\n"),(uint32_t)DELTA_SEGMENT_UM);
+	#endif
+   #endif
+	#ifdef DELTA_TEMPORAL
+		sersendf_P(PSTR("   Using Temporal Kinematics\n"));
 	#endif
    #endif
    #ifdef ACCELERATION_REPRAP
