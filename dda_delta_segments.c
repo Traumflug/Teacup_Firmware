@@ -36,7 +36,9 @@ void delta_segments_create(TARGET *target) {
   }
 
    orig_startpoint = startpoint;
-   seg_size = DELTA_SEGMENT_UM;
+   #ifdef DELTA_SEGMENT_BY_DISTANCE
+	seg_size = DELTA_SEGMENT_UM;
+   #endif
    
    for (i = X; i < AXIS_COUNT; i++){
       diff.axis[i] = target->axis[i] - orig_startpoint.axis[i];
@@ -57,31 +59,31 @@ void delta_segments_create(TARGET *target) {
   
   
   //The Marlin/Repetier Approach
-#ifdef DELTA_TIME_SEGMENTS
+#ifdef DELTA_SEGMENT_BY_TIME
   cartesian_move_sec = (dist / target->F) * 60 * 0.001;   //distance(um) * 1mm/1000um * (Feedrate)1min/mm * 60sec/min
   
   if (target->F > 0)
        segment_total = DELTA_SEGMENTS_PER_SECOND * (dist / target->F) * 60 * 0.001;   //distance(um) * 1mm/1000um * (Feedrate)1min/mm * 60sec/min
   else
        segment_total = 0;
-#endif /* DELTA_TIME_SEGMENTS */	   
+#endif /* DELTA_SEGMENT_BY_TIME */	   
 
-#ifdef DELTA_DISTANCE_SEGMENTS
+#ifdef DELTA_SEGMENT_BY_DISTANCE
   if ((diff.axis[X] == 0 && diff.axis[Y] == 0) || dist < (2 * seg_size))
-#endif /* DELTA_DISTANCE_SEGMENTS */
-#ifdef DELTA_TIME_SEGMENTS  
+#endif /* DELTA_SEGMENT_BY_DISTANCE */
+#ifdef DELTA_SEGMENT_BY_TIME  
   if ((diff.axis[X] == 0 && diff.axis[Y] == 0) || segment_total < 2)
-#endif /* DELTA_TIME_SEGMENTS */  
+#endif /* DELTA_SEGMENT_BY_TIME */  
   {
      segment_total = 1;
 
-#ifdef DELTA_TIME_SEGMENTS
+#ifdef DELTA_SEGMENT_BY_TIME
      if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
          sersendf_P(PSTR("SEG:Z or small: dist: %lu segs: %lu move_sec: %lu\n"),
                   dist,segment_total,cartesian_move_sec);
      }
 #endif	 
-#ifdef DELTA_DISTANCE_SEGMENTS
+#ifdef DELTA_SEGMENT_BY_DISTANCE
 	if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
 		sersendf_P(PSTR("SEG:Z or small: dist: %lu segs: %lu seg_size: %lu\n"),
 				dist,segment_total,seg_size);
@@ -93,7 +95,7 @@ void delta_segments_create(TARGET *target) {
 	 
   } else {
 	  
-#ifdef DELTA_DISTANCE_SEGMENTS	  
+#ifdef DELTA_SEGMENT_BY_DISTANCE	  
      segment_total = dist / seg_size;
 #endif	 
 

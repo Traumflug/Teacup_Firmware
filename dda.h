@@ -86,6 +86,10 @@ typedef struct {
   uint32_t          last_time;  ///< time of the last step of any axis
   //uint32_t          all_time;		//not used - all changed to last_time
 	#endif
+	#ifdef DELTA_TEMPORAL
+		axes_uint32_t     time;       ///< time of the last step on each axis
+		uint32_t          last_time;  ///< time of the last step of any axis
+	#endif
 
 	/// Endstop handling.
   uint8_t endstop_stop; ///< Stop due to endstop trigger
@@ -103,10 +107,17 @@ typedef struct {
 	/// this is where we should finish
 	TARGET						endpoint;
 	
-	#if defined(DELTA_PRINTER) && defined(ACCELERATION_TEMPORAL)
+	#if defined(DELTA_TEMPORAL)
 		TARGET					delta_startpoint;
+		TARGET					delta_target;
 		TARGET					cart_startpoint;
 		TARGET					cart_target;
+		int32_t					cart_move_duration;	 ///< clock time based on distance of cartesian move
+		uint32_t				last_move_time_elapsed;
+		axes_uint32_t			next_step_interval;
+		axes_uint32_t			prev_opt_steps_elapsed;
+		axes_uint32_t			step_interval;   ///< time between steps on each axis
+		uint8_t					axis_to_step;    ///< axis to be stepped on the next interrupt
 	#endif
 
 	union {
@@ -114,7 +125,7 @@ typedef struct {
 			// status fields
 			uint8_t						nullmove			:1; ///< bool: no axes move, maybe we wait for temperatures or change speed
 			uint8_t						live					:1; ///< bool: this DDA is running and still has steps to do
-      uint8_t           done          :1; ///< bool: this DDA is done.
+			uint8_t						done          :1; ///< bool: this DDA is done.
 			#ifdef ACCELERATION_REPRAP
 			uint8_t						accel					:1; ///< bool: speed changes during this move, run accel code
 			#endif
@@ -180,11 +191,6 @@ typedef struct {
 	#ifdef ACCELERATION_TEMPORAL
 		axes_uint32_t	step_interval;   ///< time between steps on each axis
 		uint8_t			axis_to_step;    ///< axis to be stepped on the next interrupt
-		#if defined(DELTA_PRINTER)
-			int32_t			cart_move_duration;	 ///< clock time based on distance of cartesian move
-			uint32_t		last_move_time_elapsed;
-			axes_uint32_t	next_step_interval;
-		#endif	
 	#endif
 
   /// Small variables. Many CPUs can access 32-bit variables at word or double

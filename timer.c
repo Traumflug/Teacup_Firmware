@@ -128,7 +128,7 @@ void timer_init()
 */
 char timer_set(int32_t delay, char check_short) {
 	uint16_t step_start = 0;
-	#ifdef ACCELERATION_TEMPORAL
+	#if defined(ACCELERATION_TEMPORAL) || defined(DELTA_TEMPORAL)
 	uint16_t current_time;
 	#endif /* ACCELERATION_TEMPORAL */
 
@@ -144,7 +144,7 @@ char timer_set(int32_t delay, char check_short) {
 	step_start = OCR1A;
 	next_step_time = delay;
 	
-		#ifdef ACCELERATION_TEMPORAL
+		#if defined(ACCELERATION_TEMPORAL) || defined(DELTA_TEMPORAL)
 		if (check_short) {
 			current_time = TCNT1;
 
