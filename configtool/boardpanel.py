@@ -483,10 +483,10 @@ class BoardPanel(wx.Panel):
       m = reStartHeaters.match(ln)
       if m:
         fp.write(ln)
+        fp.write("//            name      port   pwm\n")
         for s in self.heaters:
-          sstr = ", ".join(s)
+          sstr = "%-10s%-7s%s" % ((s[0] + ","), (s[1] + ","), s[2])
           fp.write("DEFINE_HEATER(%s)\n" % sstr)
-
         fp.write("\n")
         for s in self.heaters:
           fp.write(defineHeaterFormat % (s[0].upper(), s[0]))

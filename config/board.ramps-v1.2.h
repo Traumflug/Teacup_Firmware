@@ -194,8 +194,8 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO1,  THERMISTOR_BED)
   with slow switches, like solid state relays. PWM frequency can be
   influenced globally with FAST_PWM, see below.
 */
-//            name      port   pwm
 //DEFINE_HEATERS_START
+//            name      port   pwm
 DEFINE_HEATER(extruder, DIO10, 1)
 DEFINE_HEATER(bed,      DIO8,  1)
 DEFINE_HEATER(fan,      DIO9,  1)

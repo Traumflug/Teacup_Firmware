@@ -188,8 +188,8 @@ DEFINE_TEMP_SENSOR(noheater, TT_INTERCOM,   AIO0,  0)
   with slow switches, like solid state relays. PWM frequency can be
   influenced globally with FAST_PWM, see below.
 */
-//            name      port   pwm
 //DEFINE_HEATERS_START
+//            name      port   pwm
 
 //DEFINE_HEATERS_END
 
