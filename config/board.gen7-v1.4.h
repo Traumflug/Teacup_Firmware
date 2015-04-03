@@ -146,8 +146,8 @@
   For a GEN3 set temp_type to TT_INTERCOM and temp_pin to AIO0. The pin
   won't be used in this case.
 */
-//                 name      type           pin    additional
 //DEFINE_TEMP_SENSORS_START
+//                 name      type           pin    additional
 DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, AIO1,  THERMISTOR_EXTRUDER)
 DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO0,  THERMISTOR_BED)
 //DEFINE_TEMP_SENSORS_END

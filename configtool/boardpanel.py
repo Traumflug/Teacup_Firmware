@@ -461,8 +461,14 @@ class BoardPanel(wx.Panel):
       m = reStartSensors.match(ln)
       if m:
         fp.write(ln)
+        fp.write("//                 name      type           pin    "
+                 "additional\n");
         for s in self.sensors:
-          sstr = ", ".join(s)
+          sstr = "%-10s%-15s" % ((s[0] + ","), (s[1] + ","))
+          if len(s) == 3:
+            sstr += "%s" % (s[2])
+          else: # len(s) == 4
+            sstr += "%-7s%s" % ((s[2] + ","), s[3])
           fp.write("DEFINE_TEMP_SENSOR(%s)\n" % sstr)
         skipToSensorEnd = True
         continue

@@ -140,8 +140,8 @@
   For a GEN3 set temp_type to TT_INTERCOM and temp_pin to AIO0. The pin
   won't be used in this case.
 */
-//                 name      type           pin    additional
 //DEFINE_TEMP_SENSORS_START
+//                 name      type           pin    additional
 DEFINE_TEMP_SENSOR(noheater, TT_INTERCOM,   AIO0,  0)
 //DEFINE_TEMP_SENSORS_END
 
