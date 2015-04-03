@@ -84,7 +84,6 @@ class AddSensorDlg(wx.Dialog):
     self.tcAddtl = wx.TextCtrl(self, wx.ID_ANY, "")
     self.tcAddtl.SetFont(font)
     self.tcAddtl.Bind(wx.EVT_TEXT, self.onAddtlEntry)
-    self.selectSensorType(sl[0])
     lsz.Add(self.tcAddtl)
     self.tcAddtl.SetToolTipString("Enter additional information required "
                                   "by the sensor type.")
@@ -146,12 +145,6 @@ class AddSensorDlg(wx.Dialog):
   def onAddtlEntry(self, evt):
     evt.Skip()
 
-  def selectSensorType(self, lbl):
-    if lbl == 'Thermistor':
-      self.tcAddtl.Enable(True);
-    else:
-      self.tcAddtl.Enable(False);
-
   def onChoice(self, evt):
     pass
 
@@ -159,8 +152,6 @@ class AddSensorDlg(wx.Dialog):
     ch = evt.GetEventObject()
     s = ch.GetSelection()
     label = ch.GetString(s)
-
-    self.selectSensorType(label)
 
     evt.Skip()
 
@@ -170,11 +161,10 @@ class AddSensorDlg(wx.Dialog):
     addtl = self.tcAddtl.GetValue()
     stype = self.chType.GetString(self.chType.GetSelection())
 
-    if stype in ['Thermistor']:
-      return (nm, sensorTypes[stype], pin, addtl)
-    else:
-      return (nm, sensorTypes[stype], pin)
+    if stype not in ['Thermistor']:
+      addtl = "NONE"
 
+    return (nm, sensorTypes[stype], pin, addtl)
 
   def onSave(self, evt):
     self.EndModal(wx.ID_OK)

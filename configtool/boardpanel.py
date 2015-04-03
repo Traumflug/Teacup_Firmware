@@ -11,7 +11,7 @@ from configtool.data import (defineValueFormat,
                              reCandProcessors, reCandCPUClocks, reFloatAttr,
                              reDefine, reDefineBL, reDefQS, reDefQSm,
                              reDefQSm2, reDefBool, reDefBoolBL, reDefHT,
-                             reDefTS, reHeater, reSensor3, reSensor4)
+                             reDefTS, reSensor, reHeater)
 from configtool.pinoutspage import PinoutsPage
 from configtool.sensorpage import SensorsPage
 from configtool.heaterspage import HeatersPage
@@ -369,15 +369,10 @@ class BoardPanel(wx.Panel):
     return True
 
   def parseSensor(self, s):
-    m = reSensor4.search(s)
+    m = reSensor.search(s)
     if m:
       t = m.groups()
       if len(t) == 4:
-        return t
-    m = reSensor3.search(s)
-    if m:
-      t = m.groups()
-      if len(t) == 3:
         return t
     return None
 
@@ -464,11 +459,8 @@ class BoardPanel(wx.Panel):
         fp.write("//                 name      type           pin    "
                  "additional\n");
         for s in self.sensors:
-          sstr = "%-10s%-15s" % ((s[0] + ","), (s[1] + ","))
-          if len(s) == 3:
-            sstr += "%s" % (s[2])
-          else: # len(s) == 4
-            sstr += "%-7s%s" % ((s[2] + ","), s[3])
+          sstr = "%-10s%-15s%-7s%s" % ((s[0] + ","), (s[1] + ","),
+                                       (s[2] + ","), s[3])
           fp.write("DEFINE_TEMP_SENSOR(%s)\n" % sstr)
         skipToSensorEnd = True
         continue
