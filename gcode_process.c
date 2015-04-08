@@ -439,11 +439,12 @@ void process_gcode_command() {
         //?
 				if ( ! next_target.seen_S)
 					break;
-        #ifdef HEATER_EXTRUDER
-          if ( ! next_target.seen_P)
+        if ( ! next_target.seen_P)
+          #ifdef HEATER_EXTRUDER
             next_target.P = HEATER_EXTRUDER;
-        // else use the first available device
-        #endif
+          #else
+            next_target.P = 0;
+          #endif
 				temp_set(next_target.P, next_target.S);
 				break;
 
@@ -485,11 +486,12 @@ void process_gcode_command() {
 					// wait for all moves to complete
 					queue_wait();
 				#endif
-        #ifdef HEATER_FAN
-          if ( ! next_target.seen_P)
+        if ( ! next_target.seen_P)
+          #ifdef HEATER_FAN
             next_target.P = HEATER_FAN;
-        // else use the first available device
-        #endif
+          #else
+            next_target.P = 0;
+          #endif
 				if ( ! next_target.seen_S)
 					break;
         heater_set(next_target.P, next_target.S);
@@ -660,11 +662,12 @@ void process_gcode_command() {
 				//? --- M130: heater P factor ---
 				//? Undocumented.
 			  	//  P factor in counts per degreeC of error
-        #ifdef HEATER_EXTRUDER
-          if ( ! next_target.seen_P)
+        if ( ! next_target.seen_P)
+          #ifdef HEATER_EXTRUDER
             next_target.P = HEATER_EXTRUDER;
-        // else use the first available device
-        #endif
+          #else
+            next_target.P = 0;
+          #endif
 				if (next_target.seen_S)
 					pid_set_p(next_target.P, next_target.S);
 				break;
@@ -673,10 +676,12 @@ void process_gcode_command() {
 				//? --- M131: heater I factor ---
 				//? Undocumented.
 			  	// I factor in counts per C*s of integrated error
-        #ifdef HEATER_EXTRUDER
-          if ( ! next_target.seen_P)
+        if ( ! next_target.seen_P)
+          #ifdef HEATER_EXTRUDER
             next_target.P = HEATER_EXTRUDER;
-        #endif
+          #else
+            next_target.P = 0;
+          #endif
 				if (next_target.seen_S)
 					pid_set_i(next_target.P, next_target.S);
 				break;
@@ -685,10 +690,12 @@ void process_gcode_command() {
 				//? --- M132: heater D factor ---
 				//? Undocumented.
 			  	// D factor in counts per degreesC/second
-        #ifdef HEATER_EXTRUDER
-          if ( ! next_target.seen_P)
+        if ( ! next_target.seen_P)
+          #ifdef HEATER_EXTRUDER
             next_target.P = HEATER_EXTRUDER;
-        #endif
+          #else
+            next_target.P = 0;
+          #endif
 				if (next_target.seen_S)
 					pid_set_d(next_target.P, next_target.S);
 				break;
@@ -696,10 +703,12 @@ void process_gcode_command() {
 			case 133:
 				//? --- M133: heater I limit ---
 				//? Undocumented.
-        #ifdef HEATER_EXTRUDER
-          if ( ! next_target.seen_P)
+        if ( ! next_target.seen_P)
+          #ifdef HEATER_EXTRUDER
             next_target.P = HEATER_EXTRUDER;
-        #endif
+          #else
+            next_target.P = 0;
+          #endif
 				if (next_target.seen_S)
 					pid_set_i_limit(next_target.P, next_target.S);
 				break;
@@ -716,11 +725,13 @@ void process_gcode_command() {
 				//? --- M136: PRINT PID settings to host ---
 				//? Undocumented.
 				//? This comand is only available in DEBUG builds.
-        #ifdef HEATER_EXTRUDER
-				if ( ! next_target.seen_P)
-					next_target.P = HEATER_EXTRUDER;
+        if ( ! next_target.seen_P)
+          #ifdef HEATER_EXTRUDER
+            next_target.P = HEATER_EXTRUDER;
+          #else
+            next_target.P = 0;
+          #endif
 				heater_print(next_target.P);
-        #endif
 				break;
 			#endif
 
