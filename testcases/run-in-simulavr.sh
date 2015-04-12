@@ -20,10 +20,16 @@ fi
 
 
 # General preparation.
+PIPE_IN_FILE=$(mktemp -u)
+PIPE_OUT_FILE=$(mktemp -u)
 TRACEIN_FILE=$(mktemp)
 STATISTICS_FILE=$(mktemp)
 
-trap 'cat '${STATISTICS_FILE}'; rm -f '${TRACEIN_FILE}' '${STATISTICS_FILE} 0
+trap 'cat '${STATISTICS_FILE}'; rm -f '${PIPE_IN_FILE}' '${PIPE_OUT_FILE}' \
+     '${TRACEIN_FILE}' '${STATISTICS_FILE} 0
+
+mkfifo ${PIPE_IN_FILE} || exit 1
+mkfifo ${PIPE_OUT_FILE} || exit 1
 
 
 # Prepare statistics.
@@ -82,21 +88,36 @@ for GCODE_FILE in $*; do
   VEL_FILE="${FILE}.processed.vcd"
 
 
-  # We assume here queue and rx buffer are large enough to read
-  # the file in one chunk. If not, raise MOVEBUFFER_SIZE in config.h.
+  # Start the simulator and send the file line by line.
+  exec 3<>${PIPE_IN_FILE}
+  exec 4<>${PIPE_OUT_FILE}
+
   "${SIMULAVR}" -c vcd:${TRACEIN_FILE}:"${VCD_FILE}" \
                 -f ../build/teacup.elf \
-                -m 60000000000 -v < "${GCODE_FILE}" | \
-    while read -r LINE; do
-      echo "${LINE}"
-      case "${LINE}" in
-        stop)
-          echo "Got \"stop\", killing $(basename ${SIMULAVR})."
-          killall -INT $(basename "${SIMULAVR}") 2> /dev/null || \
-            killall -INT "lt-"$(basename "${SIMULAVR}")
-          ;;
-      esac
-    done 
+                -m 60000000000 -v <&3 >&4 2>&4 &
+
+  while read -rs -u 4 LINE; do
+    echo "${LINE}"
+    case "${LINE}" in
+      *"Ran too long"*)
+        echo ">> SimulAVR ended."
+        break
+        ;;
+      "ok"*)
+        read LINE
+        echo ">> Sending ${LINE}"
+        echo "${LINE}" >&3
+        ;;
+      "stop")
+        echo ">> Got \"stop\", killing SimulAVR."
+        killall -INT $(basename "${SIMULAVR}") 2> /dev/null || \
+          killall -INT "lt-"$(basename "${SIMULAVR}")
+        ;;
+    esac
+  done < "${GCODE_FILE}"
+
+  exec 3>&-
+  exec 4>&-
 
 
   # Make plottable files from VCD files.
