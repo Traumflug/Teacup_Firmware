@@ -6,7 +6,7 @@ build
 temporal.png
 temporal_data
 config.h
-ThermistorTable.h
+thermistortable.h
 Makefile
 sim
 doc

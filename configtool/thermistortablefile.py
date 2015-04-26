@@ -6,7 +6,7 @@ from createTemperatureLookup import Thermistor
 class ThermistorTableFile:
   def __init__(self, folder):
     self.error = False
-    fn = os.path.join(folder, "ThermistorTable.h")
+    fn = os.path.join(folder, "thermistortable.h")
     try:
       self.fp = open(fn, 'wb')
     except:

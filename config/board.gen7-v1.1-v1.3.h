@@ -138,9 +138,9 @@
   TT_PT100, TT_INTERCOM. See list in temp.c.
 
   The "additional" field is used for TT_THERMISTOR only. It defines the
-  name of the table(s) in ThermistorTable.h to use. Typically, this is
-  THERMISTOR_EXTRUDER for the first or only table, or THERMISTOR_BED for
-  the second table.
+  name of the table(s) in thermistortable.h to use. This name is arbitrary,
+  often used names include THERMISTOR_EXTRUDER and THERMISTOR_BED. Also,
+  several sensors can share the same table, which saves binary size.
 
   For a GEN3 set temp_type to TT_INTERCOM and temp_pin to AIO0. The pin
   won't be used in this case.

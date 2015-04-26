@@ -3,7 +3,10 @@
 /** \file
 	\brief Manage temperature sensors
 
-	\note \b ALL temperatures are stored as 14.2 fixed point in teacup, so we have a range of 0 - 16383.75 celsius and a precision of 0.25 celsius. That includes the ThermistorTable, which is why you can't copy and paste one from other firmwares which don't do this.
+  \note All temperatures are stored as 14.2 fixed point in Teacup, so we have
+  a range of 0 - 16383.75 deg Celsius at a precision of 0.25 deg. That includes
+  the thermistor table, which is why you can't copy and paste one from other
+  firmwares which don't do this.
 */
 
 #include	<stdlib.h>
@@ -26,7 +29,7 @@
 
 #ifdef	TEMP_THERMISTOR
 #include	"analog.h"
-#include	"ThermistorTable.h"
+#include	"thermistortable.h"
 #endif
 
 #ifdef	TEMP_AD595
