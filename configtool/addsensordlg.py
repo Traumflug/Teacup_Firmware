@@ -148,7 +148,10 @@ class AddSensorDlg(wx.Dialog):
     self.tcR2.SetToolTipString("Resistance value of the secondary resistor. "
                                "This is not a property of the thermistor, but "
                                "one of the board. Typical values are 4700 "
-                               "( = 4k7 ohms) or 1000 ( = 1k ohms).")
+                               "( = 4k7 ohms) or 1000 ( = 1k ohms).\n\n"
+                               "As these resistors are typically +-5%, "
+                               "measuring the actually used one can increase "
+                               "accuracy substantially.")
 
     csz.Add(lsz)
     csz.AddSpacer((10, 10))

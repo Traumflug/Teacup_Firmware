@@ -139,7 +139,7 @@
   The "additional" field is used for TT_THERMISTOR only. It defines the
   name of the table(s) in ThermistorTable.h to use. Typically, this is
   THERMISTOR_EXTRUDER for the first or only table, or THERMISTOR_BED for
-  the second table. See also early in ThermistorTable.{single|double}.h.
+  the second table.
 
   For a GEN3 set temp_type to TT_INTERCOM and temp_pin to AIO0. The pin
   won't be used in this case.
