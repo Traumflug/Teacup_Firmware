@@ -88,6 +88,8 @@ def generateTempTables(sensors, settings):
     for i in range(N):
       adcs.append(int(ct))
       ct += increment
+      if ct > maxadc:
+        ct = maxadc
 
     counter = 0
     for adc in adcs:
@@ -104,8 +106,11 @@ def generateTempTables(sensors, settings):
         sep = " "
       else:
         sep = ","
+      val = int(thm.temp(adc) * mult)
+      if val < 0:
+        val = 0
       ostr = ("    {%4s, %5s}%s // %6.2f C, %6.0f ohms, %0.3f V,"
-              " %0.2f C/count, %0.2f mW") % (adc, int(thm.temp(adc) * mult),
+              " %0.2f C/count, %0.2f mW") % (adc, val,
               sep, degC, resistance, vTherm, resolution, ptherm * 1000)
       ofp.output(ostr)
     if tcount == len(tl):
