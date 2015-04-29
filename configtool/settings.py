@@ -21,6 +21,7 @@ class Settings:
     self.objcopyflags = ""
     self.programmer = "wiring"
     self.port = "/dev/ttyACM0"
+    self.uploadspeed = 38400
 
     self.t0 = 25;
     self.r1 = 0;
@@ -30,6 +31,7 @@ class Settings:
 
     self.cfg = ConfigParser.ConfigParser()
     self.cfg.optionxform = str
+
     if not self.cfg.read(self.inifile):
       if not self.cfg.read(os.path.join(folder, DEFAULT_INIFILE)):
         print ("Neither of settings files %s or %s exist. Using default values."
@@ -61,6 +63,8 @@ class Settings:
           self.maxAdc = value
         elif opt == "minadc":
           self.minAdc = value
+        elif opt == "uploadspeed":
+          self.uploadspeed = value
         else:
           print "Unknown %s option: %s - ignoring." % (self.section, opt)
     else:
@@ -84,6 +88,7 @@ class Settings:
     self.cfg.set(self.section, "numtemps", str(self.numTemps))
     self.cfg.set(self.section, "maxadc", str(self.maxAdc))
     self.cfg.set(self.section, "minadc", str(self.minAdc))
+    self.cfg.set(self.section, "uploadspeed", str(self.uploadspeed))
 
     try:
       cfp = open(self.inifile, 'wb')
@@ -103,6 +108,7 @@ LDFLAGS = 2
 OBJCOPYFLAGS= 3
 PROGRAMMER = 4
 PORT = 5
+UPLOADSPEED = 6
 
 class SettingsDlg(wx.Dialog):
   def __init__(self, parent, settings):
@@ -120,7 +126,8 @@ class SettingsDlg(wx.Dialog):
                    ["LD Flags", settings.ldflags, None],
                    ["Object Copy Flags", settings.objcopyflags, None],
                    ["AVR Programmer", settings.programmer, None],
-                   ["Port", settings.port, None]]
+                   ["Port", settings.port, None],
+                   ["Upload Speed", settings.uploadspeed, None]]
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)
     hsz.AddSpacer((10, 10))
@@ -197,6 +204,7 @@ class SettingsDlg(wx.Dialog):
     self.settings.objcopyflags = self.fields[OBJCOPYFLAGS][2].GetValue()
     self.settings.programmer = self.fields[PROGRAMMER][2].GetValue()
     self.settings.port = self.fields[PORT][2].GetValue()
+    self.settings.uploadspeed = self.fields[UPLOADSPEED][2].GetValue()
 
     self.settings.saveSettings()
 

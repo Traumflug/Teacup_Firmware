@@ -106,13 +106,7 @@ class BoardPanel(wx.Panel):
     if 'CPU' in self.cfgValues.keys():
       vCPU = self.cfgValues['CPU']
 
-    # TODO: this is probably obsolete, because the build process doesn't need
-    #       the firmware baud rate, but the bootloader baud rate.
-    vBaud = None
-    if 'BAUD' in self.cfgValues.keys():
-      vBaud = self.cfgValues['BAUD']
-
-    return vF_CPU, vCPU, vBaud
+    return vF_CPU, vCPU
 
   def assertModified(self, pg, flag = True):
     self.pageModified[pg] = flag

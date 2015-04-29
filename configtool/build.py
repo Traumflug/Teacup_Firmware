@@ -94,7 +94,7 @@ class ScriptThread:
 
 
 class Build(wx.Dialog):
-  def __init__(self, parent, settings, f_cpu, cpu, baud):
+  def __init__(self, parent, settings, f_cpu, cpu):
     wx.Dialog.__init__(self, parent, wx.ID_ANY, "Build teacup",
                        style = wx.RESIZE_BORDER + wx.DEFAULT_DIALOG_STYLE)
     self.settings = settings
@@ -102,7 +102,6 @@ class Build(wx.Dialog):
     self.root = self.settings.folder
     self.f_cpu = f_cpu
     self.cpu = cpu
-    self.baud = baud
     self.Bind(wx.EVT_CLOSE, self.onExit)
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)
@@ -300,7 +299,7 @@ class Build(wx.Dialog):
 
 
 class Upload(wx.Dialog):
-  def __init__(self, parent, settings, f_cpu, cpu, baud):
+  def __init__(self, parent, settings, f_cpu, cpu):
     wx.Dialog.__init__(self, parent, wx.ID_ANY, "Upload teacup",
                        style = wx.RESIZE_BORDER + wx.DEFAULT_DIALOG_STYLE)
     self.settings = settings
@@ -308,7 +307,7 @@ class Upload(wx.Dialog):
     self.root = self.settings.folder
     self.f_cpu = f_cpu
     self.cpu = cpu
-    self.baud = baud
+    self.baud = self.settings.uploadspeed
     self.Bind(wx.EVT_CLOSE, self.onExit)
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)

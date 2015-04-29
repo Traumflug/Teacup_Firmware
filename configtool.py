@@ -435,7 +435,7 @@ class ConfigFrame(wx.Frame):
       if not self.onSaveConfig(None):
         return
 
-    f_cpu, cpu, baud = self.pgBoard.getCPUInfo()
+    f_cpu, cpu = self.pgBoard.getCPUInfo()
     if not cpu:
       dlg = wx.MessageDialog(self, "Unable to determine CPU type.",
                              "CPU type error", wx.OK | wx.ICON_ERROR)
@@ -450,26 +450,13 @@ class ConfigFrame(wx.Frame):
       dlg.Destroy()
       return
 
-    if not baud:
-      # TODO: It looks like serial port baud rate is confused with bootloader
-      #       baud rate here. These two can be the same, but don't have to.
-      #       Bootloader baud rate isn't user selectable, it's a property of
-      #       the bootloader and can be changed only by overwriting the
-      #       bootloader.
-      dlg = wx.MessageDialog(self, "Unable to determine CPU baud rate.",
-                             "CPU baud rate error", wx.OK | wx.ICON_ERROR)
-      dlg.ShowModal()
-      dlg.Destroy()
-      return
-
     if buildFlag:
-      # TODO: building the executable needs no baud rate.
-      dlg = Build(self, self.settings, f_cpu, cpu, baud)
+      dlg = Build(self, self.settings, f_cpu, cpu)
       dlg.ShowModal()
       dlg.Destroy()
       self.checkEnableUpload()
     else:
-      dlg = Upload(self, self.settings, f_cpu, cpu, baud)
+      dlg = Upload(self, self.settings, f_cpu, cpu)
       dlg.ShowModal()
       dlg.Destroy()
 
