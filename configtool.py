@@ -185,8 +185,10 @@ class ConfigFrame(wx.Frame):
     menu_bar.Append(build_menu, "&Build")
 
     self.SetMenuBar(menu_bar)
-    self.checkEnableLoadConfig()
+    loadFlag = self.checkEnableLoadConfig()
     self.checkEnableUpload()
+    if loadFlag:
+      self.loadConfigFile("config.h")
 
   def onSaveBoardConfig(self, evt):
     rc = self.pgBoard.onSaveConfig(evt)
@@ -217,9 +219,11 @@ class ConfigFrame(wx.Frame):
     if os.path.isfile(fn):
       self.fileMenu.Enable(ID_LOAD_CONFIG, True)
       self.buildMenu.Enable(ID_BUILD, True)
+      return True
     else:
       self.fileMenu.Enable(ID_LOAD_CONFIG, False)
       self.buildMenu.Enable(ID_BUILD, False)
+      return False
 
   def checkEnableUpload(self):
     fn = os.path.join(cmd_folder, "teacup.hex")
