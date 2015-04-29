@@ -21,7 +21,6 @@ class MiscellaneousPage(wx.Panel, Page):
                    'MOVEBUFFER_SIZE': "Movebuffer Size:",
                    'DC_EXTRUDER': "Heater:", 'DC_EXTRUDER_PWM': "PWM:",
                    'USE_WATCHDOG': "Use the Watchdog Timer",
-                   'REFERENCE': "Analog Reference:",
                    'TH_COUNT': "Temperature History Size:",
                    'FAST_PWM': "Fast PWM",
                    'ENDSTOP_STEPS': "Endstop Steps:",
@@ -35,10 +34,6 @@ class MiscellaneousPage(wx.Panel, Page):
     self.heaterNames = [self.heaterNameNone]
     self.boardHeaters = []
     self.processors = []
-
-    self.defaultRef = 'REFERENCE_AVCC'
-    self.references = [self.defaultRef, 'REFERENCE_AREF',
-                       'REFERENCE_1V1', 'REFERENCE_2V56']
 
     sz = wx.GridBagSizer()
     sz.AddSpacer((20, 40), pos = (0, 0))
@@ -79,12 +74,6 @@ class MiscellaneousPage(wx.Panel, Page):
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (6, 1))
 
-    k = 'REFERENCE'
-    ch = self.addChoice(k, self.references,
-                        self.references.index(self.defaultRef),
-                        labelWidth, self.onChoice)
-    sz.Add(ch, pos = (1, 3))
-
     b = wx.StaticBox(self, wx.ID_ANY, "BANG BANG Bed Control")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
@@ -105,7 +94,7 @@ class MiscellaneousPage(wx.Panel, Page):
     sbox.Add(tc)
     sbox.AddSpacer((5, 5))
 
-    sz.Add(sbox, pos = (3, 3), span = (4, 1), flag = wx.ALIGN_CENTER_HORIZONTAL)
+    sz.Add(sbox, pos = (1, 3), span = (5, 1), flag = wx.ALIGN_CENTER_HORIZONTAL)
 
     b = wx.StaticBox(self, wx.ID_ANY, "DC Motor Extruder")
     b.SetFont(font)
@@ -122,7 +111,7 @@ class MiscellaneousPage(wx.Panel, Page):
     sbox.Add(tc)
     sbox.AddSpacer((5, 5))
 
-    sz.Add(sbox, pos = (8, 3), flag = wx.ALIGN_CENTER_HORIZONTAL)
+    sz.Add(sbox, pos = (6, 3), span=(3, 1), flag = wx.ALIGN_CENTER_HORIZONTAL)
 
     labelWidth = 190;
 
@@ -260,8 +249,6 @@ class MiscellaneousPage(wx.Panel, Page):
         self.textControls[k].SetValue(str(cfgValues[k]))
       else:
         self.textControls[k].SetValue("")
-
-    self.setChoice('REFERENCE', cfgValues, self.defaultRef)
 
     self.assertModified(False)
     self.enableAll(True)

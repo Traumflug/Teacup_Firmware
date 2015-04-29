@@ -543,12 +543,6 @@ PWM value for 'off'
 // #define USE_WATCHDOG
 
 /**
-	analog subsystem stuff
-	REFERENCE - which analog reference to use. see analog.h for choices
-*/
-#define	REFERENCE			REFERENCE_AVCC
-
-/**
 	temperature history count. This is how many temperature readings to keep in order to calculate derivative in PID loop
 	higher values make PID derivative term more stable at the expense of reaction time
 */

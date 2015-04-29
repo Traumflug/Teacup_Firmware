@@ -262,11 +262,6 @@
 */
 //#define USE_WATCHDOG
 
-/** \def REFERENCE
-  Which analog reference to use. See analog.h for choices.
-*/
-#define REFERENCE                REFERENCE_AVCC
-
 /** \def TH_COUNT
   Temperature history count. This is how many temperature readings to keep in
   order to calculate derivative in PID loop higher values make PID derivative
