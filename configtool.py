@@ -363,9 +363,6 @@ class ConfigFrame(wx.Frame):
 
     fp.close()
 
-    self.message("config.h successfully saved.", "Save configuration success",
-                 wx.OK + wx.ICON_INFORMATION)
-
     self.checkEnableLoadConfig()
     return True
 

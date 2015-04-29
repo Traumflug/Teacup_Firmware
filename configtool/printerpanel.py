@@ -423,11 +423,6 @@ class PrinterPanel(wx.Panel):
 
     fp.close()
 
-    dlg = wx.MessageDialog(self, "File %s successfully written." % path,
-                           "Save successful", wx.OK + wx.ICON_INFORMATION)
-    dlg.ShowModal()
-    dlg.Destroy()
-
     return True
 
   def addNewDefine(self, fp, key, val):

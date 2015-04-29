@@ -608,18 +608,7 @@ class BoardPanel(wx.Panel):
 
     fp.close()
 
-    dlg = wx.MessageDialog(self, "File %s successfully written." % path,
-                           "Save successful", wx.OK + wx.ICON_INFORMATION)
-    dlg.ShowModal()
-    dlg.Destroy()
-
-    if generateTempTables(self.sensors, self.settings):
-      dlg = wx.MessageDialog(self,
-                             "File thermistortable.h successfully written.",
-                             "Save successful", wx.OK + wx.ICON_INFORMATION)
-      dlg.ShowModal()
-      dlg.Destroy()
-    else:
+    if not generateTempTables(self.sensors, self.settings):
       dlg = wx.MessageDialog(self, "Error writing to file thermistortable.h.",
                              "File error", wx.OK + wx.ICON_ERROR)
       dlg.ShowModal()
