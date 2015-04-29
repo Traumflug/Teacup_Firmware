@@ -3,6 +3,19 @@
 
 #include	<stdint.h>
 
+/** \def DEBUG
+  Enable debug output generally and some additional M-codes.
+
+  Individual flags are enabled at runtime using M111 (see gcode_process.c) or
+  by modifying the presets here.
+
+  WARNING: enabling some or all of these is done can produce /heaps/ of extra
+  output. This extra output will break most host-side talkers that expect
+  particular responses from firmware such as RepRap Host or ReplicatorG. Use
+  with serial terminal or other suitable talker only.
+*/
+//#define DEBUG
+
 #ifdef	DEBUG
   #define DEBUG_ECHO       1
   #define DEBUG_INFO       2

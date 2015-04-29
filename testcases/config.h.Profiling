@@ -506,14 +506,6 @@ DEFINE_HEATER(bed,      DIO3,  1)
 */
 #define EECONFIG
 
-/** \def DEBUG
-	DEBUG
-		enables /heaps/ of extra output, and some extra M-codes.
-		WARNING: this WILL break most host-side talkers that expect particular responses from firmware such as reprap host and replicatorG
-		use with serial terminal or other suitable talker only.
-*/
-// #define	DEBUG
-
 /** \def BANG_BANG
 BANG_BANG
 drops PID loop from heater control, reduces code size significantly (1300 bytes!)

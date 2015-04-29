@@ -14,7 +14,6 @@ class MiscellaneousPage(wx.Panel, Page):
 
     self.labels = {'USE_INTERNAL_PULLUPS': "Use Internal Pullups",
                    'EECONFIG': "Enable EEPROM Storage",
-                   'DEBUG': "Turn on Debugging",
                    'BANG_BANG': "Enable",
                    'BANG_BANG_ON': "On PWM Level:",
                    'BANG_BANG_OFF': "Off PWM Level:",
@@ -64,25 +63,21 @@ class MiscellaneousPage(wx.Panel, Page):
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (2, 1))
 
-    k = 'DEBUG'
+    k = 'USE_WATCHDOG'
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (3, 1))
 
-    k = 'USE_WATCHDOG'
+    k = 'FAST_PWM'
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (4, 1))
 
-    k = 'FAST_PWM'
+    k = 'HEATER_SANITY_CHECK'
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (5, 1))
 
-    k = 'HEATER_SANITY_CHECK'
-    cb = self.addCheckBox(k, self.onCheckBox)
-    sz.Add(cb, pos = (6, 1))
-
     k = 'REPORT_TARGET_TEMPS'
     cb = self.addCheckBox(k, self.onCheckBox)
-    sz.Add(cb, pos = (7, 1))
+    sz.Add(cb, pos = (6, 1))
 
     k = 'REFERENCE'
     ch = self.addChoice(k, self.references,
