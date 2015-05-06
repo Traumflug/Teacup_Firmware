@@ -29,6 +29,8 @@ class Settings:
     self.maxAdc = 1023
     self.minAdc = 1
 
+    self.thermistorpresets = {}
+
     self.cfg = ConfigParser.ConfigParser()
     self.cfg.optionxform = str
 
@@ -70,6 +72,16 @@ class Settings:
     else:
       print "Missing %s section - assuming defaults." % self.section
 
+    section = "thermistors"
+    if self.cfg.has_section(section):
+      for opt, value in self.cfg.items(section):
+        value = value.strip().replace(" ", "")
+        vl = value.split(",")
+        if len(vl) != 4 and len(vl) != 7:
+          print "Invalid entry for thermistor %s." % opt
+        else:
+          self.thermistorpresets[opt] = vl
+
   def saveSettings(self):
     self.section = "configtool"
     try:
@@ -89,6 +101,15 @@ class Settings:
     self.cfg.set(self.section, "maxadc", str(self.maxAdc))
     self.cfg.set(self.section, "minadc", str(self.minAdc))
     self.cfg.set(self.section, "uploadspeed", str(self.uploadspeed))
+
+    section = "thermistors"
+    try:
+      self.cfg.add_section(section)
+    except ConfigParser.DuplicateSectionError:
+      pass
+
+    for t in self.thermistorpresets.keys():
+      self.cfg.set(section, t, ", ".join(self.thermistorpresets[t]))
 
     try:
       cfp = open(self.inifile, 'wb')

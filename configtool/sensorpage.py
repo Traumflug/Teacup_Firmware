@@ -7,11 +7,12 @@ from addsensordlg import AddSensorDlg
 
 
 class SensorsPage(wx.Panel, Page):
-  def __init__(self, parent, nb, idPg, font):
+  def __init__(self, parent, nb, idPg, font, thermistorpresets):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
     Page.__init__(self, font)
     self.parent = parent
     self.font = font
+    self.thermistorpresets = thermistorpresets
     self.id = idPg
 
     self.sensorTypeKeys = {'TT_MAX6675': 'TEMP_MAX6675',
@@ -101,10 +102,14 @@ class SensorsPage(wx.Panel, Page):
       nm.append(s[0])
 
     s = self.sensors[self.selection]
+    if s[3] is None:
+      params = []
+    else:
+      params = s[3]
+
     dlg = AddSensorDlg(self, nm, self.validPins, self.font,
                        name = s[0], stype = s[1], pin = s[2],
-                       r0 = s[3][0], beta = s[3][1], r2 = s[3][2],
-                       vadc = s[3][3], modify = True)
+                       params = params, modify = True)
     rc = dlg.ShowModal()
     if rc == wx.ID_OK:
       tt = dlg.getValues()

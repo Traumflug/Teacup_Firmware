@@ -85,7 +85,10 @@ class SensorList(wx.ListCtrl):
     elif len(s) == 3:
       return ""
     else:
-      return s[3]
+      if s[3] is None:
+        return ""
+      else:
+        return "[%s]" % (", ".join(s[3]))
 
   def OnGetItemAttr(self, item):
     if not self.valid[item]:

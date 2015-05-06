@@ -3,11 +3,19 @@ import wx
 from configtool.data import (pinNames, BSIZESMALL, sensorTypes, offsetTcLabel,
                              offsetChLabel, reInteger, reFloat)
 
+MODE_NONTHERM = 0
+MODE_THERMISTOR = 1
+
+METHOD_BETA = 0
+METHOD_SH = 1
+MethodLabels = ["Beta", "Steinhart-Hart"]
+
+labelWidth = 160
+
 
 class AddSensorDlg(wx.Dialog):
   def __init__(self, parent, names, pins, font, name = "", stype = "",
-               pin = "", r0 = "", beta = "", r2 = "", vadc = "",
-               modify = False):
+               pin = "", params = [], modify = False):
     if modify:
       title = "Modify temperature sensor"
     else:
@@ -19,14 +27,28 @@ class AddSensorDlg(wx.Dialog):
     self.names = names
     self.choices = pins
     self.modify = modify
+    self.presets = parent.thermistorpresets
 
-    labelWidth = 160
+    if len(params) == 0:
+      self.currentMethod = METHOD_BETA
+      self.currentMode = MODE_NONTHERM
+    else:
+      self.currentMode = MODE_THERMISTOR
+      if len(params) == 4:
+        self.currentMethod = METHOD_BETA
+      else:
+        self.currentMethod = METHOD_SH
 
     self.nameValid = False
-    self.R0Valid = False
-    self.betaValid = False
-    self.R2Valid = False
-    self.vadcValid = False
+    self.param0Valid = False
+    self.param1Valid = False
+    self.param2Valid = False
+    self.param3Valid = False
+    self.param4Valid = False
+    self.param5Valid = False
+    self.param6Valid = False
+
+    sizer = wx.BoxSizer(wx.VERTICAL)
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)
     hsz.AddSpacer((10, 10))
@@ -75,6 +97,7 @@ class AddSensorDlg(wx.Dialog):
     if not found:
       ch.SetSelection(0)
       stStart = sl[0]
+
     self.chType = ch
     lsz.Add(ch)
 
@@ -103,75 +126,160 @@ class AddSensorDlg(wx.Dialog):
     csz.AddSpacer((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
-    st = wx.StaticText(self, wx.ID_ANY, "R0:", size = (labelWidth, -1),
+    st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
     lsz.Add(st, 1, wx.TOP, offsetTcLabel)
+    self.label0 = st
 
-    self.tcR0 = wx.TextCtrl(self, wx.ID_ANY, r0)
-    self.tcR0.SetFont(font)
-    self.tcR0.Bind(wx.EVT_TEXT, self.onR0Entry)
-    lsz.Add(self.tcR0)
-    self.tcR0.SetToolTipString("Nominal resistance of the thermistor. "
-                               "Typically 10000 ( = 10k) or 100000 ( = 100k).")
-        
-    csz.Add(lsz)
-    csz.AddSpacer((10, 10))
-
-    lsz = wx.BoxSizer(wx.HORIZONTAL)
-    st = wx.StaticText(self, wx.ID_ANY, "Beta:", size = (labelWidth, -1),
-                       style = wx.ALIGN_RIGHT)
-    st.SetFont(font)
-    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
-
-    self.tcBeta = wx.TextCtrl(self, wx.ID_ANY, beta)
-    self.tcBeta.SetFont(font)
-    self.tcBeta.Bind(wx.EVT_TEXT, self.onBetaEntry)
-    lsz.Add(self.tcBeta)
-    self.tcBeta.SetToolTipString("Thermistor beta value. Can be found in the "
-                                 "datasheet or measured like described in http"
-                                 "://reprap.org/wiki/MeasuringThermistorBeta")
+    vals = params + ["", "", "", "", "", "", ""]
+    self.param0 = wx.TextCtrl(self, wx.ID_ANY, vals[0])
+    self.param0.SetFont(font)
+    self.param0.Bind(wx.EVT_TEXT, self.onParam0Entry)
+    lsz.Add(self.param0)
 
     csz.Add(lsz)
     csz.AddSpacer((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
-    st = wx.StaticText(self, wx.ID_ANY, "R2:", size = (labelWidth, -1),
+    st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
     lsz.Add(st, 1, wx.TOP, offsetTcLabel)
+    self.label1 = st
 
-    self.tcR2 = wx.TextCtrl(self, wx.ID_ANY, r2)
-    self.tcR2.SetFont(font)
-    self.tcR2.Bind(wx.EVT_TEXT, self.onR2Entry)
-    lsz.Add(self.tcR2)
-    self.tcR2.SetToolTipString("Resistance value of the secondary resistor. "
-                               "This is not a property of the thermistor, but "
-                               "one of the board. Typical values are 4700 "
-                               "( = 4k7 ohms) or 1000 ( = 1k ohms).\n\n"
-                               "As these resistors are typically +-5%, "
-                               "measuring the actually used one can increase "
-                               "accuracy substantially.")
+    self.param1 = wx.TextCtrl(self, wx.ID_ANY, vals[1])
+    self.param1.SetFont(font)
+    self.param1.Bind(wx.EVT_TEXT, self.onParam1Entry)
+    lsz.Add(self.param1)
 
     csz.Add(lsz)
     csz.AddSpacer((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
-    st = wx.StaticText(self, wx.ID_ANY, "Vadc:", size = (labelWidth, -1),
+    st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
     lsz.Add(st, 1, wx.TOP, offsetTcLabel)
+    self.label2 = st
 
-    self.tcVadc = wx.TextCtrl(self, wx.ID_ANY, vadc)
-    self.tcVadc.SetFont(font)
-    self.tcVadc.Bind(wx.EVT_TEXT, self.onVadcEntry)
-    lsz.Add(self.tcVadc)
-    self.tcVadc.SetToolTipString("Comparison voltage used by the controller. "
-                                 "Usually the same as the controller's supply "
-                                 "voltage, 3.3 or 5.0 (volts).")
+    self.param2 = wx.TextCtrl(self, wx.ID_ANY, vals[2])
+    self.param2.SetFont(font)
+    self.param2.Bind(wx.EVT_TEXT, self.onParam2Entry)
+    lsz.Add(self.param2)
 
     csz.Add(lsz)
     csz.AddSpacer((10, 10))
+
+    lsz = wx.BoxSizer(wx.HORIZONTAL)
+    st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
+                       style = wx.ALIGN_RIGHT)
+    st.SetFont(font)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
+    self.label3 = st
+
+    self.param3 = wx.TextCtrl(self, wx.ID_ANY, vals[3])
+    self.param3.SetFont(font)
+    self.param3.Bind(wx.EVT_TEXT, self.onParam3Entry)
+    lsz.Add(self.param3)
+
+    csz.Add(lsz)
+    csz.AddSpacer((10, 10))
+
+    lsz = wx.BoxSizer(wx.HORIZONTAL)
+    st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
+                       style = wx.ALIGN_RIGHT)
+    st.SetFont(font)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
+    self.label4 = st
+
+    self.param4 = wx.TextCtrl(self, wx.ID_ANY, vals[4])
+    self.param4.SetFont(font)
+    self.param4.Bind(wx.EVT_TEXT, self.onParam4Entry)
+    lsz.Add(self.param4)
+
+    csz.Add(lsz)
+    csz.AddSpacer((10, 10))
+
+    lsz = wx.BoxSizer(wx.HORIZONTAL)
+    st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
+                       style = wx.ALIGN_RIGHT)
+    st.SetFont(font)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
+    self.label5 = st
+
+    self.param5 = wx.TextCtrl(self, wx.ID_ANY, vals[5])
+    self.param5.SetFont(font)
+    self.param5.Bind(wx.EVT_TEXT, self.onParam5Entry)
+    lsz.Add(self.param5)
+
+    csz.Add(lsz)
+    csz.AddSpacer((10, 10))
+
+    lsz = wx.BoxSizer(wx.HORIZONTAL)
+    st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
+                       style = wx.ALIGN_RIGHT)
+    st.SetFont(font)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
+    self.label6 = st
+
+    self.param6 = wx.TextCtrl(self, wx.ID_ANY, vals[6])
+    self.param6.SetFont(font)
+    self.param6.Bind(wx.EVT_TEXT, self.onParam6Entry)
+    lsz.Add(self.param6)
+
+    csz.Add(lsz)
+    csz.AddSpacer((10, 10))
+
+    csz.AddSpacer((10, 10))
+
+    hsz.Add(csz)
+    hsz.AddSpacer((10, 10))
+
+    csz = wx.BoxSizer(wx.VERTICAL)
+    csz.AddSpacer((30, 45))
+
+    lsz = wx.BoxSizer(wx.HORIZONTAL)
+    st = wx.StaticText(self, wx.ID_ANY, "Presets:",
+                       size = (70, -1), style = wx.ALIGN_RIGHT)
+    st.SetFont(font)
+    lsz.Add(st, 1, wx.TOP, offsetTcLabel)
+
+    choices = ["<none>"] + sorted(self.presets.keys())
+    ch = wx.Choice(self, wx.ID_ANY, choices = choices)
+    ch.SetFont(font)
+    ch.Enable(False)
+    ch.SetSelection(0)
+    self.chPresets = ch
+    ch.Bind(wx.EVT_CHOICE, self.onPresetChoice)
+    lsz.Add(ch)
+
+    csz.Add(lsz)
+    csz.AddSpacer((10, 50))
+
+    b = wx.StaticBox(self, wx.ID_ANY, "Temp Table Algorithm")
+    b.SetFont(font)
+    sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
+    sbox.AddSpacer((5, 5))
+    style = wx.RB_GROUP
+    self.rbMethod = []
+    for k in MethodLabels:
+      rb = wx.RadioButton(self, wx.ID_ANY, k, style = style)
+      rb.SetFont(font)
+      self.Bind(wx.EVT_RADIOBUTTON, self.onMethodSelect, rb)
+      self.rbMethod.append(rb)
+      style = 0
+
+      sbox.Add(rb, 1, wx.LEFT + wx.RIGHT, 16)
+      sbox.AddSpacer((5, 5))
+
+    self.rbMethod[self.currentMethod].SetValue(True);
+    csz.Add(sbox)
+
+    hsz.Add(csz)
+    hsz.AddSpacer((10, 10))
+
+    sizer.Add(hsz)
 
     bsz = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -188,13 +296,10 @@ class AddSensorDlg(wx.Dialog):
     self.bCancel.Bind(wx.EVT_BUTTON, self.onCancel)
     bsz.Add(self.bCancel)
 
-    csz.Add(bsz, flag = wx.ALIGN_CENTER_HORIZONTAL)
-    csz.AddSpacer((10, 10))
+    sizer.Add(bsz, flag = wx.ALIGN_CENTER_HORIZONTAL)
+    sizer.AddSpacer((10, 10))
 
-    hsz.Add(csz)
-    hsz.AddSpacer((10, 10))
-
-    self.SetSizer(hsz)
+    self.SetSizer(sizer)
     self.Fit()
 
     self.selectSensorType(stStart)
@@ -222,9 +327,20 @@ class AddSensorDlg(wx.Dialog):
       tc.SetBackgroundColour("pink")
     tc.Refresh()
 
+  def onMethodSelect(self, evt):
+    rb = evt.GetEventObject()
+    lbl = rb.GetLabel()
+    for i in range(len(MethodLabels)):
+      if lbl == MethodLabels[i]:
+        self.currentMethod = i
+        self.setDialogMode()
+        self.validateFields()
+        return
+
   def checkDlgValidity(self):
-    if (self.nameValid and self.R0Valid and self.betaValid and
-        self.R2Valid and self.vadcValid):
+    if (self.nameValid and self.param0Valid and self.param1Valid and
+        self.param2Valid and self.param3Valid and self.param4Valid and
+        self.param5Valid and self.param6Valid):
       self.bSave.Enable(True)
     else:
       self.bSave.Enable(False)
@@ -242,7 +358,7 @@ class AddSensorDlg(wx.Dialog):
         valid = True
       else:
         valid = False
-        
+
     if valid:
       tc.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
     else:
@@ -250,7 +366,7 @@ class AddSensorDlg(wx.Dialog):
 
     tc.Refresh()
     return valid
-    
+
   def onTextCtrlFloat(self, tc, rqd):
     w = tc.GetValue().strip()
     if w == "":
@@ -264,7 +380,7 @@ class AddSensorDlg(wx.Dialog):
         valid = True
       else:
         valid = False
-        
+
     if valid:
       tc.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
     else:
@@ -272,63 +388,255 @@ class AddSensorDlg(wx.Dialog):
     tc.Refresh()
     return valid
 
-  def onR0Entry(self, evt):
-    stype = self.chType.GetString(self.chType.GetSelection())
-    if stype in ['Thermistor']:
-      rqd = True
+  def onParam0Entry(self, evt):
+    if self.currentMode == MODE_THERMISTOR:
+      self.param0Valid = self.onTextCtrlInteger(self.param0, True)
     else:
-      rqd = False
-    self.R0Valid = self.onTextCtrlInteger(self.tcR0, rqd)
+      self.param0Valid = True
+
     self.checkDlgValidity()
     if evt is not None:
       evt.Skip()
 
-  def onBetaEntry(self, evt):
-    stype = self.chType.GetString(self.chType.GetSelection())
-    if stype in ['Thermistor']:
-      rqd = True
+  def onParam1Entry(self, evt):
+    if self.currentMode == MODE_THERMISTOR:
+      self.param1Valid = self.onTextCtrlInteger(self.param1, True)
     else:
-      rqd = False
-    self.betaValid = self.onTextCtrlInteger(self.tcBeta, rqd)
+      self.param1Valid = True
+
     self.checkDlgValidity()
     if evt is not None:
       evt.Skip()
 
-  def onR2Entry(self, evt):
-    stype = self.chType.GetString(self.chType.GetSelection())
-    if stype in ['Thermistor']:
-      rqd = True
+  def onParam2Entry(self, evt):
+    if self.currentMode == MODE_THERMISTOR:
+      self.param2Valid = self.onTextCtrlInteger(self.param2, True)
     else:
-      rqd = False
-    self.R2Valid = self.onTextCtrlInteger(self.tcR2, rqd)
+      self.param2Valid = True
+
     self.checkDlgValidity()
     if evt is not None:
       evt.Skip()
 
-  def onVadcEntry(self, evt):
-    stype = self.chType.GetString(self.chType.GetSelection())
-    if stype in ['Thermistor']:
-      rqd = True
+  def onParam3Entry(self, evt):
+    if self.currentMode == MODE_THERMISTOR:
+      if self.currentMethod == METHOD_BETA:
+        self.param3Valid = self.onTextCtrlFloat(self.param3, True)
+      else:
+        self.param3Valid = self.onTextCtrlInteger(self.param3, True)
     else:
-      rqd = False
-    self.vadcValid = self.onTextCtrlFloat(self.tcVadc, rqd)
+      self.param3Valid = True
+
+    self.checkDlgValidity()
+    if evt is not None:
+      evt.Skip()
+
+  def onParam4Entry(self, evt):
+    if self.currentMode == MODE_THERMISTOR:
+      if self.currentMethod == METHOD_BETA:
+        self.param4Valid = True
+      else:
+        self.param4Valid = self.onTextCtrlInteger(self.param4, True)
+    else:
+      self.param4Valid = True
+
+    self.checkDlgValidity()
+    if evt is not None:
+      evt.Skip()
+
+  def onParam5Entry(self, evt):
+    if self.currentMode == MODE_THERMISTOR:
+      if self.currentMethod == METHOD_BETA:
+        self.param5Valid = True
+      else:
+        self.param5Valid = self.onTextCtrlInteger(self.param5, True)
+    else:
+      self.param5Valid = True
+
+    self.checkDlgValidity()
+    if evt is not None:
+      evt.Skip()
+
+  def onParam6Entry(self, evt):
+    if self.currentMode == MODE_THERMISTOR:
+      if self.currentMethod == METHOD_BETA:
+        self.param6Valid = True
+      else:
+        self.param6Valid = self.onTextCtrlInteger(self.param6, True)
+    else:
+      self.param6Valid = True
+
     self.checkDlgValidity()
     if evt is not None:
       evt.Skip()
 
   def selectSensorType(self, lbl):
-    if lbl == 'Thermistor':
-      flag = True
+    if lbl == "Thermistor":
+      self.currentMode = MODE_THERMISTOR
     else:
-      flag = False
+      self.currentMode = MODE_NONTHERM
+    self.setDialogMode()
 
-    self.tcR0.Enable(flag);
-    self.tcBeta.Enable(flag);
-    self.tcR2.Enable(flag);
-    self.tcVadc.Enable(flag);
+  def setDialogMode(self):
+    if self.currentMode == MODE_THERMISTOR:
+      if self.currentMethod == METHOD_BETA:
+        self.param0.SetToolTipString("Nominal resistance of the thermistor. "
+                                     "Typically 10000 ( = 10k) or 100000 "
+                                     "( = 100k).")
+        self.label0.SetLabel("R0:")
+        self.param1.SetToolTipString("Thermistor beta value. Can be found in "
+                                     "the datasheet or measured like described "
+                                     "in http://reprap.org/wiki/"
+                                     "MeasuringThermistorBeta")
+        self.label1.SetLabel("Beta:")
+        self.param2.SetToolTipString("Resistance value of the secondary "
+                                     "resistor. This is not a property of the "
+                                     "thermistor, but one of the board. "
+                                     "Typical values are 4700 ( = 4k7 ohms) "
+                                     "or 1000 ( = 1k ohms).")
+        self.label2.SetLabel("R2:")
+        self.param3.SetToolTipString("Comparison voltage used by the "
+                                     "controller. Usually the same as the "
+                                     "controller's supply voltage, 3.3 or 5.0 "
+                                     "(volts).")
+        self.label3.SetLabel("Vadc:")
+        self.label4.SetLabel("")
+        self.param4.SetToolTip(None)
+        self.param4.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+        self.param4.Refresh()
+        self.label5.SetLabel("")
+        self.param5.SetToolTip(None)
+        self.param5.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+        self.param5.Refresh()
+        self.label6.SetLabel("")
+        self.param6.SetToolTip(None)
+        self.param6.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+        self.param6.Refresh()
+        self.param4.Enable(False)
+        self.param5.Enable(False)
+        self.param6.Enable(False)
+      else:
+        self.param0.SetToolTipString("Reference resistance value.")
+        self.label0.SetLabel("Rp:")
+        self.param1.SetToolTipString("First data point, temperature at which "
+                                     "resistance is equal to R0.")
+        self.label1.SetLabel("T0:")
+        self.param2.SetToolTipString("Resistance when temperature is T0.")
+        self.label2.SetLabel("R0:")
+        self.param3.SetToolTipString("Second data point, temperature at which "
+                                     "resistance is equal to R1.")
+        self.label3.SetLabel("T1:")
+        self.param4.SetToolTipString("Resistance when temperature is T1.")
+        self.label4.SetLabel("R1:")
+        self.param5.SetToolTipString("Third data point, temperature at which "
+                                     "resistance is equal to R2.")
+        self.label5.SetLabel("T2:")
+        self.param6.SetToolTipString("Resistance when temperature is T2.")
+        self.label6.SetLabel("R2:")
+        self.param4.Enable(True)
+        self.param5.Enable(True)
+        self.param6.Enable(True)
+
+      self.label0.SetSize((labelWidth, -1))
+      self.label0.SetWindowStyle(wx.ALIGN_RIGHT)
+      self.label1.SetSize((labelWidth, -1))
+      self.label1.SetWindowStyle(wx.ALIGN_RIGHT)
+      self.label2.SetSize((labelWidth, -1))
+      self.label2.SetWindowStyle(wx.ALIGN_RIGHT)
+      self.label3.SetSize((labelWidth, -1))
+      self.label3.SetWindowStyle(wx.ALIGN_RIGHT)
+      self.label4.SetSize((labelWidth, -1))
+      self.label4.SetWindowStyle(wx.ALIGN_RIGHT)
+      self.label5.SetSize((labelWidth, -1))
+      self.label5.SetWindowStyle(wx.ALIGN_RIGHT)
+      self.label6.SetSize((labelWidth, -1))
+      self.label6.SetWindowStyle(wx.ALIGN_RIGHT)
+
+      self.param0.Enable(True);
+      self.param1.Enable(True);
+      self.param2.Enable(True);
+      self.param3.Enable(True);
+      self.chPresets.Enable(True);
+      for rb in self.rbMethod:
+        rb.Enable(True)
+    else:
+      self.param0.SetToolTip(None)
+      self.label0.SetLabel("")
+      self.param0.SetBackgroundColour(
+            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      self.param0.Refresh()
+
+      self.param1.SetToolTip(None)
+      self.label1.SetLabel("")
+      self.param1.SetBackgroundColour(
+            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      self.param1.Refresh()
+
+      self.param2.SetToolTip(None)
+      self.label2.SetLabel("")
+      self.param2.SetBackgroundColour(
+            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      self.param2.Refresh()
+
+      self.param3.SetToolTip(None)
+      self.label3.SetLabel("")
+      self.param3.SetBackgroundColour(
+            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      self.param3.Refresh()
+
+      self.param4.SetToolTip(None)
+      self.label4.SetLabel("")
+      self.param4.SetBackgroundColour(
+            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      self.param4.Refresh()
+
+      self.param5.SetToolTip(None)
+      self.label5.SetLabel("")
+      self.param5.SetBackgroundColour(
+            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      self.param5.Refresh()
+
+      self.param6.SetToolTip(None)
+      self.label6.SetLabel("")
+      self.param6.SetBackgroundColour(
+            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      self.param6.Refresh()
+
+      self.param0.Enable(False);
+      self.param1.Enable(False);
+      self.param2.Enable(False);
+      self.param3.Enable(False);
+      self.param4.Enable(False);
+      self.param5.Enable(False);
+      self.param6.Enable(False);
+      self.chPresets.Enable(False);
+      for rb in self.rbMethod:
+        rb.Enable(False)
 
   def onChoice(self, evt):
     pass
+
+  def onPresetChoice(self, evt):
+    ch = evt.GetEventObject()
+    s = ch.GetSelection()
+    label = ch.GetString(s)
+    if s != 0:
+      self.param0.SetValue(self.presets[label][0])
+      self.param1.SetValue(self.presets[label][1])
+      self.param2.SetValue(self.presets[label][2])
+      self.param3.SetValue(self.presets[label][3])
+      if len(self.presets[label]) == 7:
+        self.param4.SetValue(self.presets[label][4])
+        self.param5.SetValue(self.presets[label][5])
+        self.param6.SetValue(self.presets[label][5])
+        self.currentMethod = METHOD_SH
+      else:
+        self.currentMethod = METHOD_BETA
+      self.rbMethod[self.currentMethod].SetValue(True)
+      self.setDialogMode()
+
+    self.validateFields()
+    evt.Skip()
 
   def onSensorType(self, evt):
     ch = evt.GetEventObject()
@@ -341,21 +649,34 @@ class AddSensorDlg(wx.Dialog):
 
   def validateFields(self):
     self.validateName(self.tcName)
-    self.onR0Entry(None)
-    self.onBetaEntry(None)
-    self.onR2Entry(None)
-    self.onVadcEntry(None)
+    self.onParam0Entry(None)
+    self.onParam1Entry(None)
+    self.onParam2Entry(None)
+    self.onParam3Entry(None)
+    self.onParam4Entry(None)
+    self.onParam5Entry(None)
+    self.onParam6Entry(None)
 
   def getValues(self):
     nm = self.tcName.GetValue()
     pin = self.choices[self.chPin.GetSelection()]
     stype = self.chType.GetString(self.chType.GetSelection())
-
-    if stype in ['Thermistor']:
-      addtl = [self.tcR0.GetValue().strip(), self.tcBeta.GetValue().strip(),
-               self.tcR2.GetValue().strip(), self.tcVadc.GetValue().strip()]
+    if self.currentMode == MODE_THERMISTOR:
+      if self.currentMethod == METHOD_BETA:
+        addtl = [str(self.param0.GetValue().strip()),
+                 str(self.param1.GetValue().strip()),
+                 str(self.param2.GetValue().strip()),
+                 str(self.param3.GetValue().strip())]
+      else:
+        addtl = [str(self.param0.GetValue().strip()),
+                 str(self.param1.GetValue().strip()),
+                 str(self.param2.GetValue().strip()),
+                 str(self.param3.GetValue().strip()),
+                 str(self.param4.GetValue().strip()),
+                 str(self.param5.GetValue().strip()),
+                 str(self.param6.GetValue().strip())]
     else:
-      addtl = "NONE"
+      addtl = None
 
     return (nm, sensorTypes[stype], pin, addtl)
 
