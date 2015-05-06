@@ -297,7 +297,7 @@ class ConfigFrame(wx.Frame):
       cfgBuffer = list(open(path))
     except:
       self.message("Unable to process config file %s." % fn, "File error")
-      return
+      return None, None
 
     for ln in cfgBuffer:
       if not ln.lstrip().startswith("#include"):
