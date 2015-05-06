@@ -183,10 +183,11 @@ class Build(wx.Dialog):
       ofile = basename + ".o"
       alfile = basename + ".al"
       opath = "\"" + join(self.root, "build", ofile) + "\""
+      alpath = "\"" + join(self.root, "build", alfile) + "\""
       cpath = "\"" + join(self.root, f) + "\""
 
       opts = self.settings.cflags
-      opts = opts.replace("%ALNAME%", alfile)
+      opts = opts.replace("%ALNAME%", alpath)
       opts = opts.replace("%F_CPU%", self.f_cpu)
       opts = opts.replace("%CPU%", self.cpu)
 
