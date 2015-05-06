@@ -339,6 +339,8 @@ class ConfigFrame(wx.Frame):
     if self.pgBoard.isModified() and self.pgBoard.isValid():
       if not self.pgBoard.saveConfigFile(bfn):
         return False
+    else:
+      self.pgBoard.generateTempTables()
 
     pfn = self.pgPrinter.getFileName()
     if self.pgPrinter.isModified() and self.pgPrinter.isValid():
