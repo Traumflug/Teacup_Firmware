@@ -346,6 +346,8 @@ class AddSensorDlg(wx.Dialog):
       self.bSave.Enable(False)
 
   def onTextCtrlInteger(self, tc, rqd):
+    if not rqd:
+      return True
     w = tc.GetValue().strip()
     if w == "":
       if rqd:
@@ -368,6 +370,8 @@ class AddSensorDlg(wx.Dialog):
     return valid
 
   def onTextCtrlFloat(self, tc, rqd):
+    if not rqd:
+      return True
     w = tc.GetValue().strip()
     if w == "":
       if rqd:
