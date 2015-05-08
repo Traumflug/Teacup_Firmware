@@ -1,0 +1,49 @@
+From 72271041812d1136ea616cd7352e851ba40c678d Mon Sep 17 00:00:00 2001
+From: jbernardis <jeff.bernardis@gmail.com>
+Date: Tue, 28 Apr 2015 20:12:14 -0400
+Subject: Configtool: use absolute path names in config.h.
+
+This commit was written more accidently to address issue #132,
+let's keep it as patch in attic/ in case it becomes neccessary
+one day.
+---
+ configtool.py | 18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
+
+diff --git a/configtool.py b/configtool.py
+index fd0e867..49cf957 100755
+--- a/configtool.py
++++ b/configtool.py
+@@ -341,25 +341,15 @@ class ConfigFrame(wx.Frame):
+       if not self.pgPrinter.saveConfigFile(pfn):
+         return False
+ 
+-    prefix = cmd_folder + os.path.sep
+-    lpfx = len(prefix)
+-
+-    if bfn.startswith(prefix):
+-      rbfn = bfn[lpfx:]
+-    else:
+-      rbfn = bfn
+-
+-    if pfn.startswith(prefix):
+-      rpfn = pfn[lpfx:]
+-    else:
+-      rpfn = pfn
++    bfn = bfn.replace("\\", "/")
++    pfn = pfn.replace("\\", "/")
+ 
+     fp.write("\n")
+     fp.write("// Configuration for controller board.\n")
+-    fp.write("#include \"%s\"\n" % rbfn)
++    fp.write("#include \"%s\"\n" % bfn)
+     fp.write("\n")
+     fp.write("// Configuration for printer board.\n")
+-    fp.write("#include \"%s\"\n" % rpfn)
++    fp.write("#include \"%s\"\n" % pfn)
+ 
+     fp.close()
+ 
+-- 
+2.1.0
+
