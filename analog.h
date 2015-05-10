@@ -3,12 +3,31 @@
 
 #include	<stdint.h>
 
-#ifndef SIMULATOR
+/** \def REFERENCE_AREF
+  This compares the voltage to be measured against the voltage on the Aref pin.
+  This also requires a voltage to be actually provided on the Aref pin, which
+  none of the commonly available controllers or Arduinos do.
+*/
 #define	REFERENCE_AREF	0
+
+/** \def REFERENCE_AVCC
+  This compares the voltage to be measured against the voltage on the Aref pin,
+  but also connects AVcc to Aref, so no external voltage is required. Using
+  this is said to be more accurate than doing this connection externally, on
+  the pins of the chip, so this is the most commonly used option.
+*/
 #define	REFERENCE_AVCC	64
-#if defined (__AVR_ATmega168__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__)
+
+/** \def REFERENCE_1V1
+    \def REFERENCE_2V56
+  These compare the voltage to be measured against internally created
+  1.1 or 2.56 volts. Not useful on commonly available RepRap controllers,
+  but might be a good choice for custom devices providing only a low voltage.
+*/
+#if defined (__AVR_ATmega168__) || defined (__AVR_ATmega168P__) || \
+    defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__)
 	#define	REFERENCE_1V1		192
-#elif defined (__AVR_ATmega_644__) || defined (__AVR_ATmega644p__)
+#else
 	#define	REFERENCE_1V1		128
 	#define	REFERENCE_2V56	192
 #endif
@@ -23,16 +42,8 @@
 #define REFERENCE REFERENCE_AVCC
 
 #ifndef	REFERENCE
-#warning	define REFERENCE as one of
-#if defined (__AVR_ATmega168__) || defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__)
-	#warning	REFERENCE_AREF, REFERENCE_AVCC or REFERENCE_1V1
-#elif defined (__AVR_ATmega_644__) || defined (__AVR_ATmega644p__)
-	#warning	REFERENCE_AREF, REFERENCE_AVCC, REFERENCE_1V1 or REFERENCE_2V56
+  #error REFERENCE undefined. See analog.h on how to choose it.
 #endif
-#warning	in your config.h
-#error REFERENCE undefined
-#endif
-#endif /* SIMULATOR */
 
 void 			analog_init(void);
 
