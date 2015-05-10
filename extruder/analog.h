@@ -12,7 +12,14 @@
 	#define	REFERENCE_2V56	192
 #endif
 
-#include	"config_wrapper.h"
+/** \def REFERENCE
+  Which analog reference to use. As none of the known controllers provides a
+  fixed voltage on the Aref pin and all of them have a thermistor measurement
+  range of 0..5 volts, let's clamp this here to the only choice, AVcc, instead
+  of confusing the user with a choice.
+*/
+//#include "config_wrapper.h"
+#define REFERENCE REFERENCE_AVCC
 
 #ifndef	REFERENCE
 #warning	define REFERENCE as one of
