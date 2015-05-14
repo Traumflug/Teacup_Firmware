@@ -349,8 +349,11 @@ class Upload(wx.Dialog):
     else:
       cmdpath = "avrdude"
 
-    cmd = cmdpath + " -c %s -b %s -p %s -P %s -U flash:w:teacup.hex" % \
-      (self.settings.programmer, self.baud, self.cpu, self.settings.port)
+    hexpath = "\"" + join(self.root, "teacup.hex") + "\""
+
+    cmd = cmdpath + " -c %s -b %s -p %s -P %s -U flash:w:%s:i" % \
+          (self.settings.programmer, self.baud, self.cpu, self.settings.port,
+           hexpath)
     self.script.append(cmd)
 
   def uploadUpdate(self, evt):
