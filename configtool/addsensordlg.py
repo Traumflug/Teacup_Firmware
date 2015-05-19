@@ -2,6 +2,7 @@
 import wx
 from configtool.data import (pinNames, BSIZESMALL, sensorTypes, offsetTcLabel,
                              offsetChLabel, reInteger, reFloat)
+from configtool.thermistorpresets import thermistorPresets
 
 MODE_NONTHERM = 0
 MODE_THERMISTOR = 1
@@ -27,7 +28,6 @@ class AddSensorDlg(wx.Dialog):
     self.names = names
     self.choices = pins
     self.modify = modify
-    self.presets = parent.thermistorpresets
 
     if len(params) == 0:
       self.currentMethod = METHOD_BETA
@@ -245,7 +245,7 @@ class AddSensorDlg(wx.Dialog):
     st.SetFont(font)
     lsz.Add(st, 1, wx.TOP, offsetTcLabel)
 
-    choices = ["<none>"] + sorted(self.presets.keys())
+    choices = ["<none>"] + sorted(thermistorPresets.keys())
     ch = wx.Choice(self, wx.ID_ANY, choices = choices)
     ch.SetFont(font)
     ch.Enable(False)
@@ -621,14 +621,14 @@ class AddSensorDlg(wx.Dialog):
     s = ch.GetSelection()
     label = ch.GetString(s)
     if s != 0:
-      self.param0.SetValue(self.presets[label][0])
-      self.param1.SetValue(self.presets[label][1])
-      self.param2.SetValue(self.presets[label][2])
-      self.param3.SetValue(self.presets[label][3])
-      if len(self.presets[label]) == 7:
-        self.param4.SetValue(self.presets[label][4])
-        self.param5.SetValue(self.presets[label][5])
-        self.param6.SetValue(self.presets[label][5])
+      self.param0.SetValue(thermistorPresets[label][0])
+      self.param1.SetValue(thermistorPresets[label][1])
+      self.param2.SetValue(thermistorPresets[label][2])
+      self.param3.SetValue(thermistorPresets[label][3])
+      if len(thermistorPresets[label]) == 7:
+        self.param4.SetValue(thermistorPresets[label][4])
+        self.param5.SetValue(thermistorPresets[label][5])
+        self.param6.SetValue(thermistorPresets[label][5])
         self.currentMethod = METHOD_SH
       else:
         self.currentMethod = METHOD_BETA

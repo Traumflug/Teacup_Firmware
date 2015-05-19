@@ -67,8 +67,7 @@ class BoardPanel(wx.Panel):
     self.pageValid.append(True)
 
     self.pgSensors = SensorsPage(self, self.nb, len(self.pages),
-                                 self.settings.font,
-                                 self.settings.thermistorpresets)
+                                 self.settings.font)
     text = "Temperature Sensors"
     self.nb.AddPage(self.pgSensors, text)
     self.pages.append(self.pgSensors)
@@ -199,7 +198,6 @@ class BoardPanel(wx.Panel):
     dlg.Destroy()
     if path is None:
       return
-
 
     self.dir = os.path.dirname(path)
     rc = self.loadConfigFile(path)
