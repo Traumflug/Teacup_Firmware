@@ -7,6 +7,19 @@ from configtool.data import BSIZESMALL, offsetTcLabel
 INIFILE = "configtool.ini"
 DEFAULT_INIFILE = "configtool.default.ini"
 
+ARDUINODIR = 0
+CFLAGS = 1
+LDFLAGS = 2
+OBJCOPYFLAGS= 3
+PROGRAMMER = 4
+PORT = 5
+UPLOADSPEED = 6
+NUMTEMPS = 7
+MINADC = 8
+MAXADC = 9
+T0 = 10
+R1 = 11
+
 
 class Settings:
   def __init__(self, app, folder):
@@ -99,14 +112,6 @@ class Settings:
     cfp.close()
 
 
-ARDUINODIR = 0
-CFLAGS = 1
-LDFLAGS = 2
-OBJCOPYFLAGS= 3
-PROGRAMMER = 4
-PORT = 5
-UPLOADSPEED = 6
-
 class SettingsDlg(wx.Dialog):
   def __init__(self, parent, settings):
     wx.Dialog.__init__(self, parent, wx.ID_ANY, "Modify settings",
@@ -118,13 +123,49 @@ class SettingsDlg(wx.Dialog):
 
     self.Bind(wx.EVT_CLOSE, self.onExit)
 
-    self.fields = [["Arduino Directory", settings.arduinodir, None],
-                   ["C Compiler Flags", settings.cflags, None],
-                   ["LD Flags", settings.ldflags, None],
-                   ["Object Copy Flags", settings.objcopyflags, None],
-                   ["AVR Programmer", settings.programmer, None],
-                   ["Port", settings.port, None],
-                   ["Upload Speed", settings.uploadspeed, None]]
+    htArdDir = "Where to find the arduino tools (avr-gcc, avrdude, etc). " \
+               "This is only used for windows. For linux it is assumed that " \
+               "the tools are available through the normal PATH."
+    htCFlags = "Flags passed into the avr-gcc compiler. These flags can " \
+               "have 3 different variables embedded within them:" \
+               "\n\n  %F_CPU%   will be replaced by the value of the CPU " \
+               "Clock Rate." \
+               "\n\n  %CPU%     will be replaced by the value of the CPU. " \
+               "\n\n  %ALNAME%  is the name of the source file being " \
+               "compiled with the .c extension replaced by .al.\n\n" \
+               "Note: the flag -save-temps=obj does not appear to be a " \
+               "valid flag for win32. Omit the \"=obj\", or omit it entirely."
+    htLDFlags = "Flags passed to avr-gcc to be passed on to the linker."
+    htObjCopy = "Flags passed to avr-objcopy."
+    htProgrammer = "The programmer type - passed to avrdude."
+    htPort = "The port through which the firmware will be uploaded - " \
+             "passed to avrdude."
+    htSpeed = "The baud rate with which to communicate with the bootloader."
+    htNumTemps = "The number of entries generated for the thermistor tables. " \
+                 "Higher numbers slightly increase temperature reading " \
+                 "accuracy, but also cost binary size. Default is 25."
+    htMinAdc = "The minimum ADC value returned by the thermistor. Typically 0."
+    htMaxAdc = "The maximum ADC value returned by the thermistor. " \
+               "Typically 1023 (maximum of 10-bit ADCs)."
+    htT0 = "The T0 value used for thermistor table calculation. Typically 25."
+    htR1 = "The R1 value used for thermistor table calculation. Typically 0."
+
+    # This table MUST be in the same order as the constants defined at
+    # the top of this file.
+    self.fields = [["Arduino Directory", settings.arduinodir, htArdDir],
+                   ["C Compiler Flags", settings.cflags, htCFlags],
+                   ["LD Flags", settings.ldflags, htLDFlags],
+                   ["Object Copy Flags", settings.objcopyflags, htObjCopy],
+                   ["AVR Programmer", settings.programmer, htProgrammer],
+                   ["Port", settings.port, htPort],
+                   ["Upload Speed", settings.uploadspeed, htSpeed],
+                   ["Number of Temps", settings.numTemps, htNumTemps],
+                   ["Minimum ADC value", settings.minAdc, htMinAdc],
+                   ["Maximum ADC value", settings.maxAdc, htMaxAdc],
+                   ["T0", settings.t0, htT0],
+                   ["R1", settings.r1, htR1]]
+
+    self.teList = []
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)
     hsz.AddSpacer((10, 10))
@@ -144,8 +185,9 @@ class SettingsDlg(wx.Dialog):
 
       te = wx.TextCtrl(self, wx.ID_ANY, f[1], size = (600, -1))
       te.Bind(wx.EVT_TEXT, self.onTextCtrl)
+      te.SetToolTipString(f[2])
       lsz.Add(te)
-      f[2] = te
+      self.teList.append(te)
 
       sz.Add(lsz)
       sz.AddSpacer((10, 10))
@@ -195,13 +237,18 @@ class SettingsDlg(wx.Dialog):
     self.EndModal(wx.ID_OK)
 
   def saveValues(self):
-    self.settings.arduinodir = self.fields[ARDUINODIR][2].GetValue()
-    self.settings.cflags = self.fields[CFLAGS][2].GetValue()
-    self.settings.ldflags = self.fields[LDFLAGS][2].GetValue()
-    self.settings.objcopyflags = self.fields[OBJCOPYFLAGS][2].GetValue()
-    self.settings.programmer = self.fields[PROGRAMMER][2].GetValue()
-    self.settings.port = self.fields[PORT][2].GetValue()
-    self.settings.uploadspeed = self.fields[UPLOADSPEED][2].GetValue()
+    self.settings.arduinodir = self.teList[ARDUINODIR].GetValue()
+    self.settings.cflags = self.teList[CFLAGS].GetValue()
+    self.settings.ldflags = self.teList[LDFLAGS].GetValue()
+    self.settings.objcopyflags = self.teList[OBJCOPYFLAGS].GetValue()
+    self.settings.programmer = self.teList[PROGRAMMER].GetValue()
+    self.settings.port = self.teList[PORT].GetValue()
+    self.settings.uploadspeed = self.teList[UPLOADSPEED].GetValue()
+    self.settings.numTemps = self.teList[NUMTEMPS].GetValue()
+    self.settings.minAdc = self.teList[MINADC].GetValue()
+    self.settings.maxAdc = self.teList[MAXADC].GetValue()
+    self.settings.t0 = self.teList[T0].GetValue()
+    self.settings.r1 = self.teList[R1].GetValue()
 
     self.settings.saveSettings()
 
