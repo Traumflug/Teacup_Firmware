@@ -74,6 +74,7 @@ class ScriptThread:
         wx.PostEvent(self.win, evt)
         p.kill()
         self.running = False
+        p.wait()
         return
 
       rc = p.wait()
@@ -310,6 +311,7 @@ class Upload(wx.Dialog):
     self.cpu = cpu
     self.baud = self.settings.uploadspeed
     self.Bind(wx.EVT_CLOSE, self.onExit)
+    self.cancelPending = False
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)
     hsz.AddSpacer((10, 10))
@@ -338,9 +340,9 @@ class Upload(wx.Dialog):
       self.active = False
     else:
       self.Bind(EVT_SCRIPT_UPDATE, self.uploadUpdate)
-      t = ScriptThread(self, self.script)
+      self.t = ScriptThread(self, self.script)
       self.active = True
-      t.Start()
+      self.t.Start()
 
   def generateUploadScript(self):
     self.script = []
@@ -362,15 +364,31 @@ class Upload(wx.Dialog):
 
     if evt.state == SCRIPT_RUNNING:
       pass
+
     if evt.state == SCRIPT_CANCELLED:
-      self.log.AppendText("Upload terminated abnormally.\n")
       self.active = False
+
+      if self.cancelPending:
+        self.EndModal(wx.ID_OK)
+
+      self.log.AppendText("Upload terminated abnormally.\n")
+
     if evt.state == SCRIPT_FINISHED:
       self.log.AppendText("Upload completed normally.\n")
       self.active = False
 
   def onExit(self, evt):
     if self.active:
+      dlg = wx.MessageDialog(self, "Are you sure you want to cancel upload?",
+                             "Upload active",
+                             wx.YES_NO | wx.NO_DEFAULT | wx.ICON_INFORMATION)
+      rc = dlg.ShowModal()
+      dlg.Destroy()
+
+      if rc == wx.ID_YES:
+        self.cancelPending = True
+        self.log.AppendText("Cancelling...\n")
+        self.t.Stop()
       return
 
     self.EndModal(wx.ID_OK)
