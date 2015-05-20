@@ -104,6 +104,7 @@ class Build(wx.Dialog):
     self.f_cpu = f_cpu
     self.cpu = cpu
     self.Bind(wx.EVT_CLOSE, self.onExit)
+    self.cancelPending = False
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)
     hsz.AddSpacer((10, 10))
@@ -140,9 +141,9 @@ class Build(wx.Dialog):
       self.active = False
     else:
       self.Bind(EVT_SCRIPT_UPDATE, self.compileUpdate)
-      t = ScriptThread(self, self.script)
+      self.t = ScriptThread(self, self.script)
       self.active = True
-      t.Start()
+      self.t.Start()
 
   def link(self):
     self.generateLinkScript()
@@ -230,9 +231,15 @@ class Build(wx.Dialog):
 
     if evt.state == SCRIPT_RUNNING:
       pass
+
     if evt.state == SCRIPT_CANCELLED:
-      self.log.AppendText("Compile terminated abnormally.\n\n")
       self.active = False
+
+      if self.cancelPending:
+        self.EndModal(wx.ID_OK)
+
+      self.log.AppendText("Build terminated abnormally.\n")
+
     if evt.state == SCRIPT_FINISHED:
       self.log.AppendText("Compile completed normally.\n\n")
       self.link()
@@ -295,6 +302,16 @@ class Build(wx.Dialog):
 
   def onExit(self, evt):
     if self.active:
+      dlg = wx.MessageDialog(self, "Are you sure you want to cancel building?",
+                             "Build active",
+                             wx.YES_NO | wx.NO_DEFAULT | wx.ICON_INFORMATION)
+      rc = dlg.ShowModal()
+      dlg.Destroy()
+
+      if rc == wx.ID_YES:
+        self.cancelPending = True
+        self.log.AppendText("Cancelling...\n")
+        self.t.Stop()
       return
 
     self.EndModal(wx.ID_OK)
