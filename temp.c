@@ -387,11 +387,11 @@ void temp_print(temp_sensor_t index) {
 	if (index == TEMP_SENSOR_none) { // standard behaviour
 		#ifdef HEATER_EXTRUDER
 			sersendf_P(PSTR("T:"));
-			single_temp_print(HEATER_EXTRUDER);
+      single_temp_print(TEMP_SENSOR_extruder);
 		#endif
 		#ifdef HEATER_BED
 			sersendf_P(PSTR(" B:"));
-			single_temp_print(HEATER_BED);
+      single_temp_print(TEMP_SENSOR_bed);
 		#endif
 	}
 	else {
