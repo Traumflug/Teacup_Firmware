@@ -132,6 +132,11 @@
   Define your temperature sensors here. One line for each sensor, only
   limited by the number of available ATmega pins.
 
+  Name must match the name of the corresponding heater. If a heater "extruder"
+  exists, a temperature sensor of that name has to exist as well. Same for
+  heater "bed". There can be one sensor without corresponding heater, name it
+  "noheater".
+
   Types are same as TEMP_ list above - TT_MAX6675, TT_THERMISTOR, TT_AD595,
   TT_PT100, TT_INTERCOM. See list in temp.c.
 
