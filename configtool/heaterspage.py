@@ -20,7 +20,6 @@ class HeatersPage(wx.Panel, Page):
     self.heaters = []
     self.validPins = pinNames
 
-
     self.lb = HeaterList(self, font)
     sz.Add(self.lb, pos = (1, 1))
     sz.AddSpacer((20, 20), pos = (1, 2))
@@ -114,6 +113,13 @@ class HeatersPage(wx.Panel, Page):
       self.validPins = plist
 
     self.validateTable()
+
+  def heaterNames(self):
+    heaterNames = []
+    for heater in self.heaters:
+      heaterNames.append(heater[0])
+
+    return heaterNames
 
   def validateTable(self):
     self.lb.setTableValidity(True)
