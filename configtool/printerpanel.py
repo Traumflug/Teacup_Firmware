@@ -30,11 +30,13 @@ class PrinterPanel(wx.Panel):
     self.heaters = []
     self.dir = os.path.join(self.settings.folder, "config")
 
+    self.SetBackgroundColour(self.deco.getBackgroundColour())
     self.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
     sz = wx.BoxSizer(wx.HORIZONTAL)
 
     self.nb = wx.Notebook(self, wx.ID_ANY, size = (21, 21),
                           style = wx.BK_DEFAULT)
+    self.nb.SetBackgroundColour(self.deco.getBackgroundColour())
     self.nb.SetFont(self.settings.font)
 
     self.pages = []

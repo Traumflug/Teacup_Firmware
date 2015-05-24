@@ -18,6 +18,7 @@ class Page:
     self.deco = Decoration()
     self.font = font
 
+    self.SetBackgroundColour(self.deco.getBackgroundColour())
     self.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
 
   def enableAll(self, flag = True):

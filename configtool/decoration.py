@@ -29,6 +29,9 @@ class Decoration(object):
       else:
         print "Background picture %s doesn't exist." % backPicPath
 
+  def getBackgroundColour(self):
+    return wx.Colour(237, 237, 237)
+
   # On wxFrames, bind this to wx.EVT_ERASE_BACKGROUND
   # On wxPanels, bind this to wx.EVT_PAINT
   def onPaintBackground(self, evt):

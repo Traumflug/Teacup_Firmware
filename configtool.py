@@ -50,6 +50,7 @@ class ConfigFrame(wx.Frame):
     self.deco = Decoration()
 
     panel = wx.Panel(self, -1)
+    panel.SetBackgroundColour(self.deco.getBackgroundColour())
     panel.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
 
     self.settings = Settings(self, cmd_folder)
@@ -67,6 +68,7 @@ class ConfigFrame(wx.Frame):
 
     self.nb = wx.Notebook(panel, wx.ID_ANY, size = (880, 550),
                           style = wx.BK_DEFAULT)
+    self.nb.SetBackgroundColour(self.deco.getBackgroundColour())
     self.nb.SetFont(self.settings.font)
 
     self.printerFileName = None
