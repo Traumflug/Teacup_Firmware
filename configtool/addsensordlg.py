@@ -15,8 +15,8 @@ labelWidth = 160
 
 
 class AddSensorDlg(wx.Dialog):
-  def __init__(self, parent, names, pins, font, name = "", stype = "",
-               pin = "", params = [], modify = False):
+  def __init__(self, parent, names, pins, heatersPage, font, name = "",
+               stype = "", pin = "", params = [], modify = False):
     if modify:
       title = "Modify temperature sensor"
     else:
@@ -27,6 +27,7 @@ class AddSensorDlg(wx.Dialog):
 
     self.names = names
     self.choices = pins
+    self.heatersPage = heatersPage
     self.modify = modify
 
     if len(params) == 0:
@@ -57,18 +58,34 @@ class AddSensorDlg(wx.Dialog):
     csz.AddSpacer((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
-    st = wx.StaticText(self, wx.ID_ANY, "Sensor Name:", size = (labelWidth, -1),
+    st = wx.StaticText(self, wx.ID_ANY, "Heater Name:", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
     lsz.Add(st, 1, wx.TOP, offsetTcLabel)
 
-    self.tcName = wx.TextCtrl(self, wx.ID_ANY, name)
+    nameList = ["noheater"] + self.heatersPage.heaterNames()
+    for alreadyDefinedName in names:
+      try:
+        nameList.remove(alreadyDefinedName)
+      except:
+        pass
+    if modify:
+      nameList.insert(0, name)
+
+    if len(nameList) == 0:
+      nameList = ["<no free heater name available>"]
+      self.nameValid = False
+    else:
+      self.nameValid = True
+
+    self.tcName = wx.Choice(self, wx.ID_ANY, choices = nameList)
     self.tcName.SetFont(font)
-    if not modify:
-      self.tcName.SetBackgroundColour("pink")
-    self.tcName.Bind(wx.EVT_TEXT, self.onNameEntry)
+    self.tcName.Bind(wx.EVT_CHOICE, self.onHeaterName)
     lsz.Add(self.tcName)
-    self.tcName.SetToolTipString("Enter a unique name for this sensor.")
+    self.tcName.SetToolTipString("Choose the name of the corresponding heater. "
+                                 "This may require to define that heater "
+                                 "first.")
+    self.tcName.SetSelection(0)
 
     csz.Add(lsz)
     csz.AddSpacer((10, 10))
@@ -305,27 +322,15 @@ class AddSensorDlg(wx.Dialog):
     self.selectSensorType(stStart)
     self.validateFields()
 
-  def onNameEntry(self, evt):
-    tc = evt.GetEventObject()
-    self.validateName(tc)
-    self.checkDlgValidity()
-    evt.Skip()
-
-  def validateName(self, tc):
-    w = tc.GetValue().strip()
-    if w == "":
+  def onHeaterName(self, evt):
+    s = self.tcName.GetSelection()
+    label = self.tcName.GetString(s)
+    if label.startswith("<"):
       self.nameValid = False
     else:
-      if w in self.names and not self.modify:
-        self.nameValid = False
-      else:
-        self.nameValid = True
+      self.nameValid = True
 
-    if self.nameValid:
-      tc.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
-    else:
-      tc.SetBackgroundColour("pink")
-    tc.Refresh()
+    evt.Skip()
 
   def onMethodSelect(self, evt):
     rb = evt.GetEventObject()
@@ -652,7 +657,6 @@ class AddSensorDlg(wx.Dialog):
     evt.Skip()
 
   def validateFields(self):
-    self.validateName(self.tcName)
     self.onParam0Entry(None)
     self.onParam1Entry(None)
     self.onParam2Entry(None)
@@ -662,7 +666,7 @@ class AddSensorDlg(wx.Dialog):
     self.onParam6Entry(None)
 
   def getValues(self):
-    nm = self.tcName.GetValue()
+    nm = self.tcName.GetString(self.tcName.GetSelection())
     pin = self.choices[self.chPin.GetSelection()]
     stype = self.chType.GetString(self.chType.GetSelection())
     if self.currentMode == MODE_THERMISTOR:

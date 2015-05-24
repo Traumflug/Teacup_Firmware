@@ -7,10 +7,11 @@ from addsensordlg import AddSensorDlg
 
 
 class SensorsPage(wx.Panel, Page):
-  def __init__(self, parent, nb, idPg, font):
+  def __init__(self, parent, nb, idPg, heatersPage, font):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
     Page.__init__(self, font)
     self.parent = parent
+    self.heatersPage = heatersPage
     self.font = font
     self.id = idPg
 
@@ -78,7 +79,7 @@ class SensorsPage(wx.Panel, Page):
     for s in self.sensors:
       nm.append(s[0])
 
-    dlg = AddSensorDlg(self, nm, self.validPins, self.font)
+    dlg = AddSensorDlg(self, nm, self.validPins, self.heatersPage, self.font)
     rc = dlg.ShowModal()
     if rc == wx.ID_OK:
       tt = dlg.getValues()
@@ -106,7 +107,7 @@ class SensorsPage(wx.Panel, Page):
     else:
       params = s[3]
 
-    dlg = AddSensorDlg(self, nm, self.validPins, self.font,
+    dlg = AddSensorDlg(self, nm, self.validPins, self.heatersPage, self.font,
                        name = s[0], stype = s[1], pin = s[2],
                        params = params, modify = True)
     rc = dlg.ShowModal()

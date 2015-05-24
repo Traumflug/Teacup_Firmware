@@ -75,7 +75,7 @@ class BoardPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgSensors = SensorsPage(self, self.nb, len(self.pages),
+    self.pgSensors = SensorsPage(self, self.nb, len(self.pages), self.pgHeaters,
                                  self.settings.font)
     text = "Temperature Sensors"
     self.nb.AddPage(self.pgSensors, text)
