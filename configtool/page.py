@@ -1,6 +1,7 @@
 
 import wx
 
+from configtool.decoration import Decoration
 from configtool.data import reInteger, reFloat, offsetChLabel, offsetTcLabel
 
 
@@ -14,8 +15,10 @@ class Page:
     self.radioButtons = {}
     self.radioButtonBoxes = {}
     self.choices = {}
+    self.deco = Decoration()
     self.font = font
 
+    self.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
 
   def enableAll(self, flag = True):
     for c in self.textControls.keys():

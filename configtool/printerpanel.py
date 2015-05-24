@@ -4,6 +4,7 @@ import wx
 import re
 
 from sys import platform
+from configtool.decoration import Decoration
 from configtool.data import (defineValueFormat, defineBoolFormat, reCommDefBL,
                              reCommDefBoolBL, reHelpTextStart, reHelpTextEnd,
                              reDefine, reDefineBL, reDefQS, reDefQSm,
@@ -19,6 +20,7 @@ class PrinterPanel(wx.Panel):
     wx.Panel.__init__(self, nb, wx.ID_ANY)
     self.parent = parent
 
+    self.deco = Decoration()
     self.configFile = None
     self.protFileLoaded = False
 
@@ -28,6 +30,7 @@ class PrinterPanel(wx.Panel):
     self.heaters = []
     self.dir = os.path.join(self.settings.folder, "config")
 
+    self.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
     sz = wx.BoxSizer(wx.HORIZONTAL)
 
     self.nb = wx.Notebook(self, wx.ID_ANY, size = (21, 21),

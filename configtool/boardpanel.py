@@ -4,6 +4,7 @@ import wx
 import re
 
 from sys import platform
+from configtool.decoration import Decoration
 from configtool.data import (defineValueFormat,
                              defineBoolFormat, defineHeaterFormat, reCommDefBL,
                              reCommDefBoolBL, reHelpTextStart, reHelpTextEnd,
@@ -30,6 +31,7 @@ class BoardPanel(wx.Panel):
     self.settings = settings
     self.protFileLoaded = False
 
+    self.deco = Decoration()
     self.configFile = None
 
     self.cfgValues = {}
@@ -39,6 +41,7 @@ class BoardPanel(wx.Panel):
     self.candThermPins = []
     self.dir = os.path.join(self.settings.folder, "config")
 
+    self.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
     sz = wx.BoxSizer(wx.HORIZONTAL)
 
     self.nb = wx.Notebook(self, wx.ID_ANY, size = (21, 21),

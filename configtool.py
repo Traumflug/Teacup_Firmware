@@ -21,6 +21,7 @@ import inspect
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(
                               inspect.currentframe()))[0]))
 
+from configtool.decoration import Decoration
 from configtool.settings import Settings, SettingsDlg
 from configtool.printerpanel import PrinterPanel
 from configtool.boardpanel import BoardPanel
@@ -45,7 +46,10 @@ class ConfigFrame(wx.Frame):
     wx.Frame.__init__(self, None, -1, "Teacup Configtool", size = (880, 550))
     self.Bind(wx.EVT_CLOSE, self.onClose)
 
+    self.deco = Decoration()
+
     panel = wx.Panel(self, -1)
+    panel.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
 
     self.settings = Settings(self, cmd_folder)
     self.settings.font = wx.Font(8, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL,
