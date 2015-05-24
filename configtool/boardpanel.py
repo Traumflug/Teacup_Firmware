@@ -66,20 +66,20 @@ class BoardPanel(wx.Panel):
     self.pageModified.append(False)
     self.pageValid.append(True)
 
-    self.pgSensors = SensorsPage(self, self.nb, len(self.pages),
-                                 self.settings.font)
-    text = "Temperature Sensors"
-    self.nb.AddPage(self.pgSensors, text)
-    self.pages.append(self.pgSensors)
-    self.titles.append(text)
-    self.pageModified.append(False)
-    self.pageValid.append(True)
-
     self.pgHeaters = HeatersPage(self, self.nb, len(self.pages),
                                  self.settings.font)
     text = "Heaters"
     self.nb.AddPage(self.pgHeaters, text)
     self.pages.append(self.pgHeaters)
+    self.titles.append(text)
+    self.pageModified.append(False)
+    self.pageValid.append(True)
+
+    self.pgSensors = SensorsPage(self, self.nb, len(self.pages),
+                                 self.settings.font)
+    text = "Temperature Sensors"
+    self.nb.AddPage(self.pgSensors, text)
+    self.pages.append(self.pgSensors)
     self.titles.append(text)
     self.pageModified.append(False)
     self.pageValid.append(True)
