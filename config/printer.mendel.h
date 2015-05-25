@@ -10,13 +10,15 @@
 
   Valid values (see dda_kinematics.h):
 
-  KINEMATICS_STRAIGHT   Motors move axis directions directly. This is the
-                        traditional type, found in many printers, including
-                        Mendel, Prusa i3, Mendel90, Ormerod, Mantis.
+  KINEMATICS_STRAIGHT
+    Motors move axis directions directly. This is the
+    traditional type, found in many printers, including
+    Mendel, Prusa i3, Mendel90, Ormerod, Mantis.
 
-  KINEMATICS_COREXY     A bot using CoreXY kinematics. Typical for CoreXY are
-                        long and crossing toothed belts and a print head moving
-                        on the X-Y-plane.
+  KINEMATICS_COREXY
+    A bot using CoreXY kinematics. Typical for CoreXY
+    are long and crossing toothed belts and a print head
+    moving on the X-Y-plane.
 */
 #define KINEMATICS               KINEMATICS_STRAIGHT
 
@@ -26,7 +28,7 @@
 
   All numbers are integers, so no decimal point, please :-)
 
-  Valid range: 20 to 4'0960'000 (0.02 to 40960 steps/mm)
+    Valid range: 20 to 4'0960'000 (0.02 to 40960 steps/mm)
 */
 #define STEPS_PER_M_X            40000
 #define STEPS_PER_M_Y            40000
@@ -65,9 +67,9 @@
   endstops, more for optical ones. You can set it to zero, in which case
   SEARCH_FEEDRATE_{XYZ} is used, but expect very slow homing movements.
 
-  Units: micrometers
-  Sane values: 0 to 20000   (0 to 20 mm)
-  Valid range: 0 to 1000000
+    Units: micrometers
+    Sane values: 0 to 20000   (0 to 20 mm)
+    Valid range: 0 to 1000000
 */
 #define ENDSTOP_CLEARANCE_X      1000
 #define ENDSTOP_CLEARANCE_Y      1000
@@ -109,8 +111,8 @@
   How fast to accelerate when using ACCELERATION_RAMPING. Start with 10 for
   milling (high precision) or 1000 for printing.
 
-  Units: mm/s^2
-  Useful range: 1 to 10'000
+    Units: mm/s^2
+    Useful range: 1 to 10'000
 */
 #define ACCELERATION             1000
 
@@ -139,9 +141,9 @@
   G-code are small and your printer runs through entire curves full speed,
   there's no point in raising the values.
 
-  Units: mm/min
-  Sane values: 0 to 400
-  Valid range: 0 to 65535
+    Units: mm/min
+    Sane values: 0 to 400
+    Valid range: 0 to 65535
 */
 #define MAX_JERK_X               200
 #define MAX_JERK_Y               200
@@ -168,7 +170,7 @@
   temperature is considered to be achieved. Also, BANG_BANG tries to stay
   within half of this hysteresis.
 
-  Unit: degree Celsius
+    Unit: degree Celsius
 */
 #define TEMP_HYSTERESIS          10
 
@@ -177,7 +179,7 @@
   +- TEMP_HYSTERESIS) for this long before target is achieved (and a M116
   succeeds).
 
-  Unit: seconds
+    Unit: seconds
 */
 #define TEMP_RESIDENCY_TIME      60
 
@@ -190,7 +192,7 @@
   quicker but rougher. If you need to use this, set the PID parameter to zero
   (M132 S0) to make the PID loop insensitive to noise.
 
-  Valid range: 0.001 to 1.0
+    Valid range: 0.001 to 1.0
 */
 #define TEMP_EWMA                1.0
 
@@ -292,8 +294,9 @@
   false alarm sometimes, Teacup debounces them by counting a number of
   consecutive positives.
 
-  Valid range: 1...255. Use 4 or less for reliable endstops, 8 or even more
-                        for flaky ones.
+  Use 4 or less for reliable endstops, 8 or even more for flaky ones.
+
+    Valid range: 1...255.
 */
 #define ENDSTOP_STEPS            4
 

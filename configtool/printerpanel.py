@@ -191,6 +191,14 @@ class PrinterPanel(wx.Panel):
       if gatheringHelpText:
         if reHelpTextEnd.match(ln):
           gatheringHelpText = False
+          helpTextString = helpTextString.strip()
+          # Keep paragraphs with double-newline.
+          helpTextString = helpTextString.replace("\n\n  ", "\n\n")
+          # Keep indented lines, typically a list.
+          helpTextString = helpTextString.replace("\n\n  ", "\n\n    ")
+          helpTextString = helpTextString.replace("\n    ", "\n\n    ")
+          # Remove all other newlines and indents.
+          helpTextString = helpTextString.replace("\n  ", " ")
           hk = helpKey.split()
           for k in hk:
             self.helpText[k] = helpTextString

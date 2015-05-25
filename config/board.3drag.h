@@ -196,8 +196,9 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO14, THERMISTOR_BED)
   device has the index 0 (zero).
 
   Set 'pwm' to ...
-   1  for using PWM on a PWM-able pin and on/off on other pins.
-   0  for using on/off on a PWM-able pin, too.
+    1  for using PWM on a PWM-able pin and on/off on other pins.
+    0  for using on/off on a PWM-able pin, too.
+
   Using PWM usually gives smoother temperature control but can conflict
   with slow switches, like solid state relays. PWM frequency can be
   influenced globally with FAST_PWM, see below.
