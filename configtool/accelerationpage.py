@@ -30,7 +30,7 @@ class AccelerationPage(wx.Panel, Page):
     sbox.AddSpacer((5, 5))
     style = wx.RB_GROUP
     for k in self.accTypeKeys:
-      rb = self.addRadioButton(k, style, self.onAccTypeSelect)
+      rb = self.addRadioButton(k, style, self.onAccTypeSelect, b)
       style = 0
 
       sbox.Add(rb, 1, wx.LEFT + wx.RIGHT, 16)

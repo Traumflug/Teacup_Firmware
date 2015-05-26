@@ -5,7 +5,7 @@
 *                                                                           *
 \***************************************************************************/
 
-/** \def KINEMATICS
+/** \def KINEMATICS_STRAIGHT KINEMATICS_COREXY
   This defines the type of kinematics your printer uses. That's essential!
 
   Valid values (see dda_kinematics.h):

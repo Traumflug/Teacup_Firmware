@@ -12,6 +12,7 @@ class Page:
     self.textControls = {}
     self.checkBoxes = {}
     self.radioButtons = {}
+    self.radioButtonBoxes = {}
     self.choices = {}
     self.font = font
 
@@ -54,11 +55,13 @@ class Page:
 
     return cb
 
-  def addRadioButton(self, name, style, validator):
+  def addRadioButton(self, name, style, validator, sbox = None):
     rb = wx.RadioButton(self, wx.ID_ANY, self.labels[name], style = style)
     rb.SetFont(self.font)
     self.Bind(wx.EVT_RADIOBUTTON, validator, rb)
     self.radioButtons[name] = rb
+    if sbox is not None:
+      self.radioButtonBoxes[name] = sbox
 
     return rb
 
@@ -195,6 +198,8 @@ class Page:
     for k in self.radioButtons.keys():
       if k in ht.keys():
         self.radioButtons[k].SetToolTipString(ht[k])
+        if k in self.radioButtonBoxes.keys():
+          self.radioButtonBoxes[k].SetToolTipString(ht[k])
 
     for k in self.choices.keys():
       if k in ht.keys():

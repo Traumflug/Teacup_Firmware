@@ -113,7 +113,7 @@ class MechanicalPage(wx.Panel, Page):
     sbox.AddSpacer((5, 5))
     style = wx.RB_GROUP
     for k in self.kinematicsKeys:
-      rb = self.addRadioButton(k, style, self.onKinematicsSelect)
+      rb = self.addRadioButton(k, style, self.onKinematicsSelect, b)
       style = 0
 
       sbox.Add(rb, 1, wx.LEFT + wx.RIGHT, 16)
