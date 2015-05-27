@@ -7,7 +7,14 @@ if sys.version_info.major >= 3:
         "It often works to type \"python2 configtool.py\" in the command line.")
   sys.exit(-1)
 
-import wx
+try:
+  import wx
+except:
+  print("ImportError: No module named wx\n\n"
+        "wxPython is not installed. This program requires wxPython to run.\n"
+        "See your package manager and/or http://wxpython.org/download.php.")
+  sys.exit(-1)
+
 import os.path
 import inspect
 
