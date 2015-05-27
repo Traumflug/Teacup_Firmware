@@ -3,6 +3,7 @@ import os
 import wx
 import re
 
+from sys import platform
 from configtool.data import (defineValueFormat, defineBoolFormat, reCommDefBL,
                              reCommDefBoolBL, reHelpTextStart, reHelpTextEnd,
                              reDefine, reDefineBL, reDefQS, reDefQSm,
@@ -146,7 +147,11 @@ class PrinterPanel(wx.Panel):
     if not self.confirmLoseChanges("load a new printer configuration"):
       return
 
-    wildcard = "Printer configuration (printer.*.h)|printer.*.h"
+    if platform == "darwin":
+      # Mac OS X appears to be a bit limited on wildcards.
+      wildcard = "Printer configuration (printer.*.h)|*.h"
+    else:
+      wildcard = "Printer configuration (printer.*.h)|printer.*.h"
 
     dlg = wx.FileDialog(self, message = "Choose a printer config file",
                         defaultDir = self.dir, defaultFile = "",

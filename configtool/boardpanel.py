@@ -3,6 +3,7 @@ import os
 import wx
 import re
 
+from sys import platform
 from configtool.data import (defineValueFormat,
                              defineBoolFormat, defineHeaterFormat, reCommDefBL,
                              reCommDefBoolBL, reHelpTextStart, reHelpTextEnd,
@@ -185,7 +186,11 @@ class BoardPanel(wx.Panel):
     if not self.confirmLoseChanges("load a new board configuration"):
       return
 
-    wildcard = "Board configuration (board.*.h)|board.*.h"
+    if platform == "darwin":
+      # Mac OS X appears to be a bit limited on wildcards.
+      wildcard = "Board configuration (board.*.h)|*.h"
+    else:
+      wildcard = "Board configuration (board.*.h)|board.*.h"
 
     dlg = wx.FileDialog(self, message = "Choose a board config file",
                         defaultDir = self.dir, defaultFile = "",
