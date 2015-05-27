@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 
+import sys
+if sys.version_info.major >= 3:
+  print("You are currently running Python3. Python3 is not supported, because\n"
+        "there is no wxPython for Python3. Please try running with Python2.\n"
+        "It often works to type \"python2 configtool.py\" in the command line.")
+  sys.exit(-1)
+
 import wx
 import os.path
 import inspect
