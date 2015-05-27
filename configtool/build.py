@@ -13,6 +13,37 @@ SCRIPT_RUNNING = 1
 SCRIPT_FINISHED = 2
 SCRIPT_CANCELLED = 3
 
+TOOLPATHS_INSIDE_ARDUINO = [
+  "hardware/tools/avr/bin/",
+  "hardware/tools/" # avrdude in Arduino 1.0.x
+]
+
+
+class ScriptTools:
+  def __init__(self, settings):
+    self.settings = settings
+
+  def figureCommandPath(self, baseCommand):
+    if self.settings.arduinodir:
+      cmdpath = self.settings.arduinodir
+
+      if platform == "darwin":
+        # That's an OS property, the Applicaton Bundle hierarchy.
+        cmdpath = os.path.join(cmdpath, "Contents/Resources/Java")
+
+      for pathOption in TOOLPATHS_INSIDE_ARDUINO:
+        cmdpathTry = cmdpath
+        for dir in pathOption.split("/"):
+          cmdpathTry = os.path.join(cmdpathTry, dir)
+        cmdpathTry = os.path.join(cmdpathTry, baseCommand)
+        if os.path.exists(cmdpathTry):
+          cmdpath = "\"" + cmdpathTry + "\""
+          break
+    else:
+      cmdpath = baseCommand
+
+    return cmdpath
+
 
 class ScriptThread:
   def __init__(self, win, script):
@@ -159,10 +190,7 @@ class Build(wx.Dialog):
   def report(self):
     self.script = []
     self.reportLines = []
-    if platform == "win32":
-      cmdpath = "\"" + join(self.settings.arduinodir, "avr-objdump") + "\""
-    else:
-      cmdpath = "avr-objdump"
+    cmdpath = ScriptTools(self.settings).figureCommandPath("avr-objdump")
     elfpath = "\"" + join(self.root, "build", "teacup.elf") + "\""
     cmd = cmdpath + " -h " + elfpath
     self.script.append(cmd)
@@ -173,10 +201,7 @@ class Build(wx.Dialog):
 
   def generateCompileScript(self):
     self.script = []
-    if platform == "win32":
-      cmdpath = "\"" + join(self.settings.arduinodir, "avr-gcc") + "\""
-    else:
-      cmdpath = "avr-gcc"
+    cmdpath = ScriptTools(self.settings).figureCommandPath("avr-gcc")
 
     cfiles = [f for f in os.listdir(self.root)
                 if isfile(join(self.root,f)) and f.endswith(".c")]
@@ -198,10 +223,7 @@ class Build(wx.Dialog):
 
   def generateLinkScript(self):
     self.script = []
-    if platform == "win32":
-      cmdpath = "\"" + join(self.settings.arduinodir, "avr-gcc") + "\""
-    else:
-      cmdpath = "avr-gcc"
+    cmdpath = ScriptTools(self.settings).figureCommandPath("avr-gcc")
 
     ofiles = ["\"" + join(self.root, "build", f) + "\""
               for f in os.listdir(join(self.root, "build"))
@@ -217,10 +239,7 @@ class Build(wx.Dialog):
           elfpath + " " + opath + " -lm"
     self.script.append(cmd)
 
-    if platform == "win32":
-      cmdpath = "\"" + join(self.settings.arduinodir, "avr-objcopy") + "\""
-    else:
-      cmdpath = "avr-objcopy"
+    cmdpath = ScriptTools(self.settings).figureCommandPath("avr-objcopy")
     cmd = cmdpath + " " + self.settings.objcopyflags + " " +  elfpath + \
           " " + hexpath
     self.script.append(cmd)
@@ -363,13 +382,11 @@ class Upload(wx.Dialog):
 
   def generateUploadScript(self):
     self.script = []
-    if platform == "win32":
-      cmdpath = "\"" + join(self.settings.arduinodir, "avrdude") + "\""
-    else:
-      cmdpath = "avrdude"
-
+    cmdpath = ScriptTools(self.settings).figureCommandPath("avrdude")
     hexpath = "\"" + join(self.root, "teacup.hex") + "\""
 
+    if self.settings.arduinodir:
+      cmdpath = cmdpath + " -C " + cmdpath.rstrip("\"") + ".conf\""
     cmd = cmdpath + " -c %s -b %s -p %s -P %s -U flash:w:%s:i" % \
           (self.settings.programmer, self.baud, self.cpu, self.settings.port,
            hexpath)
