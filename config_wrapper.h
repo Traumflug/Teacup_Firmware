@@ -1,10 +1,18 @@
-/*
- * This wrapper config header is used to allow makefiles and test scripts to
- * replace or augment the user's 'config.h' file in a controlled manner. A
- * makefile may add CFLAGS+=-DUSER_CONFIG=alternate_config.h to cause Teacup
- * to build with a different config header.
- */
 
+/**
+  Some stuff common to all config.h files. Put it here to allow files like
+  board.*.config.h or printer.*.h to be moved to about everywhere in the
+  file system. Else we'd have to enforce the Configtool user to put these
+  files where we need them.
+*/
+#include "arduino.h"
+
+/**
+  This wrapper config header is used to allow makefiles and test scripts to
+  replace or augment the user's 'config.h' file in a controlled manner. A
+  makefile may add CFLAGS+=-DUSER_CONFIG=alternate_config.h to cause Teacup
+  to build with a different config header.
+*/
 #ifndef USER_CONFIG
 #define USER_CONFIG "config.h"
 #endif

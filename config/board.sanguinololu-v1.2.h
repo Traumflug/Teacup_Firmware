@@ -45,8 +45,6 @@
 *                                                                           *
 \***************************************************************************/
 
-#include "../arduino.h"
-
 #define X_STEP_PIN               DIO15
 #define X_DIR_PIN                DIO21
 #define X_MIN_PIN                DIO18
