@@ -45,6 +45,7 @@ class ConfigFrame(wx.Frame):
   def __init__(self):
     wx.Frame.__init__(self, None, -1, "Teacup Configtool", size = (880, 550))
     self.Bind(wx.EVT_CLOSE, self.onClose)
+    self.Bind(wx.EVT_SIZE, self.onResize)
 
     self.deco = Decoration()
 
@@ -81,6 +82,7 @@ class ConfigFrame(wx.Frame):
     self.nb.AddPage(self.pgBoard, self.boardBaseText)
 
     panel.Fit()
+    self.panel = panel
 
     sz.Add(self.nb, 1, wx.EXPAND + wx.ALL, 5)
     self.SetSizer(sz)
@@ -94,6 +96,11 @@ class ConfigFrame(wx.Frame):
       return
 
     self.Destroy()
+
+  def onResize(self, evt):
+    self.panel.SetSize(self.GetClientSize())
+    self.Refresh()
+    evt.Skip();
 
   def setPrinterTabFile(self, fn):
     self.printerFileName = fn
