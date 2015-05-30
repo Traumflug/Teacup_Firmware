@@ -27,11 +27,6 @@ class SensorList(wx.ListCtrl):
 
     self.SetItemCount(0)
 
-    self.attr2 = wx.ListItemAttr()
-    self.attr2.SetBackgroundColour("light blue")
-    self.attr3 = wx.ListItemAttr()
-    self.attr3.SetBackgroundColour("pink")
-
     self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
     self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnItemDeselected)
 
@@ -89,12 +84,3 @@ class SensorList(wx.ListCtrl):
         return ""
       else:
         return "[%s]" % (", ".join(s[3]))
-
-  def OnGetItemAttr(self, item):
-    if not self.valid[item]:
-      return self.attr3
-
-    if item % 2 == 1:
-      return self.attr2
-    else:
-      return None
