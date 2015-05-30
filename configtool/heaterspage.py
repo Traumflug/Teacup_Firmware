@@ -25,23 +25,34 @@ class HeatersPage(wx.Panel, Page):
     sz.AddSpacer((20, 20), pos = (1, 2))
 
     bsz = wx.BoxSizer(wx.VERTICAL)
+
     self.bAdd = wx.Button(self, wx.ID_ANY, "Add", size = BSIZESMALL)
     self.bAdd.SetBackgroundColour(self.deco.getBackgroundColour())
     self.bAdd.SetFont(font)
     self.Bind(wx.EVT_BUTTON, self.doAdd, self.bAdd)
     self.bAdd.SetToolTipString("Add a heater to the configuration.")
-
     bsz.Add(self.bAdd)
 
     bsz.AddSpacer((10, 10))
+
+    self.bModify = wx.Button(self, wx.ID_ANY, "Modify", size = BSIZESMALL)
+    self.bModify.SetBackgroundColour(self.deco.getBackgroundColour())
+    self.bModify.SetFont(font)
+    self.bModify.Enable(False)
+    self.Bind(wx.EVT_BUTTON, self.doModify, self.bModify)
+    self.bModify.SetToolTipString("Modify the selected heater.")
+    bsz.Add(self.bModify)
+
+    bsz.AddSpacer((10, 10))
+
     self.bDelete = wx.Button(self, wx.ID_ANY, "Delete", size = BSIZESMALL)
     self.bDelete.SetBackgroundColour(self.deco.getBackgroundColour())
     self.bDelete.SetFont(font)
     self.bDelete.Enable(False)
     self.Bind(wx.EVT_BUTTON, self.doDelete, self.bDelete)
-    bsz.Add(self.bDelete)
     self.bDelete.SetToolTipString("Remove the selected heater from the "
                                   "configuration.")
+    bsz.Add(self.bDelete)
 
     sz.Add(bsz, pos = (1, 3))
 
@@ -56,8 +67,10 @@ class HeatersPage(wx.Panel, Page):
     self.selection = n
     if n is None:
       self.bDelete.Enable(False)
+      self.bModify.Enable(False)
     else:
       self.bDelete.Enable(True)
+      self.bModify.Enable(True)
 
   def doAdd(self, evt):
     nm = []
@@ -75,6 +88,33 @@ class HeatersPage(wx.Panel, Page):
       return
 
     self.heaters.append(ht)
+    self.lb.updateList(self.heaters)
+    self.validateTable()
+    self.parent.setHeaters(self.heaters)
+    self.assertModified(True)
+
+  def doModify(self, evt):
+    if self.selection is None:
+      return
+
+    nm = []
+    for s in self.heaters:
+      nm.append(s[0])
+
+    h = self.heaters[self.selection]
+
+    dlg = AddHeaterDlg(self, nm, self.validPins, self.font,
+                       name = h[0], pin = h[1], pwm = h[2])
+    rc = dlg.ShowModal()
+    if rc == wx.ID_OK:
+      ht = dlg.getValues()
+
+    dlg.Destroy()
+
+    if rc != wx.ID_OK:
+      return
+
+    self.heaters[self.selection] = ht
     self.lb.updateList(self.heaters)
     self.validateTable()
     self.parent.setHeaters(self.heaters)
