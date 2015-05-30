@@ -36,6 +36,7 @@ class SensorsPage(wx.Panel, Page):
 
     bsz = wx.BoxSizer(wx.VERTICAL)
     self.bAdd = wx.Button(self, wx.ID_ANY, "Add", size = BSIZESMALL)
+    self.bAdd.SetBackgroundColour(self.deco.getBackgroundColour())
     self.bAdd.SetFont(font)
     self.Bind(wx.EVT_BUTTON, self.doAdd, self.bAdd)
     self.bAdd.Enable(False)
@@ -45,6 +46,7 @@ class SensorsPage(wx.Panel, Page):
 
     bsz.AddSpacer((10, 10))
     self.bModify = wx.Button(self, wx.ID_ANY, "Modify", size = BSIZESMALL)
+    self.bModify.SetBackgroundColour(self.deco.getBackgroundColour())
     self.bModify.SetFont(font)
     self.bModify.Enable(False)
     self.Bind(wx.EVT_BUTTON, self.doModify, self.bModify)
@@ -53,6 +55,7 @@ class SensorsPage(wx.Panel, Page):
 
     bsz.AddSpacer((10, 10))
     self.bDelete = wx.Button(self, wx.ID_ANY, "Delete", size = BSIZESMALL)
+    self.bDelete.SetBackgroundColour(self.deco.getBackgroundColour())
     self.bDelete.SetFont(font)
     self.bDelete.Enable(False)
     self.Bind(wx.EVT_BUTTON, self.doDelete, self.bDelete)

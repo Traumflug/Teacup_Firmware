@@ -129,6 +129,7 @@ class MechanicalPage(wx.Panel, Page):
 
     bsz = wx.BoxSizer(wx.VERTICAL)
     b = wx.Button(self, wx.ID_ANY, "Calculate\nBelt Driven", size = BSIZE)
+    b.SetBackgroundColour(self.deco.getBackgroundColour())
     b.SetFont(font)
     b.SetToolTipString("Open the calculator for axes that are belt-driven.")
     self.Bind(wx.EVT_BUTTON, self.onCalcBelt, b)
@@ -136,6 +137,7 @@ class MechanicalPage(wx.Panel, Page):
 
     bsz.Add(b, 1, wx.ALL, 5)
     b = wx.Button(self, wx.ID_ANY, "Calculate\nScrew Driven", size = BSIZE)
+    b.SetBackgroundColour(self.deco.getBackgroundColour())
     b.SetFont(font)
     bsz.Add(b, 1, wx.ALL, 5)
     b.SetToolTipString("Open the calculator for axes that are screw-driven.")

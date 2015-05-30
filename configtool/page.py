@@ -78,6 +78,7 @@ class Page:
     lsz.Add(st, 1, wx.TOP, offsetChLabel)
 
     ch = wx.Choice(self, wx.ID_ANY, choices = choices, size = size, name = name)
+    ch.SetBackgroundColour(self.deco.getBackgroundColour())
     ch.SetFont(self.font)
     ch.Bind(wx.EVT_CHOICE, validator)
     ch.SetSelection(selection)
@@ -100,6 +101,7 @@ class Page:
 
     ch = wx.Choice(self, wx.ID_ANY, choices = opts, name = name,
                    style = wx.CB_SORT)
+    ch.SetBackgroundColour(self.deco.getBackgroundColour())
     ch.SetFont(self.font)
     ch.Bind(wx.EVT_CHOICE, self.onChoice)
     self.choices[name] = ch
