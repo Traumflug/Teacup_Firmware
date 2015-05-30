@@ -72,12 +72,24 @@ class HeatersPage(wx.Panel, Page):
       self.bDelete.Enable(True)
       self.bModify.Enable(True)
 
+  def getFreePins(self):
+    freePins = [] + self.validPins
+    usedPins = []
+    for s in self.heaters:
+      usedPins.append(s[1])
+
+    for p in usedPins:
+      if p in freePins:
+        freePins.remove(p)
+
+    return freePins
+
   def doAdd(self, evt):
     nm = []
     for s in self.heaters:
       nm.append(s[0])
 
-    dlg = AddHeaterDlg(self, nm, self.validPins, self.font)
+    dlg = AddHeaterDlg(self, nm, self.getFreePins(), self.font)
     rc = dlg.ShowModal()
     if rc == wx.ID_OK:
       ht = dlg.getValues()
@@ -103,7 +115,7 @@ class HeatersPage(wx.Panel, Page):
 
     h = self.heaters[self.selection]
 
-    dlg = AddHeaterDlg(self, nm, self.validPins, self.font,
+    dlg = AddHeaterDlg(self, nm, [h[1]] + self.getFreePins(), self.font,
                        name = h[0], pin = h[1], pwm = h[2])
     rc = dlg.ShowModal()
     if rc == wx.ID_OK:
