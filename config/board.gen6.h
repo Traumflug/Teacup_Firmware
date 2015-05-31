@@ -147,7 +147,8 @@
 //                 name      type           pin    additional
 DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, AIO5,  THERMISTOR_EXTRUDER)
 
-//                     r0      beta  r2    vadc
+// Beta algorithm      r0      beta  r2    vadc
+// Steinhart-Hart      rp      t0    r0      t1    r1      t2    r2
 //TEMP_TABLE EXTRUDER (100000, 4092, 4700, 5.0)
 //DEFINE_TEMP_SENSORS_END
 

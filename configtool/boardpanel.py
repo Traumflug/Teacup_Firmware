@@ -504,16 +504,26 @@ class BoardPanel(wx.Panel):
         fp.write(ln)
         fp.write("//                 name      type           pin    "
                  "additional\n");
-        ttString = "\n//                     r0      beta  r2    vadc\n"
+        ttString = "\n"
+        ttString += "// Beta algorithm      r0      beta  r2    vadc\n"
+        ttString += "// Steinhart-Hart      rp      t0    r0      t1    "
+        ttString += "r1      t2    r2\n"
         for s in self.sensors:
           sstr = "%-10s%-15s%-7s" % ((s[0] + ","), (s[1] + ","), (s[2] + ","))
           if s[3] is None:
             sstr += "0"
           else:
-            tt = s[3]
             sstr += "THERMISTOR_%s" % s[0].upper()
-            ttString += "//TEMP_TABLE %-8s (%s)\n" % \
-                        (s[0].upper(), ", ".join(tt))
+            tt = s[3]
+            if len(tt) == 4:
+              ttString += "//TEMP_TABLE %-8s (%-8s%-6s%-6s%s)\n" % \
+                          (s[0].upper(), (tt[0] + ","), (tt[1] + ","),
+                           (tt[2] + ","), tt[3])
+            else:
+              ttString += "//TEMP_TABLE %-8s (%-8s%-6s%-8s%-6s%-8s%-6s%s)\n" % \
+                          (s[0].upper(), (tt[0] + ","), (tt[1] + ","),
+                           (tt[2] + ","), (tt[3] + ","), (tt[4] + ","),
+                           (tt[5] + ","), tt[6])
           fp.write("DEFINE_TEMP_SENSOR(%s)\n" % sstr)
         fp.write(ttString)
         skipToSensorEnd = True

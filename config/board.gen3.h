@@ -146,6 +146,9 @@
 //DEFINE_TEMP_SENSORS_START
 //                 name      type           pin    additional
 DEFINE_TEMP_SENSOR(noheater, TT_INTERCOM,   AIO0,  0)
+
+// Beta algorithm      r0      beta  r2    vadc
+// Steinhart-Hart      rp      t0    r0      t1    r1      t2    r2
 //DEFINE_TEMP_SENSORS_END
 
 
