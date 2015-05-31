@@ -666,7 +666,7 @@ class AddSensorDlg(wx.Dialog):
       if len(thermistorPresets[label]) == 7:
         self.param4.SetValue(thermistorPresets[label][4])
         self.param5.SetValue(thermistorPresets[label][5])
-        self.param6.SetValue(thermistorPresets[label][5])
+        self.param6.SetValue(thermistorPresets[label][6])
         self.currentMethod = METHOD_SH
       else:
         self.currentMethod = METHOD_BETA
