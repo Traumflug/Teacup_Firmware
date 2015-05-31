@@ -123,9 +123,9 @@ class SettingsDlg(wx.Dialog):
 
     self.Bind(wx.EVT_CLOSE, self.onExit)
 
-    htArdDir = "Where to find the arduino tools (avr-gcc, avrdude, etc). " \
-               "This is only used for windows. For linux it is assumed that " \
-               "the tools are available through the normal PATH."
+    htArdDir = "Path to the Arduino IDE folder. Configtool will figure the " \
+               "details on where to find avr-gcc and avrdude inside there." \
+               "\n\nIf empty, the system wide installed tools will be used."
     htCFlags = "Flags passed into the avr-gcc compiler. These flags can " \
                "have 3 different variables embedded within them:" \
                "\n\n  %F_CPU%   will be replaced by the value of the CPU " \
@@ -134,12 +134,14 @@ class SettingsDlg(wx.Dialog):
                "\n\n  %ALNAME%  is the name of the source file being " \
                "compiled with the .c extension replaced by .al.\n\n" \
                "Note: the flag -save-temps=obj does not appear to be a " \
-               "valid flag for win32. Omit the \"=obj\", or omit it entirely."
+               "valid flag for some compiler versions. Omit the \"=obj\", " \
+               "omit the flag entirely, or simply ignore the related warnings."
     htLDFlags = "Flags passed to avr-gcc to be passed on to the linker."
     htObjCopy = "Flags passed to avr-objcopy."
     htProgrammer = "The programmer type - passed to avrdude."
-    htPort = "The port through which the firmware will be uploaded - " \
-             "passed to avrdude."
+    htPort = "The port to which the controller is connected. Typically a " \
+             "path starting with /dev/... on Linux or Mac OS X, or some " \
+             "COM... on Windows."
     htSpeed = "The baud rate with which to communicate with the bootloader."
     htNumTemps = "The number of entries generated for the thermistor tables. " \
                  "Higher numbers slightly increase temperature reading " \
