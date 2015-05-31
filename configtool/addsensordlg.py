@@ -262,8 +262,8 @@ class AddSensorDlg(wx.Dialog):
     st.SetFont(font)
     lsz.Add(st, 1, wx.TOP, offsetTcLabel)
 
-    choices = ["<none>"] + sorted(thermistorPresets.keys())
-    ch = wx.Choice(self, wx.ID_ANY, choices = choices)
+    self.thermistorChoices = ["<none>"] + sorted(thermistorPresets.keys())
+    ch = wx.Choice(self, wx.ID_ANY, choices = self.thermistorChoices)
     ch.SetFont(font)
     ch.Enable(False)
     ch.SetSelection(0)
@@ -400,6 +400,7 @@ class AddSensorDlg(wx.Dialog):
   def onParam0Entry(self, evt):
     if self.currentMode == MODE_THERMISTOR:
       self.param0Valid = self.onTextCtrlInteger(self.param0, True)
+      self.checkValuesForPreset()
     else:
       self.param0Valid = True
 
@@ -410,6 +411,7 @@ class AddSensorDlg(wx.Dialog):
   def onParam1Entry(self, evt):
     if self.currentMode == MODE_THERMISTOR:
       self.param1Valid = self.onTextCtrlInteger(self.param1, True)
+      self.checkValuesForPreset()
     else:
       self.param1Valid = True
 
@@ -420,6 +422,7 @@ class AddSensorDlg(wx.Dialog):
   def onParam2Entry(self, evt):
     if self.currentMode == MODE_THERMISTOR:
       self.param2Valid = self.onTextCtrlInteger(self.param2, True)
+      self.checkValuesForPreset()
     else:
       self.param2Valid = True
 
@@ -433,6 +436,7 @@ class AddSensorDlg(wx.Dialog):
         self.param3Valid = self.onTextCtrlFloat(self.param3, True)
       else:
         self.param3Valid = self.onTextCtrlInteger(self.param3, True)
+      self.checkValuesForPreset()
     else:
       self.param3Valid = True
 
@@ -446,6 +450,7 @@ class AddSensorDlg(wx.Dialog):
         self.param4Valid = True
       else:
         self.param4Valid = self.onTextCtrlInteger(self.param4, True)
+      self.checkValuesForPreset()
     else:
       self.param4Valid = True
 
@@ -459,6 +464,7 @@ class AddSensorDlg(wx.Dialog):
         self.param5Valid = True
       else:
         self.param5Valid = self.onTextCtrlInteger(self.param5, True)
+      self.checkValuesForPreset()
     else:
       self.param5Valid = True
 
@@ -472,12 +478,35 @@ class AddSensorDlg(wx.Dialog):
         self.param6Valid = True
       else:
         self.param6Valid = self.onTextCtrlInteger(self.param6, True)
+      self.checkValuesForPreset()
     else:
       self.param6Valid = True
 
     self.checkDlgValidity()
     if evt is not None:
       evt.Skip()
+
+  def checkValuesForPreset(self):
+    p = []
+    p.append(self.param0.GetValue().strip())
+    p.append(self.param1.GetValue().strip())
+    p.append(self.param2.GetValue().strip())
+    p.append(self.param3.GetValue().strip())
+    if self.currentMethod != METHOD_BETA:
+      p.append(self.param4.GetValue().strip())
+      p.append(self.param5.GetValue().strip())
+      p.append(self.param6.GetValue().strip())
+
+    for k in thermistorPresets.keys():
+      if p == thermistorPresets[k]:
+        try:
+          i = self.thermistorChoices.index(k)
+        except:
+          i = 0
+        self.chPresets.SetSelection(i)
+        return
+
+    self.chPresets.SetSelection(0)
 
   def selectSensorType(self, lbl):
     if lbl == "Thermistor":
