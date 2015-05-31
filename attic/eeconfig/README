@@ -1,0 +1,18 @@
+
+This branch was an attempt to add configuration strorage in the EEPROM.
+Similar to Marlin, which allows to do virtually all configuration through
+M-codes at runtime.
+
+The obvious penalty is, some calculations can no longer be done at
+compile time and have to be done at runtime. It also increases binary size.
+These are the reasons why this branch sat unattended in the repository for a
+long time without being moved to experimental/master. If tested at all,
+the last tests were done in 2011.
+
+With the advent of Configtool it becomes even more unlikely this kind of
+configuration/calibration ever becomes standard. Whatever can be stored in
+EEPROM, Configtool allows to set it at compile time, keeping the firmware
+smaller and faster. The only small disadvantage of Configtool is, one has to
+do 2 or 3 clicks to build and upload again.
+
+This branch was last applied to commit d7789ee21721a061eb50ec5fd4d18ed73a6948e3.

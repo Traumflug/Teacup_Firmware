@@ -1,0 +1,344 @@
+From 555966f5dbd6d6fbdebea84c14bab1b2c88cc43e Mon Sep 17 00:00:00 2001
+From: Michael Moon <triffid.hunter@gmail.com>
+Date: Mon, 28 Mar 2011 00:28:01 +1100
+Subject: preliminary work on EEPROM configuration storage
+
+---
+ eeconfig.c      | 54 ++++++++++++++++++++++++++++++++++++++++++++
+ eeconfig.h      | 45 +++++++++++++++++++++++++++++++++++++
+ gcode_parse.c   |  2 +-
+ gcode_parse.h   |  4 ++--
+ gcode_process.c | 70 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ mendel.c        |  4 ++++
+ serial.c        | 16 +++++++------
+ temp.c          |  8 ++++++-
+ 8 files changed, 192 insertions(+), 11 deletions(-)
+ create mode 100644 eeconfig.c
+ create mode 100644 eeconfig.h
+
+diff --git a/eeconfig.c b/eeconfig.c
+new file mode 100644
+index 0000000..931866e
+--- /dev/null
++++ b/eeconfig.c
+@@ -0,0 +1,54 @@
++#include	"eeconfig.h"
++
++#include	<avr/eeprom.h>
++
++#include	"crc.h"
++#include "config.h"
++#include	"clock.h"
++
++/// in-memory configuration data structure
++eeconfig_struct eeconfig;
++
++/// in-eeprom configuration data structure
++eeconfig_struct EEMEM EE_config;
++
++void eeconfig_init() {
++	uint16_t mycrc;
++	eeprom_read_block(&eeconfig, &EE_config, sizeof(eeconfig_struct));
++	mycrc = crc_block(&eeconfig, sizeof(eeconfig_struct) - sizeof(uint16_t));
++	if (mycrc != eeconfig.crc) {
++		// set sane defaults
++		eeconfig.steps_per_mm_x = STEPS_PER_MM_X;
++		eeconfig.steps_per_mm_y = STEPS_PER_MM_Y;
++		eeconfig.steps_per_mm_z = STEPS_PER_MM_Z;
++		eeconfig.steps_per_mm_e = STEPS_PER_MM_E;
++
++		eeconfig.size_x = X_MAX;
++		eeconfig.size_y = Y_MAX;
++		eeconfig.size_z = Z_MAX;
++
++		eeconfig.max_speed_x = MAXIMUM_FEEDRATE_X;
++		eeconfig.max_speed_y = MAXIMUM_FEEDRATE_Y;
++		eeconfig.max_speed_z = MAXIMUM_FEEDRATE_Z;
++		eeconfig.max_speed_e = MAXIMUM_FEEDRATE_E;
++
++		eeconfig.max_temp_e = 1000;
++		eeconfig.max_temp_b = 480;
++		eeconfig.max_temp_r = 240;
++
++		eeconfig.min_endstop_pos_z = Z_MIN;
++
++		eeconfig.temp_hysteresis = TEMP_HYSTERESIS;
++		eeconfig.temp_residency = TEMP_RESIDENCY_TIME;
++
++		eeconfig.baud = BAUD;
++	}
++}
++
++void eeconfig_save() {
++	eeconfig.crc = crc_block(&eeconfig, sizeof(eeconfig_struct) - sizeof(uint16_t));
++	eeprom_write_block(&eeconfig, &EE_config, sizeof(eeconfig_struct));
++	do {
++		clock_poll();
++	} while (eeprom_is_ready() == 0);
++}
+diff --git a/eeconfig.h b/eeconfig.h
+new file mode 100644
+index 0000000..2b489c0
+--- /dev/null
++++ b/eeconfig.h
+@@ -0,0 +1,45 @@
++#ifndef	_EECONFIG_H
++#define	_EECONFIG_H
++
++#include	<stdint.h>
++
++typedef struct {
++	uint32_t	steps_per_mm_x;
++	uint32_t	steps_per_mm_y;
++	uint32_t	steps_per_mm_z;
++	uint32_t	steps_per_mm_e;
++
++	uint32_t	size_x;
++	uint32_t	size_y;
++	uint32_t	size_z;
++
++	uint32_t	max_speed_x;
++	uint32_t	max_speed_y;
++	uint32_t	max_speed_z;
++	uint32_t	max_speed_e;
++
++	uint16_t	max_temp_e;
++	uint16_t	max_temp_b;
++	uint16_t	max_temp_r;
++
++	uint32_t	min_endstop_pos_z;
++
++	uint16_t	temp_hysteresis;
++	uint16_t	temp_residency;
++
++	uint32_t	baud;
++
++	struct {
++		uint16_t	adc_value;
++		uint16_t	temperature;
++	} temptable[20];
++
++	uint16_t crc;
++} eeconfig_struct;
++
++extern eeconfig_struct eeconfig;
++
++void eeconfig_init(void);
++void eeconfig_save(void);
++
++#endif	/* _EECONFIG_H */
+diff --git a/gcode_parse.c b/gcode_parse.c
+index 0668513..817fe85 100644
+--- a/gcode_parse.c
++++ b/gcode_parse.c
+@@ -118,7 +118,7 @@ void gcode_parse_char(uint8_t c) {
+ 				case 'M':
+ 					next_target.M = read_digit.mantissa;
+ 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
+-						serwrite_uint8(next_target.M);
++						serwrite_uint16(next_target.M);
+ 					break;
+ 				case 'X':
+ 					if (next_target.option_inches)
+diff --git a/gcode_parse.h b/gcode_parse.h
+index d15716d..216a375 100644
+--- a/gcode_parse.h
++++ b/gcode_parse.h
+@@ -44,11 +44,11 @@ typedef struct {
+ 	};
+ 
+ 	uint8_t						G;				///< G command number
+-	uint8_t						M;				///< M command number
++	uint16_t					M;				///< M command number
+ 	TARGET						target;		///< target position: X, Y, Z, E and F
+ 
+ 	int32_t						S;				///< S word (various uses)
+-	uint16_t					P;				///< P word (various uses)
++	int32_t						P;				///< P word (various uses)
+ 
+ 	uint8_t						T;				///< T word (tool index)
+ 
+diff --git a/gcode_process.c b/gcode_process.c
+index 4cb7a41..e97fff6 100644
+--- a/gcode_process.c
++++ b/gcode_process.c
+@@ -26,6 +26,7 @@
+ #include	"clock.h"
+ #include	"config_wrapper.h"
+ #include	"home.h"
++#include	"eeconfig.h"
+ 
+ /// the current tool
+ uint8_t tool;
+@@ -736,15 +737,84 @@ void process_gcode_command() {
+ 
+ 			#ifdef	DEBUG
+ 			case 240:
++			case 340:
+ 				//? --- M240: echo off ---
+ 				//? Disable echo.
+ 				//? This command is only available in DEBUG builds.
++				// EEPROM Configuration as per http://reprap.org/wiki/M-codes_for_EEPROM_config
++			// M244 - set baudrate
++			case 244:
++				if (next_target.seen_S)
++					if (next_target.S >= 1200 && next_target.S <= 1000000)
++						eeconfig.baud = next_target.S;
++				break;
++			// M245 - Write temp table value, S(index), X(adc reading) Y(temperature)
++			/// TODO: check values for sanity
++			case 245:
++				if (next_target.seen_S && next_target.seen_X && next_target.seen_Y) {
++					eeconfig.temptable[next_target.S].adc_value = next_target.target.X;
++					eeconfig.temptable[next_target.S].temperature = next_target.target.Y;
++				}
++				break;
++			// M246 - choose thermistor profile
++			// M247 - set heater PWM, see M135 above
++			// M248 - PID stuff- see M130-M133 above
++			// M249 - temp residency time - wait for all temps to be within target for this long before continuing M109 and friends
++			case 249:
++				if (next_target.seen_P)
++					eeconfig.temp_residency = next_target.P;
++				break;
++			// M250 - Z min endstop position - non-zero to avoid head crashing into bed during homing
++			case 250:
++				if (next_target.seen_Z)
++					eeconfig.min_endstop_pos_z = next_target.target.Z;
++				break;
++			// M251 - set max bed temp (failsafe)
++			case 251:
++				break;
++			// M252 - set max extruder temp (failsafe)
++			// M253 - max speeds
++			case 253:
++				if (next_target.seen_X)
++					eeconfig.max_speed_x = next_target.target.X;
++				if (next_target.seen_Y)
++					eeconfig.max_speed_y = next_target.target.Y;
++				if (next_target.seen_Z)
++					eeconfig.max_speed_z = next_target.target.Z;
++				if (next_target.seen_E)
++					eeconfig.max_speed_e = next_target.target.E;
++				break;
++			// M254 - set build volume
++			case 254:
++				if (next_target.seen_X)
++					eeconfig.size_x = next_target.target.X;
++				if (next_target.seen_Y)
++					eeconfig.size_y = next_target.target.Y;
++				if (next_target.seen_Z)
++					eeconfig.size_z = next_target.target.Z;
++				break;
++			// M255 - set steps per mm
++			case 255:
++				if (next_target.seen_X)
++					eeconfig.steps_per_mm_x = next_target.target.X;
++				if (next_target.seen_Y)
++					eeconfig.steps_per_mm_y = next_target.target.Y;
++				if (next_target.seen_Z)
++					eeconfig.steps_per_mm_z = next_target.target.Z;
++				if (next_target.seen_E)
++					eeconfig.steps_per_mm_e = next_target.target.E;
++				break;
++
++
++			// DEBUG
++			#ifdef	DEBUG
+ 				debug_flags &= ~DEBUG_ECHO;
+ 				serial_writestr_P(PSTR("Echo off"));
+ 				// newline is sent from gcode_parse after we return
+ 				break;
+ 
+ 			case 241:
++			case 341:
+ 				//? --- M241: echo on ---
+ 				//? Enable echo.
+ 				//? This command is only available in DEBUG builds.
+diff --git a/mendel.c b/mendel.c
+index dd9a99c..3f3266c 100644
+--- a/mendel.c
++++ b/mendel.c
+@@ -48,6 +48,7 @@
+ #include	"arduino.h"
+ #include	"clock.h"
+ #include	"intercom.h"
++#include	"eeconfig.h"
+ #include "simulator.h"
+ 
+ #ifdef SIMINFO
+@@ -194,6 +195,9 @@ void io_init(void) {
+ 
+ /// Startup code, run when we come out of reset
+ void init(void) {
++	// read config from eeprom
++	eeconfig_init();
++
+ 	// set up watchdog
+ 	wd_init();
+ 
+diff --git a/serial.c b/serial.c
+index a7a0bd4..df0f873 100644
+--- a/serial.c
++++ b/serial.c
+@@ -14,6 +14,7 @@
+ #include	"memory_barrier.h"
+ 
+ #include	"arduino.h"
++#include	"eeconfig.h"
+ 
+ /// size of TX and RX buffers. MUST be a \f$2^n\f$ value
+ #define		BUFSIZE			64
+@@ -84,13 +85,14 @@ volatile uint8_t flowflags = FLOWFLAG_SEND_XON;
+ /// set up baud generator and interrupts, clear buffers
+ void serial_init()
+ {
+-#if BAUD > 38401
+-	UCSR0A = MASK(U2X0);
+-	UBRR0 = (((F_CPU / 8) / BAUD) - 0.5);
+-#else
+-	UCSR0A = 0;
+-	UBRR0 = (((F_CPU / 16) / BAUD) - 0.5);
+-#endif
++	if (eeconfig.baud > 38401) {
++		UCSR0A = MASK(U2X0);
++		UBRR0 = ((F_CPU / 8) / eeconfig.baud) - 1;
++	}
++	else {
++		UCSR0A = 0;
++		UBRR0 = ((F_CPU / 16) / eeconfig.baud) - 1;
++	}
+ 
+ 	UCSR0B = MASK(RXEN0) | MASK(TXEN0);
+ 	UCSR0C = MASK(UCSZ01) | MASK(UCSZ00);
+diff --git a/temp.c b/temp.c
+index dd4253c..be7f702 100644
+--- a/temp.c
++++ b/temp.c
+@@ -17,6 +17,7 @@
+ #include	"debug.h"
+ #ifndef	EXTRUDER
+ 	#include	"sersendf.h"
++	#include	"eeconfig.h"
+ #endif
+ #include	"heater.h"
+ #ifdef	TEMP_INTERCOM
+@@ -331,9 +332,14 @@ uint8_t	temp_achieved() {
+ 	uint8_t all_ok = 255;
+ 
+ 	for (i = 0; i < NUM_TEMP_SENSORS; i++) {
++		#ifndef EXTRUDER
+     if (temp_sensors_runtime[i].target_temp > 0 &&
+-        temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*100))
++        temp_sensors_runtime[i].temp_residency < eeconfig.temp_residency*100)
+ 			all_ok = 0;
++		#else
++		if (temp_sensors_runtime[i].temp_residency < TEMP_RESIDENCY_TIME*100)
++			all_ok = 0;
++		#endif
+ 	}
+ 	return all_ok;
+ }
+-- 
+2.1.0
+

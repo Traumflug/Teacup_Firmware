@@ -1,0 +1,39 @@
+From cc4737093ddf2dc16780ad701c2de0835423a87c Mon Sep 17 00:00:00 2001
+From: Michael Moon <triffid.hunter@gmail.com>
+Date: Sat, 4 Jun 2011 03:15:28 +1000
+Subject: merge cleanup, missed a section in temp.c
+
+Conflicts:
+
+	temp.c
+---
+ temp.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/temp.c b/temp.c
+index 2acaac4..2e39fdc 100644
+--- a/temp.c
++++ b/temp.c
+@@ -297,7 +297,7 @@ void temp_sensor_tick() {
+ 			                                         ) / EWMA_SCALE);
+ 		}
+ 		#ifdef EECONFIG
+-			if (labs((int16_t)(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp)) < (eeconfig.temp_hysteresis * 4)) {
++			if (labs(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp) < eeconfig.temp_hysteresis) {
+ 				if (temp_sensors_runtime[i].temp_residency < eeconfig.temp_residency)
+ 					temp_sensors_runtime[i].temp_residency++;
+ 			}
+@@ -310,8 +310,8 @@ void temp_sensor_tick() {
+ 					temp_sensors_runtime[i].temp_residency = 0;
+ 			}
+ 		#else
+-			if (labs((int16_t)(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp)) < (TEMP_HYSTERESIS*4)) {
+-				if (temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*100))
++			if (labs(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp) < (TEMP_HYSTERESIS * 4)) {
++				if (temp_sensors_runtime[i].temp_residency < TEMP_RESIDENCY_TIME*100)
+ 					temp_sensors_runtime[i].temp_residency++;
+ 			}
+ 			else {
+-- 
+2.1.0
+

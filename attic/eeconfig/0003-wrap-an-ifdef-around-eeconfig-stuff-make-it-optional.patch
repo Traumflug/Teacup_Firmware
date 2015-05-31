@@ -1,0 +1,318 @@
+From 186d4c39770c36051232dcc8fb35d8e10841875b Mon Sep 17 00:00:00 2001
+From: Michael Moon <triffid.hunter@gmail.com>
+Date: Mon, 28 Mar 2011 21:31:58 +1100
+Subject: wrap an ifdef around eeconfig stuff, make it optional and disabled by
+ default
+
+---
+ config.default.h    | 22 +++++++++++++++-------
+ config.gen3.h       | 18 ++++++++++++++----
+ config.gen6.h       | 16 ++++++++++++----
+ config.ramps-v1.2.h | 22 +++++++++++++++-------
+ eeconfig.c          |  4 ++++
+ gcode_process.c     |  3 ++-
+ mendel.c            |  2 ++
+ serial.c            | 11 +++++++++++
+ temp.c              | 38 +++++++++++++++++++++++++++-----------
+ 9 files changed, 102 insertions(+), 34 deletions(-)
+
+diff --git a/config.default.h b/config.default.h
+index c15969b..62cb3e2 100644
+--- a/config.default.h
++++ b/config.default.h
+@@ -515,20 +515,28 @@ DEFINE_HEATER(bed,      PB4,   1)
+ */
+ // #define	DEBUG
+ 
++/** \def EECONFIG
++	EECONFIG
++		allows runtime reconfiguration of critical variables
++
++		See http://reprap.org/wiki/M-codes_for_EEPROM_config
++*/
++// #define	EECONFIG
++
+ /** \def BANG_BANG
+-BANG_BANG
+-drops PID loop from heater control, reduces code size significantly (1300 bytes!)
+-may allow DEBUG on '168
++	BANG_BANG
++		drops PID loop from heater control, reduces code size significantly (1300 bytes!)
++		may allow DEBUG on '168
+ */
+ // #define	BANG_BANG
+ /** \def BANG_BANG_ON
+-BANG_BANG_ON
+-PWM value for 'on'
++	BANG_BANG_ON
++		PWM value for 'on'
+ */
+ // #define	BANG_BANG_ON	200
+ /** \def BANG_BANG_OFF
+-BANG_BANG_OFF
+-PWM value for 'off'
++	BANG_BANG_OFF
++		PWM value for 'off'
+ */
+ // #define	BANG_BANG_OFF	45
+ 
+diff --git a/config.gen3.h b/config.gen3.h
+index bcbbd75..05f7996 100644
+--- a/config.gen3.h
++++ b/config.gen3.h
+@@ -519,19 +519,29 @@ DEFINE_TEMP_SENSOR(bed,       TT_INTERCOM,    AIO1,      0)
+ */
+ // #define	DEBUG
+ 
++/** \def EECONFIG
++EECONFIG
++allows runtime reconfiguration of critical variables
++
++See http://reprap.org/wiki/M-codes_for_EEPROM_config
++*/
++// #define	EECONFIG
++
+ /** \def BANG_BANG
+ 	BANG_BANG
+ 		drops PID loop from heater control, reduces code size significantly (1300 bytes!)
+ 		may allow DEBUG on '168
+-*//** \def BANG_BANG_ON
++*/
++// #define	BANG_BANG
++/** \def BANG_BANG_ON
+ 	BANG_BANG_ON
+ 		PWM value for 'on'
+-*//** \def BANG_BANG_OFF
++*/
++// #define	BANG_BANG_ON	200
++/** \def BANG_BANG_OFF
+ 	BANG_BANG_OFF
+ 		PWM value for 'off'
+ */
+-// #define	BANG_BANG
+-// #define	BANG_BANG_ON	200
+ // #define	BANG_BANG_OFF	45
+ 
+ /**
+diff --git a/config.gen6.h b/config.gen6.h
+index 7b810e4..96b2e7c 100644
+--- a/config.gen6.h
++++ b/config.gen6.h
+@@ -503,6 +503,14 @@ DEFINE_HEATER(extruder, PD6,   1)
+ */
+ // #define	DEBUG
+ 
++/** \def EECONFIG
++	EECONFIG
++		allows runtime reconfiguration of critical variables
++
++		See http://reprap.org/wiki/M-codes_for_EEPROM_config
++*/
++// #define	EECONFIG
++
+ /** \def BANG_BANG
+ 	BANG_BANG
+ 		drops PID loop from heater control, reduces code size significantly (1300 bytes!)
+@@ -510,13 +518,13 @@ DEFINE_HEATER(extruder, PD6,   1)
+ */
+ // #define	BANG_BANG
+ /** \def BANG_BANG_ON
+-BANG_BANG_ON
+-PWM value for 'on'
++	BANG_BANG_ON
++		PWM value for 'on'
+ */
+ // #define	BANG_BANG_ON	200
+ /** \def BANG_BANG_OFF
+-BANG_BANG_OFF
+-PWM value for 'off'
++	BANG_BANG_OFF
++		PWM value for 'off'
+ */
+ // #define	BANG_BANG_OFF	45
+ 
+diff --git a/config.ramps-v1.2.h b/config.ramps-v1.2.h
+index bcb9af8..2486cd7 100644
+--- a/config.ramps-v1.2.h
++++ b/config.ramps-v1.2.h
+@@ -512,20 +512,28 @@ DEFINE_HEATER(fan,      PH6,   1)
+ */
+ // #define	DEBUG
+ 
++/** \def EECONFIG
++	EECONFIG
++		allows runtime reconfiguration of critical variables
++
++		See http://reprap.org/wiki/M-codes_for_EEPROM_config
++*/
++// #define	EECONFIG
++
+ /** \def BANG_BANG
+-BANG_BANG
+-drops PID loop from heater control, reduces code size significantly (1300 bytes!)
+-may allow DEBUG on '168
++	BANG_BANG
++		drops PID loop from heater control, reduces code size significantly (1300 bytes!)
++		may allow DEBUG on '168
+ */
+ // #define	BANG_BANG
+ /** \def BANG_BANG_ON
+-BANG_BANG_ON
+-PWM value for 'on'
++	BANG_BANG_ON
++		PWM value for 'on'
+ */
+ // #define	BANG_BANG_ON	200
+ /** \def BANG_BANG_OFF
+-BANG_BANG_OFF
+-PWM value for 'off'
++	BANG_BANG_OFF
++		PWM value for 'off'
+ */
+ // #define	BANG_BANG_OFF	45
+ 
+diff --git a/eeconfig.c b/eeconfig.c
+index 931866e..105f36d 100644
+--- a/eeconfig.c
++++ b/eeconfig.c
+@@ -13,6 +13,7 @@ eeconfig_struct eeconfig;
+ eeconfig_struct EEMEM EE_config;
+ 
+ void eeconfig_init() {
++	#ifdef EECONFIG
+ 	uint16_t mycrc;
+ 	eeprom_read_block(&eeconfig, &EE_config, sizeof(eeconfig_struct));
+ 	mycrc = crc_block(&eeconfig, sizeof(eeconfig_struct) - sizeof(uint16_t));
+@@ -43,12 +44,15 @@ void eeconfig_init() {
+ 
+ 		eeconfig.baud = BAUD;
+ 	}
++	#endif /* EECONFIG */
+ }
+ 
+ void eeconfig_save() {
++	#ifdef EECONFIG
+ 	eeconfig.crc = crc_block(&eeconfig, sizeof(eeconfig_struct) - sizeof(uint16_t));
+ 	eeprom_write_block(&eeconfig, &EE_config, sizeof(eeconfig_struct));
+ 	do {
+ 		clock_poll();
+ 	} while (eeprom_is_ready() == 0);
++	#endif /* EECONFIG */
+ }
+diff --git a/gcode_process.c b/gcode_process.c
+index e97fff6..310eed4 100644
+--- a/gcode_process.c
++++ b/gcode_process.c
+@@ -741,6 +741,7 @@ void process_gcode_command() {
+ 				//? --- M240: echo off ---
+ 				//? Disable echo.
+ 				//? This command is only available in DEBUG builds.
++			#ifdef	EECONFIG
+ 				// EEPROM Configuration as per http://reprap.org/wiki/M-codes_for_EEPROM_config
+ 			// M244 - set baudrate
+ 			case 244:
+@@ -804,7 +805,7 @@ void process_gcode_command() {
+ 				if (next_target.seen_E)
+ 					eeconfig.steps_per_mm_e = next_target.target.E;
+ 				break;
+-
++			#endif	/* EECONFIG */
+ 
+ 			// DEBUG
+ 			#ifdef	DEBUG
+diff --git a/mendel.c b/mendel.c
+index 3f3266c..3b55883 100644
+--- a/mendel.c
++++ b/mendel.c
+@@ -195,8 +195,10 @@ void io_init(void) {
+ 
+ /// Startup code, run when we come out of reset
+ void init(void) {
++	#ifdef EECONFIG
+ 	// read config from eeprom
+ 	eeconfig_init();
++	#endif
+ 
+ 	// set up watchdog
+ 	wd_init();
+diff --git a/serial.c b/serial.c
+index df0f873..3050c3a 100644
+--- a/serial.c
++++ b/serial.c
+@@ -85,6 +85,7 @@ volatile uint8_t flowflags = FLOWFLAG_SEND_XON;
+ /// set up baud generator and interrupts, clear buffers
+ void serial_init()
+ {
++	#ifdef	EECONFIG
+ 	if (eeconfig.baud > 38401) {
+ 		UCSR0A = MASK(U2X0);
+ 		UBRR0 = ((F_CPU / 8) / eeconfig.baud) - 1;
+@@ -93,6 +94,16 @@ void serial_init()
+ 		UCSR0A = 0;
+ 		UBRR0 = ((F_CPU / 16) / eeconfig.baud) - 1;
+ 	}
++	#else
++	if (BAUD > 38401) {
++		UCSR0A = MASK(U2X0);
++		UBRR0 = ((F_CPU / 8) / BAUD) - 1;
++	}
++	else {
++		UCSR0A = 0;
++		UBRR0 = ((F_CPU / 16) / BAUD) - 1;
++	}
++	#endif
+ 
+ 	UCSR0B = MASK(RXEN0) | MASK(TXEN0);
+ 	UCSR0C = MASK(UCSZ01) | MASK(UCSZ00);
+diff --git a/temp.c b/temp.c
+index be7f702..2acaac4 100644
+--- a/temp.c
++++ b/temp.c
+@@ -296,17 +296,33 @@ void temp_sensor_tick() {
+ 			  (EWMA_SCALE-EWMA_ALPHA) * temp_sensors_runtime[i].last_read_temp
+ 			                                         ) / EWMA_SCALE);
+ 		}
+-		if (labs((int16_t)(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp)) < (TEMP_HYSTERESIS*4)) {
+-			if (temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*120))
+-				temp_sensors_runtime[i].temp_residency++;
+-		}
+-		else {
+-			// Deal with flakey sensors which occasionally report a wrong value
+-			// by setting residency back, but not entirely to zero.
+-			if (temp_sensors_runtime[i].temp_residency > 10)
+-				temp_sensors_runtime[i].temp_residency -= 10;
+-			else
+-				temp_sensors_runtime[i].temp_residency = 0;
++		#ifdef EECONFIG
++			if (labs((int16_t)(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp)) < (eeconfig.temp_hysteresis * 4)) {
++				if (temp_sensors_runtime[i].temp_residency < eeconfig.temp_residency)
++					temp_sensors_runtime[i].temp_residency++;
++			}
++			else {
++				// Deal with flakey sensors which occasionally report a wrong value
++				// by setting residency back, but not entirely to zero.
++				if (temp_sensors_runtime[i].temp_residency > 10)
++					temp_sensors_runtime[i].temp_residency -= 10;
++				else
++					temp_sensors_runtime[i].temp_residency = 0;
++			}
++		#else
++			if (labs((int16_t)(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp)) < (TEMP_HYSTERESIS*4)) {
++				if (temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*100))
++					temp_sensors_runtime[i].temp_residency++;
++			}
++			else {
++				// Deal with flakey sensors which occasionally report a wrong value
++				// by setting residency back, but not entirely to zero.
++				if (temp_sensors_runtime[i].temp_residency > 10)
++					temp_sensors_runtime[i].temp_residency -= 10;
++				else
++					temp_sensors_runtime[i].temp_residency = 0;
++			}
++		#endif
+ 		}
+ 
+ 		if (temp_sensors[i].heater < NUM_HEATERS) {
+-- 
+2.1.0
+
