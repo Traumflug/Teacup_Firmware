@@ -7,6 +7,7 @@
 // If no time scale specified, use 1/10th real-time for simulator
 #define DEFAULT_TIME_SCALE 10
 
+#include "config.h"
 #include "simulator.h"
 #include "data_recorder.h"
 
