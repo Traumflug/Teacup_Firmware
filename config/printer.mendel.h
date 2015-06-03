@@ -76,8 +76,19 @@
 #define ENDSTOP_CLEARANCE_Z      100
 
 /** \def X_MIN X_MAX Y_MIN Y_MAX Z_MIN Z_MAX
-  Soft axis limits, in mm. Define them to your machine's size relative to what
-  your host considers to be the origin.
+  Soft axis limits. Define them to your machine's size relative to what your
+  G-code considers to be the origin (typically the bed's center or the bed's
+  front left corner).
+
+  Note that relocating the origin at runtime with G92 will also relocate these
+  limits.
+
+  Not defining them at all will disable limits checking and make the binary
+  about 250 bytes smaller. Enabling only some of them is perfectly fine.
+
+    Units: millimeters
+    Sane values: according to printer build room size
+    Valid range: -1000.0 to 1000.0
 */
 //#define X_MIN                    0.0
 //#define X_MAX                    200.0
