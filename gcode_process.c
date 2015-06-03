@@ -181,16 +181,18 @@ void process_gcode_command() {
 				//?
 				//? Example: G28
 				//?
-        //? This causes the RepRap machine to search for its X, Y and Z zero
+        //? This causes the RepRap machine to search for its X, Y and Z
         //? endstops. It does so at high speed, so as to get there fast. When
         //? it arrives it backs off slowly until the endstop is released again.
         //? Backing off slowly ensures more accurate positioning.
 				//?
-				//? If you add coordinates, then just the axes with coordinates specified will be zeroed.  Thus
+        //? If you add axis characters, then just the axes specified will be
+        //? seached. Thus
 				//?
-				//? G28 X0 Y72.3
+        //?   G28 X Y72.3
 				//?
-				//? will zero the X and Y axes, but not Z.  The actual coordinate values are ignored.
+        //? will zero the X and Y axes, but not Z. Coordinate values are
+        //? ignored.
 				//?
 
 				queue_wait();
