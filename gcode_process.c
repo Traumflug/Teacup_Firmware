@@ -282,44 +282,6 @@ void process_gcode_command() {
 				dda_new_startpoint();
 				break;
 
-			case 161:
-				//? --- G161: Home negative ---
-				//?
-				//? Find the minimum limit of the specified axes by searching for the limit switch.
-				//?
-        #if defined X_MIN_PIN
-          if (next_target.seen_X)
-            home_x_negative();
-        #endif
-        #if defined Y_MIN_PIN
-          if (next_target.seen_Y)
-            home_y_negative();
-        #endif
-        #if defined Z_MIN_PIN
-          if (next_target.seen_Z)
-            home_z_negative();
-        #endif
-				break;
-
-			case 162:
-				//? --- G162: Home positive ---
-				//?
-				//? Find the maximum limit of the specified axes by searching for the limit switch.
-				//?
-        #if defined X_MAX_PIN
-          if (next_target.seen_X)
-            home_x_positive();
-        #endif
-        #if defined Y_MAX_PIN
-          if (next_target.seen_Y)
-            home_y_positive();
-        #endif
-        #if defined Z_MAX_PIN
-          if (next_target.seen_Z)
-            home_z_positive();
-        #endif
-				break;
-
 				// unknown gcode: spit an error
 			default:
 				sersendf_P(PSTR("E: Bad G-code %d"), next_target.G);
