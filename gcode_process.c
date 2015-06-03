@@ -63,30 +63,29 @@ void process_gcode_command() {
 
 	// implement axis limits
 	#ifdef	X_MIN
-    if (next_target.target.axis[X] < X_MIN * 1000.)
-      next_target.target.axis[X] = X_MIN * 1000.;
+    if (next_target.target.axis[X] < (int32_t)(X_MIN * 1000.))
+      next_target.target.axis[X] = (int32_t)(X_MIN * 1000.);
 	#endif
 	#ifdef	X_MAX
-    if (next_target.target.axis[X] > X_MAX * 1000.)
-      next_target.target.axis[X] = X_MAX * 1000.;
+    if (next_target.target.axis[X] > (int32_t)(X_MAX * 1000.))
+      next_target.target.axis[X] = (int32_t)(X_MAX * 1000.);
 	#endif
 	#ifdef	Y_MIN
-    if (next_target.target.axis[Y] < Y_MIN * 1000.)
-      next_target.target.axis[Y] = Y_MIN * 1000.;
+    if (next_target.target.axis[Y] < (int32_t)(Y_MIN * 1000.))
+      next_target.target.axis[Y] = (int32_t)(Y_MIN * 1000.);
 	#endif
 	#ifdef	Y_MAX
-    if (next_target.target.axis[Y] > Y_MAX * 1000.)
-      next_target.target.axis[Y] = Y_MAX * 1000.;
+    if (next_target.target.axis[Y] > (int32_t)(Y_MAX * 1000.))
+      next_target.target.axis[Y] = (int32_t)(Y_MAX * 1000.);
 	#endif
 	#ifdef	Z_MIN
-    if (next_target.target.axis[Z] < Z_MIN * 1000.)
-      next_target.target.axis[Z] = Z_MIN * 1000.;
+    if (next_target.target.axis[Z] < (int32_t)(Z_MIN * 1000.))
+      next_target.target.axis[Z] = (int32_t)(Z_MIN * 1000.);
 	#endif
 	#ifdef	Z_MAX
-    if (next_target.target.axis[Z] > Z_MAX * 1000.)
-      next_target.target.axis[Z] = Z_MAX * 1000.;
+    if (next_target.target.axis[Z] > (int32_t)(Z_MAX * 1000.))
+      next_target.target.axis[Z] = (int32_t)(Z_MAX * 1000.);
 	#endif
-
 
 	// The GCode documentation was taken from http://reprap.org/wiki/Gcode .
 
