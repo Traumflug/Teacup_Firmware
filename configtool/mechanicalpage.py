@@ -99,7 +99,7 @@ class MechanicalPage(wx.Panel, Page):
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
     for k in self.minmaxKeys:
-      tc = self.addTextCtrl(k, labelWidth + 20, self.onTextCtrlInteger)
+      tc = self.addTextCtrl(k, labelWidth + 20, self.onTextCtrlFloat)
       sbox.Add(tc)
       sbox.AddSpacer((5, 5))
 
