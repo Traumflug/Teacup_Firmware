@@ -54,19 +54,6 @@
 #endif
 
 
-/// home all 3 axes
-void home() {
-
-  home_x_negative();
-  home_x_positive();
-
-  home_y_negative();
-  home_y_positive();
-
-  home_z_negative();
-  home_z_positive();
-}
-
 /// find X MIN endstop
 void home_x_negative() {
 	#if defined X_MIN_PIN
@@ -240,4 +227,36 @@ void home_z_positive() {
     startpoint.axis[Z] = next_target.target.axis[Z] = (int32_t)(Z_MAX * 1000.);
 		dda_new_startpoint();
 	#endif
+}
+
+/** Home all axes.
+*/
+void home() {
+  home_x();
+  home_y();
+  home_z();
+}
+
+void home_x() {
+  #if defined X_MIN_PIN
+    home_x_negative();
+  #elif defined X_MAX_PIN
+    home_x_positive();
+  #endif
+}
+
+void home_y() {
+  #if defined Y_MIN_PIN
+    home_y_negative();
+  #elif defined Y_MAX_PIN
+    home_y_positive();
+  #endif
+}
+
+void home_z() {
+  #if defined Z_MIN_PIN
+    home_z_negative();
+  #elif defined Z_MAX_PIN
+    home_z_positive();
+  #endif
 }

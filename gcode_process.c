@@ -197,27 +197,15 @@ void process_gcode_command() {
 				queue_wait();
 
 				if (next_target.seen_X) {
-					#if defined	X_MIN_PIN
-						home_x_negative();
-					#elif defined X_MAX_PIN
-						home_x_positive();
-					#endif
+          home_x();
 					axisSelected = 1;
 				}
 				if (next_target.seen_Y) {
-					#if defined	Y_MIN_PIN
-						home_y_negative();
-					#elif defined Y_MAX_PIN
-						home_y_positive();
-					#endif
+          home_y();
 					axisSelected = 1;
 				}
 				if (next_target.seen_Z) {
-          #if defined Z_MIN_PIN
-            home_z_negative();
-          #elif defined Z_MAX_PIN
-            home_z_positive();
-					#endif
+          home_z();
 					axisSelected = 1;
 				}
 				// there's no point in moving E, as E has no endstops
