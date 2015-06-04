@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
 import sys
+import time
 if sys.version_info.major >= 3:
   print("You are currently running Python3. Python3 is not supported, because\n"
         "there is no wxPython for Python3. Please try running with Python2.\n"
         "It often works to type \"python2 configtool.py\" in the command line.")
+  time.sleep(10)
   sys.exit(-1)
 
 try:
@@ -13,6 +15,7 @@ except:
   print("ImportError: No module named wx\n\n"
         "wxPython is not installed. This program requires wxPython to run.\n"
         "See your package manager and/or http://wxpython.org/download.php.")
+  time.sleep(10)
   sys.exit(-1)
 
 import os.path
