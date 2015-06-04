@@ -20,7 +20,7 @@ from configtool.sensorpage import SensorsPage
 from configtool.heaterspage import HeatersPage
 from configtool.communicationspage import CommunicationsPage
 from configtool.cpupage import CpuPage
-from configtool.protectedfiles import protectedFiles
+from configtool.protectedfiles import protectedFiles, getDescription
 from configtool.thermistortablefile import generateTempTables
 
 
@@ -40,6 +40,7 @@ class BoardPanel(wx.Panel):
     self.candHeatPins = []
     self.candThermPins = []
     self.dir = os.path.join(self.settings.folder, "config")
+    self.configDir = self.dir
 
     self.SetBackgroundColour(self.deco.getBackgroundColour())
     self.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
@@ -656,7 +657,9 @@ class BoardPanel(wx.Panel):
   def addNewDefine(self, fp, key, val):
     fp.write("\n")
     fp.write("/** \\def %s\n" % key)
-    fp.write("  Add help text here.\n")
+    ht = getDescription(self.configDir, "board", key)
+    for l in ht:
+      fp.write("%s\n" % l)
     fp.write("*/\n")
     if val == True:
       fp.write(defineBoolFormat % key)

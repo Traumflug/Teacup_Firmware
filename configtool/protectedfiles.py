@@ -1,3 +1,6 @@
+import os
+import re
+from configtool.data import reHelpTextStart, reHelpTextEnd
 
 protectedFiles = [
   "board.3drag.h",
@@ -16,3 +19,38 @@ protectedFiles = [
   "printer.mendel.h",
   "printer.wolfstrap.h"
 ]
+
+
+def getDescription(cfgdir, ftype, key):
+  helpText = []
+  
+  for fn in protectedFiles:
+    if not fn.startswith(ftype + '.'):
+      continue
+ 
+    ffn = os.path.join(cfgdir, fn)
+    try:
+      cfgBuffer = list(open(ffn))
+    except:
+      continue
+
+    gatheringHelpText = False
+    for ln in cfgBuffer:
+      if gatheringHelpText:
+        if reHelpTextEnd.match(ln):
+          return helpText
+        else:
+          helpText.append(ln.strip())
+          continue
+
+      m = reHelpTextStart.match(ln)
+      if m:
+        t = m.groups()
+        if len(t) != 1:
+          continue
+
+        tl = re.split(' +', t[0])
+        if key in tl:
+          gatheringHelpText = True
+
+  return [ "Add descriptive text for %s here." % key ]

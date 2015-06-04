@@ -12,7 +12,7 @@ from configtool.data import (defineValueFormat, defineBoolFormat, reCommDefBL,
 from configtool.mechanicalpage import MechanicalPage
 from configtool.accelerationpage import AccelerationPage
 from configtool.miscellaneouspage import MiscellaneousPage
-from configtool.protectedfiles import protectedFiles
+from configtool.protectedfiles import protectedFiles, getDescription
 
 
 class PrinterPanel(wx.Panel):
@@ -29,6 +29,7 @@ class PrinterPanel(wx.Panel):
     self.cfgValues = {}
     self.heaters = []
     self.dir = os.path.join(self.settings.folder, "config")
+    self.configDir = self.dir
 
     self.SetBackgroundColour(self.deco.getBackgroundColour())
     self.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
@@ -446,7 +447,10 @@ class PrinterPanel(wx.Panel):
   def addNewDefine(self, fp, key, val):
     fp.write("\n")
     fp.write("/** \\def %s\n" % key)
-    fp.write("  Add help text here.\n")
+    ht = getDescription(self.configDir, "printer", key)
+    for l in ht:
+      fp.write("%s\n" % l)
+
     fp.write("*/\n")
     if val == True:
       fp.write(defineBoolFormat % key)
