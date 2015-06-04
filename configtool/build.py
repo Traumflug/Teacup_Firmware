@@ -24,6 +24,10 @@ class ScriptTools:
     self.settings = settings
 
   def figureCommandPath(self, baseCommand):
+    findConf = False
+    if baseCommand == "avrdude":
+      findConf = True
+
     if platform.startswith("win"):
       baseCommand += ".exe"
 
@@ -42,8 +46,24 @@ class ScriptTools:
         if os.path.exists(cmdpathTry):
           cmdpath = "\"" + cmdpathTry + "\""
           break
+
+      if findConf:
+        confpath = cmdpath.strip("\"")
+        exepos = confpath.rfind(".exe")
+        if exepos >= 0:
+          confpath = confpath[0:exepos]
+        confpath += ".conf"
+        if not os.path.exists(confpath):
+          confpath = os.path.split(confpath)[0]
+          confpath = os.path.split(confpath)[0]
+          confpath = os.path.join(confpath, "etc")
+          confpath = os.path.join(confpath, "avrdude.conf")
+        if os.path.exists(confpath):
+          cmdpath += " -C \"" + confpath + "\""
+
     else:
       cmdpath = baseCommand
+      # No need to search avrdude.conf in this case.
 
     return cmdpath
 
@@ -396,8 +416,6 @@ class Upload(wx.Dialog):
     cmdpath = ScriptTools(self.settings).figureCommandPath("avrdude")
     hexpath = "\"" + join(self.root, "teacup.hex") + "\""
 
-    if self.settings.arduinodir:
-      cmdpath = cmdpath + " -C " + cmdpath.rstrip("\"") + ".conf\""
     cmd = cmdpath + " -c %s -b %s -p %s -P %s -U flash:w:%s:i" % \
           (self.settings.programmer, self.baud, self.cpu, self.settings.port,
            hexpath)
