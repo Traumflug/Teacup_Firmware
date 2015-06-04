@@ -24,6 +24,9 @@ class ScriptTools:
     self.settings = settings
 
   def figureCommandPath(self, baseCommand):
+    if platform.startswith("win"):
+      baseCommand += ".exe"
+
     if self.settings.arduinodir:
       cmdpath = self.settings.arduinodir
 
