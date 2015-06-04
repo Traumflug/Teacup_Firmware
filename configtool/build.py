@@ -228,6 +228,14 @@ class Build(wx.Dialog):
     self.script = []
     cmdpath = ScriptTools(self.settings).figureCommandPath("avr-gcc")
 
+    # This is ugly:
+    # Work around a problem of avr-ld.exe coming with Arduino 1.6.4 for
+    # Windows. Without this it always drops this error message:
+    #   collect2.exe: error: ld returned 5 exit status 255
+    # Just enabling verbose messages allows ld.exe to complete without failure.
+    if platform == "win32":
+      cmdpath += " -Wl,-V"
+
     ofiles = ["\"" + join(self.root, "build", f) + "\""
               for f in os.listdir(join(self.root, "build"))
                 if isfile(join(self.root, "build", f)) and f.endswith(".o")]
