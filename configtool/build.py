@@ -5,7 +5,7 @@ import os, re
 from os.path import isfile, join
 from sys import platform
 
-if platform == "win32":
+if platform.startswith("win"):
   from _subprocess import STARTF_USESHOWWINDOW
 
 (scriptEvent, EVT_SCRIPT_UPDATE) = wx.lib.newevent.NewEvent()
@@ -67,7 +67,7 @@ class ScriptThread:
     return self.running
 
   def Run(self):
-    if platform == "win32":
+    if platform.startswith("win"):
       startupinfo = subprocess.STARTUPINFO()
       startupinfo.dwFlags |= STARTF_USESHOWWINDOW
 
@@ -76,7 +76,7 @@ class ScriptThread:
       wx.PostEvent(self.win, evt)
       args = shlex.split(str(cmd))
       try:
-        if platform == "win32":
+        if platform.startswith("win"):
           p = subprocess.Popen(args, stderr = subprocess.STDOUT,
                                stdout = subprocess.PIPE,
                                startupinfo = startupinfo)
