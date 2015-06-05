@@ -335,7 +335,7 @@ class Build(wx.Dialog):
     reBss = re.compile("\.bss\s+([0-9a-f]+)")
     reEEProm = re.compile("\.eeprom\s+([0-9a-f]+)")
 
-    self.log.AppendText("\n          ATmega...    '168   '328(P)"
+    self.log.AppendText("\n                   ATmega...     '168   '328(P)"
                         "   '644(P)     '1280\n")
     for l in self.reportLines:
       m = reText.search(l)
