@@ -771,14 +771,14 @@ void process_gcode_command() {
 			#endif /* DEBUG */
 
 			#ifdef DELTA_PRINTER
-      case 666:
-      //adjust delta geometry
-      if (next_target.seen_L) {
-					sersendf_P(PSTR("M666 X:%lq Y:%lq Z:%lq H:%lq R:%lq"),
-					endstop_adj_x, endstop_adj_y, endstop_adj_z, delta_height, (delta_radius << 4));
-         } else {
-         }
-      break;
+//			case 666:
+//			//adjust delta geometry
+//				if (next_target.seen_L) {
+//					sersendf_P(PSTR("M666 X:%lq Y:%lq Z:%lq H:%lq R:%lq"),
+//					endstop_adj_x, endstop_adj_y, endstop_adj_z, delta_height, (delta_radius << 4));
+//				} else {
+//				}
+//			break;
 
       #endif //DELTA_PRINTER
 
