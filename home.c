@@ -53,25 +53,28 @@
             sqrt((double)2 * ACCELERATION * ENDSTOP_CLEARANCE_Z / 1000.))
 #endif
 
+#ifdef DELTA_PRINTER
+  static void home_delta(void);
+#endif
 
 /// home all 3 axes
 void home() {
-#ifdef DELTA_PRINTER
+  #ifdef DELTA_PRINTER
     home_delta();
-#else
-   home_x_negative();
-   home_x_positive();
+  #else
+    home_x_negative();
+    home_x_positive();
 
-   home_y_negative();
-   home_y_positive();
+    home_y_negative();
+    home_y_positive();
 
-   home_z_negative();
-   home_z_positive();
-#endif
+    home_z_negative();
+    home_z_positive();
+  #endif
 }
 
 #ifdef DELTA_PRINTER
-void home_delta(){
+void home_delta() {
    //See M666 for Delta Geometry settings
    TARGET t = startpoint;
 

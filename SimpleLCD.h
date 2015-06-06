@@ -24,11 +24,11 @@ Lifted directly from ultralcd_implementation_hitachi_HD44780.h in Marlin*/
 
 void lcdGoToXY(uint8_t x, uint8_t y);
 void lcdGoToAddr(uint8_t addr);
-void lcdInit();
-void lcdClear();
+void lcdInit(void);
+void lcdClear(void);
 void lcdWriteText(char *text);
 void lcdWriteChar(char *text);
-void lcdBusy();
+void lcdBusy(void);
 void sendCommand(uint8_t opCode);
 void sendCommand4Bit(uint8_t opCode);
 void lcdCreateChar(uint8_t location, uint8_t charmap[]);
