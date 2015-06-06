@@ -94,7 +94,7 @@ void delta_segments_create(TARGET *target) {
                   dist,segment_total,cartesian_move_sec);
      }
 #endif
-#ifdef DELTA_DISTANCE_SEGMENTS
+#ifdef DELTA_SEGMENT_BY_DISTANCE
   if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA)){
     sersendf_P(PSTR("SEG:Z or small: dist: %lu segs: %lu seg_size: %lu\n"),
         dist,segment_total,seg_size);

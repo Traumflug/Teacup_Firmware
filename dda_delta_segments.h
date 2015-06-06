@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "config.h"
+#include "config_wrapper.h"
 #include "dda.h"
 
 #ifdef DELTA_PRINTER

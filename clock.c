@@ -103,7 +103,7 @@ static void clock_250ms(void) {
                        lcdGoToAddr(0x41);
                        lcdsendf_P(PSTR("%lq"),
 		                 current_position.axis[Y]);
-                       #ifdef HEATER_EXTRUDER
+                       #ifdef HEATER_BED
                            lcdGoToAddr(0x4D);
                            lcdsendf_P(PSTR("       "));
                            lcdGoToAddr(0x49);
@@ -144,7 +144,7 @@ static void clock_250ms(void) {
 			lcdsendf_P(PSTR("Ext:"));
 			temp_lcd(HEATER_EXTRUDER);
 			#endif
-			#ifdef HEATER_EXTRUDER
+			#ifdef HEATER_BED
 			lcdGoToAddr(0x4D);
 			lcdsendf_P(PSTR("       "));
 			lcdGoToAddr(0x49);
