@@ -42,6 +42,9 @@ ID_SAVE_CONFIG = 1021
 ID_BUILD = 1030
 ID_UPLOAD = 1031
 ID_SETTINGS = 1040
+ID_HELP = 1050
+ID_REPORT = 1051
+ID_ABOUT = 1052
 
 
 class ConfigFrame(wx.Frame):
@@ -213,6 +216,24 @@ class ConfigFrame(wx.Frame):
     self.buildMenu = build_menu
 
     menu_bar.Append(build_menu, "&Build")
+
+    help_menu = wx.Menu()
+
+    help_menu.Append(ID_HELP, "Help", "Find help.")
+    self.Bind(wx.EVT_MENU, self.onHelp, id = ID_HELP)
+
+    help_menu.Append(ID_REPORT, "Report problem",
+                     "Report a problem to Teacup maintainers.")
+    self.Bind(wx.EVT_MENU, self.onReportProblem, id = ID_REPORT)
+
+    help_menu.AppendSeparator()
+
+    help_menu.Append(ID_ABOUT, "About Teacup")
+    self.Bind(wx.EVT_MENU, self.onAbout, id = ID_ABOUT)
+
+    self.helpMenu = help_menu
+
+    menu_bar.Append(help_menu, "&Help")
 
     self.SetMenuBar(menu_bar)
     loadFlag = self.checkEnableLoadConfig()
@@ -504,6 +525,17 @@ class ConfigFrame(wx.Frame):
     dlg = SettingsDlg(self, self.settings)
     rc = dlg.ShowModal()
     dlg.Destroy()
+
+  def onHelp(self, evt):
+    self.message("Find help by hovering slowly over the buttons and text "
+                 "fields. Tooltip should appear, explaining things.",
+                 "Find help", style = wx.OK)
+
+  def onReportProblem(self, evt):
+    print "Report problem not implemented, yet."
+
+  def onAbout(self, evt):
+    print "About box not implemented, yet."
 
   def message(self, text, title, style = wx.OK + wx.ICON_ERROR):
     dlg = wx.MessageDialog(self, text, title, style)
