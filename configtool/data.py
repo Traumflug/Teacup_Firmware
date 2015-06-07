@@ -54,6 +54,7 @@ reCandCPUClocks = re.compile("^\s*//\s*#define\s+F_CPU_OPT\s+(\w+)")
 
 reHelpTextStart = re.compile("^\s*/\*\*\s+\\\\def\s+(.*)")
 reHelpTextEnd = re.compile("^\s*\*/")
+reHelpText = re.compile("/\*\*.*?\*/\r?\n", re.DOTALL)
 
 reSensor = re.compile(".*\\(\s*(\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*\\)")
 reHeater = re.compile(".*\\(\s*(\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*\\)")

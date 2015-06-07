@@ -20,6 +20,7 @@ except:
 
 import os.path
 import inspect
+from configtool.data import reHelpText
 
 cmd_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(
                               inspect.currentframe()))[0]))
@@ -532,7 +533,40 @@ class ConfigFrame(wx.Frame):
                  "Find help", style = wx.OK)
 
   def onReportProblem(self, evt):
-    print "Report problem not implemented, yet."
+    import urllib
+    import webbrowser
+
+    # Testing allowed URLs up to 32 kB in size. Longer URLs are simply chopped.
+    mailRecipients ="reply+0004dc756da9f0641af0a3834c580ad5be469f4f6b" \
+                    "5d4cfc92cf00000001118c958a92a169ce051faa8c@" \
+                    "reply.github.com,mah@jump-ing.de"
+    mailSubject = "Teacup problem report"
+    mailBody = "Please answer these questions before hitting \"send\":\n\n" \
+               "What did you try to do?\n\n\n" \
+               "What did you expect to happen?\n\n\n" \
+               "What happened instead?\n\n\n\n" \
+               "To allow developers to help, configuration files are " \
+               "attached, with help comments stripped:\n"
+
+    for f in self.pgBoard.getFileName(), self.pgPrinter.getFileName():
+      if not f:
+        mailBody += "\n(no file loaded)\n"
+        continue
+
+      mailBody += "\n" + os.path.basename(f) + ":\n"
+      mailBody += "----------------------------------------------\n"
+      try:
+        fc = open(f).read()
+        fc = reHelpText.sub("", fc)
+        mailBody += fc
+      except:
+        mailBody += "(could not read this file)\n"
+      mailBody += "----------------------------------------------\n"
+
+    url = "mailto:" + urllib.quote(mailRecipients) + \
+          "?subject=" + urllib.quote(mailSubject) + \
+          "&body=" + urllib.quote(mailBody)
+    webbrowser.open_new(url)
 
   def onAbout(self, evt):
     # Get the contributors' top 10 with something like this:
