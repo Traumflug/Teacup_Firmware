@@ -535,7 +535,29 @@ class ConfigFrame(wx.Frame):
     print "Report problem not implemented, yet."
 
   def onAbout(self, evt):
-    print "About box not implemented, yet."
+    # Get the contributors' top 10 with something like this:
+    #   export B=experimental
+    #   git log $B | grep "Author:" | sort | uniq | while \
+    #     read A; do N=$(git log $B | grep "$A" | wc -l); echo "$N $A"; done | \
+    #     sort -rn
+    self.message("Teacup Firmware is a 3D Printer and CNC machine controlling "
+                 "firmware with emphasis on performance, efficiency and "
+                 "outstanding quality. What Teacup does, shall it do very well."
+                 "\n\n\n"
+                 "Lots of people hard at work! Top 10 contributors:\n\n"
+                 "    Markus Hitter (542 commits)\n"
+                 "    Michael Moon (322 commits)\n"
+                 "    Phil Hord (55 commits)\n"
+                 "    Jeff Bernardis (51 commits)\n"
+                 "    Markus Amsler (47 commits)\n"
+                 "    David Forrest (27 commits)\n"
+                 "    Jim McGee (15 commits)\n"
+                 "    Ben Jackson (12 commits)\n"
+                 "    Bas Laarhoven (10 commits)\n"
+                 "    Stephan Walter (9 commits)\n"
+                 "    Roland Brochard (3 commits)\n"
+                 "    Jens Ch. Restemeier (3 commits)\n",
+                 "About Teacup", style = wx.OK)
 
   def message(self, text, title, style = wx.OK + wx.ICON_ERROR):
     dlg = wx.MessageDialog(self, text, title, style)
