@@ -535,6 +535,8 @@ class ConfigFrame(wx.Frame):
   def onReportProblem(self, evt):
     import urllib
     import webbrowser
+    import subprocess
+    from sys import platform
 
     # Testing allowed URLs up to 32 kB in size. Longer URLs are simply chopped.
     mailRecipients ="reply+0004dc756da9f0641af0a3834c580ad5be469f4f6b" \
@@ -566,6 +568,27 @@ class ConfigFrame(wx.Frame):
     url = "mailto:" + urllib.quote(mailRecipients) + \
           "?subject=" + urllib.quote(mailSubject) + \
           "&body=" + urllib.quote(mailBody)
+
+    # This is a work around a bug in gvfs-open coming with (at least) Ubuntu
+    # 15.04. gvfs-open would open mailto:///user@example.com instead of
+    # the requested mailto:user@example.com.
+    if platform.startswith("linux"):
+      try:
+        subprocess.check_output(["gvfs-open", "--help"])
+
+        # Broken gvfs-open exists, so it might be used.
+        # Try to open the URL directly.
+        for urlOpener in "thunderbird", "evolution", "firefox", "mozilla", \
+                         "epiphany", "konqueror", "chromium-browser", \
+                         "google-chrome":
+          try:
+            subprocess.check_output([urlOpener, url], stderr=subprocess.STDOUT)
+            return
+          except:
+            pass
+      except:
+        pass
+
     webbrowser.open_new(url)
 
   def onAbout(self, evt):
