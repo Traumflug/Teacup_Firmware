@@ -49,6 +49,8 @@
 #include	"clock.h"
 #include	"intercom.h"
 #include "simulator.h"
+#include "spi.h"
+#include "sd.h"
 
 #ifdef SIMINFO
   #include "../simulavr/src/simulavr_info.h"
@@ -66,9 +68,15 @@
 void io_init(void) {
 	// disable modules we don't use
 	#ifdef PRR
-		PRR = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
+    PRR = MASK(PRTWI) | MASK(PRADC);
+    #if ! defined TEMP_MAX6675 && ! defined SD
+      PRR |= MASK(PRSPI);
+    #endif
 	#elif defined PRR0
-		PRR0 = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
+    PRR0 = MASK(PRTWI) | MASK(PRADC);
+    #if ! defined TEMP_MAX6675 && ! defined SD
+      PRR0 |= MASK(PRSPI);
+    #endif
 		#if defined(PRUSART3)
 			// don't use USART2 or USART3- leave USART1 for GEN3 and derivatives
 			PRR1 |= MASK(PRUSART3) | MASK(PRUSART2);
@@ -179,20 +187,18 @@ void io_init(void) {
 		power_off();
 	#endif
 
-	#ifdef	TEMP_MAX6675
-		// setup SPI
-		WRITE(SCK, 0);				SET_OUTPUT(SCK);
-		WRITE(MOSI, 1);				SET_OUTPUT(MOSI);
-		WRITE(MISO, 1);				SET_INPUT(MISO);
-	#endif
-
   #ifdef DEBUG_LED_PIN 
     WRITE(DEBUG_LED_PIN, 0);
     SET_OUTPUT(DEBUG_LED_PIN);
   #endif
 }
 
-/// Startup code, run when we come out of reset
+/** Initialise all the subsystems.
+
+  Note that order of appearance is critical here. For example, running
+  spi_init() before io_init() makes SPI fail (for reasons not exactly
+  investigated).
+*/
 void init(void) {
 	// set up watchdog
 	wd_init();
@@ -205,6 +211,10 @@ void init(void) {
 
 	// set up inputs and outputs
 	io_init();
+
+  #if defined TEMP_MAX6675 || defined SD
+    spi_init();
+  #endif
 
 	// set up timers
 	timer_init();
@@ -221,6 +231,10 @@ void init(void) {
 
 	// set up temperature inputs
 	temp_init();
+
+  #ifdef SD
+    sd_init();
+  #endif
 
 	// enable interrupts
 	sei();
@@ -248,6 +262,23 @@ int main (void)
 {
 #endif
 	init();
+
+  #ifdef SD
+    // This demonstrates SPI. Gives a nice dance on the scope.
+    // Will go away as soon as we can do something useful with the SD card.
+    #include "delay.h"
+    uint8_t c = 0;
+    while (1) {
+      // Trigger signal for the scope.
+      WRITE(STEPPER_ENABLE_PIN, 0);
+      delay_us(10);
+      WRITE(STEPPER_ENABLE_PIN, 1);
+
+      spi_rw(c);
+      c++;
+      delay_ms(50);
+    }
+  #endif
 
 	// main loop
 	for (;;)

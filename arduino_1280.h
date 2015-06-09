@@ -6,10 +6,6 @@
 #define	SCK					DIO52
 #define	MISO				DIO50
 #define	MOSI				DIO51
-// TODO: This depends on the board, so this definition is misplaced here,
-//       should be more appropriately named and go to config.h. It's used in
-//       temp.c and simulator.h and defines the Chip Select pin for an eventual
-//       MAX6675 temperature sensor.
 #define	SS					DIO53
 
 // TWI (I2C)

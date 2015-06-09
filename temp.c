@@ -27,6 +27,7 @@
 #endif
 
 #ifdef	TEMP_MAX6675
+  #include "spi.h"
 #endif
 
 #ifdef	TEMP_THERMISTOR
@@ -83,8 +84,9 @@ void temp_init() {
 		switch(temp_sensors[i].temp_type) {
       #ifdef TEMP_MAX6675
         case TT_MAX6675:
-          WRITE(SS, 1); // Turn sensor off.
-          SET_OUTPUT(SS);
+          // Note that MAX6675's Chip Select pin is currently hardcoded to SS.
+          // This isn't neccessary. See also spi.h.
+          spi_deselect_max6675();
           // Intentionally no break, we might have more than one sensor type.
       #endif
 
@@ -132,33 +134,18 @@ void temp_sensor_tick() {
 			switch(temp_sensors[i].temp_type) {
 				#ifdef	TEMP_MAX6675
 				case TT_MAX6675:
-					#ifdef	PRR
-						PRR &= ~MASK(PRSPI);
-					#elif defined PRR0
-						PRR0 &= ~MASK(PRSPI);
-					#endif
-
-					SPCR = MASK(MSTR) | MASK(SPE) | MASK(SPR0);
-
-					// enable TT_MAX6675
-					WRITE(SS, 0);
-
+          // Note: value reading in this section was rewritten without
+          //       testing when spi.c/.h was introduced. --Traumflug
+          spi_select_max6675();
 					// No delay required, see
 					// https://github.com/triffid/Teacup_Firmware/issues/22
 
 					// read MSB
-					SPDR = 0;
-					for (;(SPSR & MASK(SPIF)) == 0;);
-					temp = SPDR;
-					temp <<= 8;
-
+          temp = spi_rw(0) << 8;
 					// read LSB
-					SPDR = 0;
-					for (;(SPSR & MASK(SPIF)) == 0;);
-					temp |= SPDR;
+          temp |= spi_rw(0);
 
-					// disable TT_MAX6675
-					WRITE(SS, 1);
+          spi_deselect_max6675();
 
 					temp_sensors_runtime[i].temp_flags = 0;
 					if ((temp & 0x8002) == 0) {
