@@ -3,6 +3,10 @@
 /-----------------------------------------------------------------------*/
 /* Changes for Teacup see pff.c. */
 
+#include "sd.h"
+
+#ifdef SD
+
 #ifndef _DISKIO_DEFINED
 #define _DISKIO_DEFINED
 
@@ -41,3 +45,5 @@ DRESULT disk_writep (const BYTE* buff, DWORD sc);
 #endif
 
 #endif  /* _DISKIO_DEFINED */
+
+#endif /* SD */

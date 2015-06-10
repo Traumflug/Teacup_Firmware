@@ -37,9 +37,13 @@
   - Moved integer.h content to the end of pff_conf.h, again, to avoid
     file name conflicts.
   - Changed former integer.h content to use fixed width types (int8_t, etc).
+  - Wrapped code in #ifdef SD to compile it only when needed.
 */
 
 #include "pff.h"        /* Petit FatFs configurations and declarations */
+
+#ifdef SD
+
 #include "pff_diskio.h" /* Declarations of low level disk I/O functions */
 
 
@@ -1118,3 +1122,5 @@ FRESULT pf_readdir (
 }
 
 #endif /* _USE_DIR */
+
+#endif /* SD */

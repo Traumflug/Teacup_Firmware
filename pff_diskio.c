@@ -5,6 +5,8 @@
 
 #include "pff_diskio.h"
 
+#ifdef SD
+
 
 /*-----------------------------------------------------------------------*/
 /* Initialize Disk Drive                                                 */
@@ -72,3 +74,5 @@ DRESULT disk_writep (
 
     return res;
 }
+
+#endif /* SD */

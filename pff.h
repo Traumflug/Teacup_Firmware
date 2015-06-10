@@ -15,6 +15,10 @@
 /----------------------------------------------------------------------------*/
 /* Changes for Teacup see pff.c. */
 
+#include "sd.h"
+
+#ifdef SD
+
 #ifndef _PFATFS
 #define _PFATFS 4004    /* Revision ID */
 
@@ -157,3 +161,5 @@ FRESULT pf_readdir (DIR* dj, FILINFO* fno);                 /* Read a directory 
 #endif
 
 #endif /* _PFATFS */
+
+#endif /* SD */
