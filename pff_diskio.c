@@ -188,6 +188,11 @@ DRESULT disk_readp(BYTE* buffer, DWORD sector, UINT offset, UINT count) {
 
       /* Receive the requested part of the sector. */
       do {
+        /**
+          Note that this isn't optimised for performance. The increment and
+          the dereferencing could be done while waiting for the SPIF bit
+          to become set in spi_rw(). See http://www.matuschek.net/atmega-spi/.
+        */
         *buffer++ = spi_rw(0xFF);
       } while (--count);
 
