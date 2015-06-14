@@ -11,7 +11,7 @@
 /---------------------------------------------------------------------------*/
 
 #define _USE_READ   1   /* Enable pf_read() function */
-#define _USE_DIR    1   /* Enable pf_opendir() and pf_readdir() function */
+#define _USE_DIR    0   /* Enable pf_opendir() and pf_readdir() function */
 #define _USE_LSEEK  0   /* Enable pf_lseek() function */
 #define _USE_WRITE  0   /* Enable pf_write() function */
 

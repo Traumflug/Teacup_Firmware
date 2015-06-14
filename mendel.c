@@ -265,51 +265,6 @@ int main (void)
 #endif
 	init();
 
-  #ifdef SD
-    // This demonstrates SD card reading. It simply lists the top level
-    // directory over and over again. This demo will go away as soon as we
-    // have the G-code implementations to do something useful in place.
-    #include "delay.h"
-
-    while (1) {
-      FATFS sdfile;
-      FRESULT res;
-
-      if ((res = pf_mount(&sdfile)) == FR_OK)
-        serial_writestr_P(PSTR("SD card mounted successfully.\n"));
-      else {
-        serial_writestr_P(PSTR("Mounting SD card failed :-/\n"));
-        delay_ms(10);
-        if (res == FR_NOT_READY)
-          serial_writestr_P(PSTR("No medium or hardware error.\n"));
-        else if (res == FR_DISK_ERR)
-          serial_writestr_P(PSTR("Error while reading.\n"));
-        else if (res == FR_NO_FILESYSTEM)
-          serial_writestr_P(PSTR("No valid FAT partition.\n"));
-      }
-
-      // Inspired by http://elm-chan.org/fsw/ff/pf/readdir.html.
-      FILINFO fno;
-      DIR dir;
-      char* path ="/";
-
-      res = pf_opendir(&dir, path);
-      if (res == FR_OK) {
-        for (;;) {
-          res = pf_readdir(&dir, &fno);
-          if (res != FR_OK || fno.fname[0] == 0)
-            break;
-          serial_writestr((uint8_t *)path);
-          serial_writestr((uint8_t *)fno.fname);
-          serial_writechar('\n');
-          delay_ms(2); // Time for sending the characters.
-        }
-      }
-      delay_ms(5000);
-    }
-
-  #endif
-
 	// main loop
 	for (;;)
 	{
