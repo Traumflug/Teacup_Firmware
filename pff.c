@@ -40,6 +40,8 @@
   - Wrapped code in #ifdef SD to compile it only when needed.
   - Added the hardware connection layer from sample code of the same source,
     see pff_diskio.c.
+  - Added pf_unmount(), which just clears the pointer to the file system,
+    avoiding failing read attempts.
 */
 
 #include "pff.h"        /* Petit FatFs configurations and declarations */
@@ -770,7 +772,7 @@ BYTE check_fs ( /* 0:The FAT boot record, 1:Valid boot record but not an FAT, 2:
 
 
 /*-----------------------------------------------------------------------*/
-/* Mount/Unmount a Locical Drive                                         */
+/* Mount a Locical Drive                                                 */
 /*-----------------------------------------------------------------------*/
 
 FRESULT pf_mount (
@@ -840,6 +842,24 @@ FRESULT pf_mount (
     FatFs = fs;
 
     return FR_OK;
+}
+
+
+
+
+/*-----------------------------------------------------------------------*/
+/* Unmount a Locical Drive                                               */
+/* Not mandatory to call this, but make sure subsequent operations fail. */
+/*-----------------------------------------------------------------------*/
+
+void pf_unmount (
+    FATFS *fs       /* Pointer to existing file system object */
+)
+{
+    if (fs)
+        fs->flag = 0;
+
+    FatFs = 0;
 }
 
 

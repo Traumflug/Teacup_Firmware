@@ -101,7 +101,8 @@ typedef enum {
 /*--------------------------------------------------------------*/
 /* Petit FatFs module application interface                     */
 
-FRESULT pf_mount (FATFS* fs);                               /* Mount/Unmount a logical drive */
+FRESULT pf_mount (FATFS* fs);                               /* Mount a logical drive */
+void pf_unmount (FATFS* fs);                                /* Unmount a logical drive */
 FRESULT pf_open (const char* path);                         /* Open a file */
 FRESULT pf_read (void* buff, UINT btr, UINT* br);           /* Read data from the open file */
 FRESULT pf_write (const void* buff, UINT btw, UINT* bw);    /* Write data to the open file */
