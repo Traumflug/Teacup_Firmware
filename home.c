@@ -1,14 +1,14 @@
-#include	"home.h"
+#include  "home.h"
 
 /** \file
-	\brief Homing routines
+  \brief Homing routines
 */
 
 #include <math.h>
-#include	"dda.h"
-#include	"dda_queue.h"
-#include	"pinio.h"
-#include	"gcode_parse.h"
+#include  "dda.h"
+#include  "dda_queue.h"
+#include  "pinio.h"
+#include  "gcode_parse.h"
 
 // Check configuration.
 #if defined X_MIN_PIN || defined X_MAX_PIN
@@ -69,8 +69,8 @@ void home() {
 
 /// find X MIN endstop
 void home_x_negative() {
-	#if defined X_MIN_PIN
-		TARGET t = startpoint;
+  #if defined X_MIN_PIN
+    TARGET t = startpoint;
 
     t.axis[X] = -1000000;
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) // Preprocessor can't check this :-/
@@ -80,30 +80,30 @@ void home_x_negative() {
     enqueue_home(&t, 0x01, 1);
 
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
-			// back off slowly
+      // back off slowly
       t.axis[X] = +1000000;
-			t.F = SEARCH_FEEDRATE_X;
+      t.F = SEARCH_FEEDRATE_X;
       enqueue_home(&t, 0x01, 0);
     }
 
-		// set X home
-		queue_wait(); // we have to wait here, see G92
-		#ifdef X_MIN
+    // set X home
+    queue_wait(); // we have to wait here, see G92
+    #ifdef X_MIN
       startpoint.axis[X] = next_target.target.axis[X] = (int32_t)(X_MIN * 1000.0);
-		#else
+    #else
       startpoint.axis[X] = next_target.target.axis[X] = 0;
-		#endif
-		dda_new_startpoint();
-	#endif
+    #endif
+    dda_new_startpoint();
+  #endif
 }
 
 /// find X_MAX endstop
 void home_x_positive() {
-	#if defined X_MAX_PIN && ! defined X_MAX
-		#warning X_MAX_PIN defined, but not X_MAX. home_x_positive() disabled.
-	#endif
-	#if defined X_MAX_PIN && defined X_MAX
-		TARGET t = startpoint;
+  #if defined X_MAX_PIN && ! defined X_MAX
+    #warning X_MAX_PIN defined, but not X_MAX. home_x_positive() disabled.
+  #endif
+  #if defined X_MAX_PIN && defined X_MAX
+    TARGET t = startpoint;
 
     t.axis[X] = +1000000;
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X)
@@ -114,22 +114,22 @@ void home_x_positive() {
 
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
       t.axis[X] = -1000000;
-			t.F = SEARCH_FEEDRATE_X;
+      t.F = SEARCH_FEEDRATE_X;
       enqueue_home(&t, 0x02, 0);
     }
 
-		// set X home
-		queue_wait();
-		// set position to MAX
+    // set X home
+    queue_wait();
+    // set position to MAX
     startpoint.axis[X] = next_target.target.axis[X] = (int32_t)(X_MAX * 1000.);
-		dda_new_startpoint();
-	#endif
+    dda_new_startpoint();
+  #endif
 }
 
 /// fund Y MIN endstop
 void home_y_negative() {
-	#if defined Y_MIN_PIN
-		TARGET t = startpoint;
+  #if defined Y_MIN_PIN
+    TARGET t = startpoint;
 
     t.axis[Y] = -1000000;
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y)
@@ -140,28 +140,28 @@ void home_y_negative() {
 
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
       t.axis[Y] = +1000000;
-			t.F = SEARCH_FEEDRATE_Y;
+      t.F = SEARCH_FEEDRATE_Y;
       enqueue_home(&t, 0x04, 0);
     }
 
-		// set Y home
-		queue_wait();
-		#ifdef	Y_MIN
+    // set Y home
+    queue_wait();
+    #ifdef  Y_MIN
       startpoint.axis[Y] = next_target.target.axis[Y] = (int32_t)(Y_MIN * 1000.);
-		#else
+    #else
       startpoint.axis[Y] = next_target.target.axis[Y] = 0;
-		#endif
-		dda_new_startpoint();
-	#endif
+    #endif
+    dda_new_startpoint();
+  #endif
 }
 
 /// find Y MAX endstop
 void home_y_positive() {
-	#if defined Y_MAX_PIN && ! defined Y_MAX
-		#warning Y_MAX_PIN defined, but not Y_MAX. home_y_positive() disabled.
-	#endif
-	#if defined Y_MAX_PIN && defined Y_MAX
-		TARGET t = startpoint;
+  #if defined Y_MAX_PIN && ! defined Y_MAX
+    #warning Y_MAX_PIN defined, but not Y_MAX. home_y_positive() disabled.
+  #endif
+  #if defined Y_MAX_PIN && defined Y_MAX
+    TARGET t = startpoint;
 
     t.axis[Y] = +1000000;
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y)
@@ -172,22 +172,22 @@ void home_y_positive() {
 
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
       t.axis[Y] = -1000000;
-			t.F = SEARCH_FEEDRATE_Y;
+      t.F = SEARCH_FEEDRATE_Y;
       enqueue_home(&t, 0x08, 0);
     }
 
-		// set Y home
-		queue_wait();
-		// set position to MAX
+    // set Y home
+    queue_wait();
+    // set position to MAX
     startpoint.axis[Y] = next_target.target.axis[Y] = (int32_t)(Y_MAX * 1000.);
-		dda_new_startpoint();
-	#endif
+    dda_new_startpoint();
+  #endif
 }
 
 /// find Z MIN endstop
 void home_z_negative() {
-	#if defined Z_MIN_PIN
-		TARGET t = startpoint;
+  #if defined Z_MIN_PIN
+    TARGET t = startpoint;
 
     t.axis[Z] = -1000000;
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z)
@@ -198,28 +198,28 @@ void home_z_negative() {
 
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z) {
       t.axis[Z] = +1000000;
-			t.F = SEARCH_FEEDRATE_Z;
+      t.F = SEARCH_FEEDRATE_Z;
       enqueue_home(&t, 0x10, 0);
     }
 
-		// set Z home
-		queue_wait();
-		#ifdef Z_MIN
+    // set Z home
+    queue_wait();
+    #ifdef Z_MIN
       startpoint.axis[Z] = next_target.target.axis[Z] = (int32_t)(Z_MIN * 1000.);
-		#else
+    #else
       startpoint.axis[Z] = next_target.target.axis[Z] = 0;
-		#endif
-		dda_new_startpoint();
-	#endif
+    #endif
+    dda_new_startpoint();
+  #endif
 }
 
 /// find Z MAX endstop
 void home_z_positive() {
-	#if defined Z_MAX_PIN && ! defined Z_MAX
-		#warning Z_MAX_PIN defined, but not Z_MAX. home_z_positive() disabled.
-	#endif
-	#if defined Z_MAX_PIN && defined Z_MAX
-		TARGET t = startpoint;
+  #if defined Z_MAX_PIN && ! defined Z_MAX
+    #warning Z_MAX_PIN defined, but not Z_MAX. home_z_positive() disabled.
+  #endif
+  #if defined Z_MAX_PIN && defined Z_MAX
+    TARGET t = startpoint;
 
     t.axis[Z] = +1000000;
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z)
@@ -230,14 +230,14 @@ void home_z_positive() {
 
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z) {
       t.axis[Z] = -1000000;
-			t.F = SEARCH_FEEDRATE_Z;
+      t.F = SEARCH_FEEDRATE_Z;
       enqueue_home(&t, 0x20, 0);
     }
 
-		// set Z home
-		queue_wait();
-		// set position to MAX
+    // set Z home
+    queue_wait();
+    // set position to MAX
     startpoint.axis[Z] = next_target.target.axis[Z] = (int32_t)(Z_MAX * 1000.);
-		dda_new_startpoint();
-	#endif
+    dda_new_startpoint();
+  #endif
 }

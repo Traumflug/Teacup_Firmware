@@ -1,7 +1,7 @@
-#ifndef	_GCODE_PROCESS_H
-#define	_GCODE_PROCESS_H
+#ifndef  _GCODE_PROCESS_H
+#define  _GCODE_PROCESS_H
 
-#include	"gcode_parse.h"
+#include  "gcode_parse.h"
 
 // the current tool
 extern uint8_t tool;
@@ -11,4 +11,4 @@ extern uint8_t next_tool;
 // when we have a whole line, feed it to this
 void process_gcode_command(void);
 
-#endif	/* _GCODE_PROCESS_H */
+#endif  /* _GCODE_PROCESS_H */

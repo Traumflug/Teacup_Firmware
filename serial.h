@@ -1,11 +1,11 @@
-#ifndef	_SERIAL_H
-#define	_SERIAL_H
+#ifndef  _SERIAL_H
+#define  _SERIAL_H
 
 #include "config_wrapper.h"
-#include	<stdint.h>
+#include  <stdint.h>
 #ifndef SIMULATOR
-#include	<avr/io.h>
-#include	<avr/pgmspace.h>
+#include  <avr/io.h>
+#include  <avr/pgmspace.h>
 #endif
 #include "simulator.h"
 
@@ -40,4 +40,4 @@ void serial_writestr(uint8_t *data);
 void serial_writeblock_P(PGM_P data_P, int datalen);
 void serial_writestr_P(PGM_P data_P);
 
-#endif	/* _SERIAL_H */
+#endif  /* _SERIAL_H */

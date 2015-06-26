@@ -1,9 +1,9 @@
-#ifndef	_DDA_MATHS_H
-#define	_DDA_MATHS_H
+#ifndef  _DDA_MATHS_H
+#define  _DDA_MATHS_H
 
-#include	<stdint.h>
+#include  <stdint.h>
 
-#include	"config_wrapper.h"
+#include  "config_wrapper.h"
 #include "dda.h"
 
 // return rounded result of multiplicand * multiplier / divisor
@@ -56,4 +56,4 @@ uint32_t acc_ramp_len(uint32_t feedrate, uint32_t steps_per_m);
 // For X axis only, should become obsolete:
 #define ACCELERATE_RAMP_LEN(speed) (((speed)*(speed)) / (uint32_t)((7200000.0f * ACCELERATION) / (float)STEPS_PER_M_X))
 
-#endif	/* _DDA_MATHS_H */
+#endif  /* _DDA_MATHS_H */

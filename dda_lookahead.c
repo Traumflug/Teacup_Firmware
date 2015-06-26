@@ -1,5 +1,6 @@
 
 /** \file
+
   \brief Digital differential analyser - this is where we figure out which steppers need to move, and when they need to move
 */
 
