@@ -1,5 +1,5 @@
-#ifndef	_CLOCK_H
-#define	_CLOCK_H
+#ifndef  _CLOCK_H
+#define  _CLOCK_H
 
 #include <stdint.h>
 
@@ -18,4 +18,4 @@ void clock_tick(void);
 
 void clock(void);
 
-#endif	/* _CLOCK_H */
+#endif  /* _CLOCK_H */

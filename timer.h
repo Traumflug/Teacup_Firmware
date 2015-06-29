@@ -1,16 +1,16 @@
-#ifndef	_TIMER_H
-#define	_TIMER_H
+#ifndef  _TIMER_H
+#define  _TIMER_H
 
-#include	<stdint.h>
+#include  <stdint.h>
 #ifndef SIMULATOR
-#include	<avr/io.h>
+#include  <avr/io.h>
 #endif
 #include "simulator.h"
 
 
 // time-related constants
-#define	US	* (F_CPU / 1000000)
-#define	MS	* (F_CPU / 1000)
+#define  US  * (F_CPU / 1000000)
+#define  MS  * (F_CPU / 1000)
 
 /// How often we overflow and update our clock.
 /// With F_CPU = 16MHz, max is < 4.096ms (TICK_TIME = 65535).
@@ -30,4 +30,4 @@ char timer_set(int32_t delay, char check_short);
 
 void timer_stop(void);
 
-#endif	/* _TIMER_H */
+#endif  /* _TIMER_H */

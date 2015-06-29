@@ -1,14 +1,14 @@
-#ifndef	_ANALOG_H
-#define	_ANALOG_H
+#ifndef  _ANALOG_H
+#define  _ANALOG_H
 
-#include	<stdint.h>
+#include  <stdint.h>
 
 /** \def REFERENCE_AREF
   This compares the voltage to be measured against the voltage on the Aref pin.
   This also requires a voltage to be actually provided on the Aref pin, which
   none of the commonly available controllers or Arduinos do.
 */
-#define	REFERENCE_AREF	0
+#define  REFERENCE_AREF  0
 
 /** \def REFERENCE_AVCC
   This compares the voltage to be measured against the voltage on the Aref pin,
@@ -16,7 +16,7 @@
   this is said to be more accurate than doing this connection externally, on
   the pins of the chip, so this is the most commonly used option.
 */
-#define	REFERENCE_AVCC	64
+#define  REFERENCE_AVCC  64
 
 /** \def REFERENCE_1V1
     \def REFERENCE_2V56
@@ -26,10 +26,10 @@
 */
 #if defined (__AVR_ATmega168__) || defined (__AVR_ATmega168P__) || \
     defined (__AVR_ATmega328__) || defined (__AVR_ATmega328P__)
-	#define	REFERENCE_1V1		192
+  #define  REFERENCE_1V1    192
 #else
-	#define	REFERENCE_1V1		128
-	#define	REFERENCE_2V56	192
+  #define  REFERENCE_1V1    128
+  #define  REFERENCE_2V56  192
 #endif
 
 /** \def REFERENCE
@@ -41,12 +41,12 @@
 //#include "config_wrapper.h"
 #define REFERENCE REFERENCE_AVCC
 
-#ifndef	REFERENCE
+#ifndef  REFERENCE
   #error REFERENCE undefined. See analog.h on how to choose it.
 #endif
 
-void 			analog_init(void);
+void       analog_init(void);
 
-uint16_t	analog_read(uint8_t index);
+uint16_t  analog_read(uint8_t index);
 
-#endif	/* _ANALOG_H */
+#endif  /* _ANALOG_H */

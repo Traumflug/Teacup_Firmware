@@ -1,15 +1,15 @@
-#include	"delay.h"
+#include  "delay.h"
 
 /** \file
-	\brief Delay routines
+  \brief Delay routines
 */
 
-#include	<stdint.h>
-#include	<util/delay_basic.h>
-#include	"watchdog.h"
+#include  <stdint.h>
+#include  <util/delay_basic.h>
+#include  "watchdog.h"
 
 #if F_CPU < 4000000UL
-#error Delay functions only work with F_CPU >= 4000000UL 
+#error Delay functions only work with F_CPU >= 4000000UL
 #endif
 
 /** Delay in microseconds
@@ -24,7 +24,7 @@
   of 0..3 on 16 MHz, which are all 0.93us.
 */
 void delay_us(uint16_t delay) {
-	wd_reset();
+  wd_reset();
 
   // Compensate call overhead, as close as possible.
   #define OVERHEAD_CALL_CLOCKS 39 // clock cycles
@@ -41,16 +41,16 @@ void delay_us(uint16_t delay) {
     return;
   }
 
-	while (delay > (65536L / (F_CPU / 4000000L))) {
+  while (delay > (65536L / (F_CPU / 4000000L))) {
     #define OVERHEAD_LOOP_CLOCKS 13
 
     _delay_loop_2(65536 - (OVERHEAD_LOOP_CLOCKS + 2) / 4);
-		delay -= (65536L / (F_CPU / 4000000L));
-		wd_reset();
-	}
+    delay -= (65536L / (F_CPU / 4000000L));
+    wd_reset();
+  }
   if (delay)
     _delay_loop_2(delay * (F_CPU / 4000000L));
-	wd_reset();
+  wd_reset();
 }
 
 /** Delay in microseconds
@@ -60,12 +60,12 @@ void delay_us(uint16_t delay) {
   Accuracy on 16 MHz: delay < 0.8% too short over the whole range.
 */
 void delay_ms(uint32_t delay) {
-	wd_reset();
-	while (delay > 65) {
-		delay_us(64999);
-		delay -= 65;
-		wd_reset();
-	}
+  wd_reset();
+  while (delay > 65) {
+    delay_us(64999);
+    delay -= 65;
+    wd_reset();
+  }
   delay_us(delay * 1000 - 2);
-	wd_reset();
+  wd_reset();
 }

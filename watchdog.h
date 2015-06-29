@@ -1,5 +1,5 @@
-#ifndef	_WATCHDOG_H
-#define	_WATCHDOG_H
+#ifndef  _WATCHDOG_H
+#define  _WATCHDOG_H
 
 #include "config_wrapper.h"
 
@@ -18,5 +18,5 @@ void wd_reset(void);
 #define wd_init()  /* empty */
 #define wd_reset() /* empty */
 
-#endif	/* USE_WATCHDOG */
-#endif	/* _WATCHDOG_H */
+#endif  /* USE_WATCHDOG */
+#endif  /* _WATCHDOG_H */

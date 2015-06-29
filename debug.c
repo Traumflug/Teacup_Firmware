@@ -1,3 +1,3 @@
-#include	"debug.h"
+#include  "debug.h"
 
-volatile uint8_t	debug_flags;
+volatile uint8_t  debug_flags;
