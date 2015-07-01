@@ -25,6 +25,8 @@ void sd_list(const char* path);
 
 void sd_open(const char* filename);
 
+uint8_t sd_read_char(void);
+
 #endif /* SD_CARD_SELECT_PIN */
 
 #endif /* _SD_H */

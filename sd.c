@@ -10,9 +10,14 @@
 #include "serial.h"
 #include "sersendf.h"
 
+#define SD_BUFFER_SIZE 16
+
 
 static FATFS sdfile;
 static FRESULT result;
+
+static uint8_t sd_buffer[SD_BUFFER_SIZE];
+static uint8_t sd_buffer_ptr = SD_BUFFER_SIZE;
 
 /** Initialize SPI for SD card reading.
 */
@@ -78,14 +83,43 @@ void sd_list(const char* path) {
 */
 void sd_open(const char* filename) {
   result = pf_open(filename);
-  if (result == FR_OK) {
-    // To demonstrate this works, open the file and show its size.
-    // Actually, the file name isn't stored, so we can't read it back :-)
-    sersendf_P(PSTR("Successfully opened file with %lu bytes."), sdfile.fsize);
-  }
-  else {
+  if (result != FR_OK) {
     sersendf_P(PSTR("E: failed to open file. (%su)"), result);
   }
+}
+
+/** Read a character from a file.
+
+  \return The character read, or zero if there is no such character (e.g. EOF).
+
+  In principle it'd be possible to read the file character by character.
+  However, Before too long this will cause the printer to read G-code from this file
+  until done or until stopped by G-code coming in over the serial line.
+*/
+uint8_t sd_read_char(void) {
+  UINT read;
+  uint8_t this_char;
+
+  if (sd_buffer_ptr == SD_BUFFER_SIZE) {
+    result = pf_read(sd_buffer, SD_BUFFER_SIZE, &read);
+    if (result != FR_OK) {
+      sersendf_P(PSTR("E: failed to read from file. (%su)"), result);
+      return 0;
+    }
+    if (read < SD_BUFFER_SIZE) {
+      sd_buffer[read] = 0;           // A zero marks EOF.
+    }
+
+    sd_buffer_ptr = 0;
+  }
+
+  this_char = sd_buffer[sd_buffer_ptr];
+  if (this_char == 0)
+    sd_buffer_ptr = SD_BUFFER_SIZE;  // Start over, perhaps with next file.
+  else
+    sd_buffer_ptr++;
+
+  return this_char;
 }
 
 #endif /* SD */

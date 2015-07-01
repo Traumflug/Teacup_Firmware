@@ -36,6 +36,7 @@
 #include	"dda_queue.h"
 #include	"dda.h"
 #include	"gcode_parse.h"
+#include "gcode_process.h"
 #include	"timer.h"
 #include	"temp.h"
 #include	"sermsg.h"
@@ -270,10 +271,32 @@ int main (void)
 	{
 		// if queue is full, no point in reading chars- host will just have to wait
     if (queue_full() == 0) {
+      uint8_t c;
+
       if (serial_rxchars() != 0) {
-        uint8_t c = serial_popchar();
+        c = serial_popchar();
         gcode_parse_char(c);
       }
+
+      #ifdef SD
+        #include "delay.h"
+
+        if (gcode_sources & GCODE_SOURCE_SD) {
+          c = sd_read_char();
+          /* Demo code here again, just write the character to the serial line,
+             leading to the file written as-is to there. This may help
+             demonstrating correctness of the implementation. */
+          if (c != 0) {
+            serial_writechar(c);
+            delay_us(1000);
+          }
+          else {
+            gcode_sources &= ! GCODE_SOURCE_SD;
+            // There is no pf_close(), subsequent reads will stick at EOF
+            // and return zeros.
+          }
+        }
+      #endif
 
       #ifdef CANNED_CYCLE
         /**

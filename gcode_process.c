@@ -35,6 +35,12 @@ uint8_t tool;
 /// the tool to be changed when we get an M6
 uint8_t next_tool;
 
+/** Bitfield for available sources of G-code.
+
+  A typical source is the SD card or canned G-code. Serial is currently never
+  turned off.
+*/
+enum gcode_source gcode_sources = GCODE_SOURCE_SERIAL;
 
 /************************************************************************//**
 
@@ -405,6 +411,23 @@ void process_gcode_command() {
         //? This opens a file for reading. This file is valid up to M22 or up
         //? to the next M23.
         sd_open(gcode_str_buf);
+        break;
+
+      case 24:
+        //? --- M24: start/resume SD print. ---
+        //?
+        //? This makes the SD card available as a G-code source. File is the
+        //? one selected with M23.
+        gcode_sources |= GCODE_SOURCE_SD;
+        break;
+
+      case 25:
+        //? --- M25: pause SD print. ---
+        //?
+        //? This removes the SD card from the bitfield of available G-code
+        //? sources. The file is kept open. The position inside the file
+        //? is kept as well, to allow resuming.
+        gcode_sources &= ! GCODE_SOURCE_SD;
         break;
       #endif /* SD */
 
