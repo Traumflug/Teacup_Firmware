@@ -279,18 +279,13 @@ int main (void)
       }
 
       #ifdef SD
-        #include "delay.h"
-
         if (gcode_sources & GCODE_SOURCE_SD) {
           c = sd_read_char();
-          /* Demo code here again, just write the character to the serial line,
-             leading to the file written as-is to there. This may help
-             demonstrating correctness of the implementation. */
-          if (c != 0) {
-            serial_writechar(c);
-            delay_us(1000);
-          }
-          else {
+          /* Demo code: just read all the bytes without doing anything with
+             them to allow measuring how long it takes to read a file. Report
+             over serial when the file is done. */
+          if (c == 0) {
+            serial_writestr_P(PSTR("\nSD file done.\n"));
             gcode_sources &= ! GCODE_SOURCE_SD;
             // There is no pf_close(), subsequent reads will stick at EOF
             // and return zeros.
