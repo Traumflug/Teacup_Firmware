@@ -124,8 +124,7 @@ void gcode_parse_char(uint8_t c) {
       next_target.read_string == 0
      ) {
     // Check if the field has ended. Either by a new field, space or EOL.
-    if (last_field && ((c >= 'A' && c <= 'Z') || c == '*' || c == ' ' ||
-                       c == '\r' || c == '\n')) {
+    if (last_field && (c < '0' || c > '9') && c != '.') {
 			switch (last_field) {
 				case 'G':
 					next_target.G = read_digit.mantissa;
