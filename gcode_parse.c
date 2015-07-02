@@ -111,11 +111,15 @@ void gcode_parse_char(uint8_t c) {
 #ifdef SIMULATOR
   sim_gcode_ch(c);
 #endif
-	// process previous field
-	if (last_field) {
-		// check if we're seeing a new field or end of line
-		// any character will start a new field, even invalid/unknown ones
-		if ((c >= 'A' && c <= 'Z') || c == '*' || (c == 10) || (c == 13)) {
+
+  // Skip comments and strings.
+  if (next_target.seen_semi_comment == 0 &&
+      next_target.seen_parens_comment == 0 &&
+      next_target.read_string == 0
+     ) {
+    // Check if the field has ended. Either by a new field, space or EOL.
+    if (last_field && ((c >= 'A' && c <= 'Z') || c == '*' || c == ' ' ||
+                       c == '\r' || c == '\n')) {
 			switch (last_field) {
 				case 'G':
 					next_target.G = read_digit.mantissa;
@@ -210,20 +214,12 @@ void gcode_parse_char(uint8_t c) {
 						serwrite_uint8(next_target.checksum_read);
 					break;
 			}
-			// reset for next field
-			last_field = 0;
-			read_digit.sign = read_digit.mantissa = read_digit.exponent = 0;
 		}
-	}
 
-  // Skip comments and strings.
-  if (next_target.seen_semi_comment == 0 &&
-      next_target.seen_parens_comment == 0 &&
-      next_target.read_string == 0
-     ) {
 		// new field?
 		if ((c >= 'A' && c <= 'Z') || c == '*') {
 			last_field = c;
+      read_digit.sign = read_digit.mantissa = read_digit.exponent = 0;
 			if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
 				serial_writechar(c);
 		}
@@ -292,10 +288,10 @@ void gcode_parse_char(uint8_t c) {
 
         // comments
         case ';':
-          next_target.seen_semi_comment = 1;
+          next_target.seen_semi_comment = 1;    // Reset by EOL.
           break;
         case '(':
-          next_target.seen_parens_comment = 1;
+          next_target.seen_parens_comment = 1;  // Reset by ')' or EOL.
           break;
 
         // now for some numeracy
@@ -390,7 +386,8 @@ void gcode_parse_char(uint8_t c) {
       next_target.seen_semi_comment = next_target.seen_parens_comment = \
       next_target.read_string = next_target.checksum_read = \
       next_target.checksum_calculated = 0;
-		// last_field and read_digit are reset above already
+      last_field = 0;
+      read_digit.sign = read_digit.mantissa = read_digit.exponent = 0;
 
 		if (next_target.option_all_relative) {
       next_target.target.axis[X] = next_target.target.axis[Y] = next_target.target.axis[Z] = 0;
@@ -403,10 +400,10 @@ void gcode_parse_char(uint8_t c) {
   #ifdef SD
   // Handle string reading. After checking for EOL.
   if (next_target.read_string) {
-    if (c == ' ' || c == '*') {
+    if ((str_buf_ptr && c == ' ') || c == '*') {
       next_target.read_string = 0;
     }
-    else if (str_buf_ptr < STR_BUF_LEN) {
+    else if (c != ' ' && str_buf_ptr < STR_BUF_LEN) {
       gcode_str_buf[str_buf_ptr] = c;
       str_buf_ptr++;
       gcode_str_buf[str_buf_ptr] = '\0';
