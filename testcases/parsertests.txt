@@ -1,0 +1,30 @@
+
+These are various strings to test the parser for correctness. It's a good
+idea to temporary debug messages to see what's actually executed.
+
+M105
+M105*121
+M1 05
+M1 05*89
+M114
+M1 05
+M
+G1 X3.4
+G1X4.5Y1
+G1 X
+G1 X 2
+X3
+5
+X3
+N1 G90*17
+N2 G0 X69.0909 Y11.6477 Z1.0*114
+N5 G1 Z-0.20 F75.0*28
+M23 bla
+M23 bla*3
+M23 123
+M23 123*92
+M23 1meg.gco
+M23 1meg~1.gco
+M23 10meg~1.gco
+M23
+M23 abc.gco 12fv
