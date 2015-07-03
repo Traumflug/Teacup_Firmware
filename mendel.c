@@ -68,14 +68,16 @@
 void io_init(void) {
 	// disable modules we don't use
 	#ifdef PRR
-    PRR = MASK(PRTWI) | MASK(PRADC);
-    #if ! defined TEMP_MAX6675 && ! defined SD
-      PRR |= MASK(PRSPI);
+    #if defined TEMP_MAX6675 || defined SD
+      PRR = MASK(PRTWI) | MASK(PRADC);
+    #else
+      PRR = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
     #endif
 	#elif defined PRR0
-    PRR0 = MASK(PRTWI) | MASK(PRADC);
-    #if ! defined TEMP_MAX6675 && ! defined SD
-      PRR0 |= MASK(PRSPI);
+    #if defined TEMP_MAX6675 || defined SD
+      PRR0 = MASK(PRTWI) | MASK(PRADC);
+    #else
+      PRR0 = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
     #endif
 		#if defined(PRUSART3)
 			// don't use USART2 or USART3- leave USART1 for GEN3 and derivatives
