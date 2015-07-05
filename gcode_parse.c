@@ -112,6 +112,12 @@ void gcode_parse_char(uint8_t c) {
   sim_gcode_ch(c);
 #endif
 
+  // An asterisk is a quasi-EOL and always ends all fields.
+  if (c == '*') {
+    next_target.seen_semi_comment = next_target.seen_parens_comment =
+    next_target.read_string = 0;
+  }
+
   // Skip comments and strings.
   if (next_target.seen_semi_comment == 0 &&
       next_target.seen_parens_comment == 0 &&
@@ -133,6 +139,7 @@ void gcode_parse_char(uint8_t c) {
               // SD card command with a filename.
               next_target.read_string = 1;  // Reset by string handler or EOL.
               str_buf_ptr = 0;
+              last_field = 0;
             }
           #endif
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
@@ -400,10 +407,11 @@ void gcode_parse_char(uint8_t c) {
   #ifdef SD
   // Handle string reading. After checking for EOL.
   if (next_target.read_string) {
-    if ((str_buf_ptr && c == ' ') || c == '*') {
-      next_target.read_string = 0;
+    if (c == ' ') {
+      if (str_buf_ptr)
+        next_target.read_string = 0;
     }
-    else if (c != ' ' && str_buf_ptr < STR_BUF_LEN) {
+    else if (str_buf_ptr < STR_BUF_LEN) {
       gcode_str_buf[str_buf_ptr] = c;
       str_buf_ptr++;
       gcode_str_buf[str_buf_ptr] = '\0';
