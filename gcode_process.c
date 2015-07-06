@@ -42,6 +42,13 @@ uint8_t next_tool;
 */
 enum gcode_source gcode_sources = GCODE_SOURCE_SERIAL;
 
+/** Bitfield for the current source of G-code.
+
+  Only one bit should be set at a time. The bit is set at start reading a
+  line and cleared when a line is done.
+*/
+enum gcode_source gcode_active = 0;
+
 /************************************************************************//**
 
   \brief Processes command stored in global \ref next_target.

@@ -273,22 +273,30 @@ int main (void)
     if (queue_full() == 0) {
       uint8_t c;
 
-      if (serial_rxchars() != 0) {
+      if (( ! gcode_active || gcode_active & GCODE_SOURCE_SERIAL) &&
+          serial_rxchars() != 0) {
+        gcode_active = GCODE_SOURCE_SERIAL;
         c = serial_popchar();
         gcode_parse_char(c);
+        if (c == '\r' || c == '\n')
+          gcode_active = 0;
       }
 
       #ifdef SD
-        if (gcode_sources & GCODE_SOURCE_SD) {
+        if (( ! gcode_active || gcode_active & GCODE_SOURCE_SD) &&
+            gcode_sources & GCODE_SOURCE_SD) {
           c = sd_read_char();
-          /* Demo code: just read all the bytes without doing anything with
-             them to allow measuring how long it takes to read a file. Report
-             over serial when the file is done. */
           if (c == 0) {
             serial_writestr_P(PSTR("\nSD file done.\n"));
             gcode_sources &= ! GCODE_SOURCE_SD;
             // There is no pf_close(), subsequent reads will stick at EOF
             // and return zeros.
+          }
+          else {
+            gcode_active = GCODE_SOURCE_SD;
+            gcode_parse_char(c);
+            if (c == '\r' || c == '\n')
+              gcode_active = 0;
           }
         }
       #endif
@@ -299,17 +307,13 @@ int main (void)
 
           This code works on a per-character basis.
 
-          Any data received over serial WILL be randomly distributed through
-          the canned gcode, and you'll have a big mess!
+          Unlike with SD reading code above and for historical reasons (was
+          a quicky doing its job, before SD card was implemented), any data
+          received over serial WILL be randomly distributed through the canned
+          G-code, and you'll have a big mess!
 
-          The solution is to either store gcode parser state with each source,
-          or only parse a line at a time.
-
-          This will take extra ram, and may be out of scope for the Teacup
-          project.
-
-          If ever print-from-SD card is implemented, these changes may become
-          necessary.
+          The solution is to join the strategy above and make canned G-code
+          a third G-code source next to serial and SD.
         */
         static uint32_t canned_gcode_pos = 0;
 

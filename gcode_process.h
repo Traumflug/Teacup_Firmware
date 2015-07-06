@@ -10,6 +10,7 @@ enum gcode_source {
 
 
 extern enum gcode_source gcode_sources;
+extern enum gcode_source gcode_active;
 
 // the current tool
 extern uint8_t tool;
