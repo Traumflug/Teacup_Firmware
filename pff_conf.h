@@ -15,9 +15,19 @@
 #define _USE_LSEEK  0   /* Enable pf_lseek() function */
 #define _USE_WRITE  0   /* Enable pf_write() function */
 
+/*---------------------------------------------------------------------------/
+/ File system support.
+/
+/ Firmware binary sizes with read-only on AVR ATmega are are as following:
+/
+/              only   plus FAT12   plus FAT16   plus FAT32   plus both
+/   FAT12   (21810)        - - -         + 98        + 546       + 660
+/   FAT16   (21718)        + 190        - - -        + 504       + 752
+/   FAT32   (21996)        + 360        + 226        - - -       + 474
+/---------------------------------------------------------------------------*/
 #define _FS_FAT12   0   /* Enable FAT12 */
 #define _FS_FAT16   1   /* Enable FAT16 */
-#define _FS_FAT32   0   /* Enable FAT32 */
+#define _FS_FAT32   1   /* Enable FAT32 */
 
 
 /*---------------------------------------------------------------------------/
