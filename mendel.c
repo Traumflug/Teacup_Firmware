@@ -287,18 +287,11 @@ int main (void)
       #ifdef SD
         if (( ! gcode_active || gcode_active & GCODE_SOURCE_SD) &&
             gcode_sources & GCODE_SOURCE_SD) {
-          c = sd_read_char();
-          if (c == 0) {
+          if (sd_read_gcode_line()) {
             serial_writestr_P(PSTR("\nSD file done.\n"));
             gcode_sources &= ! GCODE_SOURCE_SD;
             // There is no pf_close(), subsequent reads will stick at EOF
             // and return zeros.
-          }
-          else {
-            gcode_active = GCODE_SOURCE_SD;
-            line_done = gcode_parse_char(c);
-            if (line_done)
-              gcode_active = 0;
           }
         }
       #endif

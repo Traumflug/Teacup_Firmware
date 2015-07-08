@@ -951,6 +951,58 @@ FRESULT pf_read (
 
     return FR_OK;
 }
+
+
+
+FRESULT pf_parse_line (
+    uint8_t (*parser)(uint8_t)    /* Pointer to the parser function, which
+                                    should return 1 on EOL, else zero. */
+)
+{
+    BYTE one_byte_buffer;
+    DRESULT dr;
+    CLUST clst;
+    DWORD sect;
+    UINT rcnt;
+    BYTE cs;
+    FATFS *fs = FatFs;
+
+
+    if (!fs) return FR_NOT_ENABLED;     /* Check file system */
+    if (!(fs->flag & FA_OPENED))        /* Check if opened */
+        return FR_NOT_OPENED;
+
+    while (fs->fptr < fs->fsize) {                  /* Repeat until EOF. */
+        if ((fs->fptr % 512) == 0) {                /* On the sector boundary? */
+            cs = (BYTE)(fs->fptr / 512 & (fs->csize - 1));  /* Sector offset in the cluster */
+            if (!cs) {                              /* On the cluster boundary? */
+                if (fs->fptr == 0)                  /* On the top of the file? */
+                    clst = fs->org_clust;
+                else
+                    clst = get_fat(fs->curr_clust);
+                if (clst <= 1) ABORT(FR_DISK_ERR);
+                fs->curr_clust = clst;              /* Update current cluster */
+            }
+            sect = clust2sect(fs->curr_clust);      /* Get current sector */
+            if (!sect) ABORT(FR_DISK_ERR);
+            fs->dsect = sect + cs;
+        }
+        rcnt = 1;
+        // TODO: this is very inefficient, it reads a full sector for every
+        //       single byte. Instead the parser function should be passed to
+        //       disk_readp(), so it can read and parse the remaining sector
+        //       in search for an EOL and pass back the number of bytes read.
+        //       It should also pass back wether the line was completed or not.
+        //       If yes, we're done; if no, we call again with the next sector.
+        dr = disk_readp(&one_byte_buffer, fs->dsect, (UINT)fs->fptr % 512, 1);
+        if (dr) ABORT(FR_DISK_ERR);
+        fs->fptr += rcnt;                           /* Update pointers and counters */
+        if (parser(one_byte_buffer))
+          return FR_OK;
+    }
+
+    return FR_END_OF_FILE;
+}
 #endif
 
 

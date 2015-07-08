@@ -93,7 +93,8 @@ typedef enum {
     FR_NO_FILE,         /* 3 */
     FR_NOT_OPENED,      /* 4 */
     FR_NOT_ENABLED,     /* 5 */
-    FR_NO_FILESYSTEM    /* 6 */
+    FR_NO_FILESYSTEM,   /* 6 */
+    FR_END_OF_FILE,     /* 7, used only by pf_read_gcode_line(). */
 } FRESULT;
 
 
@@ -105,6 +106,7 @@ FRESULT pf_mount (FATFS* fs);                               /* Mount a logical d
 void pf_unmount (FATFS* fs);                                /* Unmount a logical drive */
 FRESULT pf_open (const char* path);                         /* Open a file */
 FRESULT pf_read (void* buff, UINT btr, UINT* br);           /* Read data from the open file */
+FRESULT pf_parse_line (uint8_t (*parser)(uint8_t));         /* Read and parse a line of data from the open file. */
 FRESULT pf_write (const void* buff, UINT btw, UINT* bw);    /* Write data to the open file */
 FRESULT pf_lseek (DWORD ofs);                               /* Move file pointer of the open file */
 FRESULT pf_opendir (DIR* dj, const char* path);             /* Open a directory */

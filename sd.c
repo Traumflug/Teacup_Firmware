@@ -9,15 +9,11 @@
 #include "delay.h"
 #include "serial.h"
 #include "sersendf.h"
-
-#define SD_BUFFER_SIZE 16
+#include "gcode_parse.h"
 
 
 static FATFS sdfile;
 static FRESULT result;
-
-static uint8_t sd_buffer[SD_BUFFER_SIZE];
-static uint8_t sd_buffer_ptr = SD_BUFFER_SIZE;
 
 /** Initialize SPI for SD card reading.
 */
@@ -88,38 +84,35 @@ void sd_open(const char* filename) {
   }
 }
 
-/** Read a character from a file.
+/** Read a line of G-code from a file.
 
-  \return The character read, or zero if there is no such character (e.g. EOF).
+  \param A pointer to the parser function. This function should accept an
+         uint8_t with the character to parse and return an uint8_t wether
+         end of line (EOL) was reached.
 
-  In principle it'd be possible to read the file character by character.
-  However, Before too long this will cause the printer to read G-code from this file
-  until done or until stopped by G-code coming in over the serial line.
+  \return Wether end of line (EOF) was reached or an error happened.
+
+  Juggling with a buffer smaller than 512 bytes means that the underlying
+  SD card handling code reads a full sector (512 bytes) in each operation,
+  but throws away everything not fitting into this buffer. Next read operation
+  reads the very same sector, but keeps a different part. That's ineffective.
+
+  Much better is to parse straight as it comes from the card. This way there
+  is no need for a buffer at all. Sectors are still read multiple times, but
+  at least one line is read in one chunk (unless it crosses a sector boundary).
 */
-uint8_t sd_read_char(void) {
-  UINT read;
-  uint8_t this_char;
+uint8_t sd_read_gcode_line(void) {
 
-  if (sd_buffer_ptr == SD_BUFFER_SIZE) {
-    result = pf_read(sd_buffer, SD_BUFFER_SIZE, &read);
-    if (result != FR_OK) {
-      sersendf_P(PSTR("E: failed to read from file. (%su)"), result);
-      return 0;
-    }
-    if (read < SD_BUFFER_SIZE) {
-      sd_buffer[read] = 0;           // A zero marks EOF.
-    }
-
-    sd_buffer_ptr = 0;
+  result = pf_parse_line(&gcode_parse_char);
+  if (result == FR_END_OF_FILE) {
+    return 1;
+  }
+  else if (result != FR_OK) {
+    sersendf_P(PSTR("E: failed to parse from file. (%su)"), result);
+    return 1;
   }
 
-  this_char = sd_buffer[sd_buffer_ptr];
-  if (this_char == 0)
-    sd_buffer_ptr = SD_BUFFER_SIZE;  // Start over, perhaps with next file.
-  else
-    sd_buffer_ptr++;
-
-  return this_char;
+  return 0;
 }
 
 #endif /* SD */
