@@ -100,9 +100,16 @@ void gcode_init(void) {
 	#endif
 }
 
-/// Character Received - add it to our command
-/// \param c the next character to process
-void gcode_parse_char(uint8_t c) {
+/** Character received - add it to our command.
+
+  \param c The next character to process.
+
+  \return Wether end of line was reached.
+
+  This parser operates character by character, so there's no need for a
+  buffer holding the entire line of G-code.
+*/
+uint8_t gcode_parse_char(uint8_t c) {
 	uint8_t checksum_char = c;
 
 	// uppercase
@@ -401,6 +408,8 @@ void gcode_parse_char(uint8_t c) {
 		if (next_target.option_all_relative || next_target.option_e_relative) {
       next_target.target.axis[E] = 0;
 		}
+
+    return 1;
 	}
 
   #ifdef SD
@@ -417,6 +426,8 @@ void gcode_parse_char(uint8_t c) {
     }
   }
   #endif /* SD */
+
+  return 0;
 }
 
 /***************************************************************************\

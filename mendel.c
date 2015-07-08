@@ -271,14 +271,14 @@ int main (void)
 	{
 		// if queue is full, no point in reading chars- host will just have to wait
     if (queue_full() == 0) {
-      uint8_t c;
+      uint8_t c, line_done;
 
       if (( ! gcode_active || gcode_active & GCODE_SOURCE_SERIAL) &&
           serial_rxchars() != 0) {
         gcode_active = GCODE_SOURCE_SERIAL;
         c = serial_popchar();
-        gcode_parse_char(c);
-        if (c == '\r' || c == '\n')
+        line_done = gcode_parse_char(c);
+        if (line_done)
           gcode_active = 0;
       }
 
@@ -294,8 +294,8 @@ int main (void)
           }
           else {
             gcode_active = GCODE_SOURCE_SD;
-            gcode_parse_char(c);
-            if (c == '\r' || c == '\n')
+            line_done = gcode_parse_char(c);
+            if (line_done)
               gcode_active = 0;
           }
         }

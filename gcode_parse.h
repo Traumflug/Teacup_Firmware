@@ -72,7 +72,7 @@ extern GCODE_COMMAND next_target;
 void gcode_init(void);
 
 /// accept the next character and process it
-void gcode_parse_char(uint8_t c);
+uint8_t gcode_parse_char(uint8_t c);
 
 // uses the global variable next_target.N
 void request_resend(void);
