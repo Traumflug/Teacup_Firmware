@@ -26,7 +26,8 @@ typedef enum {
     RES_OK = 0,     /* 0: Function succeeded */
     RES_ERROR,      /* 1: Disk error */
     RES_NOTRDY,     /* 2: Not ready */
-    RES_PARERR      /* 3: Invalid parameter */
+    RES_PARERR,     /* 3: Invalid parameter */
+    RES_EOL_FOUND,  /* 4: Function succeeded and also found an EOL. */
 } DRESULT;
 
 
@@ -36,6 +37,8 @@ typedef enum {
 DSTATUS disk_initialize (void);
 #if _USE_READ
   DRESULT disk_readp (BYTE* buffer, DWORD sector, UINT offset, UINT count);
+  DRESULT disk_parsep (DWORD sector, UINT offset, UINT* count,
+                       uint8_t (*parser)(uint8_t));
 #endif
 #if _USE_WRITE
   DRESULT disk_writep (const BYTE* buffer, DWORD sc);

@@ -959,7 +959,6 @@ FRESULT pf_parse_line (
                                     should return 1 on EOL, else zero. */
 )
 {
-    BYTE one_byte_buffer;
     DRESULT dr;
     CLUST clst;
     DWORD sect;
@@ -987,17 +986,11 @@ FRESULT pf_parse_line (
             if (!sect) ABORT(FR_DISK_ERR);
             fs->dsect = sect + cs;
         }
-        rcnt = 1;
-        // TODO: this is very inefficient, it reads a full sector for every
-        //       single byte. Instead the parser function should be passed to
-        //       disk_readp(), so it can read and parse the remaining sector
-        //       in search for an EOL and pass back the number of bytes read.
-        //       It should also pass back wether the line was completed or not.
-        //       If yes, we're done; if no, we call again with the next sector.
-        dr = disk_readp(&one_byte_buffer, fs->dsect, (UINT)fs->fptr % 512, 1);
-        if (dr) ABORT(FR_DISK_ERR);
+        dr = disk_parsep(fs->dsect, (UINT)fs->fptr % 512, &rcnt, parser);
+        if (dr != RES_OK && dr != RES_EOL_FOUND)
+          ABORT(FR_DISK_ERR);
         fs->fptr += rcnt;                           /* Update pointers and counters */
-        if (parser(one_byte_buffer))
+        if (dr == RES_EOL_FOUND)
           return FR_OK;
     }
 
