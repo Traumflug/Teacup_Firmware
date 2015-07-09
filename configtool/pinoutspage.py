@@ -61,6 +61,7 @@ class PinoutsPage(wx.Panel, Page):
                    'STEPPER_ENABLE_PIN': "Stepper Enable Pin:",
                    'STEPPER_INVERT_ENABLE': "Stepper Invert Enable",
 
+                   'SD_CARD_SELECT_PIN': "SD Card Select Pin:",
                    'DEBUG_LED_PIN': "Debug LED Pin:"}
 
     labelWidth = 120
@@ -162,9 +163,13 @@ class PinoutsPage(wx.Panel, Page):
     tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
     sz.Add(tc, pos = (5, 3))
 
-    k = "DEBUG_LED_PIN"
+    k = "SD_CARD_SELECT_PIN"
     tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
     sz.Add(tc, pos = (3, 7))
+
+    k = "DEBUG_LED_PIN"
+    tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
+    sz.Add(tc, pos = (5, 7))
 
     self.SetSizer(sz)
     self.enableAll(False)
