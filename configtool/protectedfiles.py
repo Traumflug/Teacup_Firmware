@@ -5,6 +5,7 @@ protectedFiles = [
   "board.gen6.h",
   "board.gen7-v1.1-v1.3.h",
   "board.gen7-v1.4.h",
+  "board.nanoheart-v1.0.h",
   "board.ramps-v1.2.h",
   "board.ramps-v1.3.h",
   "board.rumba.h",
