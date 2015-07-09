@@ -98,21 +98,4 @@ uint8_t sd_read_gcode_line(void) {
   return 0;
 }
 
-/** Read a character from a file.
-
-  \return The character read, or zero if there is no such character (e.g. EOF).
-*/
-uint8_t sd_read_char(void) {
-  if (!f) {
-    sim_info("E: file not open");
-    return 1;
-  }
-  char ch = fgetc(f);
-  if (ch == EOF) {
-    sim_info("SD card: reached EOF");
-    return 0;
-  }
-  return (uint8_t) ch;
-}
-
 #endif /* SD */
