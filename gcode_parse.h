@@ -61,6 +61,15 @@ typedef struct {
 	uint8_t						checksum_calculated;	///< checksum we calculated
 } GCODE_COMMAND;
 
+enum gcode_source {
+  GCODE_SOURCE_SERIAL  = 0b00000001,
+  GCODE_SOURCE_SD      = 0b00000010,
+};
+
+
+extern enum gcode_source gcode_sources;
+extern enum gcode_source gcode_active;
+
 /// the command being processed
 extern GCODE_COMMAND next_target;
 

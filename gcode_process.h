@@ -3,14 +3,6 @@
 
 #include	"gcode_parse.h"
 
-enum gcode_source {
-  GCODE_SOURCE_SERIAL  = 0b00000001,
-  GCODE_SOURCE_SD      = 0b00000010,
-};
-
-
-extern enum gcode_source gcode_sources;
-extern enum gcode_source gcode_active;
 
 // the current tool
 extern uint8_t tool;

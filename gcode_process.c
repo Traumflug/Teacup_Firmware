@@ -35,20 +35,6 @@ uint8_t tool;
 /// the tool to be changed when we get an M6
 uint8_t next_tool;
 
-/** Bitfield for available sources of G-code.
-
-  A typical source is the SD card or canned G-code. Serial is currently never
-  turned off.
-*/
-enum gcode_source gcode_sources = GCODE_SOURCE_SERIAL;
-
-/** Bitfield for the current source of G-code.
-
-  Only one bit should be set at a time. The bit is set at start reading a
-  line and cleared when a line is done.
-*/
-enum gcode_source gcode_active = 0;
-
 /************************************************************************//**
 
   \brief Processes command stored in global \ref next_target.
