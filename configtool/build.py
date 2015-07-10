@@ -17,6 +17,13 @@ TOOLPATHS_INSIDE_ARDUINO = [
   "hardware/tools/avr/bin/",
   "hardware/tools/" # avrdude in Arduino 1.0.x
 ]
+if platform.startswith("darwin"):
+  # That's an OS property, the Applicaton Bundle hierarchy.
+  pathsCopy = TOOLPATHS_INSIDE_ARDUINO
+  TOOLPATHS_INSIDE_ARDUINO = []
+  for path in pathsCopy:
+    TOOLPATHS_INSIDE_ARDUINO.append("Contents/Resources/Java/" + path)
+    TOOLPATHS_INSIDE_ARDUINO.append("Contents/Java/" + path)
 
 
 class ScriptTools:
@@ -33,10 +40,6 @@ class ScriptTools:
 
     if self.settings.arduinodir:
       cmdpath = self.settings.arduinodir
-
-      if platform == "darwin":
-        # That's an OS property, the Applicaton Bundle hierarchy.
-        cmdpath = os.path.join(cmdpath, "Contents/Resources/Java")
 
       for pathOption in TOOLPATHS_INSIDE_ARDUINO:
         cmdpathTry = cmdpath
