@@ -158,21 +158,18 @@ $(BUILDDIR)/startup.o: arm-startup_lpc11xx.s | $(BUILDDIR)
 	@$(CC) -c $(CFLAGS) -o $@ $<
 
 ## Interpret TARGET section sizes wrt different ARM chips
-## Usage:  $(call show_size,section-name,section-regex,Atmega168-size-in-k,Atmega328p-size-in-k,Atmega644p-size-in-k,Atmega1280-size-in-k)
+## Usage:  $(call show_size,section-name,section-regex,lpc1114-size-in-k)
 define show_size
 	@$(OBJDUMP) -h $^ | \
 		perl -MPOSIX -ne \
 		'/.($2)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; \
-		END { printf "    %-7s: %5d bytes         %3d%%       %3d%%       %3d%%     %3d%%\n", "$1", $$a, \
+		END { printf "    %-7s: %5d bytes         %3d%%\n", "$1", $$a, \
 			ceil($$a * 100 / ($3 * 1024)), \
-			ceil($$a * 100 / ($4 * 1024)), \
-			ceil($$a * 100 / ($5 * 1024)), \
-			ceil($$a * 100 / ($6 * 1024))  \
 		}'
 endef
 
 size: $(BUILDDIR)/$(PROGRAM).elf
-	@echo "    SIZES             ARM...  lpc1114    '328(P)    '644(P)    '1280"
-	$(call show_size,FLASH,text,32,30,62,126)
-	$(call show_size,RAM,data|bss,4,2,4,8)
-	$(call show_size,EEPROM,eeprom,1,2,2,4)
+	@echo "    SIZES          ARM...     lpc1114"
+	$(call show_size,FLASH,text,32)
+	$(call show_size,RAM,data|bss,4)
+	$(call show_size,EEPROM,eeprom,0.0001)
