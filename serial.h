@@ -3,7 +3,7 @@
 
 #include "config_wrapper.h"
 #include	<stdint.h>
-#ifndef SIMULATOR
+#ifdef __AVR__
 #include	<avr/io.h>
 #include	<avr/pgmspace.h>
 #endif

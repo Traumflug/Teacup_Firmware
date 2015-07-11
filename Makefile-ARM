@@ -26,9 +26,9 @@
 
 ##############################################################################
 #                                                                            #
-# Makefile for AVR (ATmega-based) targets. Use it with                       #
+# Makefile for ARM targets. Use it with                                      #
 #                                                                            #
-#   make -f Makefile-AVR                                                     #
+#   make -f Makefile-ARM                                                     #
 #                                                                            #
 # or copy/link it to Makefile for convenience.                               #
 #                                                                            #
@@ -40,9 +40,8 @@
 #                                                                            #
 ##############################################################################
 
-# MCU ?= atmega168
+MCU ?= lpc1114
 # MCU ?= atmega328p
-MCU ?= atmega644
 # MCU ?= atmega644
 # MCU ?= atmega1284p
 # MCU ?= atmega1280
@@ -50,10 +49,7 @@ MCU ?= atmega644
 # MCU ?= at90usb1286
 # MCU ?= atmega32u4
 
-# CPU clock rate
-# F_CPU ?= 8000000L
-F_CPU ?= 16000000L
-# F_CPU ?= 20000000L
+# CPU clock rate not defined here, but in the CMSIS headers.
 
 ##############################################################################
 #                                                                            #
@@ -62,9 +58,8 @@ F_CPU ?= 16000000L
 #                                                                            #
 ##############################################################################
 
-TOOLCHAIN = avr-
-# TOOLCHAIN = /usr/bin/avr-
-# TOOLCHAIN = <path-to-arduino-folder>/hardware/tools/avr/bin/avr-
+TOOLCHAIN = arm-none-eabi-
+# TOOLCHAIN = <path-to-arduino-folder>/hardware/tools/gcc-arm-none-eabi-4.8.3-2014q1/bin/arm-none-eabi-
 
 ##############################################################################
 #                                                                            #
@@ -111,39 +106,37 @@ TARGET = $(PROGRAM).hex
 
 # Arduino IDE takes the "compile everything available"-approach, so we have
 # to keep this working and can take a shortcut:
-SOURCES = $(wildcard *.c)
+#SOURCES = $(wildcard *.c)
+# Until the generic ARM port is completed, we'd have to wrap all sources
+# in #ifdef __AVR__. To avoid this, build only a selection for now:
+SOURCES = mendel.c cpu.c serial.c
 
-CFLAGS  = $(EXTRA_CFLAGS)
-CFLAGS += -DF_CPU=$(F_CPU)
-CFLAGS += -DMCU_STR=\"$(MCU)\"
-CFLAGS += -mmcu=$(MCU)
-CFLAGS += -g
+# Other target MCU specific adjustments:
+
+# Startup definitions. Not target MCU specific.
+CFLAGS  = -D__STARTUP_CLEAR_BSS -D__START=main
+ifeq ($(MCU), lpc1114)
+  CFLAGS += -mthumb -mcpu=cortex-m0
+  CFLAGS += -mtune=cortex-m0
+  CFLAGS += -D__ARM_LPC1114__
+endif
+# Other options ...
 CFLAGS += -Wall
 CFLAGS += -Wstrict-prototypes
-CFLAGS += -std=gnu99
-CFLAGS += -funsigned-char
-CFLAGS += -funsigned-bitfields
-CFLAGS += -fpack-struct
-CFLAGS += -fshort-enums
-CFLAGS += -Winline
-CFLAGS += -fno-move-loop-invariants
-CFLAGS += -fno-tree-scev-cprop
 CFLAGS += -Os
+CFLAGS += -flto
 CFLAGS += -ffunction-sections
-CFLAGS += -finline-functions-called-once
-CFLAGS += -mcall-prologues
-CFLAGS += -Wa,-adhlns=$(@:.o=.al)
+CFLAGS += -fdata-sections
+# Until we're done with basic porting ...
+CFLAGS += -D__ARMEL_NOTYET__
 
-LDFLAGS  = -Wl,--as-needed
-
-ifneq ($(realpath ../simulavr/src/simulavr_info.h),)
-  # Neccessary for simulavr support, doesn't hurt others.
-  CFLAGS += -DSIMINFO
-  LDFLAGS += -Wl,--section-start=.siminfo=0x900000
-else
-  # Doesn't work for simulavr, can't allow dead code removal.
-  LDFLAGS += -Wl,--gc-sections
+LDFLAGS  = --specs=nano.specs
+LDFLAGS += --specs=nosys.specs
+ifeq ($(MCU), lpc1114)
+  LDFLAGS += -T arm-lpc1114.ld
 endif
+LDFLAGS += -Wl,--as-needed
+LDFLAGS += -Wl,--gc-sections
 
 LIBS  = -lm
 
@@ -158,7 +151,13 @@ all: $(PROGRAM).hex $(BUILDDIR)/$(PROGRAM).lst $(BUILDDIR)/$(PROGRAM).sym size
 program: $(PROGRAM).hex config.h
 	$(UPLOADER) $(UPLOADER_FLAGS) -U flash:w:$(PROGRAM).hex
 
-## Interpret TARGET section sizes wrt different AVR chips
+$(BUILDDIR)/teacup.elf: $(BUILDDIR)/startup.o
+
+$(BUILDDIR)/startup.o: arm-startup_lpc11xx.s | $(BUILDDIR)
+	@echo "  CC        $@"
+	@$(CC) -c $(CFLAGS) -o $@ $<
+
+## Interpret TARGET section sizes wrt different ARM chips
 ## Usage:  $(call show_size,section-name,section-regex,Atmega168-size-in-k,Atmega328p-size-in-k,Atmega644p-size-in-k,Atmega1280-size-in-k)
 define show_size
 	@$(OBJDUMP) -h $^ | \
@@ -173,7 +172,7 @@ define show_size
 endef
 
 size: $(BUILDDIR)/$(PROGRAM).elf
-	@echo "    SIZES             ATmega...  '168    '328(P)    '644(P)    '1280"
-	$(call show_size,FLASH,text,14,30,62,126)
-	$(call show_size,RAM,data|bss,1,2,4,8)
+	@echo "    SIZES             ARM...  lpc1114    '328(P)    '644(P)    '1280"
+	$(call show_size,FLASH,text,32,30,62,126)
+	$(call show_size,RAM,data|bss,4,2,4,8)
 	$(call show_size,EEPROM,eeprom,1,2,2,4)

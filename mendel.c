@@ -24,15 +24,18 @@
 			ctrl+d \endcode
 */
 
-#ifndef SIMULATOR
+#ifdef __AVR__
 #include	<avr/io.h>
 #include	<avr/interrupt.h>
 #endif
 
+#ifndef __ARMEL_NOTYET__
 #include	"config_wrapper.h"
 #include	"fuses.h"
+#endif /* __ARMEL_NOTYET__ */
 
 #include	"serial.h"
+#ifndef __ARMEL_NOTYET__
 #include	"dda_queue.h"
 #include	"dda.h"
 #include	"gcode_parse.h"
@@ -66,9 +69,11 @@
 #ifdef CANNED_CYCLE
   const char PROGMEM canned_gcode_P[] = CANNED_CYCLE;
 #endif
+#endif /* __ARMEL_NOTYET__ */
 
 /// initialise all I/O - set pins as input or output, turn off unused subsystems, etc
 void io_init(void) {
+  #ifndef __ARMEL_NOTYET__
 	// disable modules we don't use
 	#ifdef PRR
     #if defined TEMP_MAX6675 || defined SD
@@ -192,10 +197,11 @@ void io_init(void) {
 		power_off();
 	#endif
 
-  #ifdef DEBUG_LED_PIN
+  #ifdef DEBUG_LED_PIN 
     WRITE(DEBUG_LED_PIN, 0);
     SET_OUTPUT(DEBUG_LED_PIN);
   #endif
+  #endif /* __ARMEL_NOTYET__ */
 }
 
 /** Initialise all the subsystems.
@@ -205,6 +211,7 @@ void io_init(void) {
   investigated).
 */
 void init(void) {
+  #ifndef __ARMEL_NOTYET__
 	// set up watchdog
 	wd_init();
 
@@ -249,6 +256,7 @@ void init(void) {
 
   // prepare the power supply
   power_init();
+  #endif /* __ARMEL_NOTYET__ */
 
 	// say hi to host
 	serial_writestr_P(PSTR("start\nok\n"));
@@ -271,6 +279,7 @@ int main (void)
 	// main loop
 	for (;;)
 	{
+    #ifndef __ARMEL_NOTYET__
 		// if queue is full, no point in reading chars- host will just have to wait
     if (queue_full() == 0) {
       uint8_t c, line_done;
@@ -322,5 +331,6 @@ int main (void)
 		}
 
 		clock();
+    #endif /* __ARMEL_NOTYET__ */
 	}
 }
