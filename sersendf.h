@@ -4,7 +4,7 @@
 #ifndef SIMULATOR
 #include	<avr/pgmspace.h>
 #endif
-#include "simulator.h"
+#include "arduino.h"
 
 void sersendf(char *format, ...)		__attribute__ ((format (printf, 1, 2)));
 void sersendf_P(PGM_P format_P, ...)	__attribute__ ((format (printf, 1, 2)));
