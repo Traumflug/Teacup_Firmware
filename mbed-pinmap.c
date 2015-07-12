@@ -28,12 +28,10 @@
     AVR builds.
 */
 #ifdef __ARMEL__
-#include "mbed-mbed_assert.h"
 #include "mbed-pinmap.h"
 #include "mbed-mbed_error.h"
 
 void pin_function(PinName pin, int function) {
-    MBED_ASSERT(pin != (PinName)NC);
     uint32_t offset = (uint32_t)pin & 0xff;
     __IO uint32_t *reg = (__IO uint32_t*)(LPC_IOCON_BASE + offset);
 
@@ -42,7 +40,6 @@ void pin_function(PinName pin, int function) {
 }
 
 void pin_mode(PinName pin, PinMode mode) {
-    MBED_ASSERT(pin != (PinName)NC);
     uint32_t offset = (uint32_t)pin & 0xff;
     uint32_t drain = ((uint32_t)mode & (uint32_t)OpenDrain) >> 2;
     
