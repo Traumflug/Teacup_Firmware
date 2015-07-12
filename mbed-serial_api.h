@@ -78,8 +78,6 @@ void mbed_serial_clear      (serial_t *obj);
 void mbed_serial_break_set  (serial_t *obj);
 void mbed_serial_break_clear(serial_t *obj);
 
-void mbed_serial_pinout_tx(PinName tx);
-
 void mbed_serial_set_flow_control(serial_t *obj, FlowControl type, PinName rxflow, PinName txflow);
 
 #ifdef __cplusplus
