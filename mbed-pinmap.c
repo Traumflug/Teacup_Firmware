@@ -29,7 +29,6 @@
 */
 #ifdef __ARMEL__
 #include "mbed-pinmap.h"
-#include "mbed-mbed_error.h"
 
 void pin_function(PinName pin, int function) {
     uint32_t offset = (uint32_t)pin & 0xff;
