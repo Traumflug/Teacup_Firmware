@@ -214,10 +214,12 @@ void init(void) {
   #ifndef __ARMEL_NOTYET__
 	// set up watchdog
 	wd_init();
+  #endif /* __ARMEL_NOTYET__ */
 
 	// set up serial
 	serial_init();
 
+  #ifndef __ARMEL_NOTYET__
 	// set up G-code parsing
 	gcode_init();
 
