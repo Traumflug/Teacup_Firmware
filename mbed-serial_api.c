@@ -44,22 +44,6 @@
  ******************************************************************************/
 #define UART_NUM    1
 
-static const PinMap PinMap_UART_TX[] = {
-    {P2_8 , UART_0, 0x02},
-    {P3_5 , UART_0, 0x02},
-    {P3_0 , UART_0, 0x03},
-    {P1_7 , UART_0, 0x01},
-    {NC   , NC    , 0x00}
-};
-
-static const PinMap PinMap_UART_RX[] = {
-    {P2_7 , UART_0, 0x02},
-    {P3_4 , UART_0, 0x02},
-    {P3_1 , UART_0, 0x03},
-    {P1_6 , UART_0, 0x01},
-    {NC   , NC    , 0x00}
-};
-
 static uint32_t serial_irq_ids[UART_NUM] = {0};
 static uart_irq_handler irq_handler;
 
@@ -69,10 +53,7 @@ serial_t stdio_uart;
 void mbed_serial_init(serial_t *obj, PinName tx, PinName rx) {
     int is_stdio_uart = 0;
     
-    // determine the UART to use
-    UARTName uart_tx = (UARTName)pinmap_peripheral(tx, PinMap_UART_TX);
-    UARTName uart_rx = (UARTName)pinmap_peripheral(rx, PinMap_UART_RX);
-    UARTName uart = (UARTName)pinmap_merge(uart_tx, uart_rx);
+    UARTName uart = UART_0;
     
     obj->uart = (LPC_UART_TypeDef *)uart;
     LPC_SYSCON->SYSAHBCLKCTRL |= (1<<12);
@@ -93,17 +74,11 @@ void mbed_serial_init(serial_t *obj, PinName tx, PinName rx) {
     mbed_serial_format(obj, 8, ParityNone, 1);
     
     // pinout the chosen uart
-    pinmap_pinout(tx, PinMap_UART_TX);
-    pinmap_pinout(rx, PinMap_UART_RX);
-    
-    // set rx/tx pins in PullUp mode
-    if (tx != NC) {
-        pin_mode(tx, PullUp);
-    }
-    if (rx != NC) {
-        pin_mode(rx, PullUp);
-    }
-    
+    pin_function(tx, 0x01);
+    pin_mode(tx, PullUp);
+    pin_function(rx, 0x01);
+    pin_mode(rx, PullUp);
+
     switch (uart) {
         case UART_0: obj->index = 0; break;
     }
@@ -297,10 +272,6 @@ void mbed_serial_clear(serial_t *obj) {
     obj->uart->FCR = 1 << 1  // rx FIFO reset
                    | 1 << 2  // tx FIFO reset
                    | 0 << 6; // interrupt depth
-}
-
-void mbed_serial_pinout_tx(PinName tx) {
-    pinmap_pinout(tx, PinMap_UART_TX);
 }
 
 void mbed_serial_break_clear(serial_t *obj) {
