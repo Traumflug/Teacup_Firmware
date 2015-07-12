@@ -29,6 +29,7 @@ class PrinterPanel(wx.Panel):
     self.cfgValues = {}
     self.heaters = []
     self.dir = os.path.join(self.settings.folder, "config")
+    self.cfgDir = os.path.join(self.settings.folder, "config")
 
     self.SetBackgroundColour(self.deco.getBackgroundColour())
     self.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
@@ -171,20 +172,26 @@ class PrinterPanel(wx.Panel):
       return
 
     self.dir = os.path.dirname(path)
-    rc = self.loadConfigFile(path)
+    rc, efn = self.loadConfigFile(path)
 
     if not rc:
-      dlg = wx.MessageDialog(self, "Unable to process file %s." % path,
+      dlg = wx.MessageDialog(self, "Unable to process file %s." % efn,
                              "File error", wx.OK + wx.ICON_ERROR)
       dlg.ShowModal()
       dlg.Destroy()
       return
 
   def loadConfigFile(self, fn):
+    cfgFn = os.path.join(self.cfgDir, "printer.metadata")
     try:
-      self.cfgBuffer = list(open(fn))
+      self.cfgBuffer = list(open(cfgFn))
     except:
-      return False
+      return False, cfgFn
+
+    try:
+      self.userBuffer = list(open(fn))
+    except:
+      return False, fn
 
     self.configFile = fn
 
@@ -194,6 +201,7 @@ class PrinterPanel(wx.Panel):
     helpKey = None
 
     self.cfgValues = {}
+    self.cfgNames = []
     self.helpText = {}
 
     prevLines = ""
@@ -237,34 +245,22 @@ class PrinterPanel(wx.Panel):
       if ln.lstrip().startswith("//"):
         continue
 
-      if ln.lstrip().startswith("#define"):
-        m = reDefQS.search(ln)
-        if m:
-          t = m.groups()
-          if len(t) == 2:
-            m = reDefQSm.search(ln)
-            if m:
-              t = m.groups()
-              tt = re.findall(reDefQSm2, t[1])
-              if len(tt) == 1:
-                self.cfgValues[t[0]] = tt[0]
-                continue
-              elif len(tt) > 1:
-                self.cfgValues[t[0]] = tt
-                continue
+      self.parseDefineName(ln)
 
-        m = reDefine.search(ln)
-        if m:
-          t = m.groups()
-          if len(t) == 2:
-            self.cfgValues[t[0]] = t[1]
-            continue
+    prevLines = ""
+    for ln in self.userBuffer:
+      if ln.rstrip().endswith("\\"):
+        prevLines += ln.rstrip()[:-1]
+        continue
 
-        m = reDefBool.search(ln)
-        if m:
-          t = m.groups()
-          if len(t) == 1:
-            self.cfgValues[t[0]] = True
+      if prevLines != "":
+        ln = prevLines + ln
+        prevLines = ""
+
+      if ln.lstrip().startswith("//"):
+        continue
+
+      self.parseDefineValue(ln)
 
     if os.path.basename(fn) in protectedFiles:
       self.parent.enableSavePrinter(False, True)
@@ -284,7 +280,45 @@ class PrinterPanel(wx.Panel):
     else:
       self.pgMiscellaneous.setOriginalHeater(None)
 
-    return True
+    return True, None
+
+  def parseDefineName(self, ln):
+    m = reDefBool.search(ln)
+    if m:
+      t = m.groups()
+      if len(t) == 1:
+        self.cfgNames.append(t[0])
+
+  def parseDefineValue(self, ln):
+    if ln.lstrip().startswith("#define"):
+      m = reDefQS.search(ln)
+      if m:
+        t = m.groups()
+        if len(t) == 2:
+          m = reDefQSm.search(ln)
+          if m:
+            t = m.groups()
+            tt = re.findall(reDefQSm2, t[1])
+            if len(tt) == 1:
+              self.cfgValues[t[0]] = tt[0]
+              return
+            elif len(tt) > 1:
+              self.cfgValues[t[0]] = tt
+              return
+
+      m = reDefine.search(ln)
+      if m:
+        t = m.groups()
+        if len(t) == 2:
+          self.cfgValues[t[0]] = t[1]
+          return
+
+      m = reDefBool.search(ln)
+      if m:
+        t = m.groups()
+        if len(t) == 1:
+          self.cfgValues[t[0]] = True
+          return
 
   def onSaveConfig(self, evt):
     path = self.configFile
@@ -348,7 +382,6 @@ class PrinterPanel(wx.Panel):
     self.configFile = path
 
     values = {}
-    labelFound = []
 
     for pg in self.pages:
       v1 = pg.getValues()
@@ -356,104 +389,25 @@ class PrinterPanel(wx.Panel):
         values[k] = v1[k]
 
     for ln in self.cfgBuffer:
-      m = reDefineBL.match(ln)
-      if m:
-        t = m.groups()
-        if len(t) == 2:
-          if t[0] in values.keys() and values[t[0]] != "":
-            fp.write(defineValueFormat % (t[0], values[t[0]]))
-            self.cfgValues[t[0]] = values[t[0]]
-            labelFound.append(t[0])
-          elif t[0] in values.keys():
-            fp.write("//" + ln)
-            if t[0] in self.cfgValues.keys():
-              del self.cfgValues[t[0]]
-            labelFound.append(t[0])
-          else:
-            fp.write(ln)
-          continue
-
       m = reDefBoolBL.match(ln)
       if m:
         t = m.groups()
         if len(t) == 1:
-          if t[0] in values.keys() and values[t[0]]:
-            fp.write(defineBoolFormat % t[0])
-            self.cfgValues[t[0]] = True
-            labelFound.append(t[0])
-          elif t[0] in values.keys():
-            fp.write("//" + ln)
-            if t[0] in self.cfgValues.keys():
-              del self.cfgValues[t[0]]
-            labelFound.append(t[0])
-          else:
-            fp.write(ln)
-          continue
-
-      m = reCommDefBL.match(ln)
-      if m:
-        t = m.groups()
-        if len(t) == 2:
-          if t[0] in values.keys() and values[t[0]] != "":
-            fp.write(defineValueFormat % (t[0], values[t[0]]))
-            self.cfgValues[t[0]] =  values[t[0]]
-            labelFound.append(t[0])
-          elif t[0] in values.keys():
-            fp.write(ln)
-            labelFound.append(t[0])
-          else:
-            fp.write(ln)
-          continue
-
-      m = reCommDefBoolBL.match(ln)
-      if m:
-        t = m.groups()
-        if len(t) == 1:
-          if t[0] in values.keys() and values[t[0]]:
-            fp.write(defineBoolFormat % t[0])
-            self.cfgValues[t[0]] = True
-            labelFound.append(t[0])
-          elif t[0] in values.keys():
-            fp.write(ln)
-            labelFound.append(t[0])
+          if t[0] in values.keys():
+            v = values[t[0]]
+            self.cfgValues[t[0]] = v
+            if v == "" or v == False:
+              fp.write("//" + ln)
+            elif v == True:
+              fp.write(ln)
+            else:
+              fp.write(defineValueFormat % (t[0], v))
           else:
             fp.write(ln)
           continue
 
       fp.write(ln)
 
-    for k in labelFound:
-      del values[k]
-
-    newLabels = ""
-    for k in values.keys():
-      if newLabels == "":
-        newLabels = k
-      else:
-        newLabels += ", " + k
-      self.addNewDefine(fp, k, values[k])
-
-    if newLabels != "":
-      dlg = wx.MessageDialog(self, "New defines added to printer config:\n" +
-                             newLabels, "New defines",
-                             wx.OK + wx.ICON_INFORMATION)
-      dlg.ShowModal()
-      dlg.Destroy()
-
     fp.close()
 
     return True
-
-  def addNewDefine(self, fp, key, val):
-    fp.write("\n")
-    fp.write("/** \\def %s\n" % key)
-    fp.write("  Add help text here.\n")
-    fp.write("*/\n")
-    if val == True:
-      fp.write(defineBoolFormat % key)
-    elif val == False:
-      fp.write("//#define %s\n" % key)
-    elif val == "":
-      fp.write("//#define %s\n" % key)
-    else:
-      fp.write(defineValueFormat % (key, val))
