@@ -5,7 +5,6 @@
 #include	<stdint.h>
 #ifdef __AVR__
 #include	<avr/io.h>
-#include	<avr/pgmspace.h>
 #endif
 #include "simulator.h"
 

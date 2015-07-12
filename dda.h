@@ -11,15 +11,6 @@
 	#endif
 #endif
 
-#ifndef SIMULATOR
-  #include <avr/pgmspace.h>
-#else
-  #define PROGMEM
-#endif
-
-/*
-	types
-*/
 
 // Enum to denote an axis
 enum axis_e { X = 0, Y, Z, E, AXIS_COUNT };

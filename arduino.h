@@ -71,14 +71,16 @@
 
   For the AVR definitions, see /usr/lib/avr/include/avr/pgmspace.h on Linux.
 */
-#ifndef __AVR__
+#ifdef __AVR__
+  #include <avr/pgmspace.h>
+#else
   #define PROGMEM
   #define PGM_P const char *
   #define PSTR(s) ((const PROGMEM char *)(s))
   #define pgm_read_byte(x) (*((uint8_t *)(x)))
   #define pgm_read_word(x) (*((uint16_t *)(x)))
   #define pgm_read_dword(x) (*((uint32_t *)(x)))
-#endif /* ! __AVR__ */
+#endif /* __AVR__, ! __AVR__ */
 
 /*
 	ports and functions

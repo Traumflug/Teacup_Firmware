@@ -12,7 +12,6 @@
 #include	<stdlib.h>
 #ifndef SIMULATOR
 #include	<avr/eeprom.h>
-#include	<avr/pgmspace.h>
 #endif
 #include "simulator.h"
 
