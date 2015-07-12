@@ -7,10 +7,6 @@
 
 #if defined TEACUP_C_INCLUDE && defined __ARMEL__
 
-/**
-  SystemInit will be called before main from startup assembly code.
-*/
-void SystemInit(void) {
-}
+/* Nothing yet. */
 
 #endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
