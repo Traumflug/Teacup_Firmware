@@ -3,9 +3,6 @@
 
 #include "config_wrapper.h"
 #include	<stdint.h>
-#ifdef __AVR__
-#include	<avr/pgmspace.h>
-#endif
 #include "simulator.h"
 
 #ifdef USB_SERIAL

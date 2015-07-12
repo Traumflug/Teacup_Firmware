@@ -5,9 +5,6 @@
 */
 
 #include	<stdarg.h>
-#ifndef SIMULATOR
-#include	<avr/pgmspace.h>
-#endif
 
 #include	"serial.h"
 #include	"sermsg.h"
