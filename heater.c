@@ -117,15 +117,17 @@ void heater_init() {
 
 	// timer 1 is used for stepping
 
-	TCCR2A = MASK(WGM21) | MASK(WGM20);
-	// PWM frequencies in TCCR2B, see page 156 of the ATmega644 reference.
-	TCCR2B = MASK(CS20); // F_CPU / 256  (about 78(62.5) kHz on a 20(16) MHz chip)
-	#ifndef FAST_PWM
-		TCCR2B = MASK(CS20) | MASK(CS21) | MASK(CS22); // F_CPU / 256 / 1024
-	#endif
-	TIMSK2 = 0;
-	OCR2A = 0;
-	OCR2B = 0;
+  #ifdef TCCR2A
+    TCCR2A = MASK(WGM21) | MASK(WGM20);
+    // PWM frequencies in TCCR2B, see page 156 of the ATmega644 reference.
+    TCCR2B = MASK(CS20); // F_CPU / 256  (about 78(62.5) kHz on a 20(16) MHz chip)
+    #ifndef FAST_PWM
+      TCCR2B = MASK(CS20) | MASK(CS21) | MASK(CS22); // F_CPU / 256 / 1024
+    #endif
+    TIMSK2 = 0;
+    OCR2A = 0;
+    OCR2B = 0;
+  #endif
 
 	#ifdef	TCCR3A
 		TCCR3A = MASK(WGM30);
@@ -180,12 +182,14 @@ void heater_init() {
 				case (uint16_t) &OCR0B:
 					TCCR0A |= MASK(COM0B1);
 					break;
+        #ifdef TCCR2A
 				case (uint16_t) &OCR2A:
 					TCCR2A |= MASK(COM2A1);
 					break;
 				case (uint16_t) &OCR2B:
 					TCCR2A |= MASK(COM2B1);
 					break;
+        #endif
 				#ifdef TCCR3A
 				case (uint16_t) &OCR3AL:
 					TCCR3A |= MASK(COM3A1);
