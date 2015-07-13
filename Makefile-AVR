@@ -113,6 +113,7 @@ TARGET = $(PROGRAM).hex
 # to keep this working and can take a shortcut:
 SOURCES = $(wildcard *.c)
 
+CFLAGS  = $(EXTRA_CFLAGS)
 CFLAGS += -DF_CPU=$(F_CPU)
 CFLAGS += -DMCU_STR=\"$(MCU)\"
 CFLAGS += -mmcu=$(MCU)

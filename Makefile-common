@@ -107,3 +107,29 @@ $(BUILDDIR)/%.bin: $(BUILDDIR)/%.elf
 $(BUILDDIR)/%.sym: $(BUILDDIR)/%.elf
 	@echo "  SYM       $@"
 	@$(OBJDUMP) -t $< | perl -ne 'BEGIN { printf "  ADDR  NAME                  SIZE\n"; } /([0-9a-f]+)\s+(\w+)\s+O\s+\.(bss|data)\s+([0-9a-f]+)\s+(\w+)/ && printf "0x%04x  %-20s +%d\n", eval("0x$$1") & 0xFFFF, $$5, eval("0x$$4")' | sort -k1 > $@
+
+
+# Helpful tools.
+
+.PHONY: regressiontests
+
+# Try to catch regressions. Put here whatever test can help to detect these
+# and can be automated enough to allow to run them with a simple
+# "make regressiontests".
+regressiontests:
+	# Generic Gen7 configuration.
+	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-gen7.h \
+	  MCU=atmega644 F_CPU=20000000UL EXTRA_CFLAGS=-Werror all
+	# Generic RAMPS configuration.
+	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-ramps.h \
+	  MCU=atmega2560 F_CPU=16000000UL EXTRA_CFLAGS=-Werror all
+	# Generic Teensy2 configuration, which uses USB_SERIAL.
+	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-teensy2.h \
+	  MCU=atmega32u4 F_CPU=16000000UL EXTRA_CFLAGS=-Werror all
+	# Don't forget the hostside simulator.
+	$(MAKE) -f Makefile-SIM all
+	@# Nonstandard builds go into a subdirectory of build/, see definition of
+	@# $(BUILDDIR) above. Let's clean that up on success.
+	rm -rf $(BUILDDIR)/testcases/ $(BUILDDIR)/sim/
+	@echo
+	@echo "All regression tests ran successfully, you're fine to commit now."
