@@ -12,6 +12,8 @@
 */
 void spi_init(void);
 
+#ifndef SIMULATOR /* Avoid inlining code on simulator. */
+
 /** SPI device selection.
 
   Because out famous WRITE() macro works with constant pins, only, we define
@@ -99,4 +101,5 @@ inline uint8_t spi_rw(uint8_t byte) {
   return SPDR;
 }
 
+#endif /* SIMULATOR */
 #endif /* _SPI_H */
