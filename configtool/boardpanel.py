@@ -532,6 +532,10 @@ class BoardPanel(wx.Panel):
     skipToSensorEnd = False
     skipToHeaterEnd = False
     tempTables = {}
+    candThermPinsWritten = False
+    candHeatPinsWritten = False
+    candProcessorsWritten = False
+    candCPUClocksWritten = False
     for ln in self.cfgBuffer:
       m = reStartSensors.match(ln)
       if m:
@@ -588,6 +592,34 @@ class BoardPanel(wx.Panel):
         if m:
           fp.write(ln)
           skipToHeaterEnd = False
+        continue
+
+      if reCandThermPins.match(ln):
+        if not candThermPinsWritten:
+          for pin in self.candThermPins:
+            fp.write("//#define TEMP_SENSOR_PIN " + pin + "\n")
+          candThermPinsWritten = True
+        continue
+
+      if reCandHeatPins.match(ln):
+        if not candHeatPinsWritten:
+          for pin in self.candHeatPins:
+            fp.write("//#define HEATER_PIN " + pin + "\n")
+          candHeatPinsWritten = True
+        continue
+
+      if reCandProcessors.match(ln):
+        if not candProcessorsWritten:
+          for pin in self.candProcessors:
+            fp.write("//#define CPU_TYPE " + pin + "\n")
+          candProcessorsWritten = True
+        continue
+
+      if reCandCPUClocks.match(ln):
+        if not candCPUClocksWritten:
+          for pin in self.candClocks:
+            fp.write("//#define F_CPU_OPT " + pin + "\n")
+          candCPUClocksWritten = True
         continue
 
       m = reDefBoolBL.match(ln)
