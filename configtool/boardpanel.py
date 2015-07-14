@@ -456,7 +456,8 @@ class BoardPanel(wx.Panel):
 
   def saveConfigFile(self, path):
     if os.path.basename(path) in protectedFiles:
-      dlg = wx.MessageDialog(self, "Unable to overwrite %s." % path,
+      dlg = wx.MessageDialog(self, "It's not allowed to overwrite files "
+                             "distributed by Teacup. Choose another name.",
                              "Protected file error", wx.OK + wx.ICON_ERROR)
       dlg.ShowModal()
       dlg.Destroy()
