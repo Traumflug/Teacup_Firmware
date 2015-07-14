@@ -43,45 +43,45 @@
 *                                                                           *
 \***************************************************************************/
 
-#define X_STEP_PIN
-#define X_DIR_PIN
-#define X_MIN_PIN
-#define X_MAX_PIN
-#define X_ENABLE_PIN
+#define X_STEP_PIN               DIO54
+#define X_DIR_PIN                DIO55
+#define X_MIN_PIN                DIO3
+#define X_MAX_PIN                DIO2
+#define X_ENABLE_PIN             DIO38
 #define X_INVERT_DIR
 #define X_INVERT_MIN
 #define X_INVERT_MAX
 #define X_INVERT_ENABLE
 
-#define Y_STEP_PIN
-#define Y_DIR_PIN
-#define Y_MIN_PIN
-#define Y_MAX_PIN
-#define Y_ENABLE_PIN
+#define Y_STEP_PIN               DIO60
+#define Y_DIR_PIN                DIO61
+#define Y_MIN_PIN                DIO14
+#define Y_MAX_PIN                DIO15
+#define Y_ENABLE_PIN             DIO56
 #define Y_INVERT_DIR
 #define Y_INVERT_MIN
 #define Y_INVERT_MAX
 #define Y_INVERT_ENABLE
 
-#define Z_STEP_PIN
-#define Z_DIR_PIN
-#define Z_MIN_PIN
-#define Z_MAX_PIN
-#define Z_ENABLE_PIN
+#define Z_STEP_PIN               DIO46
+#define Z_DIR_PIN                DIO48
+#define Z_MIN_PIN                DIO18
+#define Z_MAX_PIN                DIO19
+#define Z_ENABLE_PIN             DIO62
 #define Z_INVERT_DIR
 #define Z_INVERT_MIN
 #define Z_INVERT_MAX
 #define Z_INVERT_ENABLE
 
-#define E_STEP_PIN
-#define E_DIR_PIN
-#define E_ENABLE_PIN
+#define E_STEP_PIN               DIO26
+#define E_DIR_PIN                DIO28
+#define E_ENABLE_PIN             DIO24
 #define E_INVERT_DIR
 #define E_INVERT_ENABLE
 
-#define PS_ON_PIN
-#define PS_MOSFET_PIN
-#define STEPPER_ENABLE_PIN
+#define PS_ON_PIN                xxxx
+#define PS_MOSFET_PIN            xxxx
+#define STEPPER_ENABLE_PIN       xxxx
 #define STEPPER_INVERT_ENABLE
 
 /** \def DEBUG_LED_PIN
@@ -94,7 +94,7 @@
   a LED in hardware), see
   http://reprap.org/wiki/Teacup_Firmware#Doing_precision_profiling
 */
-#define DEBUG_LED_PIN
+#define DEBUG_LED_PIN            DIO13
 
 
 /***************************************************************************\
@@ -102,6 +102,10 @@
 * 3. TEMPERATURE SENSORS                                                    *
 *                                                                           *
 \***************************************************************************/
+
+#ifndef DEFINE_TEMP_SENSOR
+  #define DEFINE_TEMP_SENSOR(...)
+#endif
 
 /** \def TEMP_MAX6675 TEMP_THERMISTOR TEMP_AD595 TEMP_PT100 TEMP_INTERCOM
   Which temperature sensor types are you using? Leave all used ones
@@ -151,6 +155,10 @@
 * 4. HEATERS                                                                *
 *                                                                           *
 \***************************************************************************/
+
+#ifndef DEFINE_HEATER
+  #define DEFINE_HEATER(...)
+#endif
 
 /** \def HEATER_PIN
   Heater pins a user should be able to choose from in configtool. All
@@ -205,7 +213,7 @@
   115200, other common values are 19200, 38400 or 57600. Ignored when USB_SERIAL
   is defined.
 */
-#define BAUD
+#define BAUD                     115200
 
 /** \def XONXOFF
   Xon/Xoff flow control.

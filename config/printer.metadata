@@ -20,7 +20,7 @@
     are long and crossing toothed belts and a print head
     moving on the X-Y-plane.
 */
-#define KINEMATICS
+#define KINEMATICS               KINEMATICS_STRAIGHT
 
 /** \def STEPS_PER_M_X STEPS_PER_M_Y STEPS_PER_M_Z STEPS_PER_M_E
   Steps per meter ( = steps per mm * 1000 ), calculate these values
@@ -30,26 +30,26 @@
 
     Valid range: 20 to 4'0960'000 (0.02 to 40960 steps/mm)
 */
-#define STEPS_PER_M_X
-#define STEPS_PER_M_Y
-#define STEPS_PER_M_Z
-#define STEPS_PER_M_E
+#define STEPS_PER_M_X            1280000
+#define STEPS_PER_M_Y            1280000
+#define STEPS_PER_M_Z            1280000
+#define STEPS_PER_M_E            96271
 
 /** \def MAXIMUM_FEEDRATE_X MAXIMUM_FEEDRATE_Y MAXIMUM_FEEDRATE_Z MAXIMUM_FEEDRATE_E
   Used for G0 rapid moves and as a cap for all other feedrates.
 */
-#define MAXIMUM_FEEDRATE_X
-#define MAXIMUM_FEEDRATE_Y
-#define MAXIMUM_FEEDRATE_Z
-#define MAXIMUM_FEEDRATE_E
+#define MAXIMUM_FEEDRATE_X       600
+#define MAXIMUM_FEEDRATE_Y       600
+#define MAXIMUM_FEEDRATE_Z       600
+#define MAXIMUM_FEEDRATE_E       2000
 
 /** \def SEARCH_FEEDRATE_X SEARCH_FEEDRATE_Y SEARCH_FEEDRATE_Z
   Used when doing precision endstop search and as default feedrate. No
   SEARCH_FEEDRATE_E, as E can't be searched.
 */
-#define SEARCH_FEEDRATE_X
-#define SEARCH_FEEDRATE_Y
-#define SEARCH_FEEDRATE_Z
+#define SEARCH_FEEDRATE_X        50
+#define SEARCH_FEEDRATE_Y        50
+#define SEARCH_FEEDRATE_Z        50
 
 /** \def ENDSTOP_CLEARANCE_X ENDSTOP_CLEARANCE_Y ENDSTOP_CLEARANCE_Z
 
@@ -71,9 +71,9 @@
     Sane values: 0 to 20000   (0 to 20 mm)
     Valid range: 0 to 1000000
 */
-#define ENDSTOP_CLEARANCE_X
-#define ENDSTOP_CLEARANCE_Y
-#define ENDSTOP_CLEARANCE_Z
+#define ENDSTOP_CLEARANCE_X      1000
+#define ENDSTOP_CLEARANCE_Y      1000
+#define ENDSTOP_CLEARANCE_Z      100
 
 /** \def X_MIN X_MAX Y_MIN Y_MAX Z_MIN Z_MAX
   Soft axis limits. Define them to your machine's size relative to what your
@@ -90,14 +90,14 @@
     Sane values: according to printer build room size
     Valid range: -1000.0 to 1000.0
 */
-#define X_MIN
-#define X_MAX
+#define X_MIN                    0.0
+#define X_MAX                    200.0
 
-#define Y_MIN
-#define Y_MAX
+#define Y_MIN                    0.0
+#define Y_MAX                    200.0
 
-#define Z_MIN
-#define Z_MAX
+#define Z_MIN                    0.0
+#define Z_MAX                    140.0
 
 /** \def E_ABSOLUTE
   Some G-code creators produce relative length commands for the extruder,
@@ -125,7 +125,7 @@
     Units: mm/s^2
     Useful range: 1 to 10'000
 */
-#define ACCELERATION
+#define ACCELERATION             100
 
 /** \def LOOKAHEAD
   Define this to enable look-ahead during *ramping* acceleration to smoothly
@@ -156,10 +156,10 @@
     Sane values: 0 to 400
     Valid range: 0 to 65535
 */
-#define MAX_JERK_X
-#define MAX_JERK_Y
-#define MAX_JERK_Z
-#define MAX_JERK_E
+#define MAX_JERK_X               20
+#define MAX_JERK_Y               20
+#define MAX_JERK_Z               0
+#define MAX_JERK_E               200
 
 
 /***************************************************************************\
@@ -183,7 +183,7 @@
 
     Unit: degree Celsius
 */
-#define TEMP_HYSTERESIS
+#define TEMP_HYSTERESIS          10
 
 /** \def TEMP_RESIDENCY_TIME
   Actual temperature must be close to target (within set temperature
@@ -192,7 +192,7 @@
 
     Unit: seconds
 */
-#define TEMP_RESIDENCY_TIME
+#define TEMP_RESIDENCY_TIME      60
 
 /** \def TEMP_EWMA
   Smooth noisy temperature sensors. Good hardware shouldn't be noisy. Set to
@@ -205,7 +205,7 @@
 
     Valid range: 0.001 to 1.0
 */
-#define TEMP_EWMA
+#define TEMP_EWMA                1.0
 
 /** \def REPORT_TARGET_TEMPS
   With this enabled, M105 commands will return the current temperatures along
@@ -240,12 +240,12 @@
 /** \def BANG_BANG_ON
   PWM value for Bang Bang 'on'.
 */
-#define BANG_BANG_ON
+#define BANG_BANG_ON             200
 
 /** \def BANG_BANG_OFF
   PWM value for Bang Bang 'off'.
 */
-#define BANG_BANG_OFF
+#define BANG_BANG_OFF            45
 
 /** \def MOVEBUFFER_SIZE
   Move buffer size, in number of moves.
@@ -256,15 +256,15 @@
   math (hence time) to set up so a longer buffer allows more of the math to
   be done during preceding longer moves.
 */
-#define MOVEBUFFER_SIZE
+#define MOVEBUFFER_SIZE          8
 
 /** \def DC_EXTRUDER DC_EXTRUDER_PWM
   If you have a DC motor extruder, configure it as a "heater" above and define
   this value as the index or name. You probably also want to comment out
   E_STEP_PIN and E_DIR_PIN in the Pinouts section above.
 */
-#define DC_EXTRUDER
-#define DC_EXTRUDER_PWM
+#define DC_EXTRUDER              HEATER_motor
+#define DC_EXTRUDER_PWM          180
 
 /** \def USE_WATCHDOG
   Teacup implements a watchdog, which has to be reset every 250ms or it will
@@ -280,7 +280,7 @@
   order to calculate derivative in PID loop higher values make PID derivative
   term more stable at the expense of reaction time.
 */
-#define TH_COUNT
+#define TH_COUNT                 8
 
 /** \def FAST_PWM
   Teacup offers two PWM frequencies, 76(61) Hz and 78000(62500) Hz on a
@@ -298,7 +298,7 @@
 /** \def PID_SCALE
   This is the scaling of internally stored PID values. 1024L is a good value.
 */
-#define PID_SCALE
+#define PID_SCALE                1024L
 
 /** \def ENDSTOP_STEPS
   Number of steps to run into the endstops intentionally. As endstops trigger
