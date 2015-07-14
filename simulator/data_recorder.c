@@ -79,6 +79,20 @@ void record_pin(int pin, int32_t state, uint64_t t) {
   values[pin] = state;
 }
 
+static char cmt[300];
+static char *pcmt=cmt;
+void record_comment_stream(char ch) {
+  if (ch == '\r' || ch == '\n') {
+    record_comment(cmt);
+    pcmt = cmt;
+    *pcmt = 0;
+  }
+  else if (ch && pcmt < cmt+sizeof(cmt)-1) {
+    *pcmt++ = ch;
+    *pcmt = 0;
+  }
+}
+
 void record_comment(const char * msg) {
   if (!file) return;
   fprintf(file, "# %s\n", msg);

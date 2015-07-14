@@ -60,7 +60,6 @@ static void open_tty(const char *devname)
   sim_assert(serial_fd != -1, "couldn't open serial port");
   sim_assert(isatty(serial_fd), "not a TTY");
 
-  sim_info("configuring port");
   // Get the current options for the port
   if (tcgetattr(serial_fd, &options) != 0) {
     sim_error("tcgetattr");
@@ -125,7 +124,7 @@ uint8_t serial_popchar(void) {
 // send one character
 void serial_writechar(uint8_t data) {
   sim_assert(serial_initialised, "serial interface not initialised");
-  sim_gcode_ch(data);
+  record_comment_stream((char)data);
   if (serial_fd) {
     ssize_t count;
     count = write(serial_fd, &data, 1);
@@ -137,7 +136,7 @@ void serial_writechar(uint8_t data) {
 void serial_writestr(uint8_t *data) {
   const char *str = (char *)data;
   sim_assert(serial_initialised, "serial interface not initialised");
-  sim_gcode(str);
+  record_comment(str);
   if (serial_fd) {
     ssize_t count;
     count = write(serial_fd, str, strlen(str));
