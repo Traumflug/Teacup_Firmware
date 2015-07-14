@@ -118,7 +118,7 @@ void gcode_init(void) {
 
   \param c The next character to process.
 
-  \return Wether end of line was reached.
+  \return Whether end of line was reached.
 
   This parser operates character by character, so there's no need for a
   buffer holding the entire line of G-code.

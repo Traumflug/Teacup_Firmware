@@ -445,7 +445,7 @@ void heater_set(heater_t index, uint8_t value) {
     power_on();
 }
 
-/** \brief check wether all heaters are off
+/** \brief check whether all heaters are off
 */
 uint8_t heaters_all_zero() {
   uint8_t i;

@@ -114,7 +114,7 @@ DSTATUS disk_initialize(void) {
         for (timeout = 10000; timeout && send_cmd(ACMD41, 1UL << 30); timeout--)
           delay_us(100);
 
-        /* Find out wether it's a block device (CCS bit in OCR). */
+        /* Find out whether it's a block device (CCS bit in OCR). */
         if (timeout && send_cmd(CMD58, 0) == 0) {
           for (n = 0; n < 4; n++)
             ocr[n] = spi_rw(0xFF);
@@ -221,7 +221,7 @@ DRESULT disk_readp(BYTE* buffer, DWORD sector, UINT offset, UINT count) {
   \return RES_OK on success, else RES_ERROR.
 
   This starts reading a sector at offset and sends each character to the
-  parser. The parser reports back wether an end of line (EOL) was reached,
+  parser. The parser reports back whether an end of line (EOL) was reached,
   which ends this function. If end of the sector is reached without finding
   an EOL, this function should be called again with the next sector of the
   file.

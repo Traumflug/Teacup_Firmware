@@ -6,11 +6,11 @@
 #include	"dda.h"
 #include "sd.h"
 
-// wether to insist on N line numbers
+// whether to insist on N line numbers
 // if not defined, N's are completely ignored
 //#define	REQUIRE_LINENUMBER
 
-// wether to insist on a checksum
+// whether to insist on a checksum
 //#define	REQUIRE_CHECKSUM
 
 /// this is a very crude decimal-based floating point structure.

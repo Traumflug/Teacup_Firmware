@@ -101,7 +101,7 @@ void timer_init() {
 /*! Specify how long until the step timer should fire.
 	\param delay in CPU ticks
 
-  \param check_short tells wether to check for impossibly short requests. This
+  \param check_short tells whether to check for impossibly short requests. This
          should be set to 1 for calls from the step interrupt. Short requests
          then return 1 and do not schedule a timer interrupt. The calling code
          usually wants to handle this case.
@@ -111,7 +111,7 @@ void timer_init() {
          doesn't delay the requested time, but up to a full timer counter
          overflow ( = 65536 / F_CPU = 3 to 4 milliseconds).
 
-  \return a flag wether the requested time was too short to allow scheduling
+  \return a flag whether the requested time was too short to allow scheduling
           an interrupt. This is meaningful for ACCELERATION_TEMPORAL, where
           requested delays can be zero or even negative. In this case, the
           calling code should repeat the stepping code immediately and also

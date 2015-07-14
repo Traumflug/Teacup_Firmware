@@ -87,10 +87,10 @@ void sd_open(const char* filename) {
 /** Read a line of G-code from a file.
 
   \param A pointer to the parser function. This function should accept an
-         uint8_t with the character to parse and return an uint8_t wether
+         uint8_t with the character to parse and return an uint8_t whether
          end of line (EOL) was reached.
 
-  \return Wether end of line (EOF) was reached or an error happened.
+  \return Whether end of line (EOF) was reached or an error happened.
 
   Juggling with a buffer smaller than 512 bytes means that the underlying
   SD card handling code reads a full sector (512 bytes) in each operation,

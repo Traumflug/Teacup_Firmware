@@ -192,7 +192,7 @@ void io_init(void) {
 		power_off();
 	#endif
 
-  #ifdef DEBUG_LED_PIN 
+  #ifdef DEBUG_LED_PIN
     WRITE(DEBUG_LED_PIN, 0);
     SET_OUTPUT(DEBUG_LED_PIN);
   #endif
