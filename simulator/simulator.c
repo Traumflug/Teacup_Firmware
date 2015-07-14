@@ -50,7 +50,8 @@ struct option opts[] = {
   { "gcode", no_argument, NULL, 'g' },
   { "pos", no_argument, NULL, 'p' },
   { "time-scale", required_argument, NULL, 't' },
-  { "tracefile", optional_argument, NULL, 'o' }
+  { "tracefile", optional_argument, NULL, 'o' },
+  { 0, 0, 0, 0 }
 };
 
 static void usage(const char *name) {
@@ -94,7 +95,7 @@ void sim_start(int argc, char** argv) {
       recorder_init(optarg ? optarg : "datalog.out");
       break;
     default:
-      sim_error("Unexpected result in getopt_long handler");
+      exit(1);
     }
 
   // Record the command line arguments to the datalog, if active
