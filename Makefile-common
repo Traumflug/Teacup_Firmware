@@ -127,7 +127,8 @@ regressiontests:
 	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-teensy2.h \
 	  MCU=atmega32u4 F_CPU=16000000UL EXTRA_CFLAGS=-Werror all
 	# Don't forget the hostside simulator.
-	$(MAKE) -f Makefile-SIM all
+	$(MAKE) -f Makefile-SIM USER_CONFIG=testcases/config.regtest-gen7.h \
+	  EXTRA_CFLAGS=-Werror all
 	@# Nonstandard builds go into a subdirectory of build/, see definition of
 	@# $(BUILDDIR) above. Let's clean that up on success.
 	rm -rf $(BUILDDIR)/testcases/ $(BUILDDIR)/sim/
