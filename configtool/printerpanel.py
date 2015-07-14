@@ -308,24 +308,24 @@ class PrinterPanel(wx.Panel):
         if m:
           t = m.groups()
           tt = re.findall(reDefQSm2, t[1])
-          if len(tt) == 1:
+          if len(tt) == 1 and (t[0] in self.cfgNames):
             self.cfgValues[t[0]] = tt[0]
             return True
-          elif len(tt) > 1:
+          elif len(tt) > 1 and (t[0] in self.cfgNames):
             self.cfgValues[t[0]] = tt
             return True
 
     m = reDefineBL.search(ln)
     if m:
       t = m.groups()
-      if len(t) == 2:
+      if len(t) == 2 and (t[0] in self.cfgNames):
         self.cfgValues[t[0]] = t[1]
         return True
 
     m = reDefBoolBL.search(ln)
     if m:
       t = m.groups()
-      if len(t) == 1:
+      if len(t) == 1 and (t[0] in self.cfgNames):
         self.cfgValues[t[0]] = True
         return True
 
