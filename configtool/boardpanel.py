@@ -300,9 +300,19 @@ class BoardPanel(wx.Panel):
     self.candProcessors = []
     self.candClocks = []
     self.tempTables = {}
+    gatheringHelpText = False
 
     prevLines = ""
     for ln in self.userBuffer:
+      if gatheringHelpText:
+        if reHelpTextEnd.match(ln):
+          gatheringHelpText = False
+        continue
+
+      if reHelpTextStart.match(ln):
+        gatheringHelpText = True
+        continue
+
       if ln.rstrip().endswith("\\"):
         prevLines += ln.rstrip()[:-1]
         continue
