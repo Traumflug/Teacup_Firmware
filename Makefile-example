@@ -7,12 +7,8 @@
 #
 # Then you can type 'make avr' or simply 'make' to build for your printer.
 #
-# Another choice is to copy "Makefile-AVR" to "Makefile". This is less
-# convenient for building the simulator, but also allows to upload to the
-# controller with 'make prog'.
-#
 ################################################################################
-.PHONY: sim avr clean all default
+.PHONY: sim avr clean all default program regressiontests
 
 # Override variables in the stock makefiles
 export F_CPU = 20000000L
@@ -31,6 +27,14 @@ sim:
 avr:
 	@echo "----[ $(MCU) ]----"
 	@make -sf Makefile-AVR
+
+# Shortcut to program target in Makefile-AVR
+program:
+	@echo "----[ $(MCU) ]----"
+	@make -sf Makefile-AVR program
+
+regressiontests:
+	@make -sf Makefile-common regressiontests
 
 clean:
 	@echo "----[ Clean ]----"
