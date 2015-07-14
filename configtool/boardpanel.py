@@ -294,6 +294,13 @@ class BoardPanel(wx.Panel):
       elif ln.lstrip().startswith("#define"):
         self.parseDefineName(ln)
 
+    # Ignore candidates in the metadata file.
+    self.candHeatPins = []
+    self.candThermPins = []
+    self.candProcessors = []
+    self.candClocks = []
+    self.tempTables = {}
+
     prevLines = ""
     for ln in self.userBuffer:
       if ln.rstrip().endswith("\\"):
