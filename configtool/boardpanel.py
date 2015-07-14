@@ -314,8 +314,8 @@ class BoardPanel(wx.Panel):
       if self.parseCandidateValues(ln):
         continue
 
-      elif ln.lstrip().startswith("#define"):
-        self.parseDefineValue(ln)
+      elif self.parseDefineValue(ln):
+        continue
 
       else:
         m = reDefTS.search(ln)
@@ -385,24 +385,26 @@ class BoardPanel(wx.Panel):
           tt = re.findall(reDefQSm2, t[1])
           if len(tt) == 1:
             self.cfgValues[t[0]] = tt[0]
-            return
+            return True
           elif len(tt) > 1:
             self.cfgValues[t[0]] = tt
-            return
+            return True
 
-    m = reDefine.search(ln)
+    m = reDefineBL.search(ln)
     if m:
       t = m.groups()
       if len(t) == 2:
         self.cfgValues[t[0]] = t[1]
-        return
+        return True
 
-    m = reDefBool.search(ln)
+    m = reDefBoolBL.search(ln)
     if m:
       t = m.groups()
       if len(t) == 1:
         self.cfgValues[t[0]] = True
-        return
+        return True
+
+    return False
 
   def parseCandidateValues(self, ln):
     m = reCandThermPins.match(ln)

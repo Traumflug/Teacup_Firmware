@@ -255,7 +255,8 @@ class PrinterPanel(wx.Panel):
         ln = prevLines + ln
         prevLines = ""
 
-      self.parseDefineValue(ln)
+      if self.parseDefineValue(ln):
+        continue
 
     if os.path.basename(fn) in protectedFiles:
       self.parent.enableSavePrinter(False, True)
@@ -288,35 +289,36 @@ class PrinterPanel(wx.Panel):
     return False
 
   def parseDefineValue(self, ln):
-    if ln.lstrip().startswith("#define"):
-      m = reDefQS.search(ln)
-      if m:
-        t = m.groups()
-        if len(t) == 2:
-          m = reDefQSm.search(ln)
-          if m:
-            t = m.groups()
-            tt = re.findall(reDefQSm2, t[1])
-            if len(tt) == 1:
-              self.cfgValues[t[0]] = tt[0]
-              return
-            elif len(tt) > 1:
-              self.cfgValues[t[0]] = tt
-              return
+    m = reDefQS.search(ln)
+    if m:
+      t = m.groups()
+      if len(t) == 2:
+        m = reDefQSm.search(ln)
+        if m:
+          t = m.groups()
+          tt = re.findall(reDefQSm2, t[1])
+          if len(tt) == 1:
+            self.cfgValues[t[0]] = tt[0]
+            return True
+          elif len(tt) > 1:
+            self.cfgValues[t[0]] = tt
+            return True
 
-      m = reDefine.search(ln)
-      if m:
-        t = m.groups()
-        if len(t) == 2:
-          self.cfgValues[t[0]] = t[1]
-          return
+    m = reDefineBL.search(ln)
+    if m:
+      t = m.groups()
+      if len(t) == 2:
+        self.cfgValues[t[0]] = t[1]
+        return True
 
-      m = reDefBool.search(ln)
-      if m:
-        t = m.groups()
-        if len(t) == 1:
-          self.cfgValues[t[0]] = True
-          return
+    m = reDefBoolBL.search(ln)
+    if m:
+      t = m.groups()
+      if len(t) == 1:
+        self.cfgValues[t[0]] = True
+        return True
+
+    return False
 
   def onSaveConfig(self, evt):
     path = self.configFile
