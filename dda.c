@@ -112,7 +112,7 @@ static int8_t get_direction(DDA *dda, enum axis_e n) {
 void dda_init(void) {
 	// set up default feedrate
 	if (startpoint.F == 0)
-		startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
+    startpoint.F = SEARCH_FEEDRATE_Z;
 }
 
 /*! Distribute a new startpoint to DDA's internal structures without any movement.

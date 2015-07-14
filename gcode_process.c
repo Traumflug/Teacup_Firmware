@@ -37,7 +37,7 @@ uint8_t next_tool;
 
 /************************************************************************//**
 
-  \brief Processes command stored in global \ref next_target.
+  \brief Processes command stored in \ref cmd
   This is where we work out what to actually do with each command we
     receive. All data has already been scaled to integers in gcode_process.
     If you want to add support for a new G or M code, this is the place.
@@ -45,64 +45,64 @@ uint8_t next_tool;
 
 *//*************************************************************************/
 
-void process_gcode_command() {
+void process_gcode_command(GCODE_COMMAND * const cmd) {
 	uint32_t	backup_f;
 
 	// convert relative to absolute
-	if (next_target.option_all_relative) {
-    next_target.target.axis[X] += startpoint.axis[X];
-    next_target.target.axis[Y] += startpoint.axis[Y];
-    next_target.target.axis[Z] += startpoint.axis[Z];
+	if (cmd->option_all_relative) {
+    cmd->target.axis[X] += startpoint.axis[X];
+    cmd->target.axis[Y] += startpoint.axis[Y];
+    cmd->target.axis[Z] += startpoint.axis[Z];
 	}
 
 	// E relative movement.
 	// Matches Sprinter's behaviour as of March 2012.
-	if (next_target.option_all_relative || next_target.option_e_relative)
-		next_target.target.e_relative = 1;
+	if (cmd->option_all_relative || cmd->option_e_relative)
+		cmd->target.e_relative = 1;
 	else
-		next_target.target.e_relative = 0;
+		cmd->target.e_relative = 0;
 
 	// implement axis limits
 	#ifdef	X_MIN
-    if (next_target.target.axis[X] < (int32_t)(X_MIN * 1000.))
-      next_target.target.axis[X] = (int32_t)(X_MIN * 1000.);
+    if (cmd->target.axis[X] < (int32_t)(X_MIN * 1000.))
+      cmd->target.axis[X] = (int32_t)(X_MIN * 1000.);
 	#endif
 	#ifdef	X_MAX
-    if (next_target.target.axis[X] > (int32_t)(X_MAX * 1000.))
-      next_target.target.axis[X] = (int32_t)(X_MAX * 1000.);
+    if (cmd->target.axis[X] > (int32_t)(X_MAX * 1000.))
+      cmd->target.axis[X] = (int32_t)(X_MAX * 1000.);
 	#endif
 	#ifdef	Y_MIN
-    if (next_target.target.axis[Y] < (int32_t)(Y_MIN * 1000.))
-      next_target.target.axis[Y] = (int32_t)(Y_MIN * 1000.);
+    if (cmd->target.axis[Y] < (int32_t)(Y_MIN * 1000.))
+      cmd->target.axis[Y] = (int32_t)(Y_MIN * 1000.);
 	#endif
 	#ifdef	Y_MAX
-    if (next_target.target.axis[Y] > (int32_t)(Y_MAX * 1000.))
-      next_target.target.axis[Y] = (int32_t)(Y_MAX * 1000.);
+    if (cmd->target.axis[Y] > (int32_t)(Y_MAX * 1000.))
+      cmd->target.axis[Y] = (int32_t)(Y_MAX * 1000.);
 	#endif
 	#ifdef	Z_MIN
-    if (next_target.target.axis[Z] < (int32_t)(Z_MIN * 1000.))
-      next_target.target.axis[Z] = (int32_t)(Z_MIN * 1000.);
+    if (cmd->target.axis[Z] < (int32_t)(Z_MIN * 1000.))
+      cmd->target.axis[Z] = (int32_t)(Z_MIN * 1000.);
 	#endif
 	#ifdef	Z_MAX
-    if (next_target.target.axis[Z] > (int32_t)(Z_MAX * 1000.))
-      next_target.target.axis[Z] = (int32_t)(Z_MAX * 1000.);
+    if (cmd->target.axis[Z] > (int32_t)(Z_MAX * 1000.))
+      cmd->target.axis[Z] = (int32_t)(Z_MAX * 1000.);
 	#endif
 
 	// The GCode documentation was taken from http://reprap.org/wiki/Gcode .
 
-	if (next_target.seen_T) {
+	if (cmd->seen_T) {
 	    //? --- T: Select Tool ---
 	    //?
 	    //? Example: T1
 	    //?
 	    //? Select extruder number 1 to build with.  Extruder numbering starts at 0.
 
-	    next_tool = next_target.T;
+	    next_tool = cmd->T;
 	}
 
-	if (next_target.seen_G) {
+	if (cmd->seen_G) {
 		uint8_t axisSelected = 0;
-		switch (next_target.G) {
+		switch (cmd->G) {
 			case 0:
 				//? G0: Rapid Linear Motion
 				//?
@@ -110,10 +110,10 @@ void process_gcode_command() {
 				//?
 				//? In this case move rapidly to X = 12 mm.  In fact, the RepRap firmware uses exactly the same code for rapid as it uses for controlled moves (see G1 below), as - for the RepRap machine - this is just as efficient as not doing so.  (The distinction comes from some old machine tools that used to move faster if the axes were not driven in a straight line.  For them G0 allowed any movement in space to get to the destination as fast as possible.)
 				//?
-				backup_f = next_target.target.F;
-				next_target.target.F = MAXIMUM_FEEDRATE_X * 2L;
-				enqueue(&next_target.target);
-				next_target.target.F = backup_f;
+				backup_f = cmd->target.F;
+				cmd->target.F = MAXIMUM_FEEDRATE_X * 2L;
+				enqueue(&cmd->target);
+				cmd->target.F = backup_f;
 				break;
 
 			case 1:
@@ -123,7 +123,7 @@ void process_gcode_command() {
 				//?
 				//? Go in a straight line from the current (X, Y) point to the point (90.6, 13.8), extruding material as the move happens from the current extruded length to a length of 22.4 mm.
 				//?
-				enqueue(&next_target.target);
+				enqueue(&cmd->target);
 				break;
 
 				//	G2 - Arc Clockwise
@@ -141,8 +141,8 @@ void process_gcode_command() {
 				//?
 				queue_wait();
 				// delay
-				if (next_target.seen_P) {
-					for (;next_target.P > 0;next_target.P--) {
+				if (cmd->seen_P) {
+					for (;cmd->P > 0;cmd->P--) {
 						clock();
 						delay_ms(1);
 					}
@@ -156,7 +156,7 @@ void process_gcode_command() {
 				//?
 				//? Units from now on are in inches.
 				//?
-				next_target.option_inches = 1;
+				cmd->option_inches = 1;
 				break;
 
 			case 21:
@@ -166,14 +166,14 @@ void process_gcode_command() {
 				//?
 				//? Units from now on are in millimeters.  (This is the RepRap default.)
 				//?
-				next_target.option_inches = 0;
+				cmd->option_inches = 0;
 				break;
 
 			case 30:
 				//? --- G30: Go home via point ---
 				//?
 				//? Undocumented.
-				enqueue(&next_target.target);
+				enqueue(&cmd->target);
 				// no break here, G30 is move and then go home
 
 			case 28:
@@ -197,34 +197,34 @@ void process_gcode_command() {
 
 				queue_wait();
 
-				if (next_target.seen_X) {
+				if (cmd->seen_X) {
 					#if defined	X_MIN_PIN
-						home_x_negative();
+						home_x_negative(cmd);
 					#elif defined X_MAX_PIN
-						home_x_positive();
+						home_x_positive(cmd);
 					#endif
 					axisSelected = 1;
 				}
-				if (next_target.seen_Y) {
+				if (cmd->seen_Y) {
 					#if defined	Y_MIN_PIN
-						home_y_negative();
+						home_y_negative(cmd);
 					#elif defined Y_MAX_PIN
-						home_y_positive();
+						home_y_positive(cmd);
 					#endif
 					axisSelected = 1;
 				}
-				if (next_target.seen_Z) {
+				if (cmd->seen_Z) {
           #if defined Z_MIN_PIN
-            home_z_negative();
+            home_z_negative(cmd);
           #elif defined Z_MAX_PIN
-            home_z_positive();
+            home_z_positive(cmd);
 					#endif
 					axisSelected = 1;
 				}
 				// there's no point in moving E, as E has no endstops
 
 				if (!axisSelected) {
-					home();
+					home(cmd);
 				}
 				break;
 
@@ -243,7 +243,7 @@ void process_gcode_command() {
 				//?
 
 				// No wait_queue() needed.
-				next_target.option_all_relative = 0;
+				cmd->option_all_relative = 0;
 				break;
 
 			case 91:
@@ -255,7 +255,7 @@ void process_gcode_command() {
 				//?
 
 				// No wait_queue() needed.
-				next_target.option_all_relative = 1;
+				cmd->option_all_relative = 1;
 				break;
 
 			case 92:
@@ -268,28 +268,28 @@ void process_gcode_command() {
 
 				queue_wait();
 
-				if (next_target.seen_X) {
-          startpoint.axis[X] = next_target.target.axis[X];
+				if (cmd->seen_X) {
+          startpoint.axis[X] = cmd->target.axis[X];
 					axisSelected = 1;
 				}
-				if (next_target.seen_Y) {
-          startpoint.axis[Y] = next_target.target.axis[Y];
+				if (cmd->seen_Y) {
+          startpoint.axis[Y] = cmd->target.axis[Y];
 					axisSelected = 1;
 				}
-				if (next_target.seen_Z) {
-          startpoint.axis[Z] = next_target.target.axis[Z];
+				if (cmd->seen_Z) {
+          startpoint.axis[Z] = cmd->target.axis[Z];
 					axisSelected = 1;
 				}
-				if (next_target.seen_E) {
-          startpoint.axis[E] = next_target.target.axis[E];
+				if (cmd->seen_E) {
+          startpoint.axis[E] = cmd->target.axis[E];
 					axisSelected = 1;
 				}
 
 				if (axisSelected == 0) {
-          startpoint.axis[X] = next_target.target.axis[X] =
-          startpoint.axis[Y] = next_target.target.axis[Y] =
-          startpoint.axis[Z] = next_target.target.axis[Z] =
-          startpoint.axis[E] = next_target.target.axis[E] = 0;
+          startpoint.axis[X] = cmd->target.axis[X] =
+          startpoint.axis[Y] = cmd->target.axis[Y] =
+          startpoint.axis[Z] = cmd->target.axis[Z] =
+          startpoint.axis[E] = cmd->target.axis[E] = 0;
 				}
 
 				dda_new_startpoint();
@@ -301,16 +301,16 @@ void process_gcode_command() {
 				//? Find the minimum limit of the specified axes by searching for the limit switch.
 				//?
         #if defined X_MIN_PIN
-          if (next_target.seen_X)
-            home_x_negative();
+          if (cmd->seen_X)
+            home_x_negative(cmd);
         #endif
         #if defined Y_MIN_PIN
-          if (next_target.seen_Y)
-            home_y_negative();
+          if (cmd->seen_Y)
+            home_y_negative(cmd);
         #endif
         #if defined Z_MIN_PIN
-          if (next_target.seen_Z)
-            home_z_negative();
+          if (cmd->seen_Z)
+            home_z_negative(cmd);
         #endif
 				break;
 
@@ -320,30 +320,30 @@ void process_gcode_command() {
 				//? Find the maximum limit of the specified axes by searching for the limit switch.
 				//?
         #if defined X_MAX_PIN
-          if (next_target.seen_X)
-            home_x_positive();
+          if (cmd->seen_X)
+            home_x_positive(cmd);
         #endif
         #if defined Y_MAX_PIN
-          if (next_target.seen_Y)
-            home_y_positive();
+          if (cmd->seen_Y)
+            home_y_positive(cmd);
         #endif
         #if defined Z_MAX_PIN
-          if (next_target.seen_Z)
-            home_z_positive();
+          if (cmd->seen_Z)
+            home_z_positive(cmd);
         #endif
 				break;
 
 				// unknown gcode: spit an error
 			default:
-				sersendf_P(PSTR("E: Bad G-code %d"), next_target.G);
+				sersendf_P(PSTR("E: Bad G-code %d"), cmd->G);
 				// newline is sent from gcode_parse after we return
 				return;
 		}
 	}
-	else if (next_target.seen_M) {
+	else if (cmd->seen_M) {
 		uint8_t i;
 
-		switch (next_target.M) {
+		switch (cmd->M) {
 			case 0:
 				//? --- M0: machine stop ---
 				//?
@@ -436,7 +436,7 @@ void process_gcode_command() {
 				//?
 
 				// No wait_queue() needed.
-				next_target.option_e_relative = 0;
+				cmd->option_e_relative = 0;
 				break;
 
 			case 83:
@@ -446,7 +446,7 @@ void process_gcode_command() {
 				//?
 
 				// No wait_queue() needed.
-				next_target.option_e_relative = 1;
+				cmd->option_e_relative = 1;
 				break;
 
 			// M3/M101- extruder on
@@ -488,15 +488,15 @@ void process_gcode_command() {
         //? of the heater connected to the second temperature sensor rather
         //? than the extruder temperature).
         //?
-				if ( ! next_target.seen_S)
+				if ( ! cmd->seen_S)
 					break;
-        if ( ! next_target.seen_P)
+        if ( ! cmd->seen_P)
           #ifdef HEATER_EXTRUDER
-            next_target.P = HEATER_EXTRUDER;
+            cmd->P = HEATER_EXTRUDER;
           #else
-            next_target.P = 0;
+            cmd->P = 0;
           #endif
-				temp_set(next_target.P, next_target.S);
+				temp_set(cmd->P, cmd->S);
 				break;
 
 			case 105:
@@ -516,9 +516,9 @@ void process_gcode_command() {
 				#ifdef ENFORCE_ORDER
 					queue_wait();
 				#endif
-				if ( ! next_target.seen_P)
-					next_target.P = TEMP_SENSOR_none;
-				temp_print(next_target.P);
+				if ( ! cmd->seen_P)
+					cmd->P = TEMP_SENSOR_none;
+				temp_print(cmd->P);
 				break;
 
 			case 7:
@@ -537,15 +537,15 @@ void process_gcode_command() {
 					// wait for all moves to complete
 					queue_wait();
 				#endif
-        if ( ! next_target.seen_P)
+        if ( ! cmd->seen_P)
           #ifdef HEATER_FAN
-            next_target.P = HEATER_FAN;
+            cmd->P = HEATER_FAN;
           #else
-            next_target.P = 0;
+            cmd->P = 0;
           #endif
-				if ( ! next_target.seen_S)
+				if ( ! cmd->seen_S)
 					break;
-        heater_set(next_target.P, next_target.S);
+        heater_set(cmd->P, cmd->S);
 				break;
 
 			case 110:
@@ -574,9 +574,9 @@ void process_gcode_command() {
 				//?
 				//? This command is only available in DEBUG builds of Teacup.
 
-				if ( ! next_target.seen_S)
+				if ( ! cmd->seen_S)
 					break;
-				debug_flags = next_target.S;
+				debug_flags = cmd->S;
 				break;
 			#endif
 
@@ -713,55 +713,55 @@ void process_gcode_command() {
 				//? --- M130: heater P factor ---
 				//? Undocumented.
 			  	//  P factor in counts per degreeC of error
-        if ( ! next_target.seen_P)
+        if ( ! cmd->seen_P)
           #ifdef HEATER_EXTRUDER
-            next_target.P = HEATER_EXTRUDER;
+            cmd->P = HEATER_EXTRUDER;
           #else
-            next_target.P = 0;
+            cmd->P = 0;
           #endif
-				if (next_target.seen_S)
-					pid_set_p(next_target.P, next_target.S);
+				if (cmd->seen_S)
+					pid_set_p(cmd->P, cmd->S);
 				break;
 
 			case 131:
 				//? --- M131: heater I factor ---
 				//? Undocumented.
 			  	// I factor in counts per C*s of integrated error
-        if ( ! next_target.seen_P)
+        if ( ! cmd->seen_P)
           #ifdef HEATER_EXTRUDER
-            next_target.P = HEATER_EXTRUDER;
+            cmd->P = HEATER_EXTRUDER;
           #else
-            next_target.P = 0;
+            cmd->P = 0;
           #endif
-				if (next_target.seen_S)
-					pid_set_i(next_target.P, next_target.S);
+				if (cmd->seen_S)
+					pid_set_i(cmd->P, cmd->S);
 				break;
 
 			case 132:
 				//? --- M132: heater D factor ---
 				//? Undocumented.
 			  	// D factor in counts per degreesC/second
-        if ( ! next_target.seen_P)
+        if ( ! cmd->seen_P)
           #ifdef HEATER_EXTRUDER
-            next_target.P = HEATER_EXTRUDER;
+            cmd->P = HEATER_EXTRUDER;
           #else
-            next_target.P = 0;
+            cmd->P = 0;
           #endif
-				if (next_target.seen_S)
-					pid_set_d(next_target.P, next_target.S);
+				if (cmd->seen_S)
+					pid_set_d(cmd->P, cmd->S);
 				break;
 
 			case 133:
 				//? --- M133: heater I limit ---
 				//? Undocumented.
-        if ( ! next_target.seen_P)
+        if ( ! cmd->seen_P)
           #ifdef HEATER_EXTRUDER
-            next_target.P = HEATER_EXTRUDER;
+            cmd->P = HEATER_EXTRUDER;
           #else
-            next_target.P = 0;
+            cmd->P = 0;
           #endif
-				if (next_target.seen_S)
-					pid_set_i_limit(next_target.P, next_target.S);
+				if (cmd->seen_S)
+					pid_set_i_limit(cmd->P, cmd->S);
 				break;
 
 			case 134:
@@ -776,13 +776,13 @@ void process_gcode_command() {
 				//? --- M136: PRINT PID settings to host ---
 				//? Undocumented.
 				//? This comand is only available in DEBUG builds.
-        if ( ! next_target.seen_P)
+        if ( ! cmd->seen_P)
           #ifdef HEATER_EXTRUDER
-            next_target.P = HEATER_EXTRUDER;
+            cmd->P = HEATER_EXTRUDER;
           #else
-            next_target.P = 0;
+            cmd->P = 0;
           #endif
-				heater_print(next_target.P);
+				heater_print(cmd->P);
 				break;
 			#endif
 
@@ -790,9 +790,9 @@ void process_gcode_command() {
 				//? --- M140: Set heated bed temperature ---
 				//? Undocumented.
 				#ifdef	HEATER_BED
-					if ( ! next_target.seen_S)
+					if ( ! cmd->seen_S)
 						break;
-					temp_set(HEATER_BED, next_target.S);
+					temp_set(HEATER_BED, cmd->S);
 				#endif
 				break;
 
@@ -819,8 +819,8 @@ void process_gcode_command() {
 
 				// unknown mcode: spit an error
 			default:
-				sersendf_P(PSTR("E: Bad M-code %d"), next_target.M);
+				sersendf_P(PSTR("E: Bad M-code %d"), cmd->M);
 				// newline is sent from gcode_parse after we return
-		} // switch (next_target.M)
-	} // else if (next_target.seen_M)
+		} // switch (cmd->M)
+	} // else if (cmd->seen_M)
 } // process_gcode_command()

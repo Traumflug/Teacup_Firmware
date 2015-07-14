@@ -84,6 +84,11 @@ void sd_open(const char* filename) {
   }
 }
 
+uint8_t gcode_parse_char_sd(uint8_t c)
+{
+  return gcode_parse_char(c, Parser_SdCard);
+}
+
 /** Read a line of G-code from a file.
 
   \param A pointer to the parser function. This function should accept an
@@ -103,7 +108,7 @@ void sd_open(const char* filename) {
 */
 uint8_t sd_read_gcode_line(void) {
 
-  result = pf_parse_line(&gcode_parse_char);
+  result = pf_parse_line(&gcode_parse_char_sd);
   if (result == FR_END_OF_FILE) {
     return 1;
   }

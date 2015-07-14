@@ -70,7 +70,7 @@ void sd_open(const char* filename) {
 }
 
 uint8_t gcode_parse_char_sd(uint8_t c) {
-  return gcode_parse_char(c);
+  return gcode_parse_char(c, Parser_SdCard);
 }
 
 /** Read a line of G-code from a file.

@@ -1,4 +1,3 @@
-#include	"home.h"
 
 /** \file
 	\brief Homing routines
@@ -9,6 +8,7 @@
 #include	"dda_queue.h"
 #include	"pinio.h"
 #include	"gcode_parse.h"
+#include	"home.h"
 
 // Check configuration.
 #if defined X_MIN_PIN || defined X_MAX_PIN
@@ -55,20 +55,20 @@
 
 
 /// home all 3 axes
-void home() {
+void home(GCODE_COMMAND * const cmd) {
 
-  home_x_negative();
-  home_x_positive();
+  home_x_negative(cmd);
+  home_x_positive(cmd);
 
-  home_y_negative();
-  home_y_positive();
+  home_y_negative(cmd);
+  home_y_positive(cmd);
 
-  home_z_negative();
-  home_z_positive();
+  home_z_negative(cmd);
+  home_z_positive(cmd);
 }
 
 /// find X MIN endstop
-void home_x_negative() {
+void home_x_negative(GCODE_COMMAND * const cmd) {
 	#if defined X_MIN_PIN
 		TARGET t = startpoint;
 
@@ -89,16 +89,16 @@ void home_x_negative() {
 		// set X home
 		queue_wait(); // we have to wait here, see G92
 		#ifdef X_MIN
-      startpoint.axis[X] = next_target.target.axis[X] = (int32_t)(X_MIN * 1000.0);
+      startpoint.axis[X] = cmd->target.axis[X] = (int32_t)(X_MIN * 1000.0);
 		#else
-      startpoint.axis[X] = next_target.target.axis[X] = 0;
+      startpoint.axis[X] = cmd->target.axis[X] = 0;
 		#endif
 		dda_new_startpoint();
 	#endif
 }
 
 /// find X_MAX endstop
-void home_x_positive() {
+void home_x_positive(GCODE_COMMAND * const cmd) {
 	#if defined X_MAX_PIN && ! defined X_MAX
 		#warning X_MAX_PIN defined, but not X_MAX. home_x_positive() disabled.
 	#endif
@@ -121,13 +121,13 @@ void home_x_positive() {
 		// set X home
 		queue_wait();
 		// set position to MAX
-    startpoint.axis[X] = next_target.target.axis[X] = (int32_t)(X_MAX * 1000.);
+    startpoint.axis[X] = cmd->target.axis[X] = (int32_t)(X_MAX * 1000.);
 		dda_new_startpoint();
 	#endif
 }
 
 /// fund Y MIN endstop
-void home_y_negative() {
+void home_y_negative(GCODE_COMMAND * const cmd) {
 	#if defined Y_MIN_PIN
 		TARGET t = startpoint;
 
@@ -147,16 +147,16 @@ void home_y_negative() {
 		// set Y home
 		queue_wait();
 		#ifdef	Y_MIN
-      startpoint.axis[Y] = next_target.target.axis[Y] = (int32_t)(Y_MIN * 1000.);
+      startpoint.axis[Y] = cmd->target.axis[Y] = (int32_t)(Y_MIN * 1000.);
 		#else
-      startpoint.axis[Y] = next_target.target.axis[Y] = 0;
+      startpoint.axis[Y] = cmd->target.axis[Y] = 0;
 		#endif
 		dda_new_startpoint();
 	#endif
 }
 
 /// find Y MAX endstop
-void home_y_positive() {
+void home_y_positive(GCODE_COMMAND * const cmd) {
 	#if defined Y_MAX_PIN && ! defined Y_MAX
 		#warning Y_MAX_PIN defined, but not Y_MAX. home_y_positive() disabled.
 	#endif
@@ -179,13 +179,13 @@ void home_y_positive() {
 		// set Y home
 		queue_wait();
 		// set position to MAX
-    startpoint.axis[Y] = next_target.target.axis[Y] = (int32_t)(Y_MAX * 1000.);
+    startpoint.axis[Y] = cmd->target.axis[Y] = (int32_t)(Y_MAX * 1000.);
 		dda_new_startpoint();
 	#endif
 }
 
 /// find Z MIN endstop
-void home_z_negative() {
+void home_z_negative(GCODE_COMMAND * const cmd) {
 	#if defined Z_MIN_PIN
 		TARGET t = startpoint;
 
@@ -205,16 +205,16 @@ void home_z_negative() {
 		// set Z home
 		queue_wait();
 		#ifdef Z_MIN
-      startpoint.axis[Z] = next_target.target.axis[Z] = (int32_t)(Z_MIN * 1000.);
+      startpoint.axis[Z] = cmd->target.axis[Z] = (int32_t)(Z_MIN * 1000.);
 		#else
-      startpoint.axis[Z] = next_target.target.axis[Z] = 0;
+      startpoint.axis[Z] = cmd->target.axis[Z] = 0;
 		#endif
 		dda_new_startpoint();
 	#endif
 }
 
 /// find Z MAX endstop
-void home_z_positive() {
+void home_z_positive(GCODE_COMMAND * const cmd) {
 	#if defined Z_MAX_PIN && ! defined Z_MAX
 		#warning Z_MAX_PIN defined, but not Z_MAX. home_z_positive() disabled.
 	#endif
@@ -237,7 +237,7 @@ void home_z_positive() {
 		// set Z home
 		queue_wait();
 		// set position to MAX
-    startpoint.axis[Z] = next_target.target.axis[Z] = (int32_t)(Z_MAX * 1000.);
+    startpoint.axis[Z] = cmd->target.axis[Z] = (int32_t)(Z_MAX * 1000.);
 		dda_new_startpoint();
 	#endif
 }

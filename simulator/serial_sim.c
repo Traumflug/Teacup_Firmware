@@ -77,6 +77,11 @@ static void open_tty(const char *devname)
   options.c_cflag &= ~CSIZE;
   options.c_cflag |= CS8;
 
+  // Non-canonical mode; characters are processed immediately, uncooked
+  options.c_lflag &= ~( ICANON | ISIG | IEXTEN);
+  options.c_cc[VMIN] = 1;
+  options.c_cc[VTIME] = 0;
+
   // Set the new options for the port
   if (tcsetattr(serial_fd, TCSANOW, &options) != 0) {
     sim_error("tcsetattr");
@@ -118,6 +123,12 @@ uint8_t serial_popchar(void) {
     exit(0);
   }
   sim_assert(count == 1, "no character in serial RX buffer");
+
+  if ( c == 0x03 ) {
+    sim_info("^C: Exit");
+    exit(0);
+  }
+
   return c;
 }
 

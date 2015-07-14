@@ -7,6 +7,7 @@
 // If no time scale specified, use 1/10th real-time for simulator
 #define DEFAULT_TIME_SCALE 10
 
+#include "gcode_parse.h"
 #include "simulator.h"
 #include "data_recorder.h"
 
@@ -205,28 +206,53 @@ void sim_tick(char ch) {
   fflush(stdout);
 }
 
-static char gcode_buffer[300]; 
-static int gcode_buffer_index;
-void sim_gcode_ch(char ch) {
+static struct GcodeBuffer {
+  char linebuf[200];   ///< Line buffer to build gcode comment for sim echo
+  int  len;            ///< Count of bytes in linebuf so far
+} gcode_buffer[Parser_ListSize];
+
+void sim_gcode_ch(char ch, uint8_t ctx) {
   // Got CR, LF or buffer full
-  if ( gcode_buffer_index == sizeof(gcode_buffer)-1 ||
+  struct GcodeBuffer *gcode = &gcode_buffer[ctx];
+
+  // Local echo (for Uart only)
+  if ( ctx == Parser_Uart ) {
+    clearline();
+    fred();
+    printf("%c",ch);
+    if ( ch == '\r' ) printf("\n");
+    fbreset();
+    fflush(stdout);
+  }
+  if ( gcode->len == sizeof(gcode->linebuf)-1 ||
        ch == '\r' || ch == '\n' || ch == 0 ) {
 
     // Terminate string, reset buffer, emit gcode
-    if (gcode_buffer_index) {
-      gcode_buffer[gcode_buffer_index] = 0;
-      gcode_buffer_index = 0;
+    if (gcode->len) {
+      gcode->linebuf[gcode->len] = 0;
+      gcode->len = 0;
 
       if (trace_gcode) {
+        const char *src="???";
         clearline();
         fyellow();
-        printf("%s\n", gcode_buffer);
+        switch (ctx) {
+          case Parser_Uart:
+            src="Uart";
+            break;
+          #ifdef SD
+            case Parser_SdCard:
+              src="SdCard";
+              break;
+          #endif
+        }
+        printf("[%s] %s\n", src, gcode->linebuf);
         fbreset();
         fflush(stdout);
       }
 
       // Send gcode to data_recorder
-      record_comment(gcode_buffer);
+      record_comment(gcode->linebuf);
     }
 
     if (ch == '\r' || ch == '\n' || ch == 0)
@@ -234,12 +260,12 @@ void sim_gcode_ch(char ch) {
   }
 
   // Acumulate char from stream
-  gcode_buffer[gcode_buffer_index++] = ch;
+  gcode->linebuf[gcode->len++] = ch;
 }
 
-void sim_gcode(const char msg[]) {
-  for ( ; *msg ; msg++ ) sim_gcode_ch(*msg);
-  sim_gcode_ch(0);
+void sim_gcode(const char msg[], uint8_t ctx) {
+  for ( ; *msg ; msg++ ) sim_gcode_ch(*msg, ctx);
+  sim_gcode_ch(0, ctx);
 }
 
 void sim_error(const char msg[]) {

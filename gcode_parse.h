@@ -66,12 +66,19 @@ enum gcode_source {
   GCODE_SOURCE_SD      = 0b00000010,
 };
 
-
 extern enum gcode_source gcode_sources;
-extern enum gcode_source gcode_active;
 
-/// the command being processed
-extern GCODE_COMMAND next_target;
+typedef enum ParserType {
+    Parser_Uart ,
+#ifdef SD
+    Parser_SdCard ,
+#endif
+#ifdef CANNED_CYCLE
+    Parser_Canned ,
+#endif
+
+    Parser_ListSize  // end of list; number of items in list
+} ParserType;
 
 #ifdef SD
   /// For storing incoming strings. Currently the only use is SD card filename.
@@ -81,7 +88,7 @@ extern GCODE_COMMAND next_target;
 void gcode_init(void);
 
 /// accept the next character and process it
-uint8_t gcode_parse_char(uint8_t c);
+uint8_t gcode_parse_char(uint8_t c,ParserType parser);
 
 // uses the global variable next_target.N
 void request_resend(void);

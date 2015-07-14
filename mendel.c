@@ -273,20 +273,15 @@ int main (void)
 	{
 		// if queue is full, no point in reading chars- host will just have to wait
     if (queue_full() == 0) {
-      uint8_t c, line_done;
+      uint8_t c;
 
-      if (( ! gcode_active || gcode_active & GCODE_SOURCE_SERIAL) &&
-          serial_rxchars() != 0) {
-        gcode_active = GCODE_SOURCE_SERIAL;
+      if (serial_rxchars() != 0) {
         c = serial_popchar();
-        line_done = gcode_parse_char(c);
-        if (line_done)
-          gcode_active = 0;
+        (void) gcode_parse_char(c,Parser_Uart);
       }
 
       #ifdef SD
-        if (( ! gcode_active || gcode_active & GCODE_SOURCE_SD) &&
-            gcode_sources & GCODE_SOURCE_SD) {
+        if (gcode_sources & GCODE_SOURCE_SD) {
           if (sd_read_gcode_line()) {
             serial_writestr_P(PSTR("\nSD file done.\n"));
             gcode_sources &= ! GCODE_SOURCE_SD;
@@ -297,22 +292,9 @@ int main (void)
       #endif
 
       #ifdef CANNED_CYCLE
-        /**
-          WARNING!
-
-          This code works on a per-character basis.
-
-          Unlike with SD reading code above and for historical reasons (was
-          a quicky doing its job, before SD card was implemented), any data
-          received over serial WILL be randomly distributed through the canned
-          G-code, and you'll have a big mess!
-
-          The solution is to join the strategy above and make canned G-code
-          a third G-code source next to serial and SD.
-        */
         static uint32_t canned_gcode_pos = 0;
 
-        gcode_parse_char(pgm_read_byte(&(canned_gcode_P[canned_gcode_pos])));
+        gcode_parse_char(pgm_read_byte(&(canned_gcode_P[canned_gcode_pos])),Parser_Canned);
 
         canned_gcode_pos++;
         if (pgm_read_byte(&(canned_gcode_P[canned_gcode_pos])) == 0)
