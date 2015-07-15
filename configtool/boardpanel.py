@@ -288,8 +288,8 @@ class BoardPanel(wx.Panel):
         ln = prevLines + ln
         prevLines = ""
 
-      if ln.lstrip().startswith("//"):
-        self.parseCandidateValues(ln)
+      if self.parseCandidateValues(ln):
+        continue
 
       elif ln.lstrip().startswith("#define"):
         self.parseDefineName(ln)
@@ -311,8 +311,8 @@ class BoardPanel(wx.Panel):
         ln = prevLines + ln
         prevLines = ""
 
-      if ln.lstrip().startswith("//"):
-        self.parseCandidateValues(ln)
+      if self.parseCandidateValues(ln):
+        continue
 
       elif ln.lstrip().startswith("#define"):
         self.parseDefineValue(ln)
@@ -407,28 +407,28 @@ class BoardPanel(wx.Panel):
       t = m.groups()
       if len(t) == 1:
         self.candThermPins.append(t[0])
-        return
+      return True
 
     m = reCandHeatPins.match(ln)
     if m:
       t = m.groups()
       if len(t) == 1:
         self.candHeatPins.append(t[0])
-        return
+      return True
 
     m = reCandProcessors.match(ln)
     if m:
       t = m.groups()
       if len(t) == 1:
         self.candProcessors.append(t[0])
-        return
+      return True
 
     m = reCandCPUClocks.match(ln)
     if m:
       t = m.groups()
       if len(t) == 1:
         self.candClocks.append(t[0])
-        return
+      return True
 
     m = reDefTT.match(ln)
     if m:
@@ -437,7 +437,9 @@ class BoardPanel(wx.Panel):
         s = self.parseTempTable(t[1])
         if s:
           self.tempTables[t[0]] = s
-          return
+      return True
+
+    return False
 
   def parseSensor(self, s):
     m = reSensor.search(s)
