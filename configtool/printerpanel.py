@@ -242,7 +242,8 @@ class PrinterPanel(wx.Panel):
         ln = prevLines + ln
         prevLines = ""
 
-      self.parseDefineName(ln)
+      if self.parseDefineName(ln):
+        continue
 
     prevLines = ""
     for ln in self.userBuffer:
@@ -282,6 +283,9 @@ class PrinterPanel(wx.Panel):
       t = m.groups()
       if len(t) == 1:
         self.cfgNames.append(t[0])
+      return True
+
+    return False
 
   def parseDefineValue(self, ln):
     if ln.lstrip().startswith("#define"):

@@ -291,8 +291,8 @@ class BoardPanel(wx.Panel):
       if self.parseCandidateValues(ln):
         continue
 
-      elif ln.lstrip().startswith("#define"):
-        self.parseDefineName(ln)
+      if self.parseDefineName(ln):
+        continue
 
     # Ignore candidates in the metadata file.
     self.candHeatPins = []
@@ -370,6 +370,9 @@ class BoardPanel(wx.Panel):
       t = m.groups()
       if len(t) == 1:
         self.cfgNames.append(t[0])
+      return True
+
+    return False
 
   def parseDefineValue(self, ln):
     m = reDefQS.search(ln)
