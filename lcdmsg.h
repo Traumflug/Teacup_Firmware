@@ -1,3 +1,6 @@
+
+#include "config_wrapper.h"
+
 #ifdef LCD
 
 #ifndef	_LCDMSG_H

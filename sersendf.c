@@ -210,7 +210,7 @@ void lcdsendf_P(PGM_P format_P, ...) {
 					j = 0;
 					break;
 				case 'x':
-					lcdWriteText("0x");
+					lcdWriteText((uint8_t *)"0x");
 					if (j == 4)
             lcdwrite_hex32(GET_ARG(uint32_t));
 					else if (j == 1)
@@ -226,7 +226,7 @@ void lcdsendf_P(PGM_P format_P, ...) {
 					j = 0;
 					break;
 				default:
-					lcdWriteChar(&c);
+					lcdWriteChar(c);
 					j = 0;
 					break;
 			}
@@ -236,7 +236,7 @@ void lcdsendf_P(PGM_P format_P, ...) {
 				j = 2;
 			}
 			else {
-				lcdWriteChar(&c);
+				lcdWriteChar(c);
 			}
 		}
 	}

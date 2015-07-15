@@ -244,9 +244,9 @@ void init(void) {
     // initialize LCD
     lcdInit();
     lcdClear();
-    lcdWriteText("->Teacup LCD Init<-");
+    lcdWriteText((uint8_t *)"->Teacup LCD Init<-");
     lcdGoToAddr(0x54);
-    lcdWriteText("Teacup Firmware");
+    lcdWriteText((uint8_t *)"Teacup Firmware");
   #endif
 
 	// enable interrupts

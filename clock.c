@@ -17,6 +17,7 @@
 	#include	"intercom.h"
 #endif
 #include	"memory_barrier.h"
+#include "SimpleLCD.h"
 
 
 /// Every time our clock fires we increment this,

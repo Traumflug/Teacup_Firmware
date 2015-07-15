@@ -369,12 +369,9 @@ static void single_temp_print(temp_sensor_t index) {
 
 #ifdef LCD
 static void single_temp_lcd(temp_sensor_t index) {
-	uint8_t c = (temp_sensors_runtime[index].last_read_temp & 3) * 25;
 	lcdsendf_P(PSTR("%u"), temp_sensors_runtime[index].last_read_temp >> 2);
   #ifdef REPORT_TARGET_TEMPS
-    lcdsendf_P(PSTR("/"));
-    c = (temp_sensors_runtime[index].target_temp & 3) * 25;
-    lcdsendf_P(PSTR("%u"), temp_sensors_runtime[index].target_temp >> 2);
+    lcdsendf_P(PSTR("/%u"), temp_sensors_runtime[index].target_temp >> 2);
   #endif
 }
 #endif

@@ -1,4 +1,6 @@
 
+#include "config_wrapper.h"
+
 #ifdef LCD
 
 #include	"lcdmsg.h"
@@ -13,15 +15,15 @@
 	\param v hex digit to write, higher nibble ignored
 */
 void lcdwrite_hex4(uint8_t v) {
-        char ch;
+        uint8_t ch;
 	v &= 0xF;
 	if (v < 10){
                 ch='0'+v;
-		lcdWriteChar(&ch);
+		lcdWriteChar(ch);
         }
 	else {
                 ch='A' - 10 + v;
-		lcdWriteChar(&ch);
+		lcdWriteChar(ch);
 }
 }
 
@@ -56,8 +58,7 @@ const uint32_t lcdpowers[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000
 	\param v number to send
 */
 void lcdwrite_uint32(uint32_t v) {
-	uint8_t e, t;
-        char ch;
+	uint8_t e, t, ch;
 	for (e = 9; e > 0; e--) {
 		if (v >= lcdpowers[e])
 			break;
@@ -67,7 +68,7 @@ void lcdwrite_uint32(uint32_t v) {
 	{
 		for (t = 0; v >= lcdpowers[e]; v -= lcdpowers[e], t++);
                 ch=t + '0';
-                lcdWriteChar(&ch);
+                lcdWriteChar(ch);
 	}
 	while (e--);
 }
@@ -76,10 +77,10 @@ void lcdwrite_uint32(uint32_t v) {
 	\param v number to send
 */
 void lcdwrite_int32(int32_t v) {
-        char ch;
+        uint8_t ch;
 	if (v < 0) {
                 ch='-';
-		lcdWriteChar(&ch);
+		lcdWriteChar(ch);
 		v = -v;
 	}
 
@@ -91,8 +92,7 @@ void lcdwrite_int32(int32_t v) {
 \param fp number of decimal places to the right of the decimal point
 */
 void lcdwrite_uint32_vf(uint32_t v, uint8_t fp) {
-	uint8_t e, t;
-        char ch;
+	uint8_t e, t, ch;
 
 	for (e = 9; e > 0; e--) {
 		if (v >= lcdpowers[e])
@@ -107,11 +107,11 @@ void lcdwrite_uint32_vf(uint32_t v, uint8_t fp) {
 	{
 		for (t = 0; v >= lcdpowers[e]; v -= lcdpowers[e], t++);
                 ch=t + '0';
-                lcdWriteChar(&ch);
+                lcdWriteChar(ch);
 		if (e == fp)
                 {
                         ch='.';
-			lcdWriteChar(&ch);
+			lcdWriteChar(ch);
                 }
                 e--;
 	}
@@ -123,10 +123,10 @@ void lcdwrite_uint32_vf(uint32_t v, uint8_t fp) {
 \param fp number of decimal places to the right of the decimal point
 */
 void lcdwrite_int32_vf(int32_t v, uint8_t fp) {
-        char ch;
+        uint8_t ch;
 	if (v < 0) {
                 ch='-';
-		lcdWriteChar(&ch);
+		lcdWriteChar(ch);
 		v = -v;
 	}
 

@@ -1,4 +1,4 @@
-#ifdef LCD
+
 /*
   SimpleLCD.h - Library for interfacing 20x4 LCD character display.
   Created by Raivis Strogonovs, August 6, 2013.
@@ -6,6 +6,11 @@
 
   Altered by NickE for Teacup
 */
+
+#include "config_wrapper.h"
+
+#ifdef LCD
+
 #include <stdint.h>
 
 #ifndef SimpleLCD_h
@@ -27,8 +32,8 @@ void lcdGoToXY(uint8_t x, uint8_t y);
 void lcdGoToAddr(uint8_t addr);
 void lcdInit(void);
 void lcdClear(void);
-void lcdWriteText(char *text);
-void lcdWriteChar(char *text);
+void lcdWriteText(const uint8_t *text);
+void lcdWriteChar(const uint8_t c);
 void lcdBusy(void);
 void sendCommand(uint8_t opCode);
 void sendCommand4Bit(uint8_t opCode);
