@@ -242,9 +242,6 @@ class PrinterPanel(wx.Panel):
         ln = prevLines + ln
         prevLines = ""
 
-      if ln.lstrip().startswith("//"):
-        continue
-
       self.parseDefineName(ln)
 
     prevLines = ""
@@ -256,9 +253,6 @@ class PrinterPanel(wx.Panel):
       if prevLines != "":
         ln = prevLines + ln
         prevLines = ""
-
-      if ln.lstrip().startswith("//"):
-        continue
 
       self.parseDefineValue(ln)
 
