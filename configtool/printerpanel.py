@@ -29,7 +29,7 @@ class PrinterPanel(wx.Panel):
     self.cfgValues = {}
     self.heaters = []
     self.dir = os.path.join(self.settings.folder, "config")
-    self.cfgDir = os.path.join(self.settings.folder, "config")
+    self.cfgDir = os.path.join(self.settings.folder, "configtool")
 
     self.SetBackgroundColour(self.deco.getBackgroundColour())
     self.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
@@ -182,7 +182,7 @@ class PrinterPanel(wx.Panel):
       return
 
   def loadConfigFile(self, fn):
-    cfgFn = os.path.join(self.cfgDir, "printer.metadata")
+    cfgFn = os.path.join(self.cfgDir, "printer.generic.h")
     try:
       self.cfgBuffer = list(open(cfgFn))
     except:

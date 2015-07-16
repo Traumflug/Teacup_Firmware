@@ -40,7 +40,7 @@ class BoardPanel(wx.Panel):
     self.candHeatPins = []
     self.candThermPins = []
     self.dir = os.path.join(self.settings.folder, "config")
-    self.cfgDir = os.path.join(self.settings.folder, "config")
+    self.cfgDir = os.path.join(self.settings.folder, "configtool")
 
     self.SetBackgroundColour(self.deco.getBackgroundColour())
     self.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
@@ -221,7 +221,7 @@ class BoardPanel(wx.Panel):
       return
 
   def loadConfigFile(self, fn):
-    cfgFn = os.path.join(self.cfgDir, "board.metadata")
+    cfgFn = os.path.join(self.cfgDir, "board.generic.h")
     try:
       self.cfgBuffer = list(open(cfgFn))
     except:
