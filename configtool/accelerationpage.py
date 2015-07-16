@@ -104,10 +104,17 @@ class AccelerationPage(wx.Panel, Page):
 
     self.checkBoxes['LOOKAHEAD'].Enable(False)
     self.textControls['ACCELERATION'].Enable(False)
-    for tag in ['ACCELERATION_REPRAP', 'ACCELERATION_RAMPING',
-                'ACCELERATION_TEMPORAL']:
+    for tag in self.accTypeKeys:
       if tag in cfgValues.keys() and cfgValues[tag]:
         self.radioButtons[tag].SetValue(True)
         if tag == 'ACCELERATION_RAMPING':
           self.checkBoxes['LOOKAHEAD'].Enable(True)
           self.textControls['ACCELERATION'].Enable(True)
+
+  def getValues(self):
+    result = Page.getValues(self)
+
+    for tag in self.accTypeKeys:
+      result[tag] = self.radioButtons[tag].GetValue()
+
+    return result

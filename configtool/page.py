@@ -11,10 +11,12 @@ class Page:
     self.valid = True
     self.fieldValid = {}
     self.textControls = {}
+    self.textControlsOriginal = {}
     self.checkBoxes = {}
     self.radioButtons = {}
     self.radioButtonBoxes = {}
     self.choices = {}
+    self.choicesOriginal = {}
     self.deco = Decoration()
     self.font = font
 
@@ -224,30 +226,41 @@ class Page:
         self.checkBoxes[k].SetValue(False)
 
     for k in self.textControls.keys():
-      if k in cfgValues.keys() and cfgValues[k][1] == True:
-        self.textControls[k].SetValue(str(cfgValues[k][0]))
+      if k in cfgValues.keys():
+        self.textControlsOriginal[k] = cfgValues[k]
+        if cfgValues[k][1] == True:
+          self.textControls[k].SetValue(str(cfgValues[k][0]))
+        else:
+          self.textControls[k].SetValue("")
       else:
-        self.textControls[k].SetValue("")
+        print "Key " + k + " not found in config data."
 
     self.assertModified(False)
 
   def getValues(self):
     self.assertModified(False)
     result = {}
+
     for k in self.checkBoxes.keys():
       cb = self.checkBoxes[k]
       result[k] = cb.IsChecked()
 
     for k in self.textControls.keys():
       v = self.textControls[k].GetValue()
-      result[k] = v
+      if v == "":
+        if k in self.textControlsOriginal.keys():
+          result[k] = self.textControlsOriginal[k][0], False
+        else:
+          result[k] = "", False
+      else:
+        result[k] = v, True
 
     for k in self.radioButtons.keys():
-      result[k] = self.radioButtons[k].GetValue()
+      result[k] = self.radioButtons[k].GetValue(), True
 
     for k in self.choices.keys():
       v = self.choices[k].GetSelection()
-      result[k] = self.choices[k].GetString(v)
+      result[k] = self.choices[k].GetString(v), True
 
     return result
 

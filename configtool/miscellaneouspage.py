@@ -233,6 +233,13 @@ class MiscellaneousPage(wx.Panel, Page):
       v = 0
     self.choices[k].SetSelection(v)
 
+  def insertValues(self, cfgValues):
+    Page.insertValues(self, cfgValues)
+
+    for k in self.choices.keys():
+      if k in cfgValues.keys():
+        self.choicesOriginal[k] = cfgValues[k]
+
   def getValues(self):
     result = Page.getValues(self)
 
@@ -240,8 +247,11 @@ class MiscellaneousPage(wx.Panel, Page):
     s = self.choices[k].GetSelection()
     v = self.choices[k].GetString(s)
     if v == self.heaterNameNone:
-      result[k] = ""
+      if k in self.choicesOriginal.keys():
+        result[k] = self.choicesOriginal[k][0], False
+      else:
+        result[k] = "", False
     else:
-      result[k] = "HEATER_%s" % v
+      result[k] = "HEATER_%s" % v, True
 
     return result

@@ -403,22 +403,51 @@ class PrinterPanel(wx.Panel):
         values[k] = v1[k]
 
     for ln in self.cfgBuffer:
+      m = reDefine.match(ln)
+      if m:
+        t = m.groups()
+        if len(t) == 2 and t[0] in values.keys():
+          v = values[t[0]]
+          self.cfgValues[t[0]] = v
+          if v[1] == False:
+            fp.write("//")
+          fp.write(defineValueFormat % (t[0], v[0]))
+        else:
+          if t[0] == 'CANNED_CYCLE':
+            # Known to be absent in the GUI. Worse, this value is replaced
+            # by the one in the metadata file.
+            #
+            # TODO: make value reading above recognize wether this value is
+            #       commented out or not. Reading the value its self works
+            #       already. Hint: it's the rule using reDefQS, reDefQSm, etc.
+            #
+            # TODO: add a multiline text field in the GUI to deal with this.
+            #
+            # TODO: write this value out properly. In /* comments */, if
+            #       disabled.
+            #
+            # TODO: currently, the lines beyond the ones with the #define are
+            #       treated like arbitrary comments. Having the former TODOs
+            #       done, this will lead to duplicates.
+            fp.write(ln)
+          else:
+            print "Value key " + t[0] + " not found in GUI."
+
+        continue
+
       m = reDefBoolBL.match(ln)
       if m:
         t = m.groups()
-        if len(t) == 1:
-          if t[0] in values.keys():
-            v = values[t[0]]
-            self.cfgValues[t[0]] = v
-            if v == "" or v == False:
-              fp.write("//" + ln)
-            elif v == True:
-              fp.write(ln)
-            else:
-              fp.write(defineValueFormat % (t[0], v))
-          else:
-            fp.write(ln)
-          continue
+        if len(t) == 1 and t[0] in values.keys():
+          v = values[t[0]]
+          self.cfgValues[t[0]] = v
+          if v == "" or v == False:
+            fp.write("//")
+          fp.write(defineBoolFormat % t[0])
+        else:
+          print "Boolean key " + t[0] + " not found in GUI."
+
+        continue
 
       fp.write(ln)
 

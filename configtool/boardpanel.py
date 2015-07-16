@@ -649,23 +649,37 @@ class BoardPanel(wx.Panel):
           candCPUClocksWritten = True
         continue
 
+      m = reDefine.match(ln)
+      if m:
+        t = m.groups()
+        if len(t) == 2 and t[0] in values.keys():
+          v = values[t[0]]
+          self.cfgValues[t[0]] = v
+          if v[1] == False:
+            fp.write("//")
+          fp.write(defineValueFormat % (t[0], v[0]))
+        else:
+          print "Value key " + t[0] + " not found in GUI."
+
+        continue
+
       m = reDefBoolBL.match(ln)
       if m:
         t = m.groups()
-        if len(t) == 1:
-          if t[0] in values.keys():
-            v = values[t[0]]
-            self.cfgValues[t[0]] = v
-            if v == "" or v == False:
-              fp.write("//" + ln)
-            elif v == True:
-              fp.write(ln)
-            else:
-              fp.write(defineValueFormat % (t[0], v))
-          else:
+        if len(t) == 1 and t[0] in values.keys():
+          v = values[t[0]]
+          self.cfgValues[t[0]] = v
+          if v == "" or v == False:
+            fp.write("//")
+          fp.write(defineBoolFormat % t[0])
+        else:
+          if t[0] == 'MOTHERBOARD':
+            # Known to be absent in the GUI, also won't be added anytime soon.
             fp.write(ln)
+          else:
+            print "Boolean key " + t[0] + " not found in GUI."
 
-          continue
+        continue
 
       fp.write(ln)
 

@@ -45,7 +45,11 @@ class CommunicationsPage(wx.Panel, Page):
   def insertValues(self, cfgValues):
     Page.insertValues(self, cfgValues)
 
-    self.setChoice('BAUD', cfgValues, self.defaultBaud)
+    k = 'BAUD'
+    self.setChoice(k, cfgValues, self.defaultBaud)
+    if k in cfgValues.keys():
+      self.choicesOriginal[k] = cfgValues[k]
+
     if self.checkBoxes['USB_SERIAL'].IsChecked():
       self.checkBoxes['XONXOFF'].Enable(False)
       self.choices['BAUD'].Enable(False)
@@ -54,7 +58,7 @@ class CommunicationsPage(wx.Panel, Page):
     result = Page.getValues(self)
 
     if result['USB_SERIAL']:
-      result['BAUD'] = ""
+      result['BAUD'][1] = False
       result['XONXOFF'] = False
 
     return result
