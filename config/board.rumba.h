@@ -96,9 +96,9 @@
 #define BTN_ENC            DIO43
 
 #define RRD_SMART_CONTROLLER
+#define SD_CARD_SELECT_PIN DIO53
 
-
-
+#define SD
 
 
 

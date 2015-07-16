@@ -9,7 +9,7 @@
 #include "delay.h"
 #include "serial.h"
 #include "sersendf.h"
-
+#include "SimpleLCD.h"
 #define SD_BUFFER_SIZE 16
 
 
@@ -73,7 +73,29 @@ void sd_list(const char* path) {
     sersendf_P(PSTR("E: failed to open dir. (%su)"), result);
   }
 }
+#ifdef LCD//  this should display a specific filename on the lcd based on what the value of count is
+void disp_filename(const char* path,const uint8_t count) {
+  FILINFO fno;
+  DIR dir;
+uint8_t index=0;
 
+  result = pf_opendir(&dir, path);
+  if (result == FR_OK) {
+    while(index != count){
+	index=index+1;      
+	result = pf_readdir(&dir, &fno);
+      if (result != FR_OK || fno.fname[0] == 0){
+        
+	lcdGoToAddr(0x54);
+	lcdWriteText(fno.fname);
+      }
+    }
+
+
+  }
+  
+}
+#endif
 /** Open a file for reading.
 
   \param filename Name of the file to open and to read G-code from.

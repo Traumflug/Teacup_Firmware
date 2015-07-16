@@ -40,13 +40,14 @@ unsigned char enc_A; // variables for the encoder pins
 unsigned char enc_B;
 unsigned char enc_A_prev=0;
 uint8_t count=0;
-
+uint8_t prevcnt=0;
 /** Advance our clock by a tick.
 
   Update clock counters accordingly. Should be called from the TICK_TIME
   Interrupt in timer.c.
 */
 void clock_tick(void) {
+
   clock_counter_10ms += TICK_TIME_MS;
   if (clock_counter_10ms >= 10) {
     clock_counter_10ms -= 10;
@@ -125,12 +126,12 @@ static void clock_250ms(void) {
                        lcdGoToAddr(0x15);
                        lcdsendf_P(PSTR("%lq"),
 		                 current_position.axis[Z]);
-
-			
 			lcdGoToAddr(0x1D);//  display on screen for the count variable
 			 lcdsendf_P(PSTR("C       "));
 			lcdGoToAddr(0x1E);
 			lcdsendf_P(PSTR("%su"),count);
+		
+
 
 
 
@@ -210,8 +211,11 @@ void clock() {
 		{
 			count=count+1;
 		}
+
+
 }
 enc_A_prev=enc_A;//============  code for rotary encoder
+
 	
 	ifclock(clock_flag_10ms) {
 		clock_10ms();
