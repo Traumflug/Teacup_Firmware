@@ -282,8 +282,8 @@ class PrinterPanel(wx.Panel):
       pg.setHelpText(self.helpText)
 
     k = 'DC_EXTRUDER'
-    if k in self.cfgValues.keys():
-      self.pgMiscellaneous.setOriginalHeater(self.cfgValues[k])
+    if k in self.cfgValues.keys() and self.cfgValues[k][1] == True:
+      self.pgMiscellaneous.setOriginalHeater(self.cfgValues[k][0])
     else:
       self.pgMiscellaneous.setOriginalHeater(None)
 
@@ -309,17 +309,20 @@ class PrinterPanel(wx.Panel):
           t = m.groups()
           tt = re.findall(reDefQSm2, t[1])
           if len(tt) == 1 and (t[0] in self.cfgNames):
-            self.cfgValues[t[0]] = tt[0]
+            self.cfgValues[t[0]] = tt[0], True
             return True
           elif len(tt) > 1 and (t[0] in self.cfgNames):
-            self.cfgValues[t[0]] = tt
+            self.cfgValues[t[0]] = tt, True
             return True
 
-    m = reDefineBL.search(ln)
+    m = reDefine.search(ln)
     if m:
       t = m.groups()
       if len(t) == 2 and (t[0] in self.cfgNames):
-        self.cfgValues[t[0]] = t[1]
+        if reDefineBL.search(ln):
+          self.cfgValues[t[0]] = t[1], True
+        else:
+          self.cfgValues[t[0]] = t[1], False
         return True
 
     m = reDefBoolBL.search(ln)

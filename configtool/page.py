@@ -115,8 +115,8 @@ class Page:
     return lsz
 
   def setChoice(self, name, cfgValues, default):
-    if name in cfgValues.keys():
-      bv = cfgValues[name]
+    if name in cfgValues.keys() and cfgValues[name][1] == True:
+      bv = cfgValues[name][0]
     else:
       bv = default
 
@@ -224,8 +224,8 @@ class Page:
         self.checkBoxes[k].SetValue(False)
 
     for k in self.textControls.keys():
-      if k in cfgValues.keys():
-        self.textControls[k].SetValue(str(cfgValues[k]))
+      if k in cfgValues.keys() and cfgValues[k][1] == True:
+        self.textControls[k].SetValue(str(cfgValues[k][0]))
       else:
         self.textControls[k].SetValue("")
 
