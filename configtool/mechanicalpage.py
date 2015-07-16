@@ -182,20 +182,7 @@ class MechanicalPage(wx.Panel, Page):
         self.radioButtons[k].SetToolTipString(ht['KINEMATICS'])
 
   def insertValues(self, cfgValues):
-    self.assertValid(True)
-    for k in self.fieldValid.keys():
-      self.fieldValid[k] = True
-    for k in self.textControls.keys():
-      if k in cfgValues.keys():
-        self.textControls[k].SetValue(cfgValues[k])
-      else:
-        self.textControls[k].SetValue("")
-
-    for k in self.checkBoxes.keys():
-      if k in cfgValues.keys() and cfgValues[k]:
-        self.checkBoxes[k].SetValue(True)
-      else:
-        self.checkBoxes[k].SetValue(False)
+    Page.insertValues(self, cfgValues)
 
     if 'KINEMATICS' in cfgValues.keys():
       k = cfgValues['KINEMATICS']
@@ -205,9 +192,6 @@ class MechanicalPage(wx.Panel, Page):
         self.radioButtons[self.kinematicsKeys[0]].SetValue(True)
     else:
       self.radioButtons[self.kinematicsKeys[0]].SetValue(True)
-
-    self.assertModified(False)
-    self.enableAll(True)
 
   def getValues(self):
     result = Page.getValues(self)

@@ -45,15 +45,9 @@ class CpuPage(wx.Panel, Page):
     self.clocks = clist
 
   def insertValues(self, cfgValues):
-    self.assertValid(True)
-    self.enableAll(True)
-
-    for k in self.fieldValid.keys():
-      self.fieldValid[k] = True
+    Page.insertValues(self, cfgValues)
 
     if len(self.clocks) > 0:
       self.setChoice('F_CPU', cfgValues, self.clocks[0])
     if len(self.processors) > 0:
       self.setChoice('CPU', cfgValues, self.processors[0])
-
-    self.assertModified(False)

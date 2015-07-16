@@ -100,18 +100,10 @@ class AccelerationPage(wx.Panel, Page):
     evt.Skip()
 
   def insertValues(self, cfgValues):
-    self.assertValid(True)
-    self.enableAll(True)
-    for k in self.fieldValid.keys():
-      self.fieldValid[k] = True
+    Page.insertValues(self, cfgValues)
+
     self.checkBoxes['LOOKAHEAD'].Enable(False)
     self.textControls['ACCELERATION'].Enable(False)
-    for k in self.textControls.keys():
-      if k in cfgValues.keys():
-        self.textControls[k].SetValue(cfgValues[k])
-      else:
-        self.textControls[k].SetValue("")
-
     for tag in ['ACCELERATION_REPRAP', 'ACCELERATION_RAMPING',
                 'ACCELERATION_TEMPORAL']:
       if tag in cfgValues.keys() and cfgValues[tag]:
@@ -119,10 +111,3 @@ class AccelerationPage(wx.Panel, Page):
         if tag == 'ACCELERATION_RAMPING':
           self.checkBoxes['LOOKAHEAD'].Enable(True)
           self.textControls['ACCELERATION'].Enable(True)
-
-    k = 'LOOKAHEAD'
-    if k in cfgValues.keys() and cfgValues[k]:
-      self.checkBoxes[k].SetValue(True)
-    else:
-      self.checkBoxes[k].SetValue(False)
-    self.assertModified(False)

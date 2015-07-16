@@ -179,26 +179,10 @@ class PinoutsPage(wx.Panel, Page):
     evt.Skip()
 
   def insertValues(self, cfgValues):
-    self.assertValid(True)
-    self.enableAll(True)
-    for k in self.fieldValid.keys():
-      self.fieldValid[k] = True
-    for k in self.textControls.keys():
-      if k in cfgValues.keys():
-        self.textControls[k].SetValue(cfgValues[k])
-      else:
-        self.textControls[k].SetValue("")
-
-    for k in self.checkBoxes.keys():
-      if k in cfgValues.keys() and cfgValues[k]:
-        self.checkBoxes[k].SetValue(True)
-      else:
-        self.checkBoxes[k].SetValue(False)
+    Page.insertValues(self, cfgValues)
 
     for k in self.choices.keys():
       self.setChoice(k, cfgValues, "-")
-
-    self.assertModified(False)
 
   def getValues(self):
     result = Page.getValues(self)

@@ -141,21 +141,9 @@ class SensorsPage(wx.Panel, Page):
     self.assertModified(True)
 
   def insertValues(self, cfgValues):
-    self.enableAll(True)
+    Page.insertValues(self, cfgValues)
+
     self.bAdd.Enable(True)
-    for k in self.textControls.keys():
-      if k in cfgValues.keys():
-        self.textControls[k].SetValue(cfgValues[k])
-      else:
-        self.textControls[k].SetValue("")
-
-    for k in self.checkBoxes.keys():
-      if k in cfgValues.keys() and cfgValues[k]:
-        self.checkBoxes[k].SetValue(True)
-      else:
-        self.checkBoxes[k].SetValue(False)
-
-    self.assertModified(False)
 
   def setSensors(self, sensors):
     self.sensors = sensors

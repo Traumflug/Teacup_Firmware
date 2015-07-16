@@ -233,26 +233,6 @@ class MiscellaneousPage(wx.Panel, Page):
       v = 0
     self.choices[k].SetSelection(v)
 
-  def insertValues(self, cfgValues):
-    self.assertValid(True)
-    for k in self.fieldValid.keys():
-      self.fieldValid[k] = True
-
-    for k in self.checkBoxes.keys():
-      if k in cfgValues.keys() and cfgValues[k]:
-        self.checkBoxes[k].SetValue(True)
-      else:
-        self.checkBoxes[k].SetValue(False)
-
-    for k in self.textControls.keys():
-      if k in cfgValues.keys():
-        self.textControls[k].SetValue(str(cfgValues[k]))
-      else:
-        self.textControls[k].SetValue("")
-
-    self.assertModified(False)
-    self.enableAll(True)
-
   def getValues(self):
     result = Page.getValues(self)
 

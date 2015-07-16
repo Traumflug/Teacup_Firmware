@@ -144,16 +144,6 @@ class HeatersPage(wx.Panel, Page):
     self.parent.setHeaters(self.heaters)
     self.assertModified(True)
 
-  def insertValues(self, cfgValues):
-    self.enableAll(True)
-    for k in self.checkBoxes.keys():
-      if k in cfgValues.keys() and cfgValues[k]:
-        self.checkBoxes[k].SetValue(True)
-      else:
-        self.checkBoxes[k].SetValue(False)
-
-    self.assertModified(False)
-
   def setHeaters(self, heaters):
     self.heaters = heaters
     self.lb.updateList(self.heaters)

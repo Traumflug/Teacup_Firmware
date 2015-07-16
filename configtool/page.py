@@ -211,6 +211,26 @@ class Page:
       if k in ht.keys():
         self.choices[k].SetToolTipString(ht[k])
 
+  def insertValues(self, cfgValues):
+    self.assertValid(True)
+    self.enableAll(True)
+    for k in self.fieldValid.keys():
+      self.fieldValid[k] = True
+
+    for k in self.checkBoxes.keys():
+      if k in cfgValues.keys() and cfgValues[k]:
+        self.checkBoxes[k].SetValue(True)
+      else:
+        self.checkBoxes[k].SetValue(False)
+
+    for k in self.textControls.keys():
+      if k in cfgValues.keys():
+        self.textControls[k].SetValue(str(cfgValues[k]))
+      else:
+        self.textControls[k].SetValue("")
+
+    self.assertModified(False)
+
   def getValues(self):
     self.assertModified(False)
     result = {}
