@@ -36,6 +36,10 @@ volatile uint8_t clock_flag_250ms = 0;
 volatile uint8_t clock_flag_1s = 0;
 volatile uint8_t clock_flag_3s = 0;
 
+unsigned char enc_A; // variables for the encoder pins
+unsigned char enc_B;
+unsigned char enc_A_prev=0;
+uint8_t count=0;
 
 /** Advance our clock by a tick.
 
@@ -72,6 +76,11 @@ void clock_tick(void) {
 	called from clock_10ms(), do not call directly
 */
 static void clock_250ms(void) {
+
+
+
+
+
   if (heaters_all_zero()) {
 		if (psu_timeout > (30 * 4)) {
 			power_off();
@@ -116,6 +125,15 @@ static void clock_250ms(void) {
                        lcdGoToAddr(0x15);
                        lcdsendf_P(PSTR("%lq"),
 		                 current_position.axis[Z]);
+
+			
+			lcdGoToAddr(0x1D);//  display on screen for the count variable
+			 lcdsendf_P(PSTR("C       "));
+			lcdGoToAddr(0x1E);
+			lcdsendf_P(PSTR("%su"),count);
+
+
+
 		   }
 		#endif
 		if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
@@ -164,6 +182,9 @@ static void clock_250ms(void) {
 	called from clock(), do not call directly
 */
 static void clock_10ms(void) {
+
+
+	
 	// reset watchdog
 	wd_reset();
 
@@ -179,6 +200,19 @@ static void clock_10ms(void) {
 	call it occasionally in busy loops
 */
 void clock() {
+	enc_A = READ(BTN_EN1);//=======================   code for rotary encoder
+	enc_B = READ(BTN_EN2);
+	if((!enc_A)&&(enc_A_prev)){
+		if(enc_B){
+			count=count-1;	
+		}
+		else	
+		{
+			count=count+1;
+		}
+}
+enc_A_prev=enc_A;//============  code for rotary encoder
+	
 	ifclock(clock_flag_10ms) {
 		clock_10ms();
 	}
