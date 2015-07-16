@@ -95,7 +95,7 @@
 #define BTN_EN2            DIO12
 #define BTN_ENC            DIO43
 
-
+#define RRD_SMART_CONTROLLER
 
 
 

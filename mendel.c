@@ -190,6 +190,19 @@ void io_init(void) {
 	#ifdef	STEPPER_ENABLE_PIN
 		power_off();
 	#endif
+	#ifdef RRD_SMART_CONTROLLER
+		SET_INPUT(BTN_ENC);// setting pins as input for the rotary encoder for the Reprap discount smart controller
+		SET_INPUT(BTN_EN1);
+		SET_INPUT(BTN_EN2);
+		WRITE(BTN_ENC,1);// turns on a pulldown/pullup
+		WRITE(BTN_EN1,1);
+		WRITE(BTN_EN2,1);
+	#endif
+
+
+
+
+
 
   #ifdef DEBUG_LED_PIN 
     WRITE(DEBUG_LED_PIN, 0);
