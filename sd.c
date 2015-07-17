@@ -73,29 +73,60 @@ void sd_list(const char* path) {
     sersendf_P(PSTR("E: failed to open dir. (%su)"), result);
   }
 }
-#ifdef LCD//  this should display a specific filename on the lcd based on what the value of count is
-void disp_filename(const char* path,const uint8_t count) {
+
+#ifdef LCD
+/** List to LCD with offset.
+
+  \param path    The path to list. Toplevel path is "/".
+  \param offset  Offset in the file list.
+
+  We display three file names, all indented by two spaces, and a '>' in front
+  of the current file. To scroll through a long file list, change the offset
+  incrementally depending on up/down buttons or an turning encoder and call
+  this function on each such event.
+
+  A slash is added to directory names, to make it easier for users to
+  recognize them.
+*/
+void sd_list_offset(const char* path, uint16_t offset) {
   FILINFO fno;
   DIR dir;
-uint8_t index=0;
+  uint16_t count = 0, display_offset;
+
+  if (offset >= 1)
+    display_offset = offset - 1;
+  else
+    display_offset = offset;
 
   result = pf_opendir(&dir, path);
   if (result == FR_OK) {
-    while(index != count){
-	index=index+1;      
-	result = pf_readdir(&dir, &fno);
-      if (result != FR_OK || fno.fname[0] == 0){
-        
-	lcdGoToAddr(0x54);
-	lcdWriteText(fno.fname);
+    for (;;) {
+      result = pf_readdir(&dir, &fno);
+      if (result != FR_OK || fno.fname[0] == 0)
+        break;
+      if (count >= display_offset) {
+        lcd_goto_xy(0, display_offset - count);
+        if (count == offset)
+          lcd_writechar('>');
+        else
+          lcd_writechar(' ');
+        lcd_writechar(' ');
+
+        lcd_writestr((uint8_t *)fno.fname);
+        if (fno.fattrib & AM_DIR)
+          serial_writechar('/');
       }
+      count++;
+      if (count > display_offset + 3)
+        break;
     }
-
-
   }
-  
+  else {
+    sersendf_P(PSTR("E: failed to open dir. (%su)"), result);
+  }
 }
 #endif
+
 /** Open a file for reading.
 
   \param filename Name of the file to open and to read G-code from.
