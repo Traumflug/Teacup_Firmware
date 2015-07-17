@@ -217,7 +217,11 @@ class BoardPanel(wx.Panel):
     return self.saveConfigFile(path)
 
   def onSaveConfigAs(self, evt):
-    wildcard = "Board configuration (board.*.h)|board.*.h"
+    if platform.startswith("darwin"):
+      # Mac OS X appears to be a bit limited on wildcards.
+      wildcard = "Board configuration (board.*.h)|*.h"
+    else:
+      wildcard = "Board configuration (board.*.h)|board.*.h"
 
     dlg = wx.FileDialog(self, message = "Save as ...", defaultDir = self.dir,
                         defaultFile = "", wildcard = wildcard,

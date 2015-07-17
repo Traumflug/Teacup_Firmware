@@ -198,7 +198,11 @@ class PrinterPanel(wx.Panel):
     return self.saveConfigFile(path)
 
   def onSaveConfigAs(self, evt):
-    wildcard = "Printer configuration (printer.*.h)|printer.*.h"
+    if platform.startswith("darwin"):
+      # Mac OS X appears to be a bit limited on wildcards.
+      wildcard = "Printer configuration (printer.*.h)|*.h"
+    else:
+      wildcard = "Printer configuration (printer.*.h)|printer.*.h"
 
     dlg = wx.FileDialog(self, message = "Save as ...", defaultDir = self.dir,
                         defaultFile = "", wildcard = wildcard,
