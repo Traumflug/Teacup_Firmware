@@ -256,7 +256,7 @@ class Build(wx.Dialog):
     # Windows. Without this it always drops this error message:
     #   collect2.exe: error: ld returned 5 exit status 255
     # Just enabling verbose messages allows ld.exe to complete without failure.
-    if platform == "win32":
+    if platform.startswith("win"):
       cmdpath += " -Wl,-V"
 
     ofiles = ["\"" + join(self.root, "build", f) + "\""

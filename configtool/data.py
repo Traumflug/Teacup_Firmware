@@ -24,7 +24,7 @@ BSIZE = (100, 60)
 BSIZESMALL = (90, 30)
 
 
-if platform == "win32":
+if platform.startswith("win"):
   offsetTcLabel = 4
   offsetChLabel = 4
 else:

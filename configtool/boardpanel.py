@@ -157,7 +157,7 @@ class BoardPanel(wx.Panel):
     if not self.confirmLoseChanges("load a new board configuration"):
       return
 
-    if platform == "darwin":
+    if platform.startswith("darwin"):
       # Mac OS X appears to be a bit limited on wildcards.
       wildcard = "Board configuration (board.*.h)|*.h"
     else:
