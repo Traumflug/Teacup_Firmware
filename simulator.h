@@ -177,16 +177,6 @@ uint16_t sim_tick_counter(void);
 uint64_t sim_runtime_ns(void); ///< Simulated run-time in nanoseconds
 void sim_time_warp(void); ///< skip ahead to next timer interrupt, when time_scale==0
 
-/** SPI subsystem.
-
-  So far there isn't really one. Disable SD and fake the remaining
-  neccessary bits.
-*/
-#undef SD_CARD_SELECT_PIN
-#undef SD
-#define loop_until_bit_is_set(SPSR, SPIF)
-uint8_t SPCR, SPDR, SPSR;
-
 #define DIO0_PIN "proof of life"
 
 #endif /* _SIMULATOR_H */
