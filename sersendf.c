@@ -94,10 +94,13 @@
 	\code sersendf_P(PSTR("X:%ld Y:%ld temp:%u.%d flags:%sx Q%su/%su%c\n"), target.X, target.Y, current_temp >> 2, (current_temp & 3) * 25, dda.allflags, mb_head, mb_tail, (queue_full()?'F':(queue_empty()?'E':' '))) \endcode
 */
 
-#ifdef SIMULATOR
-  #define GET_ARG(T) (va_arg(args, int))
-#else
+/* va_arg() takes "fully promoted types" only, see example in Linux' va_arg
+   man page. This covers platforms >= 16 bits and arguments up to 32 bits.
+   64 bit arguments on a 32 bit platform will produce a severe warning. */
+#if __SIZEOF_INT__ == 2
   #define GET_ARG(T) (va_arg(args, T))
+#elif __SIZEOF_INT__ >= 4
+  #define GET_ARG(T) ((T)va_arg(args, int))
 #endif
 
 void sersendf_P(PGM_P format_P, ...) {
@@ -130,7 +133,7 @@ void sersendf_P(PGM_P format_P, ...) {
 					j = 0;
 					break;
 				case 'c':
-          serial_writechar(GET_ARG(uint16_t));
+          serial_writechar((uint8_t)GET_ARG(uint16_t));
 					j = 0;
 					break;
 				case 'x':

@@ -97,7 +97,7 @@ TARGET = $(PROGRAM).hex
 #SOURCES = $(wildcard *.c)
 # Until the generic ARM port is completed, we'd have to wrap all sources
 # in #ifdef __AVR__. To avoid this, build only a selection for now:
-SOURCES  = mendel.c cpu.c serial.c sermsg.c
+SOURCES  = mendel.c cpu.c serial.c sermsg.c sersendf.c
 SOURCES += mbed-pinmap.c
 SOURCES += mbed-system_LPC11xx.c
 
