@@ -117,6 +117,7 @@ CFLAGS += -Os
 CFLAGS += -flto
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
+#CFLAGS += -dM -E # To list all predefined macros into the .o file.
 # Until we're done with basic porting ...
 CFLAGS += -D__ARMEL_NOTYET__
 
