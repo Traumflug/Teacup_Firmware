@@ -42,8 +42,10 @@
   impossible to see wether code changes work. Should go away soon, because
   all this MBED stuff is too bloated for Teacup's purposes.
 
-  - Prefixed names of #include files with mbed- to match the names of the
-    copies in the Teacup repo.
+  - Commented out #include "core_cmInstr.h" and #include "core_cmFunc.h".
+    After removal of MBED's serial_api they're no longer needed.
+  - Replaced __DSB(); with __ASM volatile ("dsb"); to compensate the only
+    exception of the former.
 */
 
 
@@ -136,8 +138,9 @@
 #endif
 
 #include <stdint.h>                      /* standard types definitions                      */
-#include "mbed-core_cmInstr.h"                /* Core Instruction Access                         */
-#include "mbed-core_cmFunc.h"                 /* Core Function Access                            */
+// Both disabled, because not needed. --Traumflug
+//#include "core_cmInstr.h"                /* Core Instruction Access                         */
+//#include "core_cmFunc.h"                 /* Core Function Access                            */
 
 #endif /* __CORE_CM0_H_GENERIC */
 
@@ -629,11 +632,13 @@ __STATIC_INLINE uint32_t NVIC_GetPriority(IRQn_Type IRQn)
  */
 __STATIC_INLINE void NVIC_SystemReset(void)
 {
-  __DSB();                                                     /* Ensure all outstanding memory accesses included
-                                                                  buffered write are completed before reset */
+  // Inserted __ASM directly, instead of __DSB() from core_cmInstr.h.
+  // --Traumflug
+  __ASM volatile ("dsb");  /* Ensure all outstanding memory accesses included
+                              buffered write are completed before reset */
   SCB->AIRCR  = ((0x5FA << SCB_AIRCR_VECTKEY_Pos)      |
                  SCB_AIRCR_SYSRESETREQ_Msk);
-  __DSB();                                                     /* Ensure completion of memory access */
+  __ASM volatile ("dsb");  /* Ensure completion of memory access */
   while(1);                                                    /* wait until reset */
 }
 
