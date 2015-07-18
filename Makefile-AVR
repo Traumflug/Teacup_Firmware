@@ -133,6 +133,7 @@ CFLAGS += -ffunction-sections
 CFLAGS += -finline-functions-called-once
 CFLAGS += -mcall-prologues
 CFLAGS += -Wa,-adhlns=$(@:.o=.al)
+#CFLAGS += -dM -E # To list all predefined macros into the .o file.
 
 LDFLAGS  = -Wl,--as-needed
 
