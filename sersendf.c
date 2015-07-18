@@ -119,17 +119,21 @@ void sersendf_P(PGM_P format_P, ...) {
 					j = 4;
 					break;
 				case 'u':
-					if (j == 4)
-            serwrite_uint32(GET_ARG(uint32_t));
+          if (j == 1)
+            serwrite_uint8((uint8_t)GET_ARG(uint16_t));
+          else if (j == 2)
+            serwrite_uint16((uint16_t)GET_ARG(uint16_t));
 					else
-            serwrite_uint16(GET_ARG(uint16_t));
+            serwrite_uint32(GET_ARG(uint32_t));
 					j = 0;
 					break;
 				case 'd':
-					if (j == 4)
-            serwrite_int32(GET_ARG(int32_t));
+          if (j == 1)
+            serwrite_int8((int8_t)GET_ARG(int16_t));
+          else if (j == 2)
+            serwrite_int16((uint16_t)GET_ARG(int16_t));
 					else
-            serwrite_int16(GET_ARG(int16_t));
+            serwrite_int32(GET_ARG(int32_t));
 					j = 0;
 					break;
 				case 'c':
@@ -138,12 +142,12 @@ void sersendf_P(PGM_P format_P, ...) {
 					break;
 				case 'x':
 					serial_writestr_P(PSTR("0x"));
-					if (j == 4)
-            serwrite_hex32(GET_ARG(uint32_t));
-					else if (j == 1)
-            serwrite_hex8(GET_ARG(uint16_t));
+          if (j == 1)
+            serwrite_hex8((uint8_t)GET_ARG(uint16_t));
+          else if (j == 2)
+            serwrite_hex16((uint16_t)GET_ARG(uint16_t));
 					else
-            serwrite_hex16(GET_ARG(uint16_t));
+            serwrite_hex32(GET_ARG(uint32_t));
 					j = 0;
 					break;
 /*				case 'p':
