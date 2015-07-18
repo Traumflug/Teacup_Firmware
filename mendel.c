@@ -38,7 +38,6 @@
 #include	"gcode_parse.h"
 #include	"timer.h"
 #include	"temp.h"
-#include	"sermsg.h"
 #include	"watchdog.h"
 #include	"debug.h"
 #include	"sersendf.h"
