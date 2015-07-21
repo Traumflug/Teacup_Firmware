@@ -46,7 +46,9 @@
 #include	"debug.h"
 #include	"heater.h"
 #include	"analog.h"
+#endif /* __ARMEL_NOTYET__ */
 #include	"pinio.h"
+#ifndef __ARMEL_NOTYET__
 #include	"arduino.h"
 #include	"clock.h"
 #include	"intercom.h"
@@ -195,7 +197,7 @@ void io_init(void) {
 		power_off();
 	#endif
 
-  #ifdef DEBUG_LED_PIN 
+  #ifdef DEBUG_LED_PIN
     WRITE(DEBUG_LED_PIN, 0);
     SET_OUTPUT(DEBUG_LED_PIN);
   #endif

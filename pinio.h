@@ -32,8 +32,8 @@
   #define _READ(IO)        (IO ## _RPORT & MASK(IO ## _PIN))
   /// Write to a pin.
   #define _WRITE(IO, v)    do { if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } \
-                                else { IO ## _WPORT &= ~MASK(IO ## _PIN); }; } \
-                           while (0)
+                                else { IO ## _WPORT &= ~MASK(IO ## _PIN); } \
+                           } while (0)
   /// Toggle a pin.
   #define _TOGGLE(IO)      do { IO ## _RPORT = MASK(IO ## _PIN); } while (0)
 
@@ -46,6 +46,32 @@
   #define _GET_INPUT(IO)   ((IO ## _DDR & MASK(IO ## _PIN)) == 0)
   /// Check if pin is an output.
   #define _GET_OUTPUT(IO)  ((IO ## _DDR & MASK(IO ## _PIN)) != 0)
+
+#elif defined __ARMEL__
+
+  /**
+    The LPC1114 supports bit-banding by mapping the bit mask to the address.
+    See chapter 12 in the LPC111x User Manual. A read-modify-write cycle like
+    on AVR costs 5 clock cycles, this implementation works with 3 clock cycles.
+    Always assuming a well working optimiser.
+
+    The macros here are a bit more complex, because arm-gcc lacks hardware
+    support.
+  */
+  /// The bit-banding address.
+  #define BITBAND(IO)      (IO ## _PORT + (MASK(IO ## _PIN) << 2))
+
+  /// Write to a pin.
+  #define _WRITE(IO, v)    do { if (v) { *(volatile uint16_t *)BITBAND(IO) = \
+                                           MASK(IO ## _PIN); } \
+                                else { *(volatile uint16_t *)BITBAND(IO) = 0; } \
+                           } while (0)
+
+  /// Set pin as output.
+  #define _SET_OUTPUT(IO)  do { *(volatile uint16_t *) \
+                                  (IO ## _PORT + IO_DIR_OFFSET) |= \
+                                  MASK(IO ## _PIN); \
+                           } while (0)
 
 #elif defined SIMULATOR
 
