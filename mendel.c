@@ -42,7 +42,9 @@
 #include	"debug.h"
 #include	"heater.h"
 #include	"analog.h"
+#endif /* __ARMEL_NOTYET__ */
 #include	"pinio.h"
+#ifndef __ARMEL_NOTYET__
 #include	"clock.h"
 #include	"intercom.h"
 #include "spi.h"
@@ -248,10 +250,10 @@ void init(void) {
 
 	// reset watchdog
 	wd_reset();
+  #endif /* __ARMEL_NOTYET__ */
 
   // prepare the power supply
   power_init();
-  #endif /* __ARMEL_NOTYET__ */
 
 	// say hi to host
 	serial_writestr_P(PSTR("start\nok\n"));

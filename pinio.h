@@ -47,6 +47,26 @@
   /// Check if pin is an output.
   #define _GET_OUTPUT(IO)  ((IO ## _DDR & MASK(IO ## _PIN)) != 0)
 
+#elif defined __ARMEL__
+
+  /**
+    The LPC1114 supports bit-banding by mapping the bit mask to the address.
+    See chapter 12 in the LPC111x User Manual. A read-modify-write cycle like
+    on AVR costs 5 clock cycles, this implementation works with 3 clock cycles.
+  */
+  /// Write to a pin.
+  #define _WRITE(IO, v) \
+    do { \
+      IO ## _PORT->MASKED_ACCESS[MASK(IO ## _PIN)] = \
+        (v) ? MASK(IO ## _PIN) : 0; \
+    } while (0)
+
+  /// Set pin as output.
+  #define _SET_OUTPUT(IO) \
+    do { \
+      IO ## _PORT->DIR |= MASK(IO ## _PIN); \
+    } while (0)
+
 #elif defined SIMULATOR
 
   #include "simulator.h"
@@ -57,7 +77,7 @@
   void _SET_OUTPUT(pin_t pin);
   void _SET_INPUT(pin_t pin);
 
-#endif /* __AVR__, SIMULATOR */
+#endif /* __AVR__, __ARMEL__, SIMULATOR */
 
 /**
   Why double up on these macros?
