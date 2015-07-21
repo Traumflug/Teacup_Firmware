@@ -7,9 +7,78 @@
 
 #include	"config_wrapper.h"
 
-#ifdef SIMULATOR
-  #include "simulator.h"
+#ifndef MASK
+  /// MASKING- returns \f$2^PIN\f$
+  #define MASK(PIN) (1 << PIN)
 #endif
+
+/** Magic I/O routines, also known as "FastIO".
+
+  Now you can simply SET_OUTPUT(STEP); WRITE(STEP, 1); WRITE(STEP, 0);.
+
+  The point here is to move any pin/port mapping calculations into the
+  preprocessor. This way there is no longer math at runtime neccessary, all
+  instructions melt into a single one with fixed numbers.
+
+  This makes code for setting a pin small, smaller than calling a subroutine.
+  It also make code fast, on AVR a pin can be turned on and off in just two
+  clock cycles.
+*/
+#if defined __AVR__
+
+  #include <avr/io.h>
+
+  /// Read a pin.
+  #define _READ(IO)        (IO ## _RPORT & MASK(IO ## _PIN))
+  /// Write to a pin.
+  #define _WRITE(IO, v)    do { if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } \
+                                else { IO ## _WPORT &= ~MASK(IO ## _PIN); }; } \
+                           while (0)
+  /// Toggle a pin.
+  #define _TOGGLE(IO)      do { IO ## _RPORT = MASK(IO ## _PIN); } while (0)
+
+  /// Set pin as input.
+  #define _SET_INPUT(IO)   do { IO ## _DDR &= ~MASK(IO ## _PIN); } while (0)
+  /// Set pin as output.
+  #define _SET_OUTPUT(IO)  do { IO ## _DDR |=  MASK(IO ## _PIN); } while (0)
+
+  /// Check if pin is an input.
+  #define _GET_INPUT(IO)   ((IO ## _DDR & MASK(IO ## _PIN)) == 0)
+  /// Check if pin is an output.
+  #define _GET_OUTPUT(IO)  ((IO ## _DDR & MASK(IO ## _PIN)) != 0)
+
+#elif defined SIMULATOR
+
+  #include "simulator.h"
+
+  bool _READ(pin_t pin);
+  void _WRITE(pin_t pin, bool on);
+  void _TOGGLE(pin_t pin);
+  void _SET_OUTPUT(pin_t pin);
+  void _SET_INPUT(pin_t pin);
+
+#endif /* __AVR__, SIMULATOR */
+
+/**
+  Why double up on these macros?
+  See http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
+*/
+/// Read a pin wrapper.
+#define READ(IO)        _READ(IO)
+/// Write to a pin wrapper.
+#define WRITE(IO, v)    _WRITE(IO, v)
+/// Toggle a pin wrapper.
+#define TOGGLE(IO)      _TOGGLE(IO)
+
+/// Set pin as input wrapper.
+#define SET_INPUT(IO)   _SET_INPUT(IO)
+/// Set pin as output wrapper.
+#define SET_OUTPUT(IO)  _SET_OUTPUT(IO)
+
+/// Check if pin is an input wrapper.
+#define GET_INPUT(IO)   _GET_INPUT(IO)
+/// Check if pin is an output wrapper.
+#define GET_OUTPUT(IO)  _GET_OUTPUT(IO)
 
 /*
 Power

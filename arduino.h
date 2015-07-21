@@ -1,67 +1,15 @@
-/*!
-	\file
-	\brief pin definitions and I/O macros
 
-	why double up on these macros? see http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
+/*!
+  \file
+  \brief Pin definitions supervisor.
+
+  Here we map to the pin definition file of the architecture at hand and also
+  do some fundamental platform related stuff.
 */
 
 #ifndef	_ARDUINO_H
 #define	_ARDUINO_H
 
-#ifdef __AVR__
-#include	<avr/io.h>
-#endif
-
-/*
-	utility functions
-*/
-
-#ifndef		MASK
-/// MASKING- returns \f$2^PIN\f$
-	#define		MASK(PIN)				(1 << PIN)
-#endif
-
-/*
-	magic I/O routines
-
-	now you can simply SET_OUTPUT(STEP); WRITE(STEP, 1); WRITE(STEP, 0);
-*/
-
-/// Read a pin
-#define		_READ(IO)					(IO ## _RPORT & MASK(IO ## _PIN))
-/// write to a pin
-#define		_WRITE(IO, v)			do { if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } else { IO ## _WPORT &= ~MASK(IO ## _PIN); }; } while (0)
-/// toggle a pin
-#define		_TOGGLE(IO)				do { IO ## _RPORT = MASK(IO ## _PIN); } while (0)
-
-/// set pin as input
-#define		_SET_INPUT(IO)		do { IO ## _DDR &= ~MASK(IO ## _PIN); } while (0)
-/// set pin as output
-#define		_SET_OUTPUT(IO)		do { IO ## _DDR |=  MASK(IO ## _PIN); } while (0)
-
-/// check if pin is an input
-#define		_GET_INPUT(IO)		((IO ## _DDR & MASK(IO ## _PIN)) == 0)
-/// check if pin is an output
-#define		_GET_OUTPUT(IO)		((IO ## _DDR & MASK(IO ## _PIN)) != 0)
-
-//	why double up on these macros? see http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
-
-/// Read a pin wrapper
-#define		READ(IO)					_READ(IO)
-/// Write to a pin wrapper
-#define		WRITE(IO, v)			_WRITE(IO, v)
-/// toggle a pin wrapper
-#define		TOGGLE(IO)				_TOGGLE(IO)
-
-/// set pin as input wrapper
-#define		SET_INPUT(IO)			_SET_INPUT(IO)
-/// set pin as output wrapper
-#define		SET_OUTPUT(IO)		_SET_OUTPUT(IO)
-
-/// check if pin is an input wrapper
-#define		GET_INPUT(IO)			_GET_INPUT(IO)
-/// check if pin is an output wrapper
-#define		GET_OUTPUT(IO)		_GET_OUTPUT(IO)
 
 /**
   Only AVRs have a Harvard Architecture, which has distinct address spaces
