@@ -10,6 +10,7 @@
 #include <avr/interrupt.h>
 #include "memory_barrier.h"
 #include "arduino.h"
+#include "pinio.h"
 
 /** \def BUFSIZE
 

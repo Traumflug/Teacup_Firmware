@@ -300,13 +300,13 @@ static void print_pos(void) {
   }
 }
 
-bool READ(pin_t pin) {
+bool _READ(pin_t pin) {
   sim_assert(pin < PIN_NB, "READ: Pin number out of range");
   // Add any necessary reactive pin-handlers here.
   return state[pin];
 }
 
-void WRITE(pin_t pin, bool s) {
+void _WRITE(pin_t pin, bool s) {
   bool old_state = state[pin];
   uint64_t nseconds = sim_runtime_ns();
   sim_assert(pin < PIN_NB, "WRITE: Pin number out of range");
@@ -378,12 +378,12 @@ void WRITE(pin_t pin, bool s) {
   }
 }
 
-void SET_OUTPUT(pin_t pin) {
+void _SET_OUTPUT(pin_t pin) {
   sim_assert(pin < PIN_NB, "Pin number out of range");
   direction[pin] = out;
 }
 
-void SET_INPUT(pin_t pin) {
+void _SET_INPUT(pin_t pin) {
   sim_assert(pin < PIN_NB, "Pin number out of range");
   direction[pin] = in;
 }

@@ -11,6 +11,7 @@
 #include	"memory_barrier.h"
 
 #include	"config_wrapper.h"
+#include "pinio.h"
 #include	"delay.h"
 
 #if	 (defined TEMP_INTERCOM) || (defined EXTRUDER)

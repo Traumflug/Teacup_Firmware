@@ -4,6 +4,7 @@
 
 #include "dda_queue.h"
 #include "timer.h"
+#include "pinio.h"
 #include "simulator.h"
 #ifdef __MACH__
   #include <mach/mach_time.h>

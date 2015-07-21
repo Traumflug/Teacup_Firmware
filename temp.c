@@ -21,6 +21,7 @@
 
 #ifdef	TEMP_INTERCOM
 	#include	"intercom.h"
+  #include "pinio.h"
 #endif
 
 #ifdef	TEMP_MAX6675

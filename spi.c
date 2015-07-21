@@ -14,6 +14,7 @@
 #include "spi.h"
 
 #include "arduino.h"
+#include "pinio.h"
 
 
 /** Initialise serial subsystem.

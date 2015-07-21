@@ -7,6 +7,7 @@
 #ifdef SD
 
 #include "delay.h"
+#include "pinio.h"
 #include "serial.h"
 #include "sersendf.h"
 #include "gcode_parse.h"

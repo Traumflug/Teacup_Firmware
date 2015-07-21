@@ -7,6 +7,7 @@
 #include "temp.h"
 
 #include	<avr/interrupt.h>
+#include "pinio.h"
 #include	"memory_barrier.h"
 
 /* OR-combined mask of all channels */

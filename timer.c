@@ -17,6 +17,7 @@
 
 #include	"arduino.h"
 #include	"config_wrapper.h"
+#include "pinio.h"
 #include "clock.h"
 
 #ifdef	MOTHERBOARD
