@@ -34,6 +34,9 @@
     copies in the Teacup repo.
   - Wrapped the whole file in #ifdef __ARMEL__ to not cause conflicts with
     AVR builds.
+  - Silenced this warning:
+      system_LPC11xx.c:344:21: warning: unused variable 'i'
+    by declaring i directly where it's used and renaming the other to 'j'.
 */
 #ifdef __ARMEL__
 
@@ -341,14 +344,13 @@ void SystemCoreClockUpdate (void)            /* Get Core Clock Frequency      */
  *         Initialize the System.
  */
 void SystemInit (void) {
-  volatile uint32_t i;
 
 #if (CLOCK_SETUP)                                 /* Clock Setup              */
 
 #if ((SYSPLLCLKSEL_Val & 0x03) == 1)
   LPC_SYSCON->PDRUNCFG     &= ~(1 << 5);          /* Power-up System Osc      */
   LPC_SYSCON->SYSOSCCTRL    = SYSOSCCTRL_Val;
-  for (i = 0; i < 200; i++) __NOP();
+  for (volatile uint32_t i = 0; i < 200; i++) __NOP();
 #endif
 
   LPC_SYSCON->SYSPLLCLKSEL  = SYSPLLCLKSEL_Val;   /* Select PLL Input         */
@@ -365,7 +367,7 @@ void SystemInit (void) {
 #if (((MAINCLKSEL_Val & 0x03) == 2) )
   LPC_SYSCON->WDTOSCCTRL    = WDTOSCCTRL_Val;
   LPC_SYSCON->PDRUNCFG     &= ~(1 << 6);          /* Power-up WDT Clock       */
-  for (i = 0; i < 200; i++) __NOP();
+  for (volatile uint32_t j = 0; j < 200; j++) __NOP();
 #endif
 
   LPC_SYSCON->MAINCLKSEL    = MAINCLKSEL_Val;     /* Select PLL Clock Output  */
