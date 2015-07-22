@@ -34,18 +34,11 @@
   #define _WRITE(IO, v)    do { if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } \
                                 else { IO ## _WPORT &= ~MASK(IO ## _PIN); } \
                            } while (0)
-  /// Toggle a pin.
-  #define _TOGGLE(IO)      do { IO ## _RPORT = MASK(IO ## _PIN); } while (0)
 
   /// Set pin as input.
   #define _SET_INPUT(IO)   do { IO ## _DDR &= ~MASK(IO ## _PIN); } while (0)
   /// Set pin as output.
   #define _SET_OUTPUT(IO)  do { IO ## _DDR |=  MASK(IO ## _PIN); } while (0)
-
-  /// Check if pin is an input.
-  #define _GET_INPUT(IO)   ((IO ## _DDR & MASK(IO ## _PIN)) == 0)
-  /// Check if pin is an output.
-  #define _GET_OUTPUT(IO)  ((IO ## _DDR & MASK(IO ## _PIN)) != 0)
 
 #elif defined __ARMEL__
 
@@ -79,7 +72,6 @@
 
   bool _READ(pin_t pin);
   void _WRITE(pin_t pin, bool on);
-  void _TOGGLE(pin_t pin);
   void _SET_OUTPUT(pin_t pin);
   void _SET_INPUT(pin_t pin);
 
@@ -93,18 +85,11 @@
 #define READ(IO)        _READ(IO)
 /// Write to a pin wrapper.
 #define WRITE(IO, v)    _WRITE(IO, v)
-/// Toggle a pin wrapper.
-#define TOGGLE(IO)      _TOGGLE(IO)
 
 /// Set pin as input wrapper.
 #define SET_INPUT(IO)   _SET_INPUT(IO)
 /// Set pin as output wrapper.
 #define SET_OUTPUT(IO)  _SET_OUTPUT(IO)
-
-/// Check if pin is an input wrapper.
-#define GET_INPUT(IO)   _GET_INPUT(IO)
-/// Check if pin is an output wrapper.
-#define GET_OUTPUT(IO)  _GET_OUTPUT(IO)
 
 /*
 Power
