@@ -410,7 +410,10 @@ class AddSensorDlg(wx.Dialog):
 
   def onParam1Entry(self, evt):
     if self.currentMode == MODE_THERMISTOR:
-      self.param1Valid = self.onTextCtrlInteger(self.param1, True)
+      if self.currentMethod == METHOD_BETA:
+        self.param1Valid = self.onTextCtrlInteger(self.param1, True)
+      else:
+        self.param1Valid = self.onTextCtrlFloat(self.param1, True)
       self.checkValuesForPreset()
     else:
       self.param1Valid = True
@@ -432,10 +435,7 @@ class AddSensorDlg(wx.Dialog):
 
   def onParam3Entry(self, evt):
     if self.currentMode == MODE_THERMISTOR:
-      if self.currentMethod == METHOD_BETA:
-        self.param3Valid = self.onTextCtrlFloat(self.param3, True)
-      else:
-        self.param3Valid = self.onTextCtrlInteger(self.param3, True)
+      self.param3Valid = self.onTextCtrlFloat(self.param3, True)
       self.checkValuesForPreset()
     else:
       self.param3Valid = True
@@ -463,7 +463,7 @@ class AddSensorDlg(wx.Dialog):
       if self.currentMethod == METHOD_BETA:
         self.param5Valid = True
       else:
-        self.param5Valid = self.onTextCtrlInteger(self.param5, True)
+        self.param5Valid = self.onTextCtrlFloat(self.param5, True)
       self.checkValuesForPreset()
     else:
       self.param5Valid = True

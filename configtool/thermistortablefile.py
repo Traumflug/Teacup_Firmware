@@ -131,8 +131,8 @@ def SteinhartHartTable(ofp, params, names, idx, settings, finalTable):
               params[6]))
   ofp.output("  {")
 
-  thrm = SHThermistor(int(params[0]), int(params[1]), int(params[2]),
-                      int(params[3]), int(params[4]), int(params[5]),
+  thrm = SHThermistor(int(params[0]), float(params[1]), int(params[2]),
+                      float(params[3]), int(params[4]), float(params[5]),
                       int(params[6]))
 
   for t in idx:
