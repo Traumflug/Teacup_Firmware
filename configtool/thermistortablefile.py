@@ -65,9 +65,6 @@ def generateTempTables(sensors, settings):
     ofp.close();
     return True
 
-  step = int((300.0 / (N-1) + 1))
-  idx = range(step*(N-1), -step, -step)
-
   ofp.output("const uint16_t PROGMEM temptable[NUMTABLES][NUMTEMPS][2] = {")
 
   tcount = 0
@@ -75,9 +72,9 @@ def generateTempTables(sensors, settings):
     tcount += 1
     finalTable = tcount == len(tl)
     if len(tn[0]) == 4:
-      BetaTable(ofp, tn[0], tn[1], idx, settings, finalTable)
+      BetaTable(ofp, tn[0], tn[1], settings, finalTable)
     elif len(tn[0]) == 7:
-      SteinhartHartTable(ofp, tn[0], tn[1], idx, settings, finalTable)
+      SteinhartHartTable(ofp, tn[0], tn[1], settings, finalTable)
     else:
       pass
 
@@ -85,7 +82,7 @@ def generateTempTables(sensors, settings):
   ofp.close()
   return True
 
-def BetaTable(ofp, params, names, idx, settings, finalTable):
+def BetaTable(ofp, params, names, settings, finalTable):
   r0 = params[0]
   beta = params[1]
   r2 = params[2]
@@ -100,20 +97,31 @@ def BetaTable(ofp, params, names, idx, settings, finalTable):
   thrm = BetaThermistor(int(r0), int(settings.t0), int(beta), int(settings.r1),
                         int(r2), vadc)
 
-  for t in idx:
-    a, r = thrm.setting(t)
-    if a is None:
-      ofp.output("// ERROR CALCULATING THERMISTOR VALUES AT TEMPERATURE %d" % t)
+  hiadc = thrm.setting(0)[0]
+  N = int(settings.numTemps)
+  step = int(hiadc / (N - 1))
+  idx = range(1, int(hiadc), step)
+
+  while len(idx) > N:
+    del idx[0]
+
+  for i in range(1, int(hiadc), step):
+    t = int(thrm.temp(i))
+    if t is None:
+      ofp.output("// ERROR CALCULATING THERMISTOR VALUES AT ADC %d" % i)
       continue
 
-    vTherm = a * vadc / 1024
+    v = thrm.adcInv(i)
+    r = thrm.resistance(t)
+
+    vTherm = i * vadc / 1024
     ptherm = vTherm * vTherm / r
-    if t <= 0:
+    if i + step >= int(hiadc):
       c = " "
     else:
       c = ","
     ostr = ("    {%4s, %5s}%s // %4d C, %6.0f ohms, %0.3f V,"
-            " %0.2f mW") % (int(round(a)), t*4, c, t, r,
+            " %0.2f mW") % (i, t * 4, c, t, int(round(r)),
             vTherm, ptherm * 1000)
     ofp.output(ostr)
 
@@ -122,7 +130,7 @@ def BetaTable(ofp, params, names, idx, settings, finalTable):
   else:
     ofp.output("  },")
 
-def SteinhartHartTable(ofp, params, names, idx, settings, finalTable):
+def SteinhartHartTable(ofp, params, names, settings, finalTable):
   ofp.output(("  // %s temp table using Steinhart-Hart algorithm with "
               "parameters:") % (", ".join(names)))
   ofp.output(("  // Rp = %s, T0 = %s, R0 = %s, T1 = %s, R1 = %s, "
@@ -135,18 +143,28 @@ def SteinhartHartTable(ofp, params, names, idx, settings, finalTable):
                       float(params[3]), int(params[4]), float(params[5]),
                       int(params[6]))
 
-  for t in idx:
-    a, r = thrm.setting(t)
-    if a is None:
-      ofp.output("// ERROR CALCULATING THERMISTOR VALUES AT TEMPERATURE %d" % t)
+  hiadc = thrm.setting(0)[0]
+  N = int(settings.numTemps)
+  step = int(hiadc / (N - 1))
+  idx = range(1, int(hiadc), step)
+
+  while len(idx) > N:
+    del idx[0]
+
+  for i in range(1, int(hiadc), step):
+    t = int(thrm.temp(i))
+    if t is None:
+      ofp.output("// ERROR CALCULATING THERMISTOR VALUES AT ADC %d" % i)
       continue
 
-    if t <= 0:
+    r = int(thrm.adcInv(i))
+
+    if i + step >= int(hiadc):
       c = " "
     else:
       c = ","
-    ofp.output("    {%4d, %5d}%s // %4d C, %6.0f ohms, %7.2f adc" %
-               (int(round(a)), t*4, c, t, int(round(r)), a))
+    ofp.output("    {%4d, %5d}%s // %4d C, %6d ohms" %
+               (i, t * 4, c, t, int(round(r))))
 
   if finalTable:
     ofp.output("  }")

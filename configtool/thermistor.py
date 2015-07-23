@@ -37,9 +37,16 @@ class SHThermistor:
     except:
       return None, None
 
+  def temp(self, adc):
+    r = self.adcInv(adc)
+    t = (1.0 / (self.A + self.B * log(r) + self.C * (log(r) ** 3))) - 273.15;
+    return t
+
   def adc(self, r):
     return 1023.0 * r / (r + self.rp)
 
+  def adcInv(self, adc):
+    return (self.rp * adc)/(1023.0 - adc)
 
 class BetaThermistor:
   def __init__(self, r0, t0, beta, r1, r2, vadc):
@@ -86,3 +93,6 @@ class BetaThermistor:
       return round(v / self.vadc * 1024), r
     except:
       return None, None
+
+  def adcInv(self, adc):
+    return (adc * self.vadc)/1024.0
