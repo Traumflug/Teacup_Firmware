@@ -56,6 +56,8 @@
     See chapter 12 in the LPC111x User Manual. A read-modify-write cycle like
     on AVR costs 5 clock cycles, this implementation works with 3 clock cycles.
   */
+  /// Read a pin.
+  #define _READ(IO)        (IO ## _PORT->MASKED_ACCESS[MASK(IO ## _PIN)])
   /// Write to a pin.
   #define _WRITE(IO, v) \
     do { \
@@ -69,6 +71,12 @@
     GPIO behavior. Peripherals using these pins may have to change this and
     should do so in their own context.
   */
+  /// Set pin as input.
+  #define _SET_INPUT(IO) \
+    do { \
+      LPC_IOCON->IO ## _CMSIS = (IO ## _OUTPUT | IO_MODEMASK_REPEATER); \
+      IO ## _PORT->DIR &= ~MASK(IO ## _PIN); \
+    } while (0)
   /// Set pin as output.
   #define _SET_OUTPUT(IO) \
     do { \
