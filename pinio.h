@@ -37,6 +37,13 @@
       else { IO ## _WPORT &= ~MASK(IO ## _PIN); } \
     } while (0)
 
+  /**
+    Setting pins as input/output: other than with ARMs, function of a pin
+    on AVR isn't given by a dedicated function register, but solely by the
+    on-chip peripheral connected to it. With the peripheral (e.g. UART, SPI,
+    ...) connected, a pin automatically serves with this function. With the
+    peripheral disconnected, it automatically returns to general I/O function.
+  */
   /// Set pin as input.
   #define _SET_INPUT(IO)   do { IO ## _DDR &= ~MASK(IO ## _PIN); } while (0)
   /// Set pin as output.
@@ -56,9 +63,16 @@
         (v) ? MASK(IO ## _PIN) : 0; \
     } while (0)
 
+  /**
+    Set pins as input/output. On ARM, each pin has its own IOCON register,
+    which allows to set its function and mode. We always set here standard
+    GPIO behavior. Peripherals using these pins may have to change this and
+    should do so in their own context.
+  */
   /// Set pin as output.
   #define _SET_OUTPUT(IO) \
     do { \
+      LPC_IOCON->IO ## _CMSIS = IO ## _OUTPUT; \
       IO ## _PORT->DIR |= MASK(IO ## _PIN); \
     } while (0)
 
