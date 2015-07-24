@@ -32,9 +32,22 @@ mkfifo ${PIPE_IN_FILE} || exit 1
 mkfifo ${PIPE_OUT_FILE} || exit 1
 
 
+# Respect USER_CONFIG.
+if [ "${USER_CONFIG}" ]; then
+  CONFIG="${USER_CONFIG}"
+  TEACUP_ELF="${USER_CONFIG%.h}/teacup.elf"
+  TEACUP_ELF="../build/${TEACUP_ELF#../}"
+else
+  CONFIG="../config.h"
+  TEACUP_ELF="../build/teacup.elf"
+fi
+echo "Taking configuration in ${CONFIG}."
+echo "Taking Teacup binary ${TEACUP_ELF}."
+
 # Prepare statistics.
 echo                             > ${STATISTICS_FILE}
-(cd .. && make size) | tail -4  >> ${STATISTICS_FILE}
+(cd .. && echo make USER_CONFIG="${USER_CONFIG}" size) | \
+  tail -4                       >> ${STATISTICS_FILE}
 
 
 # Prepare a pin tracing file, assuming a Gen7-v1.4 configuration. See
@@ -57,13 +70,13 @@ echo "# DEBUG LED"         >> ${TRACEIN_FILE}
 echo "+ PORTC.C5-Out"      >> ${TRACEIN_FILE}
 echo "Assuming pin configuration for a Gen7-v1.4 + debug LED on DIO21."
 
-STEPS_PER_M_X=$(grep STEPS_PER_M_X ../config.h | \
+STEPS_PER_M_X=$(grep STEPS_PER_M_X ${CONFIG} | \
                 grep -v ^// | awk '{ print $3; }')
 if [ "${STEPS_PER_M_X}"0 -eq 0 ]; then
   echo "STEPS_PER_M_X not found, assuming 80'000."
   STEPS_PER_M_X=80000
 fi
-STEPS_PER_M_Y=$(grep STEPS_PER_M_Y ../config.h | \
+STEPS_PER_M_Y=$(grep STEPS_PER_M_Y ${CONFIG} | \
                 grep -v ^// | awk '{ print $3; }')
 if [ "${STEPS_PER_M_Y}"0 -eq 0 ]; then
   echo "STEPS_PER_M_Y not found, assuming 80'000."
@@ -93,7 +106,7 @@ for GCODE_FILE in $*; do
   exec 4<>${PIPE_OUT_FILE}
 
   "${SIMULAVR}" -c vcd:${TRACEIN_FILE}:"${VCD_FILE}" \
-                -f ../build/teacup.elf \
+                -f "${TEACUP_ELF}" \
                 -m 60000000000 -v <&3 >&4 2>&4 &
 
   while read -rs -u 4 LINE; do
