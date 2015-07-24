@@ -34,6 +34,7 @@
 #include	"fuses.h"
 #endif /* __ARMEL_NOTYET__ */
 
+#include "cpu.h"
 #include	"serial.h"
 #ifndef __ARMEL_NOTYET__
 #include	"dda_queue.h"
@@ -74,31 +75,6 @@
 /// initialise all I/O - set pins as input or output, turn off unused subsystems, etc
 void io_init(void) {
   #ifndef __ARMEL_NOTYET__
-	// disable modules we don't use
-	#ifdef PRR
-    #if defined TEMP_MAX6675 || defined SD
-      PRR = MASK(PRTWI) | MASK(PRADC);
-    #else
-      PRR = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
-    #endif
-	#elif defined PRR0
-    #if defined TEMP_MAX6675 || defined SD
-      PRR0 = MASK(PRTWI) | MASK(PRADC);
-    #else
-      PRR0 = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
-    #endif
-		#if defined(PRUSART3)
-			// don't use USART2 or USART3- leave USART1 for GEN3 and derivatives
-			PRR1 |= MASK(PRUSART3) | MASK(PRUSART2);
-		#endif
-		#if defined(PRUSART2)
-			// don't use USART2 or USART3- leave USART1 for GEN3 and derivatives
-			PRR1 |= MASK(PRUSART2);
-		#endif
-	#endif
-	ACSR = MASK(ACD);
-
-	// setup I/O pins
 
 	// X Stepper
 	WRITE(X_STEP_PIN, 0);	SET_OUTPUT(X_STEP_PIN);
@@ -211,6 +187,9 @@ void io_init(void) {
   investigated).
 */
 void init(void) {
+
+  cpu_init();
+
   #ifndef __ARMEL_NOTYET__
 	// set up watchdog
 	wd_init();

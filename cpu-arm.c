@@ -14,4 +14,7 @@
 //void SystemInit(void) {
 //}
 
+void cpu_init() {
+}
+
 #endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */

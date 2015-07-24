@@ -10,7 +10,9 @@
 #include "simulator.h"
 #include "data_recorder.h"
 
-uint8_t ACSR;
+void cpu_init(void) {
+}
+
 uint8_t TIMSK1;
 uint16_t
   TCCR0A,
@@ -205,7 +207,7 @@ void sim_tick(char ch) {
   fflush(stdout);
 }
 
-static char gcode_buffer[300]; 
+static char gcode_buffer[300];
 static int gcode_buffer_index;
 void sim_gcode_ch(char ch) {
   // Got CR, LF or buffer full

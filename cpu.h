@@ -3,6 +3,6 @@
 #define _CPU_H
 
 
-/* Nothing yet. */
+void cpu_init(void);
 
 #endif /* _CPU_H */
