@@ -34,6 +34,7 @@ void power_off() {
 
 	#ifdef	PS_ON_PIN
 		SET_INPUT(PS_ON_PIN);
+    PULLUP_OFF(PS_ON_PIN);
 	#endif
 
   #ifdef PS_MOSFET_PIN
