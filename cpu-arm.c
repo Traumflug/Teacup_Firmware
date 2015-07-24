@@ -7,6 +7,7 @@
 
 #if defined TEACUP_C_INCLUDE && defined __ARMEL__
 
-/* Nothing yet. */
+void cpu_init() {
+}
 
 #endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
