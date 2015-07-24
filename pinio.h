@@ -49,6 +49,11 @@
   /// Set pin as output.
   #define _SET_OUTPUT(IO)  do { IO ## _DDR |=  MASK(IO ## _PIN); } while (0)
 
+  /// Enable pullup resistor.
+  #define _PULLUP_ON(IO)   _WRITE(IO, 1)
+  /// Disable pullup resistor.
+  #define _PULLUP_OFF(IO)  _WRITE(IO, 0)
+
 #elif defined __ARMEL__
 
   /**
@@ -84,6 +89,17 @@
       IO ## _PORT->DIR |= MASK(IO ## _PIN); \
     } while (0)
 
+  /// Enable pullup resistor.
+  #define _PULLUP_ON(IO) \
+    do { \
+      LPC_IOCON->IO ## _CMSIS = (IO ## _OUTPUT | IO_MODEMASK_PULLUP); \
+    } while (0)
+  /// Disable pullup resistor.
+  #define _PULLUP_OFF(IO) \
+    do { \
+      LPC_IOCON->IO ## _CMSIS = (IO ## _OUTPUT | IO_MODEMASK_INACTIVE); \
+    } while (0)
+
 #elif defined SIMULATOR
 
   #include "simulator.h"
@@ -92,6 +108,8 @@
   void _WRITE(pin_t pin, bool on);
   void _SET_OUTPUT(pin_t pin);
   void _SET_INPUT(pin_t pin);
+  #define _PULLUP_ON(IO)   _WRITE(IO, 1)
+  #define _PULLUP_OFF(IO)  _WRITE(IO, 0)
 
 #endif /* __AVR__, __ARMEL__, SIMULATOR */
 
@@ -108,6 +126,11 @@
 #define SET_INPUT(IO)   _SET_INPUT(IO)
 /// Set pin as output wrapper.
 #define SET_OUTPUT(IO)  _SET_OUTPUT(IO)
+
+/// Enable pullup resistor.
+#define PULLUP_ON(IO)   _PULLUP_ON(IO)
+/// Disable pullup resistor.
+#define PULLUP_OFF(IO)  _PULLUP_OFF(IO)
 
 /*
 Power
