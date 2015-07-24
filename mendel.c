@@ -72,114 +72,6 @@
 #endif
 #endif /* __ARMEL_NOTYET__ */
 
-/// initialise all I/O - set pins as input or output, turn off unused subsystems, etc
-void io_init(void) {
-  #ifndef __ARMEL_NOTYET__
-
-	// X Stepper
-	WRITE(X_STEP_PIN, 0);	SET_OUTPUT(X_STEP_PIN);
-	WRITE(X_DIR_PIN,  0);	SET_OUTPUT(X_DIR_PIN);
-	#ifdef X_MIN_PIN
-		SET_INPUT(X_MIN_PIN);
-    PULLUP_OFF(X_MIN_PIN);
-	#endif
-	#ifdef X_MAX_PIN
-		SET_INPUT(X_MAX_PIN);
-    PULLUP_OFF(X_MAX_PIN);
-	#endif
-
-	// Y Stepper
-	WRITE(Y_STEP_PIN, 0);	SET_OUTPUT(Y_STEP_PIN);
-	WRITE(Y_DIR_PIN,  0);	SET_OUTPUT(Y_DIR_PIN);
-	#ifdef Y_MIN_PIN
-		SET_INPUT(Y_MIN_PIN);
-    PULLUP_OFF(Y_MIN_PIN);
-	#endif
-	#ifdef Y_MAX_PIN
-		SET_INPUT(Y_MAX_PIN);
-    PULLUP_OFF(Y_MAX_PIN);
-	#endif
-
-	// Z Stepper
-	#if defined Z_STEP_PIN && defined Z_DIR_PIN
-		WRITE(Z_STEP_PIN, 0);	SET_OUTPUT(Z_STEP_PIN);
-		WRITE(Z_DIR_PIN,  0);	SET_OUTPUT(Z_DIR_PIN);
-	#endif
-	#ifdef Z_MIN_PIN
-		SET_INPUT(Z_MIN_PIN);
-    PULLUP_OFF(Z_MIN_PIN);
-	#endif
-	#ifdef Z_MAX_PIN
-		SET_INPUT(Z_MAX_PIN);
-    PULLUP_OFF(Z_MAX_PIN);
-	#endif
-
-	#if defined E_STEP_PIN && defined E_DIR_PIN
-		WRITE(E_STEP_PIN, 0);	SET_OUTPUT(E_STEP_PIN);
-		WRITE(E_DIR_PIN,  0);	SET_OUTPUT(E_DIR_PIN);
-	#endif
-
-	// Common Stepper Enable
-	#ifdef STEPPER_ENABLE_PIN
-		#ifdef STEPPER_INVERT_ENABLE
-			WRITE(STEPPER_ENABLE_PIN, 0);
-		#else
-			WRITE(STEPPER_ENABLE_PIN, 1);
-		#endif
-		SET_OUTPUT(STEPPER_ENABLE_PIN);
-	#endif
-
-	// X Stepper Enable
-	#ifdef X_ENABLE_PIN
-		#ifdef X_INVERT_ENABLE
-			WRITE(X_ENABLE_PIN, 0);
-		#else
-			WRITE(X_ENABLE_PIN, 1);
-		#endif
-		SET_OUTPUT(X_ENABLE_PIN);
-	#endif
-
-	// Y Stepper Enable
-	#ifdef Y_ENABLE_PIN
-		#ifdef Y_INVERT_ENABLE
-			WRITE(Y_ENABLE_PIN, 0);
-		#else
-			WRITE(Y_ENABLE_PIN, 1);
-		#endif
-		SET_OUTPUT(Y_ENABLE_PIN);
-	#endif
-
-	// Z Stepper Enable
-	#ifdef Z_ENABLE_PIN
-		#ifdef Z_INVERT_ENABLE
-			WRITE(Z_ENABLE_PIN, 0);
-		#else
-			WRITE(Z_ENABLE_PIN, 1);
-		#endif
-		SET_OUTPUT(Z_ENABLE_PIN);
-	#endif
-
-	// E Stepper Enable
-	#ifdef E_ENABLE_PIN
-		#ifdef E_INVERT_ENABLE
-			WRITE(E_ENABLE_PIN, 0);
-		#else
-			WRITE(E_ENABLE_PIN, 1);
-		#endif
-		SET_OUTPUT(E_ENABLE_PIN);
-	#endif
-
-	#ifdef	STEPPER_ENABLE_PIN
-		power_off();
-	#endif
-
-  #ifdef DEBUG_LED_PIN
-    WRITE(DEBUG_LED_PIN, 0);
-    SET_OUTPUT(DEBUG_LED_PIN);
-  #endif
-  #endif /* __ARMEL_NOTYET__ */
-}
-
 /** Initialise all the subsystems.
 
   Note that order of appearance is critical here. For example, running
@@ -203,7 +95,7 @@ void init(void) {
 	gcode_init();
 
 	// set up inputs and outputs
-	io_init();
+  pinio_init();
 
   #if defined TEMP_MAX6675 || defined SD
     spi_init();

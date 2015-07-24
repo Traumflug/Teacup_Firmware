@@ -159,6 +159,8 @@ inline void power_init(void) {
   #endif
 }
 
+void pinio_init(void);
+
 void power_on(void);
 void power_off(void);
 
