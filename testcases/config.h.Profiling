@@ -262,8 +262,6 @@
 	- comment out pins not in use, as this drops the corresponding code and makes operations faster
 */
 
-#include	"arduino.h"
-
 /** \def USE_INTERNAL_PULLUPS
 	internal pullup resistors
 		the ATmega has internal pullup resistors on it's input pins which are counterproductive with the commonly used eletronic endstops, so they should be switched off. For other endstops, like mechanical ones, you may want to uncomment this.
