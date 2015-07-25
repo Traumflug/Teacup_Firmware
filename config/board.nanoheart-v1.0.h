@@ -185,6 +185,7 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO7,  THERMISTOR_BED)
   in gcode_process.c. Currently, these are:
     HEATER_extruder   (M104)
     HEATER_bed        (M140)
+    HEATER_fan        (M106)
 
   Devices don't neccessarily have a temperature sensor, e.g. fans or
   milling spindles. Operate such devices by setting their power (M106),
