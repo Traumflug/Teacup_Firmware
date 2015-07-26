@@ -22,6 +22,13 @@
 
 #include "mbed-LPC11xx.h"
 
+/** Pins for UART, the serial port.
+*/
+#define RXD             PIO1_6
+#define RXD_CMSIS       PIO1_6_CMSIS
+#define TXD             PIO1_7
+#define TXD_CMSIS       PIO1_7_CMSIS
+
 /**
   Offsets to the various GPIO registers. See chapter 12.3 in LPC111x User
   Manual.

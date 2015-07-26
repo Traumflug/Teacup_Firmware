@@ -14,7 +14,6 @@
 #if defined TEACUP_C_INCLUDE && defined __ARMEL__
 
 #include "arduino.h"
-#include "mbed-pinmap.h"
 
 #ifdef XONXOFF
   #error XON/XOFF protocol not yet implemented for ARM. \
@@ -134,11 +133,11 @@ void serial_init() {
             | 0        << 3  // Parity disabled.
             | 0        << 4; // 0 = odd parity, 1 = even parity.
 
-  // Pinout the UART.
-  pin_function(USBTX, 0x01);
-  pin_mode(USBTX, PullUp);
-  pin_function(USBRX, 0x01);
-  pin_mode(USBRX, PullUp);
+  // Pinout the UART. No need to set GPIO stuff, like data direction.
+  LPC_IOCON->RXD_CMSIS = 0x01 << 0  // Function RXD.
+                       | 0x02 << 3; // Pullup enabled.
+  LPC_IOCON->TXD_CMSIS = 0x01 << 0  // Function TXD.
+                       | 0x00 << 3; // Pullup inactive.
 }
 
 /** Check wether characters can be read.
