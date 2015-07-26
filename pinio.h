@@ -31,9 +31,11 @@
   /// Read a pin.
   #define _READ(IO)        (IO ## _RPORT & MASK(IO ## _PIN))
   /// Write to a pin.
-  #define _WRITE(IO, v)    do { if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } \
-                                else { IO ## _WPORT &= ~MASK(IO ## _PIN); }; } \
-                           while (0)
+  #define _WRITE(IO, v) \
+    do { \
+      if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } \
+      else { IO ## _WPORT &= ~MASK(IO ## _PIN); } \
+    } while (0)
   /// Toggle a pin.
   #define _TOGGLE(IO)      do { IO ## _RPORT = MASK(IO ## _PIN); } while (0)
 
