@@ -14,6 +14,7 @@
 #if defined TEACUP_C_INCLUDE && defined __ARMEL__
 
 #include "arduino.h"
+#include "mbed-LPC11xx.h"
 
 #ifdef XONXOFF
   #error XON/XOFF protocol not yet implemented for ARM. \
