@@ -125,7 +125,7 @@ CFLAGS += -D__ARMEL_NOTYET__
 LDFLAGS  = --specs=nano.specs
 LDFLAGS += --specs=nosys.specs
 ifeq ($(MCU), lpc1114)
-  LDFLAGS += -T arm-lpc1114.ld
+  LDFLAGS += -T cmsis-lpc1114.ld
 endif
 LDFLAGS += -Wl,--as-needed
 LDFLAGS += -Wl,--gc-sections
