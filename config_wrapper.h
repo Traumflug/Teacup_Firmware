@@ -42,3 +42,33 @@
            Lookahead disabled.
   #undef LOOKAHEAD
 #endif
+
+#define RRD_SMART_CONTROLLER
+
+#ifdef RRD_SMART_CONTROLLER
+#define LCD
+#define Encoder
+//#define KILL_PIN DIO41
+#define BEEPER DIO37
+#endif
+
+#ifdef RRD_SMART_CONTROLLER
+
+#ifdef LCD
+#define LCD_RS_PIN  DIO16
+#define LCD_EN_PIN  DIO17
+#define LCD_D4_PIN  DIO23
+#define LCD_D5_PIN  DIO25
+#define LCD_D6_PIN  DIO27
+#define LCD_D7_PIN  DIO29
+#endif
+
+#ifdef Encoder
+#define BTN_EN1 DIO31
+#define BTN_EN2 DIO33
+#define BTN_ENC DIO35
+#endif
+
+#endif
+
+

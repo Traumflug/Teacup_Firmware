@@ -53,6 +53,8 @@
 #include "spi.h"
 #include "sd.h"
 #include "SimpleLCD.h"
+#include "home.h"
+#include "lcdMenu.h"
 
 #ifdef SIMINFO
   #include "../simulavr/src/simulavr_info.h"
@@ -252,14 +254,20 @@ void init(void) {
   #ifdef SD
     sd_init();
   #endif
-
+  
   #ifdef LCD
     // initialize LCD
     lcdInit();
-    lcdClear();
-    lcdWriteText((uint8_t *)"->Teacup LCD Init<-");
-    lcdGoToAddr(0x54);
-    lcdWriteText((uint8_t *)"Teacup Firmware");
+    splashScreen();
+  #endif
+  
+  #ifdef BEEPER
+    BEEPER_INIT();
+    beep();
+  #endif
+  
+  #ifdef LCD
+    disp();
   #endif
 
 	// enable interrupts
@@ -295,6 +303,8 @@ void init(void) {
       sersendf_P(PSTR("Acceleration: %lu\n"),(uint32_t)ACCELERATION);
    #endif
    sersendf_P(PSTR("------------------------------\n"));
+   
+   home();
 
 }
 

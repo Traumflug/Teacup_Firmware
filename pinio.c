@@ -42,3 +42,11 @@ void power_off() {
 
 	ps_is_on = 0;
 }
+
+void beep(){
+  #ifdef BEEPER
+    WRITE(BEEPER,1);
+    delay_ms(150);
+    WRITE(BEEPER,0);
+  #endif
+}

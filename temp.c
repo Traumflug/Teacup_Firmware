@@ -403,7 +403,7 @@ void temp_lcd(temp_sensor_t index) {
 
 	if (index == TEMP_SENSOR_none) { // standard behaviour
 		#ifdef HEATER_EXTRUDER
-			lcdsendf_P(PSTR("T:"));
+			//lcdsendf_P(PSTR("T:"));
 			single_temp_lcd(HEATER_EXTRUDER);
 		#endif
 		#ifdef HEATER_BED

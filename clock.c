@@ -18,7 +18,7 @@
 #endif
 #include	"memory_barrier.h"
 #include "SimpleLCD.h"
-
+#include "lcdMenu.h"
 
 /// Every time our clock fires we increment this,
 /// so we know when 10ms has elapsed.
@@ -36,11 +36,13 @@ volatile uint8_t clock_flag_250ms = 0;
 volatile uint8_t clock_flag_1s = 0;
 volatile uint8_t clock_flag_3s = 0;
 
+unsigned char enc_C = 1;
 unsigned char enc_A; // variables for the encoder pins
 unsigned char enc_B;
-unsigned char enc_A_prev=0;
-uint8_t count=0;
-uint8_t prevcnt=0;
+unsigned char enc_A_prev = 0;
+uint8_t count = 0;
+int8_t pos = 0;
+uint8_t prevcnt = 0;
 /** Advance our clock by a tick.
 
   Update clock counters accordingly. Should be called from the TICK_TIME
@@ -94,43 +96,46 @@ static void clock_250ms(void) {
 	}
 
 	ifclock(clock_flag_1s) {
-		#ifdef LCD
+		#ifndef LCD
 		   if (queue_empty() != 0) {
 		      update_current_position();
-                       lcdGoToAddr(0x00);
-                       lcdsendf_P(PSTR("X       "));
-                       lcdGoToAddr(0x01);
-                       lcdsendf_P(PSTR("%lq"),
-		                 current_position.axis[X]);
+                       lcdGoToXY(1,0);
+                       lcdsendf_P(PSTR("X"));
+                       lcdGoToXY(2,0);
+                       lcdsendf_P(PSTR("%lq"),current_position.axis[X]);
                        #ifdef HEATER_EXTRUDER
-                           lcdGoToAddr(0xD);
-                           lcdsendf_P(PSTR("       "));
-                           lcdGoToAddr(0x09);
+                           //lcdGoToAddr(0xE);
+                           //lcdsendf_P(PSTR("      "));
+                           lcdGoToXY(10,0);
                            lcdsendf_P(PSTR("Ext:"));
                            temp_lcd(HEATER_EXTRUDER);
                        #endif
-                       lcdGoToAddr(0x40);
-                       lcdsendf_P(PSTR("Y       "));
                        lcdGoToAddr(0x41);
-                       lcdsendf_P(PSTR("%lq"),
-		                 current_position.axis[Y]);
-                       #ifdef HEATER_EXTRUDER
-                           lcdGoToAddr(0x4D);
-                           lcdsendf_P(PSTR("       "));
-                           lcdGoToAddr(0x49);
+                       lcdsendf_P(PSTR("Y      "));
+                       lcdGoToAddr(0x42);
+                       lcdsendf_P(PSTR("%lq"),current_position.axis[Y]);
+                       #ifdef HEATER_BED
+                           lcdGoToAddr(0x4E);
+                           lcdsendf_P(PSTR("      "));
+                           lcdGoToAddr(0x4A);
                            lcdsendf_P(PSTR("Bed:"));
                            temp_lcd(HEATER_BED);
                        #endif
-                       lcdGoToAddr(0x14);
-                       lcdsendf_P(PSTR("Z       "));
                        lcdGoToAddr(0x15);
-                       lcdsendf_P(PSTR("%lq"),
-		                 current_position.axis[Z]);
-			lcdGoToAddr(0x1D);//  display on screen for the count variable
-			 lcdsendf_P(PSTR("C       "));
-			lcdGoToAddr(0x1E);
+                       lcdsendf_P(PSTR("Z      "));
+                       lcdGoToAddr(0x16);
+                       lcdsendf_P(PSTR("%lq"),current_position.axis[Z]);
+			lcdGoToAddr(0x1E);//  display on screen for the pos variable
+			 lcdsendf_P(PSTR("P      "));
+			lcdGoToAddr(0x1F);
+			lcdsendf_P(PSTR("%su"),pos);
+                        
+                        lcdGoToXY(13,2);//  display on screen for the pos variable
+			 lcdsendf_P(PSTR("C      "));
+			lcdGoToXY(14,2);
 			lcdsendf_P(PSTR("%su"),count);
-		
+		        
+		    
 
 
 
@@ -156,18 +161,18 @@ static void clock_250ms(void) {
 		temp_print();*/
 	}
 	ifclock(clock_flag_3s) {
-		#ifdef LCD
+		#ifndef LCD
 			#ifdef HEATER_EXTRUDER
-			lcdGoToAddr(0xD);
-			lcdsendf_P(PSTR("       "));
-			lcdGoToAddr(0x09);
+			lcdGoToAddr(0xE);
+			lcdsendf_P(PSTR("      "));
+			lcdGoToAddr(0x0A);
 			lcdsendf_P(PSTR("Ext:"));
 			temp_lcd(HEATER_EXTRUDER);
 			#endif
 			#ifdef HEATER_EXTRUDER
-			lcdGoToAddr(0x4D);
-			lcdsendf_P(PSTR("       "));
-			lcdGoToAddr(0x49);
+			lcdGoToAddr(0x4E);
+			lcdsendf_P(PSTR("      "));
+			lcdGoToAddr(0x4A);
 			lcdsendf_P(PSTR("Bed:"));
 			temp_lcd(HEATER_BED);
 			#endif
@@ -201,25 +206,44 @@ static void clock_10ms(void) {
 	call it occasionally in busy loops
 */
 void clock() {
+        
+      //#ifdef ENCODER
 	enc_A = READ(BTN_EN1);//=======================   code for rotary encoder
 	enc_B = READ(BTN_EN2);
+        
+        if(pos>3){pos = 3;}
+        if(pos<0){pos = 0;}
+        
 	if((!enc_A)&&(enc_A_prev)){
 		if(enc_B){
-			count=count-1;	
+			pos=pos-1;
+                        count=count-1;	
 		}
 		else	
 		{
-			count=count+1;
+			pos=pos+1;
+                        count=count+1;
 		}
-
-
-}
+            
+  
+ }
 enc_A_prev=enc_A;//============  code for rotary encoder
 
 	
 	ifclock(clock_flag_10ms) {
 		clock_10ms();
 	}
+
+        #ifdef BEEPER
+          enc_C = READ(BTN_ENC);
+          if(!enc_C){ beep(); }
+          enc_C = 1;
+        #endif
+        
+        encCursor(pos);
+          
+//#endif        
+            
 #ifdef SIMULATOR
   sim_time_warp();
 #endif

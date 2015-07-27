@@ -60,11 +60,11 @@
                         long and crossing toothed belts and a print head moving
                         on the X-Y-plane.
 */
-#define KINEMATICS KINEMATICS_STRAIGHT
+#define KINEMATICS KINEMATICS_COREXY
 
 
 #define LCD
-#define REPRAPDISCOUNT_SMART_DISCOUNT_CONTROLLER
+#define RRD_SMART_CONTROLLER
 
 /** \def STEPS_PER_M
 	steps per meter ( = steps per mm * 1000 )
@@ -318,6 +318,7 @@
 // TODO: 20110813 SJL - the following two are not yet used&verified for RAMPS1.3
 //#define	SD_CARD_DETECT				DIO2
 //#define	SD_WRITE_PROTECT			DIO3
+
 
 
 //REPRAPDISCOUNT SMART DISCOUNT CONTROLLER LCD Pin Mapping

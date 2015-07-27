@@ -16,7 +16,7 @@
 void lcdGoToXY(uint8_t x, uint8_t y)
 {
   uint8_t addr = 0x00;
-  switch(x)
+  switch(y)
   {
      case 0: addr = 0x00; break; //Starting address of 1st line
      case 1: addr = 0x40; break; //Starting address of 2nd line
@@ -25,7 +25,7 @@ void lcdGoToXY(uint8_t x, uint8_t y)
      default: ;
   }
 
-  addr +=y;
+  addr +=x;
 
   lcdGoToAddr(addr);
 }

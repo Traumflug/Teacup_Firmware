@@ -274,5 +274,16 @@ inline void endstops_off(void) {
 	#endif
 }
 
+static void BEEPER_INIT(void);
+inline void BEEPER_INIT(void) {
+  #ifdef BEEPER
+    WRITE(BEEPER, 0);
+    SET_OUTPUT(BEEPER);
+  #endif
+}
+
+void beep(void);
+
+
 
 #endif	/* _PINIO_H */
