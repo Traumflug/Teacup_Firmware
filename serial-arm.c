@@ -15,6 +15,7 @@
 
 #include "arduino.h"
 #include "mbed-LPC11xx.h"
+#include "delay.h"
 
 #ifdef XONXOFF
   #error XON/XOFF protocol not yet implemented for ARM. \
@@ -161,9 +162,15 @@ uint8_t serial_popchar(void) {
 
 /** Send one character.
 
-  If the queue is full, too bad. Do NOT block.
+  If the queue is full, we wait as long as sending a character takes
+  (87 microseconds at 115200 baud) and send then blindly. This way we can
+  send arbitrarily long messages without slowing down short messages or even
+  blocking.
 */
 void serial_writechar(uint8_t data) {
+  if ( ! (LPC_UART->LSR & (0x01 << 5)))       // Queue full?
+    delay_us((1000000 / BAUD * 10) + 1);
+
   LPC_UART->THR = data;
 }
 
