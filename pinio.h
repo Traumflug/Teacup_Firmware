@@ -12,6 +12,24 @@
   #define MASK(PIN) (1 << PIN)
 #endif
 
+/*
+  Target-specific pinio headers must define these macros:
+
+  #define _READ(IO)        /// Read a pin
+  #define _WRITE(IO, v)    /// Write to a pin
+  #define _SET_INPUT(IO)   /// Set pin as input
+  #define _SET_OUTPUT(IO)  /// Set pin as output
+  #define _PULLUP_ON(IO)   /// Enable pullup resistor
+  #define _PULLUP_OFF(IO)  /// Disable pullup resistor
+
+  In particular these macros should perform the operation in the most efficient
+  and consistent way possible, both in terms of speed and code space. See usage
+  and comments in the following "FastIO" section for more detail.
+*/
+#include "pinio-arm.h"
+#include "pinio-avr.h"
+#include "pinio-sim.h"
+
 /** Magic I/O routines, also known as "FastIO".
 
   Now you can simply SET_OUTPUT(STEP); WRITE(STEP, 1); WRITE(STEP, 0);.
@@ -24,102 +42,6 @@
   It also make code fast, on AVR a pin can be turned on and off in just two
   clock cycles.
 */
-#if defined __AVR__
-
-  #include <avr/io.h>
-
-  /// Read a pin.
-  #define _READ(IO)        (IO ## _RPORT & MASK(IO ## _PIN))
-  /// Write to a pin.
-  #define _WRITE(IO, v)    do { if (v) { IO ## _WPORT |= MASK(IO ## _PIN); } \
-                                else { IO ## _WPORT &= ~MASK(IO ## _PIN); } \
-                           } while (0)
-
-  /**
-    Setting pins as input/output: other than with ARMs, function of a pin
-    on AVR isn't given by a dedicated function register, but solely by the
-    on-chip peripheral connected to it. With the peripheral (e.g. UART, SPI,
-    ...) connected, a pin automatically serves with this function. With the
-    peripheral disconnected, it automatically returns to general I/O function.
-  */
-  /// Set pin as input.
-  #define _SET_INPUT(IO)   do { IO ## _DDR &= ~MASK(IO ## _PIN); } while (0)
-  /// Set pin as output.
-  #define _SET_OUTPUT(IO)  do { IO ## _DDR |=  MASK(IO ## _PIN); } while (0)
-
-  /// Enable pullup resistor.
-  #define _PULLUP_ON(IO)   _WRITE(IO, 1)
-  /// Disable pullup resistor.
-  #define _PULLUP_OFF(IO)  _WRITE(IO, 0)
-
-#elif defined __ARMEL__
-
-  /**
-    The LPC1114 supports bit-banding by mapping the bit mask to the address.
-    See chapter 12 in the LPC111x User Manual. A read-modify-write cycle like
-    on AVR costs 5 clock cycles, this implementation works with 3 clock cycles.
-    Always assuming a well working optimiser.
-
-    Reading and writing 12 bits would be sufficient. For reading we choose
-    an uint32_t anyways, because casting to a smaller size is free, while
-    doing the opposite requires zero-extending the value ("UXTH" in assembly).
-
-    The macros here are a bit more complex, because arm-gcc lacks hardware
-    support.
-  */
-  /// The bit-banding address.
-  #define BITBAND(IO)      (IO ## _PORT + (MASK(IO ## _PIN) << 2))
-
-  /// Read a pin.
-  #define _READ(IO)        (*(volatile uint32_t *)BITBAND(IO))
-  /// Write to a pin.
-  #define _WRITE(IO, v)    do { if (v) { *(volatile uint16_t *)BITBAND(IO) = \
-                                           MASK(IO ## _PIN); } \
-                                else { *(volatile uint16_t *)BITBAND(IO) = 0; } \
-                           } while (0)
-
-  /**
-    Set pins as input/output. On ARM, each pin has its own IOCON register,
-    which allows to set its function and mode. We always set here standard
-    GPIO behavior. Peripherals using these pins may have to change this and
-    should do so in their own context.
-  */
-  /// Set pin as input.
-  #define _SET_INPUT(IO)   do { *(volatile uint32_t *)IO ## _IOREG = \
-                                  (IO ## _OUTPUT | IO_MODEMASK_REPEATER); \
-                                *(volatile uint16_t *) \
-                                  (IO ## _PORT + IO_DIR_OFFSET) &= \
-                                  ~MASK(IO ## _PIN); \
-                           } while (0)
-  /// Set pin as output.
-  #define _SET_OUTPUT(IO)  do { *(volatile uint32_t *)IO ## _IOREG = \
-                                  IO ## _OUTPUT; \
-                                *(volatile uint16_t *) \
-                                  (IO ## _PORT + IO_DIR_OFFSET) |= \
-                                  MASK(IO ## _PIN); \
-                           } while (0)
-
-  /// Enable pullup resistor.
-  #define _PULLUP_ON(IO)   do { *(volatile uint32_t *)IO ## _IOREG = \
-                                  (IO ## _OUTPUT | IO_MODEMASK_PULLUP); \
-                           } while (0)
-  /// Disable pullup resistor.
-  #define _PULLUP_OFF(IO)  do { *(volatile uint32_t *)IO ## _IOREG = \
-                                  (IO ## _OUTPUT | IO_MODEMASK_INACTIVE); \
-                           } while (0)
-
-#elif defined SIMULATOR
-
-  #include "simulator.h"
-
-  bool _READ(pin_t pin);
-  void _WRITE(pin_t pin, bool on);
-  void _SET_OUTPUT(pin_t pin);
-  void _SET_INPUT(pin_t pin);
-  #define _PULLUP_ON(IO)   _WRITE(IO, 1)
-  #define _PULLUP_OFF(IO)  _WRITE(IO, 0)
-
-#endif /* __AVR__, SIMULATOR */
 
 /**
   Why double up on these macros?
