@@ -1,10 +1,10 @@
-/* Linker script for mbed LPC1114. */
+/* Linker script for mbed LPC1114 */
 /*
-  Changes for Teacup:
-
-  Copied from in spring 2015 from https://github.com/mbedmicro/mbed, file
+  Copied in spring 2015 from https://github.com/mbedmicro/mbed, file
     mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC11XX_11CXX/
       TOOLCHAIN_GCC_ARM/TARGET_LPC11XX/LPC1114.ld
+
+  Changes for Teacup:
 
   - Removed trailing whitespace, replaced tabs by spaces.
 */
