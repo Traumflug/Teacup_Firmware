@@ -22,8 +22,6 @@
 #endif
 
 
-LPC_UART_TypeDef *port = LPC_UART;
-
 /** Initialise serial subsystem.
 
   Set up baud generator and interrupts, clear buffers.
@@ -34,16 +32,16 @@ void serial_init() {
   LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 12);
 
   // Enable fifos and default RX trigger level.
-  port->FCR = 1 << 0  // FIFO Enable - 0 = Disabled, 1 = Enabled.
-            | 0 << 1  // Rx Fifo Reset.
-            | 0 << 2  // Tx Fifo Reset.
-            | 0 << 6; // Rx irq trigger level.
-                      // 0 = 1 char, 1 = 4 chars, 2 = 8 chars, 3 = 14 chars.
+  LPC_UART->FCR = 1 << 0  // FIFO Enable - 0 = Disabled, 1 = Enabled.
+                | 0 << 1  // Rx Fifo Reset.
+                | 0 << 2  // Tx Fifo Reset.
+                | 0 << 6; // Rx irq trigger level.
+                          // 0 = 1 char, 1 = 4 chars, 2 = 8 chars, 3 = 14 chars.
 
   // Disable IRQs.
-  port->IER = 0 << 0  // Rx Data available irq enable.
-            | 0 << 1  // Tx Fifo empty irq enable.
-            | 0 << 2; // Rx Line Status irq enable.
+  LPC_UART->IER = 0 << 0  // Rx Data available irq enable.
+                | 0 << 1  // Tx Fifo empty irq enable.
+                | 0 << 2; // Rx Line Status irq enable.
 
   // Baud rate calculation - - - TO BE REFINED, we can calculate all this
   // in the preprocessor or even hardcode it, because baud rate never changes.
@@ -115,24 +113,24 @@ void serial_init() {
     }
 
     // set LCR[DLAB] to enable writing to divider registers
-    port->LCR |= (1 << 7);
+    LPC_UART->LCR |= (1 << 7);
 
     // set divider values
-    port->DLM = (DL >> 8) & 0xFF;
-    port->DLL = (DL >> 0) & 0xFF;
-    port->FDR = (uint32_t) DivAddVal << 0
-                   | (uint32_t) MulVal    << 4;
+    LPC_UART->DLM = (DL >> 8) & 0xFF;
+    LPC_UART->DLL = (DL >> 0) & 0xFF;
+    LPC_UART->FDR = (uint32_t) DivAddVal << 0
+                  | (uint32_t) MulVal    << 4;
 
     // clear LCR[DLAB]
-    port->LCR &= ~(1 << 7);
+    LPC_UART->LCR &= ~(1 << 7);
 
   } /* End of baud rate calculation. */
 
   // Serial format.
-  port->LCR = (8 - 5)  << 0  // 8 data bits.
-            | (1 - 1)  << 2  // 1 stop bit.
-            | 0        << 3  // Parity disabled.
-            | 0        << 4; // 0 = odd parity, 1 = even parity.
+  LPC_UART->LCR = (8 - 5)  << 0  // 8 data bits.
+                | (1 - 1)  << 2  // 1 stop bit.
+                | 0        << 3  // Parity disabled.
+                | 0        << 4; // 0 = odd parity, 1 = even parity.
 
   // Pinout the UART. No need to set GPIO stuff, like data direction.
   LPC_IOCON->RXD_CMSIS = 0x01 << 0  // Function RXD.
@@ -147,7 +145,7 @@ void serial_init() {
   in the line, but only wether there is at least one or not.
 */
 uint8_t serial_rxchars(void) {
-  return port->LSR & 0x01;
+  return LPC_UART->LSR & 0x01;
 }
 
 /** Read one character.
@@ -156,7 +154,7 @@ uint8_t serial_popchar(void) {
   uint8_t c = 0;
 
   if (serial_rxchars())
-    c = port->RBR;
+    c = LPC_UART->RBR;
 
   return c;
 }
@@ -166,7 +164,7 @@ uint8_t serial_popchar(void) {
   If the queue is full, too bad. Do NOT block.
 */
 void serial_writechar(uint8_t data) {
-  port->THR = data;
+  LPC_UART->THR = data;
 }
 
 #endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
