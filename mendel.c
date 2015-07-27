@@ -25,7 +25,6 @@
 */
 
 #ifndef SIMULATOR
-#include	<avr/io.h>
 #include	<avr/interrupt.h>
 #endif
 
