@@ -1,9 +1,6 @@
 #ifndef _SPI_H
 #define _SPI_H
 
-#include "config_wrapper.h"
-#include "arduino.h"
-
 // Uncomment this to double SPI frequency from (F_CPU / 4) to (F_CPU / 2).
 //#define SPI_2X
 

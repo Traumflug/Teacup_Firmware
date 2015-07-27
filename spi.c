@@ -11,11 +11,10 @@
   happens before reading and writing, data exchange its self is the same for
   each device, then.
 */
-#include "spi.h"
 
 #include "arduino.h"
 #include "pinio.h"
-
+#include "spi.h"
 
 /** Initialise serial subsystem.
 

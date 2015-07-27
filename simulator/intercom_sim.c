@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include "config_wrapper.h"
 #include "intercom.h"
 
 /* Intercom stubs here to appease compiler for build testing.

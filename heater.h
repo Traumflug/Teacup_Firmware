@@ -3,7 +3,6 @@
 
 #include "config_wrapper.h"
 #include	<stdint.h>
-#include "simulator.h"
 #include "temp.h"
 
 #undef DEFINE_HEATER

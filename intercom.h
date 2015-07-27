@@ -1,9 +1,6 @@
 #ifndef	_INTERCOM_H
 #define	_INTERCOM_H
 
-#include	<stdint.h>
-#include	"config_wrapper.h"
-
 #ifndef enable_transmit
 #ifdef MOTHERBOARD
 	#define enable_transmit()			do { WRITE(TX_ENABLE_PIN,1);  UCSR1B &=~MASK(RXEN1); } while(0)

@@ -13,9 +13,9 @@
 #ifdef __AVR__
 #include	<avr/eeprom.h>
 #endif
-#include "simulator.h"
 
 #include	"arduino.h"
+#include "pinio.h"
 #include	"debug.h"
 #ifndef	EXTRUDER
 	#include	"sersendf.h"

@@ -5,7 +5,6 @@
 #ifdef __AVR__
 #include	<avr/io.h>
 #endif
-#include "simulator.h"
 
 
 // time-related constants

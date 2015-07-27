@@ -1,4 +1,6 @@
-#include	"intercom.h"
+#include <stdint.h>
+#include "pinio.h"
+#include "intercom.h"
 
 /** \file
 	\brief motherboard <-> extruder board protocol
