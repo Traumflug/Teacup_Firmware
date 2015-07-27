@@ -29,7 +29,6 @@
 #endif
 
 #include	"config_wrapper.h"
-#include	"fuses.h"
 
 #include	"serial.h"
 #include	"dda_queue.h"
