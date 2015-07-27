@@ -5,7 +5,7 @@
 */
 
 #include	<string.h>
-#ifndef SIMULATOR
+#ifdef __AVR__
 #include	<avr/interrupt.h>
 #endif
 

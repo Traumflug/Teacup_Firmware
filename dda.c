@@ -7,7 +7,7 @@
 #include	<string.h>
 #include	<stdlib.h>
 #include	<math.h>
-#ifndef SIMULATOR
+#ifdef __AVR__
 #include	<avr/interrupt.h>
 #endif
 
