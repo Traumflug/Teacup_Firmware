@@ -46,7 +46,6 @@
 #include "spi.h"
 #include "sd.h"
 #include "display.h"
-#include "simulator.h"
 
 #ifdef SIMINFO
   #include "../simulavr/src/simulavr_info.h"

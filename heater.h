@@ -3,7 +3,6 @@
 
 #include "config_wrapper.h"
 #include	<stdint.h>
-#include "simulator.h"
 #include "temp.h"
 
 /// Default scaled P factor, equivalent to 8.0 counts/qC or 32 counts/C.

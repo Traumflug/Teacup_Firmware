@@ -3,7 +3,7 @@
 
 #include "config_wrapper.h"
 #include	<stdint.h>
-#include "simulator.h"
+
 
 #ifdef USB_SERIAL
   #include "usb_serial.h"

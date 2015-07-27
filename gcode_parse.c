@@ -14,9 +14,6 @@
 #include	"sersendf.h"
 
 #include	"gcode_process.h"
-#ifdef SIMULATOR
-  #include "simulator.h"
-#endif
 
 
 /** Bitfield for available sources of G-code.
