@@ -2,7 +2,7 @@
 #define	_TIMER_H
 
 #include	<stdint.h>
-#ifndef SIMULATOR
+#ifdef __AVR__
 #include	<avr/io.h>
 #endif
 #include "simulator.h"

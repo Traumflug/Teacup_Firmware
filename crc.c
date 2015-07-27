@@ -4,7 +4,7 @@
 	\brief crc16 routine
 */
 
-#ifndef SIMULATOR
+#ifdef __AVR__
 #include	<util/crc16.h>
 #else
 

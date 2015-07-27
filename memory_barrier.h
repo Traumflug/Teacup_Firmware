@@ -13,7 +13,7 @@
                          if (save_reg) sei(); \
                        }
 
-#else
+#elif defined __AVR__
 #include <util/atomic.h>
 #include <avr/version.h>
 

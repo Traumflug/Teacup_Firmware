@@ -10,7 +10,7 @@
 */
 
 #include	<stdlib.h>
-#ifndef SIMULATOR
+#ifdef __AVR__
 #include	<avr/eeprom.h>
 #endif
 #include "simulator.h"

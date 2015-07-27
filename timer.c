@@ -10,7 +10,7 @@
 	Teacup has tried numerous timer management methods, and this is the best so far.
 */
 
-#ifndef SIMULATOR
+#ifdef __AVR__
 #include	<avr/interrupt.h>
 #endif
 #include	"memory_barrier.h"
