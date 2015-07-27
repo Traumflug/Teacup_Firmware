@@ -16,6 +16,7 @@
 #include "arduino.h"
 #include "mbed-LPC11xx.h"
 #include "delay.h"
+#include "sersendf.h"
 
 #ifdef XONXOFF
   #error XON/XOFF protocol not yet implemented for ARM. \
@@ -44,19 +45,58 @@ void serial_init() {
                 | 0 << 1  // Tx Fifo empty irq enable.
                 | 0 << 2; // Rx Line Status irq enable.
 
-  // Baud rate calculation - - - TO BE REFINED, we can calculate all this
-  // in the preprocessor or even hardcode it, because baud rate never changes.
-  {
-    uint32_t baudrate = BAUD;
+  LPC_SYSCON->UARTCLKDIV = 0x1;
 
-    LPC_SYSCON->UARTCLKDIV = 0x1;
-    uint32_t PCLK = SystemCoreClock;
-    // First we check to see if the basic divide with no DivAddVal/MulVal
-    // ratio gives us an integer result. If it does, we set DivAddVal = 0,
-    // MulVal = 1. Otherwise, we search the valid ratio value range to find
-    // the closest match. This could be more elegant, using search methods
-    // and/or lookup tables, but the brute force method is not that much
-    // slower, and is more maintainable.
+  /**
+    Calculating the neccessary values for a proper baud rate is pretty complex
+    and, as system clock and baudrate are known at compile time and never
+    changed at runtime, unneccessary.
+
+    However, how to get these values? Well, we do kind of an easter-egg. If
+    parameters are not known, we calculate them at runtime anyways, and also
+    report them to the user. So she can insert them here and after doing so,
+    whoops, serial fast and binary small :-)
+
+    Replacing this calculation with fixed values makes the binary a whopping
+    564 bytes smaller.
+  */
+  #if (__SYSTEM_CLOCK == 48000000UL) && (BAUD == 115200)
+    #define UART_DLM 0x00
+    #define UART_DLL 0x17
+    #define UART_FDR 0xF2
+  //#elif (__SYSTEM_CLOCK == xxx) && (BAUD == xxx)
+    // Define more combinations here, Teacup reports the neccessary values
+    // at startup time.
+  #endif
+
+  #ifdef UART_DLM
+    // Set LCR[DLAB] to enable writing to divider registers.
+    LPC_UART->LCR |= (1 << 7);
+
+    // Set divider values.
+    LPC_UART->DLM = UART_DLM;
+    LPC_UART->DLL = UART_DLL;
+    LPC_UART->FDR = UART_FDR;
+
+    // Clear LCR[DLAB].
+    LPC_UART->LCR &= ~(1 << 7);
+  #else
+    /**
+      Calculate baud rate at runtime and later report it to the user. This
+      code is taken as-is from MBEDs serial_api.c, just reformatted whitespace
+      and comments.
+    */
+    uint32_t baudrate = BAUD;
+    uint32_t PCLK = __SYSTEM_CLOCK;
+
+    /**
+      First we check to see if the basic divide with no DivAddVal/MulVal
+      ratio gives us an integer result. If it does, we set DivAddVal = 0,
+      MulVal = 1. Otherwise, we search the valid ratio value range to find
+      the closest match. This could be more elegant, using search methods
+      and/or lookup tables, but the brute force method is not that much
+      slower, and is more maintainable.
+    */
     uint16_t DL = PCLK / (16 * baudrate);
 
     uint8_t DivAddVal = 0;
@@ -64,68 +104,72 @@ void serial_init() {
     int hit = 0;
     uint16_t dlv;
     uint8_t mv, dav;
-    if ((PCLK % (16 * baudrate)) != 0) {     // Checking for zero remainder
-        int err_best = baudrate, b;
-        for (mv = 1; mv < 16 && !hit; mv++)
-        {
-            for (dav = 0; dav < mv; dav++)
-            {
-                // baudrate = PCLK / (16 * dlv * (1 + (DivAdd / Mul))
-                // solving for dlv, we get dlv = mul * PCLK / (16 * baudrate * (divadd + mul))
-                // mul has 4 bits, PCLK has 27 so we have 1 bit headroom which can be used for rounding
-                // for many values of mul and PCLK we have 2 or more bits of headroom which can be used to improve precision
-                // note: X / 32 doesn't round correctly. Instead, we use ((X / 16) + 1) / 2 for correct rounding
 
-                if ((mv * PCLK * 2) & 0x80000000) // 1 bit headroom
-                    dlv = ((((2 * mv * PCLK) / (baudrate * (dav + mv))) / 16) + 1) / 2;
-                else // 2 bits headroom, use more precision
-                    dlv = ((((4 * mv * PCLK) / (baudrate * (dav + mv))) / 32) + 1) / 2;
+    if ((PCLK % (16 * baudrate)) != 0) {     // Checking for zero remainder.
+      int err_best = baudrate, b;
 
-                // datasheet says if DLL==DLM==0, then 1 is used instead since divide by zero is ungood
-                if (dlv == 0)
-                    dlv = 1;
+      for (mv = 1; mv < 16 && ! hit; mv++) {
+        for (dav = 0; dav < mv; dav++) {
+          /**
+              baudrate = PCLK / (16 * dlv * (1 + (DivAdd / Mul))
 
-                // datasheet says if dav > 0 then DL must be >= 2
-                if ((dav > 0) && (dlv < 2))
-                    dlv = 2;
+            solving for dlv, we get
 
-                // integer rearrangement of the baudrate equation (with rounding)
-                b = ((PCLK * mv / (dlv * (dav + mv) * 8)) + 1) / 2;
+              dlv = mul * PCLK / (16 * baudrate * (divadd + mul))
 
-                // check to see how we went
-                b = b - baudrate;
-                if (b < 0) b = -b;
-                if (b < err_best)
-                {
-                    err_best  = b;
+            mul has 4 bits, PCLK has 27 so we have 1 bit headroom which can be
+            used for rounding. For many values of mul and PCLK we have 2 or
+            more bits of headroom which can be used to improve precision.
 
-                    DL        = dlv;
-                    MulVal    = mv;
-                    DivAddVal = dav;
+            Note: X / 32 doesn't round correctly. Instead, we use
+                  ((X / 16) + 1) / 2 for correct rounding.
+          */
+          if ((mv * PCLK * 2) & 0x80000000) // 1 bit headroom.
+            dlv = ((((2 * mv * PCLK) /
+                     (baudrate * (dav + mv))) / 16) + 1) / 2;
+          else  // 2 bits headroom, use more precision.
+            dlv = ((((4 * mv * PCLK) /
+                     (baudrate * (dav + mv))) / 32) + 1) / 2;
 
-                    if (b == baudrate)
-                    {
-                        hit = 1;
-                        break;
-                    }
-                }
+          // Datasheet says, if DLL == DLM == 0, then 1 is used instead,
+          // since divide by zero is ungood.
+          if (dlv == 0)
+            dlv = 1;
+
+          // Datasheet says if dav > 0 then DL must be >= 2.
+          if ((dav > 0) && (dlv < 2))
+            dlv = 2;
+
+          // Integer rearrangement of the baudrate equation (with rounding).
+          b = ((PCLK * mv / (dlv * (dav + mv) * 8)) + 1) / 2;
+
+          // Check to see how we went.
+          b = b - baudrate;
+          if (b < 0) b = -b;
+          if (b < err_best) {
+            err_best  = b;
+
+            DL        = dlv;
+            MulVal    = mv;
+            DivAddVal = dav;
+
+            if (b == baudrate) {
+              hit = 1;
+              break;
             }
+          }
         }
+      }
     }
 
-    // set LCR[DLAB] to enable writing to divider registers
+    // Set results like above.
     LPC_UART->LCR |= (1 << 7);
-
-    // set divider values
     LPC_UART->DLM = (DL >> 8) & 0xFF;
     LPC_UART->DLL = (DL >> 0) & 0xFF;
     LPC_UART->FDR = (uint32_t) DivAddVal << 0
                   | (uint32_t) MulVal    << 4;
-
-    // clear LCR[DLAB]
     LPC_UART->LCR &= ~(1 << 7);
-
-  } /* End of baud rate calculation. */
+  #endif /* UART_DLM, ! UART_DLM */
 
   // Serial format.
   LPC_UART->LCR = (8 - 5)  << 0  // 8 data bits.
@@ -138,6 +182,28 @@ void serial_init() {
                        | 0x02 << 3; // Pullup enabled.
   LPC_IOCON->TXD_CMSIS = 0x01 << 0  // Function TXD.
                        | 0x00 << 3; // Pullup inactive.
+
+  #ifndef UART_DLM
+    /**
+      Baud rate settings were calculated at runtime, report them to the user
+      to allow her to insert them above. This is possible, because we just
+      completed setting up the serial port. Be generous with delays, on new
+      hardware delays might be too quick as well.
+
+      Uhm, yes, lots of code. 1420 bytes binary size together with the baudrate
+      calculation above. But it's #ifdef'd out when parameters are set above
+      and doing the calculation always at runtime would always add 400 bytes
+      binary size.
+    */
+    delay_ms(500);
+    serial_writestr_P(PSTR("\nSerial port parameters were calculated at "));
+    serial_writestr_P(PSTR("runtime.\nInsert these values to the list of "));
+    serial_writestr_P(PSTR("known settings in serial-arm.c:\n"));
+    sersendf_P(PSTR("  UART_DLM %sx\n"), (DL >> 8) & 0xFF);
+    sersendf_P(PSTR("  UART_DLL %sx\n"), (DL >> 0) & 0xFF);
+    sersendf_P(PSTR("  UART_FDR %sx\n"), (DivAddVal << 0) | (MulVal << 4));
+    serial_writestr_P(PSTR("Doing so will speed up serial considerably.\n\n"));
+  #endif
 }
 
 /** Check wether characters can be read.
@@ -170,6 +236,10 @@ uint8_t serial_popchar(void) {
 void serial_writechar(uint8_t data) {
   if ( ! (LPC_UART->LSR & (0x01 << 5)))       // Queue full?
     delay_us((1000000 / BAUD * 10) + 1);
+
+  #ifndef UART_DLM                        // Longer delays for fresh hardware.
+    delay_ms(100);
+  #endif
 
   LPC_UART->THR = data;
 }
