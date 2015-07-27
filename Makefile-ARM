@@ -151,7 +151,7 @@ program: $(PROGRAM).hex config.h
 
 $(BUILDDIR)/teacup.elf: $(BUILDDIR)/startup.o
 
-$(BUILDDIR)/startup.o: arm-startup_lpc11xx.s | $(BUILDDIR)
+$(BUILDDIR)/startup.o: cmsis-startup_lpc11xx.s | $(BUILDDIR)
 	@echo "  CC        $@"
 	@$(CC) -c $(CFLAGS) -o $@ $<
 
