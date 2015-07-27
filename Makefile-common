@@ -126,6 +126,9 @@ regressiontests:
 	# Generic Teensy2 configuration, which uses USB_SERIAL.
 	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-teensy2.h \
 	  MCU=atmega32u4 F_CPU=16000000UL EXTRA_CFLAGS=-Werror all
+	# Generic Gen3 configuration for {TX,RX}_ENABLE_PIN.
+	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-gen3.h \
+	  MCU=atmega644p F_CPU=16000000UL EXTRA_CFLAGS=-Werror all
 	# The configuration used for performance measurements.
 	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.h.Profiling \
 	  MCU=atmega644 F_CPU=20000000UL EXTRA_CFLAGS=-Werror all

@@ -43,6 +43,9 @@
 *                                                                           *
 \***************************************************************************/
 
+//#define TX_ENABLE_PIN            xxxx
+//#define RX_ENABLE_PIN            xxxx
+
 #define X_STEP_PIN               DIO26
 #define X_DIR_PIN                DIO28
 #define X_MIN_PIN                DIO3
