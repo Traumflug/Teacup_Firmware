@@ -43,6 +43,8 @@
   #undef LOOKAHEAD
 #endif
 
+#define POWER_ON_HOME
+
 #define RRD_SMART_CONTROLLER
 
 #ifdef RRD_SMART_CONTROLLER
@@ -68,6 +70,8 @@
 #define BTN_EN2 DIO33
 #define BTN_ENC DIO35
 #endif
+
+#define POWER_ON_TONE
 
 #endif
 

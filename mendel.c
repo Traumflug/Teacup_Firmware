@@ -251,10 +251,11 @@ void init(void) {
 	// set up temperature inputs
 	temp_init();
 
-  #ifdef SD
+  #ifdef SD //will be added later to the RRD_SMART_CONTROLLER support
     sd_init();
   #endif
   
+#ifdef RRD_SMART_CONTROLLER
   #ifdef LCD
     // initialize LCD
     lcdInit();
@@ -263,12 +264,15 @@ void init(void) {
   
   #ifdef BEEPER
     BEEPER_INIT();
-    beep();
+    #ifdef POWER_ON_TONE
+      beep();
+    #endif
   #endif
   
   #ifdef LCD
     disp();
   #endif
+#endif
 
 	// enable interrupts
 	sei();
@@ -304,7 +308,9 @@ void init(void) {
    #endif
    sersendf_P(PSTR("------------------------------\n"));
    
-   home();
+   #ifdef POWER_ON_HOME
+     home();
+   #endif
 
 }
 

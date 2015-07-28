@@ -2,8 +2,10 @@
   SimpleLCD.h - Library for interfacing 20x4 LCD character display.
   Created by Raivis Strogonovs, August 6, 2013.
   Released into the public domain.
+  
+  Contains register addressing functions.
 
-  Altered by NickE for Teacup
+  Altered by NickE and further edited by YoussefAly97 for Teacup
 */
 
 #include "config_wrapper.h"

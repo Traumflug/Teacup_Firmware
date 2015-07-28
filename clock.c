@@ -27,7 +27,7 @@ uint8_t clock_counter_10ms = 0;
 uint8_t clock_counter_250ms = 0;
 /// Keep track of when 1s has elapsed.
 uint8_t clock_counter_1s = 0;
-/// Keep track of when 1s has elapsed.
+/// Keep track of when 3s has elapsed.
 uint8_t clock_counter_3s = 0;
 
 /// Flags to tell main loop when above have elapsed.
@@ -36,13 +36,13 @@ volatile uint8_t clock_flag_250ms = 0;
 volatile uint8_t clock_flag_1s = 0;
 volatile uint8_t clock_flag_3s = 0;
 
-unsigned char enc_C = 1;
+unsigned char enc_C = 1; // variable for the encoder click, 1 by default as it goes low when clicked
 unsigned char enc_A; // variables for the encoder pins
 unsigned char enc_B;
 unsigned char enc_A_prev = 0;
-uint8_t count = 0;
-int8_t pos = 0;
-uint8_t prevcnt = 0;
+uint8_t count = 0; //position in the menu itself
+int8_t pos = 0; //position on screen
+uint8_t prevcnt = 0; //previuos count
 /** Advance our clock by a tick.
 
   Update clock counters accordingly. Should be called from the TICK_TIME
@@ -96,7 +96,7 @@ static void clock_250ms(void) {
 	}
 
 	ifclock(clock_flag_1s) {
-		#ifndef LCD
+		#ifndef LCD //ifndef to disable this module to enable me to work on other parts
 		   if (queue_empty() != 0) {
 		      update_current_position();
                        lcdGoToXY(1,0);
@@ -161,7 +161,7 @@ static void clock_250ms(void) {
 		temp_print();*/
 	}
 	ifclock(clock_flag_3s) {
-		#ifndef LCD
+		#ifndef LCD //ifndef to disable this module to enable me to work on other parts
 			#ifdef HEATER_EXTRUDER
 			lcdGoToAddr(0xE);
 			lcdsendf_P(PSTR("      "));
@@ -207,11 +207,11 @@ static void clock_10ms(void) {
 */
 void clock() {
         
-      //#ifdef ENCODER
+      #ifdef ENCODER
 	enc_A = READ(BTN_EN1);//=======================   code for rotary encoder
 	enc_B = READ(BTN_EN2);
         
-        if(pos>3){pos = 3;}
+        if(pos>3){pos = 3;} //will add menu shift up/down 
         if(pos<0){pos = 0;}
         
 	if((!enc_A)&&(enc_A_prev)){
@@ -242,7 +242,7 @@ enc_A_prev=enc_A;//============  code for rotary encoder
         
         encCursor(pos);
           
-//#endif        
+#endif        
             
 #ifdef SIMULATOR
   sim_time_warp();
