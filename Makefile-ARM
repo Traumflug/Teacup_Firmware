@@ -99,7 +99,7 @@ TARGET = $(PROGRAM).hex
 # in #ifdef __AVR__. To avoid this, build only a selection for now:
 SOURCES  = mendel.c cpu.c serial.c sermsg.c sersendf.c delay.c
 ifeq ($(MCU), lpc1114)
-  SOURCES += mbed-system_LPC11xx.c
+  SOURCES += cmsis-system_lpc11xx.c
 endif
 
 # Other target MCU specific adjustments:

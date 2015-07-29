@@ -122,7 +122,7 @@ typedef enum IRQn
 
 
 #include "cmsis-core_cm0.h"                 /* Cortex-M0 processor and core peripherals           */
-#include "mbed-system_LPC11xx.h"            /* System Header                                      */
+#include "cmsis-system_lpc11xx.h"           /* System Header                                      */
 
 
 /******************************************************************************/
