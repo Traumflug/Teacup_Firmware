@@ -20,7 +20,7 @@
   interrupt safe and also a few clock cycles faster. See macros in pinio.h.
 */
 
-#include "mbed-LPC11xx.h"
+#include "cmsis-lpc11xx.h"
 
 /** Pins for UART, the serial port.
 */

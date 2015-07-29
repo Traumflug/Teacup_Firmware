@@ -46,7 +46,7 @@
 #ifdef __ARMEL__
 
 #include "mbed-system_LPC11xx.h"
-#include "mbed-LPC11xx.h"
+#include "cmsis-lpc11xx.h"
 
 // Moved definitions from here to system_LPC11xx.h.
 
