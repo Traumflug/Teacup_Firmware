@@ -1,11 +1,11 @@
 /****************************************************************************
  *   $Id:: LPC11xx.h 9198 2012-05-29 usb00175                     $
- *   Project: NXP LPC11xx software example  
+ *   Project: NXP LPC11xx software example
  *
  *   Description:
- *     CMSIS Cortex-M0 Core Peripheral Access Layer Header File for 
- *     NXP LPC11xx Device Series 
- 
+ *     CMSIS Cortex-M0 Core Peripheral Access Layer Header File for
+ *     NXP LPC11xx Device Series
+
  ****************************************************************************
  * Software that is described herein is for illustrative purposes only
 * which provides customers with programming information regarding the
@@ -18,32 +18,31 @@
 * warranty that such application will be suitable for the specified
 * use without further testing or modification.
 
-* Permission to use, copy, modify, and distribute this software and its 
-* documentation is hereby granted, under NXP Semiconductors' 
-* relevant copyright in the software, without fee, provided that it 
-* is used in conjunction with NXP Semiconductors microcontrollers.  This 
-* copyright, permission, and disclaimer notice must appear in all copies of 
+* Permission to use, copy, modify, and distribute this software and its
+* documentation is hereby granted, under NXP Semiconductors'
+* relevant copyright in the software, without fee, provided that it
+* is used in conjunction with NXP Semiconductors microcontrollers.  This
+* copyright, permission, and disclaimer notice must appear in all copies of
 * this code.
 
 ****************************************************************************/
 /*
-  Notes for Teacup:
+  Copied in spring 2015 from https://github.com/mbedmicro/mbed, file
+    mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC11XX_11CXX/LPC11xx.h
 
-  Copied from $(MBED)/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC11XX_11CXX/LPC11xx.h.
+  Changes for Teacup:
 
-  Used only to get things running quickly. Without serial it's almost
-  impossible to see wether code changes work. Should go away soon, because
-  all this MBED stuff is too bloated for Teacup's purposes.
-
-  - Prefixed names of #include files with mbed- to match the names of the
+  - Prefixed names of #include files with cmsis- to match the names of the
     copies in the Teacup repo.
+  - Removed long === runs to not disturb grep'ing for them on Git conflicts.
+  - Replaced tabs by spaces and removed trailing whitespace.
 */
 #ifndef __LPC11xx_H__
 #define __LPC11xx_H__
 
 #ifdef __cplusplus
  extern "C" {
-#endif 
+#endif
 
 /** @addtogroup LPC11xx_Definitions LPC11xx Definitions
   This file defines all structures and symbols for LPC11xx:
@@ -64,9 +63,7 @@
 */
 
 /*
- * ==========================================================================
  * ---------- Interrupt Number Definition -----------------------------------
- * ==========================================================================
  */
 typedef enum IRQn
 {
@@ -82,15 +79,15 @@ typedef enum IRQn
   WAKEUP1_IRQn                  = 1,        /*!< There are 13 pins in total for LPC11xx           */
   WAKEUP2_IRQn                  = 2,
   WAKEUP3_IRQn                  = 3,
-  WAKEUP4_IRQn                  = 4,   
-  WAKEUP5_IRQn                  = 5,        
-  WAKEUP6_IRQn                  = 6,        
-  WAKEUP7_IRQn                  = 7,        
-  WAKEUP8_IRQn                  = 8,        
-  WAKEUP9_IRQn                  = 9,        
-  WAKEUP10_IRQn                 = 10,       
-  WAKEUP11_IRQn                 = 11,       
-  WAKEUP12_IRQn                 = 12,       
+  WAKEUP4_IRQn                  = 4,
+  WAKEUP5_IRQn                  = 5,
+  WAKEUP6_IRQn                  = 6,
+  WAKEUP7_IRQn                  = 7,
+  WAKEUP8_IRQn                  = 8,
+  WAKEUP9_IRQn                  = 9,
+  WAKEUP10_IRQn                 = 10,
+  WAKEUP11_IRQn                 = 11,
+  WAKEUP12_IRQn                 = 12,
   CAN_IRQn                      = 13,       /*!< CAN Interrupt                                    */
   SSP1_IRQn                     = 14,       /*!< SSP1 Interrupt                                   */
   I2C_IRQn                      = 15,       /*!< I2C Interrupt                                    */
@@ -101,9 +98,9 @@ typedef enum IRQn
   SSP0_IRQn                     = 20,       /*!< SSP0 Interrupt                                   */
   UART_IRQn                     = 21,       /*!< UART Interrupt                                   */
   Reserved0_IRQn                = 22,       /*!< Reserved Interrupt                               */
-  Reserved1_IRQn                = 23,       
+  Reserved1_IRQn                = 23,
   ADC_IRQn                      = 24,       /*!< A/D Converter Interrupt                          */
-  WDT_IRQn                      = 25,       /*!< Watchdog timer Interrupt                         */  
+  WDT_IRQn                      = 25,       /*!< Watchdog timer Interrupt                         */
   BOD_IRQn                      = 26,       /*!< Brown Out Detect(BOD) Interrupt                  */
   FMC_IRQn                      = 27,       /*!< Flash Memory Controller Interrupt                */
   EINT3_IRQn                    = 28,       /*!< External Interrupt 3 Interrupt                   */
@@ -113,9 +110,7 @@ typedef enum IRQn
 } IRQn_Type;
 
 /*
- * ==========================================================================
  * ----------- Processor and Core Peripheral Section ------------------------
- * ==========================================================================
  */
 
 /* Configuration of the Cortex-M0 Processor and Core Peripherals */
@@ -126,8 +121,8 @@ typedef enum IRQn
 /*@}*/ /* end of group LPC11xx_CMSIS */
 
 
-#include "mbed-core_cm0.h"                       /* Cortex-M0 processor and core peripherals           */
-#include "mbed-system_LPC11xx.h"                 /* System Header                                      */
+#include "mbed-core_cm0.h"                  /* Cortex-M0 processor and core peripherals           */
+#include "mbed-system_LPC11xx.h"            /* System Header                                      */
 
 
 /******************************************************************************/
@@ -139,7 +134,7 @@ typedef enum IRQn
 #endif
 
 /*------------- System Control (SYSCON) --------------------------------------*/
-/** @addtogroup LPC11xx_SYSCON LPC11xx System Control Block 
+/** @addtogroup LPC11xx_SYSCON LPC11xx System Control Block
   @{
 */
 typedef struct
@@ -156,7 +151,7 @@ typedef struct
        uint32_t RESERVED1[1];
   __IO uint32_t SYSRSTSTAT;             /*!< Offset: 0x030 System reset status Register (R/ ) */
        uint32_t RESERVED2[3];
-  __IO uint32_t SYSPLLCLKSEL;           /*!< Offset: 0x040 System PLL clock source select (R/W) */	
+  __IO uint32_t SYSPLLCLKSEL;           /*!< Offset: 0x040 System PLL clock source select (R/W) */
   __IO uint32_t SYSPLLCLKUEN;           /*!< Offset: 0x044 System PLL clock source update enable (R/W) */
        uint32_t RESERVED3[10];
 
@@ -167,42 +162,42 @@ typedef struct
 
   __IO uint32_t SYSAHBCLKCTRL;          /*!< Offset: 0x080 System AHB clock control (R/W) */
        uint32_t RESERVED5[4];
-  __IO uint32_t SSP0CLKDIV;             /*!< Offset: 0x094 SSP0 clock divider (R/W) */          
+  __IO uint32_t SSP0CLKDIV;             /*!< Offset: 0x094 SSP0 clock divider (R/W) */
   __IO uint32_t UARTCLKDIV;             /*!< Offset: 0x098 UART clock divider (R/W) */
-  __IO uint32_t SSP1CLKDIV;             /*!< Offset: 0x09C SSP1 clock divider (R/W) */          
+  __IO uint32_t SSP1CLKDIV;             /*!< Offset: 0x09C SSP1 clock divider (R/W) */
        uint32_t RESERVED6[12];
 
   __IO uint32_t WDTCLKSEL;              /*!< Offset: 0x0D0 WDT clock source select (R/W) */
   __IO uint32_t WDTCLKUEN;              /*!< Offset: 0x0D4 WDT clock source update enable (R/W) */
   __IO uint32_t WDTCLKDIV;              /*!< Offset: 0x0D8 WDT clock divider (R/W) */
-       uint32_t RESERVED8[1];              
+       uint32_t RESERVED8[1];
   __IO uint32_t CLKOUTCLKSEL;           /*!< Offset: 0x0E0 CLKOUT clock source select (R/W) */
   __IO uint32_t CLKOUTUEN;              /*!< Offset: 0x0E4 CLKOUT clock source update enable (R/W) */
-  __IO uint32_t CLKOUTDIV;              /*!< Offset: 0x0E8 CLKOUT clock divider (R/W) */       
+  __IO uint32_t CLKOUTDIV;              /*!< Offset: 0x0E8 CLKOUT clock divider (R/W) */
        uint32_t RESERVED9[5];
-  
-  __IO uint32_t PIOPORCAP0;             /*!< Offset: 0x100 POR captured PIO status 0 (R/ ) */           
-  __IO uint32_t PIOPORCAP1;             /*!< Offset: 0x104 POR captured PIO status 1 (R/ ) */   
+
+  __IO uint32_t PIOPORCAP0;             /*!< Offset: 0x100 POR captured PIO status 0 (R/ ) */
+  __IO uint32_t PIOPORCAP1;             /*!< Offset: 0x104 POR captured PIO status 1 (R/ ) */
        uint32_t RESERVED10[18];
   __IO uint32_t BODCTRL;                /*!< Offset: 0x150 BOD control (R/W) */
   __IO uint32_t SYSTCKCAL;              /*!< Offset: 0x154 System tick counter calibration (R/W) */
-       
+
        uint32_t RESERVED13[7];
   __IO uint32_t NMISRC;                 /*!< Offset: 0x174 NMI source selection register (R/W) */
        uint32_t RESERVED14[34];
-       
-  __IO uint32_t STARTAPRP0;             /*!< Offset: 0x200 Start logic edge control Register 0 (R/W) */     
-  __IO uint32_t STARTERP0;              /*!< Offset: 0x204 Start logic signal enable Register 0 (R/W) */      
+
+  __IO uint32_t STARTAPRP0;             /*!< Offset: 0x200 Start logic edge control Register 0 (R/W) */
+  __IO uint32_t STARTERP0;              /*!< Offset: 0x204 Start logic signal enable Register 0 (R/W) */
   __O  uint32_t STARTRSRP0CLR;          /*!< Offset: 0x208 Start logic reset Register 0  ( /W) */
   __I uint32_t STARTSRP0;              /*!< Offset: 0x20C Start logic status Register 0 (R/) */
-  __IO uint32_t STARTAPRP1;             /*!< Offset: 0x210 Start logic edge control Register 0 (R/W). (LPC11UXX only) */     
-  __IO uint32_t STARTERP1;              /*!< Offset: 0x214 Start logic signal enable Register 0 (R/W). (LPC11UXX only) */      
+  __IO uint32_t STARTAPRP1;             /*!< Offset: 0x210 Start logic edge control Register 0 (R/W). (LPC11UXX only) */
+  __IO uint32_t STARTERP1;              /*!< Offset: 0x214 Start logic signal enable Register 0 (R/W). (LPC11UXX only) */
   __O  uint32_t STARTRSRP1CLR;          /*!< Offset: 0x218 Start logic reset Register 0  ( /W). (LPC11UXX only) */
   __IO uint32_t STARTSRP1;              /*!< Offset: 0x21C Start logic status Register 0 (R/W). (LPC11UXX only) */
        uint32_t RESERVED17[4];
 
   __IO uint32_t PDSLEEPCFG;             /*!< Offset: 0x230 Power-down states in Deep-sleep mode (R/W) */
-  __IO uint32_t PDAWAKECFG;             /*!< Offset: 0x234 Power-down states after wake-up (R/W) */        
+  __IO uint32_t PDAWAKECFG;             /*!< Offset: 0x234 Power-down states after wake-up (R/W) */
   __IO uint32_t PDRUNCFG;               /*!< Offset: 0x238 Power-down configuration Register (R/W) */
        uint32_t RESERVED15[110];
   __I  uint32_t DEVICE_ID;              /*!< Offset: 0x3F4 Device ID (R/ ) */
@@ -211,7 +206,7 @@ typedef struct
 
 
 /*------------- Pin Connect Block (IOCON) --------------------------------*/
-/** @addtogroup LPC11xx_IOCON LPC11xx I/O Configuration Block 
+/** @addtogroup LPC11xx_IOCON LPC11xx I/O Configuration Block
   @{
 */
 typedef struct
@@ -281,7 +276,7 @@ typedef struct
 
 
 /*------------- Power Management Unit (PMU) --------------------------*/
-/** @addtogroup LPC11xx_PMU LPC11xx Power Management Unit 
+/** @addtogroup LPC11xx_PMU LPC11xx Power Management Unit
   @{
 */
 typedef struct
@@ -320,7 +315,7 @@ typedef struct {                            /*!< (@ 0x4003C000) FLASHCTRL Struct
 
 
 /*------------- General Purpose Input/Output (GPIO) --------------------------*/
-/** @addtogroup LPC11xx_GPIO LPC11xx General Purpose Input/Output 
+/** @addtogroup LPC11xx_GPIO LPC11xx General Purpose Input/Output
   @{
 */
 typedef struct
@@ -345,7 +340,7 @@ typedef struct
 /*@}*/ /* end of group LPC11xx_GPIO */
 
 /*------------- Timer (TMR) --------------------------------------------------*/
-/** @addtogroup LPC11xx_TMR LPC11xx 16/32-bit Counter/Timer 
+/** @addtogroup LPC11xx_TMR LPC11xx 16/32-bit Counter/Timer
   @{
 */
 typedef struct
@@ -378,7 +373,7 @@ typedef struct
 
 
 /*------------- Universal Asynchronous Receiver Transmitter (UART) -----------*/
-/** @addtogroup LPC11xx_UART LPC11xx Universal Asynchronous Receiver/Transmitter 
+/** @addtogroup LPC11xx_UART LPC11xx Universal Asynchronous Receiver/Transmitter
   @{
 */
 typedef struct
@@ -416,7 +411,7 @@ typedef struct
 
 
 /*------------- Synchronous Serial Communication (SSP) -----------------------*/
-/** @addtogroup LPC11xx_SSP LPC11xx Synchronous Serial Port 
+/** @addtogroup LPC11xx_SSP LPC11xx Synchronous Serial Port
   @{
 */
 typedef struct
@@ -435,7 +430,7 @@ typedef struct
 
 
 /*------------- Inter-Integrated Circuit (I2C) -------------------------------*/
-/** @addtogroup LPC11xx_I2C LPC11xx I2C-Bus Interface 
+/** @addtogroup LPC11xx_I2C LPC11xx I2C-Bus Interface
   @{
 */
 typedef struct
@@ -461,7 +456,7 @@ typedef struct
 
 
 /*------------- Watchdog Timer (WDT) -----------------------------------------*/
-/** @addtogroup LPC11xx_WDT LPC11xx WatchDog Timer 
+/** @addtogroup LPC11xx_WDT LPC11xx WatchDog Timer
   @{
 */
 typedef struct
@@ -471,14 +466,14 @@ typedef struct
   __O  uint32_t FEED;                   /*!< Offset: 0x008 Watchdog feed sequence register (W) */
   __I  uint32_t TV;                     /*!< Offset: 0x00C Watchdog timer value register (R) */
        uint32_t RESERVED0;
-  __IO uint32_t WARNINT;				/*!< Offset: 0x014 Watchdog timer warning int. register (R/W) */
-  __IO uint32_t WINDOW;					/*!< Offset: 0x018 Watchdog timer window value register (R/W) */
+  __IO uint32_t WARNINT;                /*!< Offset: 0x014 Watchdog timer warning int. register (R/W) */
+  __IO uint32_t WINDOW;                 /*!< Offset: 0x018 Watchdog timer window value register (R/W) */
 } LPC_WDT_TypeDef;
 /*@}*/ /* end of group LPC11xx_WDT */
 
 
 /*------------- Analog-to-Digital Converter (ADC) ----------------------------*/
-/** @addtogroup LPC11xx_ADC LPC11xx Analog-to-Digital Converter 
+/** @addtogroup LPC11xx_ADC LPC11xx Analog-to-Digital Converter
   @{
 */
 typedef struct
@@ -494,12 +489,12 @@ typedef struct
 
 
 /*------------- CAN Controller (CAN) ----------------------------*/
-/** @addtogroup LPC11xx_CAN LPC11xx Controller Area Network(CAN) 
+/** @addtogroup LPC11xx_CAN LPC11xx Controller Area Network(CAN)
   @{
 */
 typedef struct
 {
-  __IO uint32_t CNTL;				/* 0x000 */
+  __IO uint32_t CNTL;               /* 0x000 */
   __IO uint32_t STAT;
   __IO uint32_t EC;
   __IO uint32_t BT;
@@ -507,7 +502,7 @@ typedef struct
   __IO uint32_t TEST;
   __IO uint32_t BRPE;
        uint32_t RESERVED0;
-  __IO uint32_t IF1_CMDREQ;			/* 0x020 */
+  __IO uint32_t IF1_CMDREQ;         /* 0x020 */
   __IO uint32_t IF1_CMDMSK;
   __IO uint32_t IF1_MSK1;
   __IO uint32_t IF1_MSK2;
@@ -518,8 +513,8 @@ typedef struct
   __IO uint32_t IF1_DA2;
   __IO uint32_t IF1_DB1;
   __IO uint32_t IF1_DB2;
-       uint32_t RESERVED1[13];   
-  __IO uint32_t IF2_CMDREQ;			/* 0x080 */
+       uint32_t RESERVED1[13];
+  __IO uint32_t IF2_CMDREQ;         /* 0x080 */
   __IO uint32_t IF2_CMDMSK;
   __IO uint32_t IF2_MSK1;
   __IO uint32_t IF2_MSK2;
@@ -531,19 +526,19 @@ typedef struct
   __IO uint32_t IF2_DB1;
   __IO uint32_t IF2_DB2;
        uint32_t RESERVED2[21];
-  __I  uint32_t TXREQ1;				/* 0x100 */
+  __I  uint32_t TXREQ1;             /* 0x100 */
   __I  uint32_t TXREQ2;
        uint32_t RESERVED3[6];
-  __I  uint32_t ND1;				/* 0x120 */
+  __I  uint32_t ND1;                /* 0x120 */
   __I  uint32_t ND2;
        uint32_t RESERVED4[6];
-  __I  uint32_t IR1;				/* 0x140 */
+  __I  uint32_t IR1;                /* 0x140 */
   __I  uint32_t IR2;
        uint32_t RESERVED5[6];
-  __I  uint32_t MSGV1;				/* 0x160 */
+  __I  uint32_t MSGV1;              /* 0x160 */
   __I  uint32_t MSGV2;
        uint32_t RESERVED6[6];
-  __IO uint32_t CLKDIV;				/* 0x180 */
+  __IO uint32_t CLKDIV;             /* 0x180 */
 } LPC_CAN_TypeDef;
 /*@}*/ /* end of group LPC11xx_CAN */
 
