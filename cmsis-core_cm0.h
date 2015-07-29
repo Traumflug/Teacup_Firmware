@@ -34,13 +34,10 @@
    POSSIBILITY OF SUCH DAMAGE.
    ---------------------------------------------------------------------------*/
 /*
-  Notes for Teacup:
+  Copied in spring 2015 from https://github.com/mbedmicro/mbed, file
+    mbed/libraries/mbed/targets/cmsis/core_cm0.h.
 
-  Copied from $(MBED)/libraries/mbed/targets/cmsis/core_cm0.h.
-
-  Used only to get things running quickly. Without serial it's almost
-  impossible to see wether code changes work. Should go away soon, because
-  all this MBED stuff is too bloated for Teacup's purposes.
+  Changes for Teacup:
 
   - Commented out #include "core_cmInstr.h" and #include "core_cmFunc.h".
     After removal of MBED's serial_api they're no longer needed.
