@@ -22,15 +22,13 @@
  *
  ******************************************************************************/
 /*
-  Notes for Teacup:
+  Copied in spring 2015 from https://github.com/mbedmicro/mbed, file
+    mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC11XX_11CXX/
+      TARGET_LPC11XX/system_LPC11xx.c
 
-  Copied from $(MBED)/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC11XX_11CXX/TARGET_LPC11XX/system_LPC11xx.c.
+  Changes for Teacup:
 
-  Used only to get things running quickly. Without serial it's almost
-  impossible to see wether code changes work. Should go away soon, because
-  all this MBED stuff is too bloated for Teacup's purposes.
-
-  - Prefixed names of #include files with mbed- to match the names of the
+  - Prefixed names of #include files with cmsis- to match the names of the
     copies in the Teacup repo.
   - Wrapped the whole file in #ifdef __ARMEL__ to not cause conflicts with
     AVR builds.
@@ -41,6 +39,7 @@
     Replaced by this marker:
       // Moved definitions from here to system_LPC11xx.h.
     and replaced #include <stdint.h> with #include "mbed-system_LPC11xx.h"
+  - Replaced tabs by spaces and removed trailing whitespace.
 */
 
 #ifdef __ARMEL__
@@ -160,7 +159,7 @@ void SystemInit (void) {
 #if ((MAINCLKSEL_Val & 0x03) == 3)                /* Main Clock is PLL Out    */
   LPC_SYSCON->SYSPLLCTRL    = SYSPLLCTRL_Val;
   LPC_SYSCON->PDRUNCFG     &= ~(1 << 7);          /* Power-up SYSPLL          */
-  while (!(LPC_SYSCON->SYSPLLSTAT & 0x01));	      /* Wait Until PLL Locked    */
+  while (!(LPC_SYSCON->SYSPLLSTAT & 0x01));       /* Wait Until PLL Locked    */
 #endif
 
 #if (((MAINCLKSEL_Val & 0x03) == 2) )

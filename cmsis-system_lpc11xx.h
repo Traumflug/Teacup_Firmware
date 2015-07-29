@@ -22,23 +22,19 @@
  *
  ******************************************************************************/
 /*
-  Notes for Teacup:
+  Copied in spring 2015 from https://github.com/mbedmicro/mbed, file
+    mbed/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC11XX_11CXX/
+      system_LPC11xx.h
 
-  Copied from $(MBED)/libraries/mbed/targets/cmsis/TARGET_NXP/TARGET_LPC11XX_11CXX/system_LPC11xx.h.
+  Changes for Teacup:
 
-  Used only to get things running quickly. Without serial it's almost
-  impossible to see wether code changes work. Should go away soon, because
-  all this MBED stuff is too bloated for Teacup's purposes.
-
-  - Prefixed names of #include files with mbed- to match the names of the
-    copies in the Teacup repo.
   - Moved all the definitions from system_LPC11xx.h to here to have them
     available elsewhere. It's the section between
       // From system_LPC11xx.c start.
       and
       // From system_LPC11xx.c start.
+  - Replaced tabs by spaces and removed trailing whitespace.
 */
-
 
 #ifndef __SYSTEM_LPC11xx_H
 #define __SYSTEM_LPC11xx_H
@@ -132,8 +128,8 @@ extern "C" {
 #define SYSOSCCTRL_Val        0x00000000              // Reset: 0x000
 #define WDTOSCCTRL_Val        0x00000000              // Reset: 0x000
 #define SYSPLLCTRL_Val        0x00000023              // Reset: 0x000
-#define SYSPLLCLKSEL_Val      0x00000000              // Reset: 0x000	// Define as using IRC
-#define MAINCLKSEL_Val        0x00000003              // Reset: 0x000	// Define as using System PLL clock out
+#define SYSPLLCLKSEL_Val      0x00000000              // Reset: 0x000   // Define as using IRC
+#define MAINCLKSEL_Val        0x00000003              // Reset: 0x000   // Define as using System PLL clock out
 #define SYSAHBCLKDIV_Val      0x00000001              // Reset: 0x001
 
 /*
