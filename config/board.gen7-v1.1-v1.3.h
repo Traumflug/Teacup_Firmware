@@ -102,6 +102,20 @@
 */
 //#define DEBUG_LED_PIN            DIO21
 
+/** \def SD_CARD_SELECT_PIN
+
+  Chip Select pin of the SD card.
+
+  SD cards work over SPI and have a Chip Select or Slave Select (SS) pin.
+  Choose this pin according to where on the board your SD card adapter is
+  connected. Disabling this pin also disables SD card support and makes the
+  firmware binary about 4.5 kB smaller.
+
+  Connecting a device to SPI actually uses 4 signal lines, the other three
+  pins are choosen by Teacup automatically.
+*/
+#define SD_CARD_SELECT_PIN       DIO10
+
 
 /***************************************************************************\
 *                                                                           *

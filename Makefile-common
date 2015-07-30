@@ -123,7 +123,7 @@ regressiontests:
 	# Generic RAMPS configuration.
 	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-ramps.h \
 	  MCU=atmega2560 F_CPU=16000000UL EXTRA_CFLAGS=-Werror all
-	# Generic Teensy2 configuration, which uses USB_SERIAL.
+	# Generic Teensy2 configuration, which uses USB_SERIAL and no SD card.
 	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-teensy2.h \
 	  MCU=atmega32u4 F_CPU=16000000UL EXTRA_CFLAGS=-Werror all
 	# Generic Gen3 configuration for {TX,RX}_ENABLE_PIN.
