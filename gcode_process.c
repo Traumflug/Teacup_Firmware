@@ -46,12 +46,14 @@ uint8_t next_tool;
 void process_gcode_command() {
 	uint32_t	backup_f;
 
+  #ifndef __ARMEL_NOTYET__
 	// convert relative to absolute
 	if (next_target.option_all_relative) {
     next_target.target.axis[X] += startpoint.axis[X];
     next_target.target.axis[Y] += startpoint.axis[Y];
     next_target.target.axis[Z] += startpoint.axis[Z];
 	}
+  #endif /* __ARMEL_NOTYET__ */
 
 	// E relative movement.
 	// Matches Sprinter's behaviour as of March 2012.
@@ -99,7 +101,9 @@ void process_gcode_command() {
 	}
 
 	if (next_target.seen_G) {
+    #ifndef __ARMEL_NOTYET__
 		uint8_t axisSelected = 0;
+    #endif /* __ARMEL_NOTYET__ */
 		switch (next_target.G) {
 			case 0:
 				//? G0: Rapid Linear Motion
@@ -110,7 +114,9 @@ void process_gcode_command() {
 				//?
 				backup_f = next_target.target.F;
 				next_target.target.F = MAXIMUM_FEEDRATE_X * 2L;
+        #ifndef __ARMEL_NOTYET__
 				enqueue(&next_target.target);
+        #endif /* __ARMEL_NOTYET__ */
 				next_target.target.F = backup_f;
 				break;
 
@@ -121,7 +127,9 @@ void process_gcode_command() {
 				//?
 				//? Go in a straight line from the current (X, Y) point to the point (90.6, 13.8), extruding material as the move happens from the current extruded length to a length of 22.4 mm.
 				//?
+        #ifndef __ARMEL_NOTYET__
 				enqueue(&next_target.target);
+        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 				//	G2 - Arc Clockwise
@@ -137,7 +145,9 @@ void process_gcode_command() {
 				//?
 				//? In this case sit still doing nothing for 200 milliseconds.  During delays the state of the machine (for example the temperatures of its extruders) will still be preserved and controlled.
 				//?
+        #ifndef __ARMEL_NOTYET__
 				queue_wait();
+        #endif /* __ARMEL_NOTYET__ */
 				// delay
 				if (next_target.seen_P) {
 					for (;next_target.P > 0;next_target.P--) {
@@ -171,7 +181,9 @@ void process_gcode_command() {
 				//? --- G30: Go home via point ---
 				//?
 				//? Undocumented.
+        #ifndef __ARMEL_NOTYET__
 				enqueue(&next_target.target);
+        #endif /* __ARMEL_NOTYET__ */
 				// no break here, G30 is move and then go home
 
 			case 28:
@@ -193,6 +205,7 @@ void process_gcode_command() {
         //? ignored.
 				//?
 
+        #ifndef __ARMEL_NOTYET__
 				queue_wait();
 
 				if (next_target.seen_X) {
@@ -224,6 +237,7 @@ void process_gcode_command() {
 				if (!axisSelected) {
 					home();
 				}
+        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 90:
@@ -264,6 +278,7 @@ void process_gcode_command() {
 				//? Allows programming of absolute zero point, by reseting the current position to the values specified.  This would set the machine's X coordinate to 10, and the extrude coordinate to 90. No physical motion will occur.
 				//?
 
+        #ifndef __ARMEL_NOTYET__
 				queue_wait();
 
 				if (next_target.seen_X) {
@@ -291,6 +306,7 @@ void process_gcode_command() {
 				}
 
 				dda_new_startpoint();
+        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 161:
@@ -298,6 +314,7 @@ void process_gcode_command() {
 				//?
 				//? Find the minimum limit of the specified axes by searching for the limit switch.
 				//?
+        #ifndef __ARMEL_NOTYET__
         #if defined X_MIN_PIN
           if (next_target.seen_X)
             home_x_negative();
@@ -310,6 +327,7 @@ void process_gcode_command() {
           if (next_target.seen_Z)
             home_z_negative();
         #endif
+        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 162:
@@ -317,6 +335,7 @@ void process_gcode_command() {
 				//?
 				//? Find the maximum limit of the specified axes by searching for the limit switch.
 				//?
+        #ifndef __ARMEL_NOTYET__
         #if defined X_MAX_PIN
           if (next_target.seen_X)
             home_x_positive();
@@ -329,6 +348,7 @@ void process_gcode_command() {
           if (next_target.seen_Z)
             home_z_positive();
         #endif
+        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 				// unknown gcode: spit an error
@@ -339,7 +359,9 @@ void process_gcode_command() {
 		}
 	}
 	else if (next_target.seen_M) {
+    #ifndef __ARMEL_NOTYET__
 		uint8_t i;
+    #endif /* __ARMEL_NOTYET__ */
 
 		switch (next_target.M) {
 			case 0:
@@ -359,10 +381,12 @@ void process_gcode_command() {
 				//?
 				//? http://linuxcnc.org/handbook/RS274NGC_3/RS274NGC_33a.html#1002379
 				//?
+        #ifndef __ARMEL_NOTYET__
 				queue_wait();
 				for (i = 0; i < NUM_HEATERS; i++)
 					temp_set(i, 0);
 				power_off();
+        #endif /* __ARMEL_NOTYET__ */
         serial_writestr_P(PSTR("\nstop\n"));
 				break;
 
@@ -373,6 +397,7 @@ void process_gcode_command() {
 				tool = next_tool;
 				break;
 
+      #ifndef __ARMEL_NOTYET__
       #ifdef SD
       case 20:
         //? --- M20: list SD card. ---
@@ -421,6 +446,7 @@ void process_gcode_command() {
         gcode_sources &= ! GCODE_SOURCE_SD;
         break;
       #endif /* SD */
+      #endif /* __ARMEL_NOTYET__ */
 
 			case 82:
 				//? --- M82 - Set E codes absolute ---
@@ -453,12 +479,14 @@ void process_gcode_command() {
 				//? --- M101: extruder on ---
 				//?
 				//? Undocumented.
+        #ifndef __ARMEL_NOTYET__
 				if (temp_achieved() == 0) {
 					enqueue(NULL);
 				}
 				#ifdef DC_EXTRUDER
 					heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
 				#endif
+        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			// M5/M103- extruder off
@@ -467,9 +495,11 @@ void process_gcode_command() {
 				//? --- M103: extruder off ---
 				//?
 				//? Undocumented.
+        #ifndef __ARMEL_NOTYET__
 				#ifdef DC_EXTRUDER
 					heater_set(DC_EXTRUDER, 0);
 				#endif
+        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 104:
@@ -488,6 +518,7 @@ void process_gcode_command() {
         //?
 				if ( ! next_target.seen_S)
 					break;
+        #ifndef __ARMEL_NOTYET__
         if ( ! next_target.seen_P)
           #ifdef HEATER_EXTRUDER
             next_target.P = HEATER_EXTRUDER;
@@ -495,6 +526,7 @@ void process_gcode_command() {
             next_target.P = 0;
           #endif
 				temp_set(next_target.P, next_target.S);
+        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 105:
@@ -511,12 +543,14 @@ void process_gcode_command() {
         //? Teacup supports an optional P parameter as a zero-based temperature
         //? sensor index to address.
 				//?
+        #ifndef __ARMEL_NOTYET__
 				#ifdef ENFORCE_ORDER
 					queue_wait();
 				#endif
 				if ( ! next_target.seen_P)
 					next_target.P = TEMP_SENSOR_none;
 				temp_print(next_target.P);
+        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 7:
@@ -531,6 +565,7 @@ void process_gcode_command() {
         //? index to address. The heater index can differ from the temperature
         //? sensor index, see config.h.
 
+        #ifndef __ARMEL_NOTYET__
 				#ifdef ENFORCE_ORDER
 					// wait for all moves to complete
 					queue_wait();
@@ -544,6 +579,7 @@ void process_gcode_command() {
 				if ( ! next_target.seen_S)
 					break;
         heater_set(next_target.P, next_target.S);
+        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 110:
@@ -588,12 +624,14 @@ void process_gcode_command() {
         //? restart is to press the reset button on the master microcontroller.
         //? See also M0.
         //?
+        #ifndef __ARMEL_NOTYET__
         timer_stop();
         queue_flush();
         power_off();
         cli();
         for (;;)
           wd_reset();
+        #endif /* __ARMEL_NOTYET__ */
         break;
 
 			case 114:
@@ -607,6 +645,7 @@ void process_gcode_command() {
 				//?
 				//? <tt>ok C: X:0.00 Y:0.00 Z:0.00 E:0.00</tt>
 				//?
+        #ifndef __ARMEL_NOTYET__
 				#ifdef ENFORCE_ORDER
 					// wait for all moves to complete
 					queue_wait();
@@ -632,6 +671,7 @@ void process_gcode_command() {
           );
           print_queue();
         }
+        #endif /* __ARMEL_NOTYET__ */
 
 				// newline is sent from gcode_parse after we return
 				break;
@@ -659,14 +699,18 @@ void process_gcode_command() {
 				//?
 				//? Wait for temperatures and other slowly-changing variables to arrive at their set values.
 
+        #ifndef __ARMEL_NOTYET__
 				enqueue(NULL);
+        #endif /* __ARMEL_NOTYET__ */
 				break;
 
       case 119:
         //? --- M119: report endstop status ---
         //? Report the current status of the endstops configured in the
         //? firmware to the host.
+        #ifndef __ARMEL_NOTYET__
         power_on();
+        #endif /* __ARMEL_NOTYET__ */
         endstops_on();
         delay_ms(10); // allow the signal to stabilize
         {
@@ -707,6 +751,7 @@ void process_gcode_command() {
         serial_writechar('\n');
         break;
 
+      #ifndef __ARMEL_NOTYET__
       #ifdef EECONFIG
 			case 130:
 				//? --- M130: heater P factor ---
@@ -769,6 +814,7 @@ void process_gcode_command() {
 				heater_save_settings();
 				break;
       #endif /* EECONFIG */
+      #endif /* __ARMEL_NOTYET__ */
 
       #ifdef DEBUG
 			case 136:
@@ -781,7 +827,9 @@ void process_gcode_command() {
           #else
             next_target.P = 0;
           #endif
+        #ifndef __ARMEL_NOTYET__
 				heater_print(next_target.P);
+        #endif /* __ARMEL_NOTYET__ */
 				break;
       #endif /* DEBUG */
 
@@ -791,7 +839,9 @@ void process_gcode_command() {
 				#ifdef	HEATER_BED
 					if ( ! next_target.seen_S)
 						break;
+          #ifndef __ARMEL_NOTYET__
 					temp_set(HEATER_BED, next_target.S);
+          #endif /* __ARMEL_NOTYET__ */
 				#endif
 				break;
 
