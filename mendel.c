@@ -87,10 +87,10 @@ void init(void) {
 	// set up G-code parsing
 	gcode_init();
 
-  #ifndef __ARMEL_NOTYET__
 	// set up inputs and outputs
   pinio_init();
 
+  #ifndef __ARMEL_NOTYET__
   #if defined TEMP_MAX6675 || defined SD
     spi_init();
   #endif

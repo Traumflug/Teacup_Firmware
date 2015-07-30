@@ -385,8 +385,8 @@ void process_gcode_command() {
 				queue_wait();
 				for (i = 0; i < NUM_HEATERS; i++)
 					temp_set(i, 0);
-				power_off();
         #endif /* __ARMEL_NOTYET__ */
+				power_off();
         serial_writestr_P(PSTR("\nstop\n"));
 				break;
 
@@ -627,8 +627,10 @@ void process_gcode_command() {
         #ifndef __ARMEL_NOTYET__
         timer_stop();
         queue_flush();
+        #endif /* __ARMEL_NOTYET__ */
         power_off();
         cli();
+        #ifndef __ARMEL_NOTYET__
         for (;;)
           wd_reset();
         #endif /* __ARMEL_NOTYET__ */
@@ -708,9 +710,7 @@ void process_gcode_command() {
         //? --- M119: report endstop status ---
         //? Report the current status of the endstops configured in the
         //? firmware to the host.
-        #ifndef __ARMEL_NOTYET__
         power_on();
-        #endif /* __ARMEL_NOTYET__ */
         endstops_on();
         delay_ms(10); // allow the signal to stabilize
         {
