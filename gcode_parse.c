@@ -387,7 +387,9 @@ uint8_t gcode_parse_char(uint8_t c) {
 				#endif
 				) {
 				// process
+        #ifndef __ARMEL_NOTYET__
 				process_gcode_command();
+        #endif /* __ARMEL_NOTYET__ */
 
         // Acknowledgement ("ok") is sent in the main loop, in mendel.c.
 

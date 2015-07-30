@@ -33,7 +33,9 @@
 #include	"serial.h"
 #ifndef __ARMEL_NOTYET__
 #include	"dda_queue.h"
+#endif /* __ARMEL_NOTYET__ */
 #include	"gcode_parse.h"
+#ifndef __ARMEL_NOTYET__
 #include	"timer.h"
 #include	"temp.h"
 #include	"watchdog.h"
@@ -82,10 +84,10 @@ void init(void) {
 	// set up serial
 	serial_init();
 
-  #ifndef __ARMEL_NOTYET__
 	// set up G-code parsing
 	gcode_init();
 
+  #ifndef __ARMEL_NOTYET__
 	// set up inputs and outputs
   pinio_init();
 
@@ -139,18 +141,17 @@ int main (int argc, char** argv)
 int main (void)
 {
 #endif
-  #ifndef __ARMEL_NOTYET__
   uint8_t c, line_done, ack_waiting = 0;
-  #endif /* __ARMEL_NOTYET__ */
 
 	init();
 
 	// main loop
 	for (;;)
 	{
-    #ifndef __ARMEL_NOTYET__
 		// if queue is full, no point in reading chars- host will just have to wait
+    #ifndef __ARMEL_NOTYET__
     if (queue_full() == 0) {
+    #endif /* __ARMEL_NOTYET__ */
       /**
         Postpone sending acknowledgement until there's a free slot in the
         movement queue. This way the host waits with sending the next line
@@ -180,6 +181,7 @@ int main (void)
         }
       }
 
+    #ifndef __ARMEL_NOTYET__
       #ifdef SD
         if (( ! gcode_active || gcode_active & GCODE_SOURCE_SD) &&
             gcode_sources & GCODE_SOURCE_SD) {
