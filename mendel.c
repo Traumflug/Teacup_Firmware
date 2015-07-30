@@ -28,10 +28,7 @@
 #include	<avr/interrupt.h>
 #endif
 
-#ifndef __ARMEL_NOTYET__
 #include	"config_wrapper.h"
-#endif /* __ARMEL_NOTYET__ */
-
 #include "cpu.h"
 #include	"serial.h"
 #ifndef __ARMEL_NOTYET__
