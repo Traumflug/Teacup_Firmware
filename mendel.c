@@ -32,9 +32,7 @@
 
 #include	"serial.h"
 #include	"dda_queue.h"
-#include	"dda.h"
 #include	"gcode_parse.h"
-#include "gcode_process.h"
 #include	"timer.h"
 #include	"temp.h"
 #include	"sermsg.h"
@@ -44,7 +42,6 @@
 #include	"heater.h"
 #include	"analog.h"
 #include	"pinio.h"
-#include	"arduino.h"
 #include	"clock.h"
 #include	"intercom.h"
 #include "spi.h"
