@@ -1,0 +1,66 @@
+#!/bin/bash
+
+if [ $# -ne 1 -o "$1" = "-h" -o "$1" = "--help" ]; then
+  echo "Usage: $(basename $0) <start commit>"
+  echo
+  echo "Example: $(basename $0) master"
+  echo
+  echo "This tool runs a regression test on every single commit since the"
+  echo "start commit, up to the current commit. Use it to make sure no"
+  echo "single commit introduces a regression. Can also be used to find out"
+  echo "which commit introduces the regression. Bisecting is fine for the"
+  echo "latter goal as well and may be faster, but also requires more thinking"
+  echo "of the user."
+  echo
+  echo "The tool stops as soon as a regression was detected."
+  echo
+  echo "IMPORTANT: the command to test for a regression is"
+  echo
+  echo "  make regressiontest"
+  echo
+  echo "... so this command must be available."
+  echo
+  echo "Manual equivalent of this tool would be something like this:"
+  echo
+  echo "  git checkout <current branch>~20"
+  echo "  make regresssiontest"
+  echo "  git checkout <current branch>~19"
+  echo "  make regresssiontest"
+  echo "  git checkout <current branch>~18"
+  echo "  make regresssiontest"
+  echo "  ..."
+
+  exit 1
+fi
+
+BASE_BRANCH=${1}
+CURRENT_BRANCH=$(git status | awk '/^On branch/ { print $3; exit; }
+                                   /^HEAD detached/ { print $4; exit; }')
+
+PARENTS=$(git log --oneline --ancestry-path \
+            ${BASE_BRANCH}..${CURRENT_BRANCH} | wc -l)
+let PARENTS1=${PARENTS}+1
+echo "${PARENTS1} commits to go."
+
+trap "echo -n \"Current commit is \"
+      git log HEAD^..HEAD | head -5 | tail -1" 0
+
+while [ ${PARENTS} -ge 0 ]; do
+  echo "Next: ${CURRENT_BRANCH}~${PARENTS}"
+  sleep 3
+
+  # master and master~0 are different. Checking out the latter leads to a
+  # detached head state. This is confusing, avoid it.
+  if [ ${PARENTS} -eq 0 ]; then
+    git checkout ${CURRENT_BRANCH}
+  else
+    # The normal thing.
+    git checkout ${CURRENT_BRANCH}~${PARENTS}
+  fi
+
+  make regressiontests || exit 1
+
+  let PARENTS=${PARENTS}-1
+done
+
+echo "All commits ran regression tests successfully."
