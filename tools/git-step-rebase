@@ -1,0 +1,67 @@
+#!/bin/bash
+
+function wait_count {
+  local TIME=$1
+  while [ ${TIME} -gt 0 ]; do
+    echo Waiting ${TIME}
+    sleep 1
+    let TIME=${TIME}-1
+  done
+}
+
+
+if [ $# -ne 1 -o "$1" = "-h" -o "$1" = "--help" ]; then
+  echo "Usage: $(basename $0) <base branch>"
+  echo
+  echo "Example: $(basename $0) master"
+  echo
+  echo "This tool rebases the current branch one commit at a time to the base"
+  echo "branch. Doing so instead of rebasing all at once makes sure the"
+  echo "changes at each step are as small as possible. Smaller changes mean a"
+  echo "(sometimes much) higher chance of getting away without conflict. It"
+  echo "also means that upcoming conflicts are as small as possible."
+  echo
+  echo "The tool stops as soon as a conflict happens. After resolving these"
+  echo "you can restart or continue manually."
+  echo
+  echo "Manual equivalent of this tool would be something like this:"
+  echo
+  echo "  git checkout <branch to rebase>"
+  echo "  git rebase <base branch>~1000"
+  echo "  git rebase <base branch>~999"
+  echo "  git rebase <base branch>~998"
+  echo "  ..."
+
+  exit 1
+fi
+
+BASE_BRANCH=${1}
+
+COMMON_PARENT=$(git merge-base HEAD ${BASE_BRANCH})
+echo
+echo "Common parent is ${COMMON_PARENT}."
+
+PARENTS=$(git log --oneline --ancestry-path ${COMMON_PARENT}..${BASE_BRANCH} | \
+          wc -l)
+echo "${PARENTS} commits to go."
+let PARENTS=${PARENTS}-1
+
+CURRENT_BRANCH=$(git status | awk '/^On branch/ { print $3 }')
+echo "Will rebase current branch ${CURRENT_BRANCH} to branch ${BASE_BRANCH}."
+echo
+echo "IS THIS FINE?"
+echo "If not, hit Ctrl-C now."
+wait_count 5
+
+while [ ${PARENTS} -ge 0 ]; do
+  echo "Next:"
+  #echo git rebase -X ignore-all-space --whitespace=fix ${BASE_BRANCH}~${PARENTS} # hält script bei Fehlern nicht an
+  echo git rebase -X ignore-all-space ${BASE_BRANCH}~${PARENTS}
+  sleep 1
+  if ! git rebase -X ignore-all-space ${BASE_BRANCH}~${PARENTS}; then
+    exit
+  fi
+  let PARENTS=${PARENTS}-1
+done
+
+echo "All rebased."
