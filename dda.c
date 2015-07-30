@@ -7,14 +7,12 @@
 #include	<string.h>
 #include	<stdlib.h>
 #include	<math.h>
-#ifdef __AVR__
-#include	<avr/interrupt.h>
-#endif
 
 #include	"dda_maths.h"
 #include "preprocessor_math.h"
 #include "dda_kinematics.h"
 #include	"dda_lookahead.h"
+#include "cpu.h"
 #include	"timer.h"
 #include	"serial.h"
 #include	"sermsg.h"

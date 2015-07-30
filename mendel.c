@@ -114,10 +114,12 @@ void init(void) {
   #ifdef SD
     sd_init();
   #endif
+  #endif /* __ARMEL_NOTYET__ */
 
 	// enable interrupts
 	sei();
 
+  #ifndef __ARMEL_NOTYET__
 	// reset watchdog
 	wd_reset();
   #endif /* __ARMEL_NOTYET__ */

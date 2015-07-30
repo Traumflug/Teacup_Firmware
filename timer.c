@@ -10,15 +10,13 @@
 	Teacup has tried numerous timer management methods, and this is the best so far.
 */
 
-#ifdef __AVR__
-#include	<avr/interrupt.h>
-#endif
-#include	"memory_barrier.h"
 
 #include	"arduino.h"
 #include	"config_wrapper.h"
 #include "pinio.h"
 #include "clock.h"
+#include "cpu.h"
+#include "memory_barrier.h"
 
 #ifdef	MOTHERBOARD
 #include	"dda_queue.h"

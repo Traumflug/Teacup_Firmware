@@ -5,9 +5,6 @@
 */
 
 #include	<string.h>
-#ifdef __AVR__
-#include	<avr/interrupt.h>
-#endif
 
 #include	"config_wrapper.h"
 #include	"timer.h"
@@ -17,6 +14,7 @@
 #include	"delay.h"
 #include	"sersendf.h"
 #include	"clock.h"
+#include "cpu.h"
 #include	"memory_barrier.h"
 
 /// movebuffer head pointer. Points to the last move in the queue.

@@ -5,12 +5,10 @@
 */
 
 #include	<string.h>
-#ifdef __AVR__
-#include	<avr/interrupt.h>
-#endif
 
 #include	"gcode_parse.h"
 
+#include "cpu.h"
 #include	"dda.h"
 #include	"dda_queue.h"
 #include	"watchdog.h"
