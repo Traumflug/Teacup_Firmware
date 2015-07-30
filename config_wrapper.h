@@ -1,4 +1,3 @@
-
 /**
   Some stuff common to all config.h files. Put it here to allow files like
   board.*.config.h or printer.*.h to be moved to about everywhere in the
@@ -49,7 +48,7 @@
 
 #ifdef RRD_SMART_CONTROLLER
 #define LCD
-#define Encoder
+#define ENCODER
 //#define KILL_PIN DIO41
 #define BEEPER DIO37
 #endif
@@ -65,7 +64,7 @@
 #define LCD_D7_PIN  DIO29
 #endif
 
-#ifdef Encoder
+#ifdef ENCODER
 #define BTN_EN1 DIO31
 #define BTN_EN2 DIO33
 #define BTN_ENC DIO35

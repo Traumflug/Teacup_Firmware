@@ -12,12 +12,10 @@
 #include "lcdMenu.h"
 #include "delay.h"
 
-uint8_t prevPos;
+uint8_t prevPos = 0;
 //#define encCursorLine
 
-#define mainScreen[] {PSTR("Information","Prepare","Control","SD","Back")}
-#define mainScreenMax 4
-//#define infoScreen[]{PSTR("X","Y","Z",)}
+static char* mainScreen[] = {" Information","Prepare","Control","SD"};
 
 void splashScreen (){
     lcdClear();
@@ -30,7 +28,6 @@ void splashScreen (){
 
 
 void encCursor (uint8_t pos){
-    //lcdClear();
     if(pos != prevPos){
       lcdGoToXY(0,prevPos);
       lcdWriteText(" ");
@@ -42,7 +39,12 @@ void encCursor (uint8_t pos){
 
 
 void disp (){
-    
+    lcdClear();
+    uint8_t i;
+    for(i = 0; i<=3; i++){
+      lcdGoToXY(1,i);
+      lcdWriteText((uint8_t *)mainScreen[i]);
+    }
 }
 
 

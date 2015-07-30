@@ -234,7 +234,7 @@ enc_A_prev=enc_A;//============  code for rotary encoder
 		clock_10ms();
 	}
 
-        #ifdef BEEPER
+        #ifdef BEEPER //crude beep-on-select
           enc_C = READ(BTN_ENC);
           if(!enc_C){ beep(); }
           enc_C = 1;
