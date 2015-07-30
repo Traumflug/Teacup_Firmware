@@ -19,8 +19,8 @@ static FRESULT result;
 /** Initialize SPI for SD card reading.
 */
 void sd_init(void) {
-  WRITE(SD_CARD_SELECT_PIN, 1);
   SET_OUTPUT(SD_CARD_SELECT_PIN);
+  WRITE(SD_CARD_SELECT_PIN, 1);
 }
 
 /** Mount the SD card.

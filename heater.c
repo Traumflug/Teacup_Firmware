@@ -273,7 +273,7 @@ void heater_init() {
 	// set all heater pins to output
 	do {
 		#undef	DEFINE_HEATER
-		#define	DEFINE_HEATER(name, pin, pwm) WRITE(pin, 0); SET_OUTPUT(pin);
+		#define	DEFINE_HEATER(name, pin, pwm) SET_OUTPUT(pin); WRITE(pin, 0);
 			#include "config_wrapper.h"
 		#undef DEFINE_HEATER
 	} while (0);
