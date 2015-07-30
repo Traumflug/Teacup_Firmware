@@ -118,7 +118,7 @@ $(BUILDDIR)/%.sym: $(BUILDDIR)/%.elf
 # "make regressiontests".
 regressiontests:
 	# Generic Gen7 configuration.
-	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-gen7.h \
+	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-gen7-avr.h \
 	  MCU=atmega644 F_CPU=20000000UL EXTRA_CFLAGS=-Werror all
 	# Generic RAMPS configuration.
 	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-ramps.h \
@@ -132,8 +132,11 @@ regressiontests:
 	# The configuration used for performance measurements.
 	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.h.Profiling \
 	  MCU=atmega644 F_CPU=20000000UL EXTRA_CFLAGS=-Werror all
+	# Continue with ARM based boards, a Gen7-ARM.
+	$(MAKE) -f Makefile-ARM USER_CONFIG=testcases/config.regtest-gen7-arm.h \
+	  EXTRA_CFLAGS=-Werror all
 	# Don't forget the hostside simulator.
-	$(MAKE) -f Makefile-SIM USER_CONFIG=testcases/config.regtest-gen7.h \
+	$(MAKE) -f Makefile-SIM USER_CONFIG=testcases/config.regtest-gen7-avr.h \
 	  EXTRA_CFLAGS=-Werror all
 	@# Nonstandard builds go into a subdirectory of build/, see definition of
 	@# $(BUILDDIR) above. Let's clean that up on success.
