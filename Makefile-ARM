@@ -98,7 +98,7 @@ TARGET = $(PROGRAM).hex
 # Until the generic ARM port is completed, we'd have to wrap all sources
 # in #ifdef __AVR__. To avoid this, build only a selection for now:
 SOURCES  = mendel.c cpu.c serial.c sermsg.c sersendf.c delay.c
-SOURCES += gcode_parse.c gcode_process.c pinio.c
+SOURCES += gcode_parse.c gcode_process.c pinio.c timer.c
 ifeq ($(MCU), lpc1114)
   SOURCES += cmsis-system_lpc11xx.c
 endif

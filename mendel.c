@@ -35,8 +35,8 @@
 #include	"dda_queue.h"
 #endif /* __ARMEL_NOTYET__ */
 #include	"gcode_parse.h"
-#ifndef __ARMEL_NOTYET__
 #include	"timer.h"
+#ifndef __ARMEL_NOTYET__
 #include	"temp.h"
 #include	"watchdog.h"
 #include	"debug.h"
@@ -94,10 +94,12 @@ void init(void) {
   #if defined TEMP_MAX6675 || defined SD
     spi_init();
   #endif
+  #endif /* __ARMEL_NOTYET__ */
 
 	// set up timers
 	timer_init();
 
+  #ifndef __ARMEL_NOTYET__
 	// read PID settings from EEPROM
 	heater_init();
 
