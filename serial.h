@@ -4,7 +4,6 @@
 #include "config_wrapper.h"
 #include	<stdint.h>
 #ifndef SIMULATOR
-#include	<avr/io.h>
 #include	<avr/pgmspace.h>
 #endif
 #include "simulator.h"
