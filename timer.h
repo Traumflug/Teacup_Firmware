@@ -2,7 +2,7 @@
 #define	_TIMER_H
 
 #include	<stdint.h>
-
+#include "arduino.h"  // For F_CPU on ARM.
 
 // time-related constants
 #define	US	* (F_CPU / 1000000)

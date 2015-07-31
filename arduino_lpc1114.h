@@ -22,6 +22,8 @@
 
 #include "cmsis-lpc11xx.h"
 
+#define F_CPU __SYSTEM_CLOCK
+
 /** Pins for UART, the serial port.
 */
 #define RXD             PIO1_6
