@@ -46,14 +46,12 @@ uint8_t next_tool;
 void process_gcode_command() {
 	uint32_t	backup_f;
 
-  #ifndef __ARMEL_NOTYET__
 	// convert relative to absolute
 	if (next_target.option_all_relative) {
     next_target.target.axis[X] += startpoint.axis[X];
     next_target.target.axis[Y] += startpoint.axis[Y];
     next_target.target.axis[Z] += startpoint.axis[Z];
 	}
-  #endif /* __ARMEL_NOTYET__ */
 
 	// E relative movement.
 	// Matches Sprinter's behaviour as of March 2012.
@@ -101,9 +99,8 @@ void process_gcode_command() {
 	}
 
 	if (next_target.seen_G) {
-    #ifndef __ARMEL_NOTYET__
 		uint8_t axisSelected = 0;
-    #endif /* __ARMEL_NOTYET__ */
+
 		switch (next_target.G) {
 			case 0:
 				//? G0: Rapid Linear Motion
@@ -272,7 +269,6 @@ void process_gcode_command() {
 
 				queue_wait();
 
-        #ifndef __ARMEL_NOTYET__
 				if (next_target.seen_X) {
           startpoint.axis[X] = next_target.target.axis[X];
 					axisSelected = 1;
@@ -298,7 +294,6 @@ void process_gcode_command() {
 				}
 
 				dda_new_startpoint();
-        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 161:
@@ -641,13 +636,11 @@ void process_gcode_command() {
 					// wait for all moves to complete
 					queue_wait();
 				#endif
-        #ifndef __ARMEL_NOTYET__
 				update_current_position();
 				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%lu\n"),
                         current_position.axis[X], current_position.axis[Y],
                         current_position.axis[Z], current_position.axis[E],
 				                current_position.F);
-        #endif /* __ARMEL_NOTYET__ */
 
         if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
           sersendf_P(PSTR("Endpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\n"),

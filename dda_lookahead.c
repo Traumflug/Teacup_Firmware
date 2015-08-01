@@ -53,7 +53,7 @@ static const axes_uint32_t PROGMEM maximum_jerk_P = {
  * exceeding the expected jerk. Worst case this speed is zero, which means a
  * full stop between both moves. Best case it's the lower of the maximum speeds.
  *
- * This function is expected to be called from within dda_start().
+ * This function is expected to be called from within dda_create().
  *
  * \param [in] prev is the DDA structure of the move previous to the current one.
  * \param [in] current is the DDA structure of the move currently created.

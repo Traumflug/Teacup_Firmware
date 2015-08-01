@@ -42,3 +42,7 @@
            Lookahead disabled.
   #undef LOOKAHEAD
 #endif
+
+#ifdef __ARMEL_NOTYET__
+  #undef LOOKAHEAD
+#endif

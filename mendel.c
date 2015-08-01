@@ -100,10 +100,12 @@ void init(void) {
   #ifndef __ARMEL_NOTYET__
 	// read PID settings from EEPROM
 	heater_init();
+  #endif /* __ARMEL_NOTYET__ */
 
 	// set up dda
 	dda_init();
 
+  #ifndef __ARMEL_NOTYET__
 	// start up analog read interrupt loop,
 	// if any of the temp sensors in your config.h use analog interface
 	analog_init();
