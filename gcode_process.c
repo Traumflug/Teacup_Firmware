@@ -558,7 +558,7 @@ void process_gcode_command() {
 				//?
 				break;
 
-			#ifdef	DEBUG
+      #ifdef DEBUG
 			case 111:
 				//? --- M111: Set Debug Level ---
 				//?
@@ -578,7 +578,7 @@ void process_gcode_command() {
 					break;
 				debug_flags = next_target.S;
 				break;
-			#endif
+      #endif /* DEBUG */
 
       case 112:
         //? --- M112: Emergency Stop ---
@@ -619,21 +619,19 @@ void process_gcode_command() {
                         current_position.axis[Z], current_position.axis[E],
 				                current_position.F);
 
-				#ifdef	DEBUG
-					if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
-						sersendf_P(PSTR(",c:%lu}\nEndpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}"),
-                            movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.axis[X],
-                            movebuffer[mb_tail].endpoint.axis[Y], movebuffer[mb_tail].endpoint.axis[Z],
-                            movebuffer[mb_tail].endpoint.axis[E], movebuffer[mb_tail].endpoint.F,
-						#ifdef ACCELERATION_REPRAP
-							movebuffer[mb_tail].end_c
-						#else
-							movebuffer[mb_tail].c
-						#endif
-						);
-						print_queue();
-					}
-				#endif /* DEBUG */
+        if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
+          sersendf_P(PSTR(",c:%lu}\nEndpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}"),
+                          movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.axis[X],
+                          movebuffer[mb_tail].endpoint.axis[Y], movebuffer[mb_tail].endpoint.axis[Z],
+                          movebuffer[mb_tail].endpoint.axis[E], movebuffer[mb_tail].endpoint.F,
+          #ifdef ACCELERATION_REPRAP
+            movebuffer[mb_tail].end_c
+          #else
+            movebuffer[mb_tail].c
+          #endif
+          );
+          print_queue();
+        }
 
 				// newline is sent from gcode_parse after we return
 				break;
@@ -771,7 +769,7 @@ void process_gcode_command() {
 				break;
       #endif /* EECONFIG */
 
-			#ifdef	DEBUG
+      #ifdef DEBUG
 			case 136:
 				//? --- M136: PRINT PID settings to host ---
 				//? Undocumented.
@@ -784,7 +782,7 @@ void process_gcode_command() {
           #endif
 				heater_print(next_target.P);
 				break;
-			#endif
+      #endif /* DEBUG */
 
 			case 140:
 				//? --- M140: Set heated bed temperature ---
@@ -796,7 +794,7 @@ void process_gcode_command() {
 				#endif
 				break;
 
-			#ifdef	DEBUG
+      #ifdef DEBUG
 			case 240:
 				//? --- M240: echo off ---
 				//? Disable echo.
@@ -814,8 +812,7 @@ void process_gcode_command() {
 				serial_writestr_P(PSTR("Echo on"));
 				// newline is sent from gcode_parse after we return
 				break;
-
-			#endif /* DEBUG */
+      #endif /* DEBUG */
 
 				// unknown mcode: spit an error
 			default:
