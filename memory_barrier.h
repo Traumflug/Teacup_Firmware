@@ -1,20 +1,11 @@
 #ifndef _MEMORY_BARRIER_H_
 #define _MEMORY_BARRIER_H_
 
-#ifdef SIMULATOR
-  #define CLI_SEI_BUG_MEMORY_BARRIER()
-  #define MEMORY_BARRIER()
+#include "cpu.h"
 
-  #define ATOMIC_START { \
-                         uint8_t save_reg = sim_interrupts; \
-                         cli();
 
-  #define ATOMIC_END     MEMORY_BARRIER(); \
-                         if (save_reg) sei(); \
-                       }
+#if defined __AVR__
 
-#elif defined __AVR__
-#include <util/atomic.h>
 #include <avr/version.h>
 
 // Provide a memory barrier to the compiler. This informs
@@ -30,7 +21,7 @@
 
 // There is a bug in the CLI/SEI functions in older versions of
 // avr-libc - they should be defined to include a memory barrier.
-// This macro is used to define the barrier in the code so that 
+// This macro is used to define the barrier in the code so that
 // it will be easy to remove once the bug has become ancient history.
 // At the moment the bug is included in most of the distributed
 // compilers.
@@ -50,5 +41,25 @@
                      SREG = save_reg; \
                    }
 
-#endif
-#endif
+#elif defined __ARMEL__
+
+  #define ATOMIC_START cli();
+  #define ATOMIC_END sei();
+  #define MEMORY_BARRIER()
+
+#elif defined SIMULATOR
+
+  #define CLI_SEI_BUG_MEMORY_BARRIER()
+  #define MEMORY_BARRIER()
+
+  #define ATOMIC_START { \
+                         uint8_t save_reg = sim_interrupts; \
+                         cli();
+
+  #define ATOMIC_END     MEMORY_BARRIER(); \
+                         if (save_reg) sei(); \
+                       }
+
+#endif /* __AVR__, __ARMEL__, SIMULATOR */
+
+#endif /* _MEMORY_BARRIER_H_ */
