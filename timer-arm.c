@@ -8,6 +8,7 @@
 #if defined TEACUP_C_INCLUDE && defined __ARMEL__
 
 #include "cmsis-core_cm0.h"
+#include "clock.h"
 
 
 /** Timer initialisation.
@@ -53,8 +54,8 @@ void timer_init() {
 */
 void SysTick_Handler(void) {
 
-  #ifndef __ARMEL_NOTYET__
   clock_tick();
+  #ifndef __ARMEL_NOTYET__
   dda_clock();
   #endif /* __ARMEL_NOTYET__ */
 }

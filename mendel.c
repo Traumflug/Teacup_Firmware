@@ -44,8 +44,8 @@
 #include	"analog.h"
 #endif /* __ARMEL_NOTYET__ */
 #include	"pinio.h"
-#ifndef __ARMEL_NOTYET__
 #include	"clock.h"
+#ifndef __ARMEL_NOTYET__
 #include	"intercom.h"
 #include "spi.h"
 #include "sd.h"
@@ -222,8 +222,8 @@ int main (void)
 
       #endif /* CANNED_CYCLE */
 		}
+    #endif /* __ARMEL_NOTYET__ */
 
 		clock();
-    #endif /* __ARMEL_NOTYET__ */
 	}
 }

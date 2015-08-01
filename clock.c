@@ -71,7 +71,11 @@ void clock_tick(void) {
 	called from clock_10ms(), do not call directly
 */
 static void clock_250ms(void) {
+  #ifndef __ARMEL_NOTYET__
   if (heaters_all_zero()) {
+  #else
+  if (1) {
+  #endif /* __ARMEL_NOTYET__, ! __ARMEL_NOTYET__ */
 		if (psu_timeout > (30 * 4)) {
 			power_off();
 		}
@@ -114,7 +118,9 @@ static void clock_10ms(void) {
 	// reset watchdog
 	wd_reset();
 
+  #ifndef __ARMEL_NOTYET__
 	temp_sensor_tick();
+  #endif /* __ARMEL_NOTYET__ */
 
 	ifclock(clock_flag_250ms) {
 		clock_250ms();
