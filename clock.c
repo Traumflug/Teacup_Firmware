@@ -4,6 +4,7 @@
 	\brief Do stuff periodically
 */
 
+#include <stdint.h>
 #include	"pinio.h"
 #include	"sersendf.h"
 #include	"dda_queue.h"
@@ -17,19 +18,27 @@
 #endif
 #include	"memory_barrier.h"
 
+/**
+  If the specific bit is set, execute the following block exactly once
+  and then clear the flag.
+*/
+#define ifclock(F) for ( ; F; F = 0)
 
-/// Every time our clock fires we increment this,
-/// so we know when 10ms has elapsed.
-uint8_t clock_counter_10ms = 0;
-/// Keep track of when 250ms has elapsed.
-uint8_t clock_counter_250ms = 0;
-/// Keep track of when 1s has elapsed.
-uint8_t clock_counter_1s = 0;
 
-/// Flags to tell main loop when above have elapsed.
-volatile uint8_t clock_flag_10ms = 0;
-volatile uint8_t clock_flag_250ms = 0;
-volatile uint8_t clock_flag_1s = 0;
+/**
+  Every time our clock fires we increment this,
+  so we know when 10ms/250ms/1s has elapsed.
+*/
+static uint8_t clock_counter_10ms = 0;
+static uint8_t clock_counter_250ms = 0;
+static uint8_t clock_counter_1s = 0;
+
+/**
+  Flags to tell clock() when above have elapsed.
+*/
+static volatile uint8_t clock_flag_10ms = 0;
+static volatile uint8_t clock_flag_250ms = 0;
+static volatile uint8_t clock_flag_1s = 0;
 
 
 /** Advance our clock by a tick.
