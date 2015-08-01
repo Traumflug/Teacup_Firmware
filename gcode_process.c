@@ -114,9 +114,7 @@ void process_gcode_command() {
 				//?
 				backup_f = next_target.target.F;
 				next_target.target.F = MAXIMUM_FEEDRATE_X * 2L;
-        #ifndef __ARMEL_NOTYET__
 				enqueue(&next_target.target);
-        #endif /* __ARMEL_NOTYET__ */
 				next_target.target.F = backup_f;
 				break;
 
@@ -127,9 +125,7 @@ void process_gcode_command() {
 				//?
 				//? Go in a straight line from the current (X, Y) point to the point (90.6, 13.8), extruding material as the move happens from the current extruded length to a length of 22.4 mm.
 				//?
-        #ifndef __ARMEL_NOTYET__
 				enqueue(&next_target.target);
-        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 				//	G2 - Arc Clockwise
@@ -145,9 +141,7 @@ void process_gcode_command() {
 				//?
 				//? In this case sit still doing nothing for 200 milliseconds.  During delays the state of the machine (for example the temperatures of its extruders) will still be preserved and controlled.
 				//?
-        #ifndef __ARMEL_NOTYET__
 				queue_wait();
-        #endif /* __ARMEL_NOTYET__ */
 				// delay
 				if (next_target.seen_P) {
 					for (;next_target.P > 0;next_target.P--) {
@@ -181,9 +175,7 @@ void process_gcode_command() {
 				//? --- G30: Go home via point ---
 				//?
 				//? Undocumented.
-        #ifndef __ARMEL_NOTYET__
 				enqueue(&next_target.target);
-        #endif /* __ARMEL_NOTYET__ */
 				// no break here, G30 is move and then go home
 
 			case 28:
@@ -205,9 +197,9 @@ void process_gcode_command() {
         //? ignored.
 				//?
 
-        #ifndef __ARMEL_NOTYET__
 				queue_wait();
 
+        #ifndef __ARMEL_NOTYET__
 				if (next_target.seen_X) {
 					#if defined	X_MIN_PIN
 						home_x_negative();
@@ -278,9 +270,9 @@ void process_gcode_command() {
 				//? Allows programming of absolute zero point, by reseting the current position to the values specified.  This would set the machine's X coordinate to 10, and the extrude coordinate to 90. No physical motion will occur.
 				//?
 
-        #ifndef __ARMEL_NOTYET__
 				queue_wait();
 
+        #ifndef __ARMEL_NOTYET__
 				if (next_target.seen_X) {
           startpoint.axis[X] = next_target.target.axis[X];
 					axisSelected = 1;
@@ -381,8 +373,8 @@ void process_gcode_command() {
 				//?
 				//? http://linuxcnc.org/handbook/RS274NGC_3/RS274NGC_33a.html#1002379
 				//?
-        #ifndef __ARMEL_NOTYET__
 				queue_wait();
+        #ifndef __ARMEL_NOTYET__
 				for (i = 0; i < NUM_HEATERS; i++)
 					temp_set(i, 0);
         #endif /* __ARMEL_NOTYET__ */
@@ -543,10 +535,10 @@ void process_gcode_command() {
         //? Teacup supports an optional P parameter as a zero-based temperature
         //? sensor index to address.
 				//?
-        #ifndef __ARMEL_NOTYET__
 				#ifdef ENFORCE_ORDER
 					queue_wait();
 				#endif
+        #ifndef __ARMEL_NOTYET__
 				if ( ! next_target.seen_P)
 					next_target.P = TEMP_SENSOR_none;
 				temp_print(next_target.P);
@@ -565,7 +557,6 @@ void process_gcode_command() {
         //? index to address. The heater index can differ from the temperature
         //? sensor index, see config.h.
 
-        #ifndef __ARMEL_NOTYET__
 				#ifdef ENFORCE_ORDER
 					// wait for all moves to complete
 					queue_wait();
@@ -578,6 +569,7 @@ void process_gcode_command() {
           #endif
 				if ( ! next_target.seen_S)
 					break;
+        #ifndef __ARMEL_NOTYET__
         heater_set(next_target.P, next_target.S);
         #endif /* __ARMEL_NOTYET__ */
 				break;
@@ -624,10 +616,8 @@ void process_gcode_command() {
         //? restart is to press the reset button on the master microcontroller.
         //? See also M0.
         //?
-        #ifndef __ARMEL_NOTYET__
         timer_stop();
         queue_flush();
-        #endif /* __ARMEL_NOTYET__ */
         power_off();
         cli();
         #ifndef __ARMEL_NOTYET__
@@ -647,16 +637,17 @@ void process_gcode_command() {
 				//?
 				//? <tt>ok C: X:0.00 Y:0.00 Z:0.00 E:0.00</tt>
 				//?
-        #ifndef __ARMEL_NOTYET__
 				#ifdef ENFORCE_ORDER
 					// wait for all moves to complete
 					queue_wait();
 				#endif
+        #ifndef __ARMEL_NOTYET__
 				update_current_position();
 				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%lu\n"),
                         current_position.axis[X], current_position.axis[Y],
                         current_position.axis[Z], current_position.axis[E],
 				                current_position.F);
+        #endif /* __ARMEL_NOTYET__ */
 
         if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
           sersendf_P(PSTR("Endpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\n"),
@@ -673,7 +664,6 @@ void process_gcode_command() {
           );
           print_queue();
         }
-        #endif /* __ARMEL_NOTYET__ */
 
 				// newline is sent from gcode_parse after we return
 				break;
@@ -701,9 +691,7 @@ void process_gcode_command() {
 				//?
 				//? Wait for temperatures and other slowly-changing variables to arrive at their set values.
 
-        #ifndef __ARMEL_NOTYET__
 				enqueue(NULL);
-        #endif /* __ARMEL_NOTYET__ */
 				break;
 
       case 119:

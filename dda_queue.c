@@ -90,7 +90,9 @@ void queue_step() {
       }
 		}
 		else {
+      #ifndef __ARMEL_NOTYET__
 			dda_step(current_movebuffer);
+      #endif /* __ARMEL_NOTYET__ */
 		}
 	}
 
@@ -124,7 +126,9 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 		// it's a wait for temp
 		new_movebuffer->waitfor_temp = 1;
 	}
+  #ifndef __ARMEL_NOTYET__
   dda_create(new_movebuffer, t);
+  #endif /* __ARMEL_NOTYET__ */
 
 	// make certain all writes to global memory
 	// are flushed before modifying mb_head.
@@ -169,7 +173,9 @@ void next_move() {
       timer_set(HEATER_WAIT_TIMEOUT, 0);
 		}
 		else {
+      #ifndef __ARMEL_NOTYET__
 			dda_start(current_movebuffer);
+      #endif /* __ARMEL_NOTYET__ */
 		}
 	}
 }

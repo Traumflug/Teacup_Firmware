@@ -31,9 +31,7 @@
 #include	"config_wrapper.h"
 #include "cpu.h"
 #include	"serial.h"
-#ifndef __ARMEL_NOTYET__
 #include	"dda_queue.h"
-#endif /* __ARMEL_NOTYET__ */
 #include	"gcode_parse.h"
 #include	"timer.h"
 #ifndef __ARMEL_NOTYET__
@@ -153,9 +151,7 @@ int main (void)
 	for (;;)
 	{
 		// if queue is full, no point in reading chars- host will just have to wait
-    #ifndef __ARMEL_NOTYET__
     if (queue_full() == 0) {
-    #endif /* __ARMEL_NOTYET__ */
       /**
         Postpone sending acknowledgement until there's a free slot in the
         movement queue. This way the host waits with sending the next line
@@ -221,8 +217,8 @@ int main (void)
           canned_gcode_pos = 0;
 
       #endif /* CANNED_CYCLE */
+      #endif /* __ARMEL_NOTYET__ */
 		}
-    #endif /* __ARMEL_NOTYET__ */
 
 		clock();
 	}
