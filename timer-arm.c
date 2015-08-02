@@ -9,6 +9,8 @@
 
 #include "cmsis-core_cm0.h"
 #include "clock.h"
+#include "pinio.h"
+#include "dda_queue.h"
 
 
 /** Timer initialisation.
@@ -45,6 +47,28 @@ void timer_init() {
   SysTick->CTRL  = SysTick_CTRL_ENABLE_Msk        // Enable the ticker.
                  | SysTick_CTRL_TICKINT_Msk       // Enable interrupt.
                  | SysTick_CTRL_CLKSOURCE_Msk;    // Run at full CPU clock.
+
+  /**
+    Initialise the stepper timer. On ARM we have the comfort of hardware
+    32-bit timers, so we don't have to artifically extend the timer to this
+    size. We use match register 0 of the first 32-bit timer, CT32B0.
+
+    We run the timer all the time, just turn the interrupt on and off, to
+    allow interrupts equally spaced, independent from processing time. See
+    also description of timer_set().
+  */
+  LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 9);          // Turn on CT32B0 power.
+
+  LPC_TMR32B0->TCR    = (1 << 0);                 // Enable counter.
+  //LPC_TMR32B0->PR   = 0; ( = reset value)       // Prescaler off.
+  //LPC_TMR32B0->MCR is handled by timer_set() and IRQ handler.
+  //LPC_TMR32B0->CCR  = 0; ( = reset value)       // No pin capture.
+  //LPC_TMR32B0->EMR  = 0; ( = reset value)       // No external matches.
+  //LPC_TMR32B0->CTCR = 0; ( = reset value)       // Timer mode.
+  //LPC_TMR32B0->PWMC = 0; ( = reset value)       // All PWM off.
+
+  NVIC_SetPriority(TIMER_32_0_IRQn, 0);           // Also highest priority.
+  NVIC_EnableIRQ(TIMER_32_0_IRQn);                // Enable interrupt generally.
 }
 
 /** System clock interrupt.
@@ -60,6 +84,36 @@ void SysTick_Handler(void) {
   #endif /* __ARMEL_NOTYET__ */
 }
 
+/** Step interrupt.
+
+  Happens for every stepper motor step. Must have the same name as in
+  cmsis-startup_lpc11xx.s
+*/
+void TIMER32_0_IRQHandler(void) {
+
+  #ifdef DEBUG_LED_PIN
+    WRITE(DEBUG_LED_PIN, 1);
+  #endif
+
+  /**
+    Turn off interrupt generation, timer counter continues. As this interrupt
+    is the only use of this timer, there's no need for a read-modify-write.
+  */
+  LPC_TMR32B0->MCR = 0;
+
+  /**
+    We have to "reset" this interrupt, else it'll be triggered over and over
+    again.
+  */
+  LPC_TMR32B0->IR = (1 << 0);                     // Clear match on channel 0.
+
+  queue_step();
+
+  #ifdef DEBUG_LED_PIN
+    WRITE(DEBUG_LED_PIN, 0);
+  #endif
+}
+
 /** Specify how long until the step timer should fire.
 
   \param delay Delay for the next step interrupt, in CPU ticks.
@@ -70,9 +124,9 @@ void SysTick_Handler(void) {
          usually wants to handle this case.
 
          Calls from elsewhere should set it to 0. In this case a timer
-         interrupt is always scheduled. At the risk that this scheduling
-         doesn't delay the requested time, but up to a full timer counter
-         overflow ( = 65536 / F_CPU = 3 to 4 milliseconds).
+         interrupt is always scheduled. At the risk that if this scheduling
+         is too short, the timer doesn't delay the requested time, but up to
+         a full timer counter overflow ( = 2^32 / F_CPU = ~96 seconds).
 
   \return A flag whether the requested time was too short to allow scheduling
           an interrupt. This is meaningful for ACCELERATION_TEMPORAL, where
@@ -92,8 +146,50 @@ void SysTick_Handler(void) {
   So, if you use it from inside the step interrupt, make sure to do so
   as late as possible. If you use it from outside the step interrupt,
   do a sei() after it to make the interrupt actually fire.
+
+  On ARM we have the comfort of hardware 32-bit timers, so we don't have to
+  artifically extend the timer to this size. We use match register 0 of the
+  first 32-bit timer, CT32B0.
 */
 uint8_t timer_set(int32_t delay, uint8_t check_short) {
+
+  #ifdef ACCELERATION_TEMPORAL
+    if (check_short) {
+      /**
+        100 = safe number of cpu cycles after current_time to allow a new
+        interrupt happening. This is mostly the time needed to complete the
+        current interrupt.
+
+        LPC_TMR32B0->TC  = timer counter = current time.
+        LPC_TMR32B0->MR0 = last timer match = time of the last step.
+      */
+      if ((LPC_TMR32B0->TC - LPC_TMR32B0->MR0) + 100 > delay)
+        return 1;
+    }
+  #endif /* ACCELERATION_TEMPORAL */
+
+  /**
+    Still here? Then we can schedule the next step. Usually off of the previous
+    step. If we passed this time already, usually because this is the first
+    move after a pause, we delay off of the current time. Other than on AVR we
+    can't affort a full round through the timer here, because this round would
+    be up to 60 seconds.
+
+    TODO: this check costs time and is a plausibility check only. It'd be
+          better to reset the timer from elsewhere when starting a movement
+          after a pause.
+  */
+  if (LPC_TMR32B0->TC - LPC_TMR32B0->MR0 > delay - 100)
+    LPC_TMR32B0->MR0 = LPC_TMR32B0->TC + delay;
+  else
+    LPC_TMR32B0->MR0 += delay;
+
+  /**
+    Turn on the stepper interrupt. As this interrupt is the only use of this
+    timer, there's no need for a read-modify-write.
+  */
+  LPC_TMR32B0->MCR = (1 << 0);                    // Interrupt on MR0 match.
+
   return 0;
 }
 
