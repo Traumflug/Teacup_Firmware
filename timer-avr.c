@@ -41,11 +41,25 @@ uint32_t	step_extra_time = 0;
   Comparator B is the system clock, happens every TICK_TIME.
 */
 ISR(TIMER1_COMPB_vect) {
+  static volatile uint8_t busy = 0;
+
 	// set output compare register to the next clock tick
 	OCR1B = (OCR1B + TICK_TIME) & 0xFFFF;
 
   clock_tick();
-  dda_clock();
+
+  /**
+    Lengthy calculations ahead! Make sure we didn't re-enter, then allow
+    nested interrupts.
+  */
+  if ( ! busy) {
+    busy = 1;
+    sei();
+
+    dda_clock();
+
+    busy = 0;
+  }
 }
 
 #ifdef	MOTHERBOARD
