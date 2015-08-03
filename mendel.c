@@ -261,6 +261,8 @@ int main (int argc, char** argv)
 int main (void)
 {
 #endif
+  uint8_t c, line_done, ack_waiting = 0;
+
 	init();
 
 	// main loop
@@ -268,15 +270,33 @@ int main (void)
 	{
 		// if queue is full, no point in reading chars- host will just have to wait
     if (queue_full() == 0) {
-      uint8_t c, line_done;
+      /**
+        Postpone sending acknowledgement until there's a free slot in the
+        movement queue. This way the host waits with sending the next line
+        until it can be processed immediately. As a result, the serial receive
+        queue is always almost empty; it exists only for receiving via XON/XOFF
+        flow control. Another result is, the incoming line can be longer than
+        the receiving buffer, see Github issue #52.
+
+        At the time of the introduction of this strategy gcode_parse_char()
+        parsed a single character in 100 to 400 CPU clocks, processing
+        the line end took some 30'000 clocks. 115200 baud mean one character
+        incoming every about 1250 CPU clocks on AVR 16 MHz.
+      */
+      if (ack_waiting) {
+        serial_writestr_P(PSTR("ok\n"));
+        ack_waiting = 0;
+      }
 
       if (( ! gcode_active || gcode_active & GCODE_SOURCE_SERIAL) &&
           serial_rxchars() != 0) {
         gcode_active = GCODE_SOURCE_SERIAL;
         c = serial_popchar();
         line_done = gcode_parse_char(c);
-        if (line_done)
+        if (line_done) {
           gcode_active = 0;
+          ack_waiting = 1;
+        }
       }
 
       #ifdef SD

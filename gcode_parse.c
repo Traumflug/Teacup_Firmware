@@ -387,9 +387,9 @@ uint8_t gcode_parse_char(uint8_t c) {
 				#endif
 				) {
 				// process
-				serial_writestr_P(PSTR("ok "));
 				process_gcode_command();
-				serial_writechar('\n');
+
+        // Acknowledgement ("ok") is sent in the main loop, in mendel.c.
 
 				// expect next line number
 				if (next_target.seen_N == 1)
