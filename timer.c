@@ -55,7 +55,7 @@ ISR(TIMER1_COMPA_vect) {
 
 		// disable this interrupt. if we set a new timeout, it will be re-enabled when appropriate
 		TIMSK1 &= ~MASK(OCIE1A);
-		
+
 		// stepper tick
 		queue_step();
 
@@ -130,7 +130,7 @@ void timer_init() {
 	as late as possible. If you use it from outside the step interrupt,
 	do a sei() after it to make the interrupt actually fire.
 */
-char timer_set(int32_t delay, char check_short) {
+uint8_t timer_set(int32_t delay, uint8_t check_short) {
 	uint16_t step_start = 0;
 	#ifdef ACCELERATION_TEMPORAL
 	uint16_t current_time;
@@ -182,7 +182,7 @@ char timer_set(int32_t delay, char check_short) {
 
 	// Enable this interrupt, but only do it after disabling
 	// global interrupts (see above). This will cause push any possible
-	// timer1a interrupt to the far side of the return, protecting the 
+	// timer1a interrupt to the far side of the return, protecting the
 	// stack from recursively clobbering memory.
 	TIMSK1 |= MASK(OCIE1A);
   #ifdef SIMULATOR

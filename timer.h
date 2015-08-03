@@ -2,10 +2,6 @@
 #define	_TIMER_H
 
 #include	<stdint.h>
-#ifdef __AVR__
-#include	<avr/io.h>
-#endif
-#include "simulator.h"
 
 
 // time-related constants
@@ -21,12 +17,9 @@
 #define TICK_TIME_MS (TICK_TIME / (F_CPU / 1000))
 
 
-/*
-timer stuff
-*/
-void timer_init(void) __attribute__ ((cold));
+void timer_init(void);
 
-char timer_set(int32_t delay, char check_short);
+uint8_t timer_set(int32_t delay, uint8_t check_short);
 
 void timer_stop(void);
 
