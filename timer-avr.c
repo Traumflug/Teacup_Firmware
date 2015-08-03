@@ -134,9 +134,7 @@ void timer_init() {
          usually wants to handle this case.
 
          Calls from elsewhere should set it to 0. In this case a timer
-         interrupt is always scheduled. At the risk that if this scheduling
-         is too short, the timer doesn't delay the requested time, but up to
-         a full timer counter overflow ( = 65536 / F_CPU = 3 to 4 milliseconds).
+         interrupt is always scheduled.
 
   \return A flag whether the requested time was too short to allow scheduling
           an interrupt. This is meaningful for ACCELERATION_TEMPORAL, where
@@ -149,8 +147,7 @@ void timer_init() {
   time of the call, but starting at the time of the previous timer interrupt
   fired. This ignores the processing time taken in the step interrupt so far,
   offering smooth and even step distribution. Flipside of this coin is,
-  schedules issued at an arbitrary time can result in drastically wrong delays.
-  See also discussion of parameter check_short and the return value.
+  one has to call timer_reset() before scheduling a step at an arbitrary time.
 
 	This enables the step interrupt, but also disables interrupts globally.
 	So, if you use it from inside the step interrupt, make sure to do so
@@ -218,6 +215,17 @@ uint8_t timer_set(int32_t delay, uint8_t check_short) {
   #endif
 
   return 0;
+}
+
+/** Timer reset.
+
+  Reset the timer, so step interrupts scheduled at an arbitrary point in time
+  don't lead to a full round through the timer counter.
+
+  On AVR we simply do nothing, such a full round through the timer is just
+  2^16 / F_CPU = 3 to 4 milliseconds.
+*/
+void timer_reset() {
 }
 
 /** Stop timers.

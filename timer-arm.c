@@ -144,9 +144,7 @@ void TIMER32_0_IRQHandler(void) {
          usually wants to handle this case.
 
          Calls from elsewhere should set it to 0. In this case a timer
-         interrupt is always scheduled. At the risk that if this scheduling
-         is too short, the timer doesn't delay the requested time, but up to
-         a full timer counter overflow ( = 2^32 / F_CPU = ~96 seconds).
+         interrupt is always scheduled.
 
   \return A flag whether the requested time was too short to allow scheduling
           an interrupt. This is meaningful for ACCELERATION_TEMPORAL, where
@@ -189,20 +187,11 @@ uint8_t timer_set(int32_t delay, uint8_t check_short) {
   #endif /* ACCELERATION_TEMPORAL */
 
   /**
-    Still here? Then we can schedule the next step. Usually off of the previous
-    step. If we passed this time already, usually because this is the first
-    move after a pause, we delay off of the current time. Other than on AVR we
-    can't affort a full round through the timer here, because this round would
-    be up to 60 seconds.
-
-    TODO: this check costs time and is a plausibility check only. It'd be
-          better to reset the timer from elsewhere when starting a movement
-          after a pause.
+    Still here? Then we can schedule the next step. Off of the previous step.
+    If there is no previous step, TC and MR0 should have been reset to zero
+    by calling timer_reset() shortly before we arrive here.
   */
-  if (LPC_TMR32B0->TC - LPC_TMR32B0->MR0 > delay - 100)
-    LPC_TMR32B0->MR0 = LPC_TMR32B0->TC + delay;
-  else
-    LPC_TMR32B0->MR0 += delay;
+  LPC_TMR32B0->MR0 += delay;
 
   /**
     Turn on the stepper interrupt. As this interrupt is the only use of this
@@ -211,6 +200,19 @@ uint8_t timer_set(int32_t delay, uint8_t check_short) {
   LPC_TMR32B0->MCR = (1 << 0);                    // Interrupt on MR0 match.
 
   return 0;
+}
+
+/** Timer reset.
+
+  Reset the timer, so step interrupts scheduled at an arbitrary point in time
+  don't lead to a full round through the timer counter.
+
+  On ARM we actually do something, such a full round through the timer is
+  2^32 / F_CPU = 44 to 90 seconds.
+*/
+void timer_reset() {
+  LPC_TMR32B0->TC = 0;
+  LPC_TMR32B0->MR0 = 0;
 }
 
 /** Stop timers.
