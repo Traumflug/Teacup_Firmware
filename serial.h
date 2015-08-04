@@ -29,14 +29,9 @@
   void serial_writechar(uint8_t data);
 #endif /* USB_SERIAL */
 
-// read/write many characters
-// uint8_t serial_recvblock(uint8_t *block, int blocksize);
-void serial_writeblock(void *data, int datalen);
-
 void serial_writestr(uint8_t *data);
 
 // write from flash
-void serial_writeblock_P(PGM_P data_P, int datalen);
 void serial_writestr_P(PGM_P data_P);
 
 #endif	/* _SERIAL_H */

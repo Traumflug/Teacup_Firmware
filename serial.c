@@ -217,15 +217,6 @@ void serial_writechar(uint8_t data)
 }
 #endif /* USB_SERIAL */
 
-/// send a whole block
-void serial_writeblock(void *data, int datalen)
-{
-	int i;
-
-	for (i = 0; i < datalen; i++)
-		serial_writechar(((uint8_t *) data)[i]);
-}
-
 /// send a string- look for null byte instead of expecting a length
 void serial_writestr(uint8_t *data)
 {
@@ -236,24 +227,15 @@ void serial_writestr(uint8_t *data)
 }
 
 /**
-	Write block from FLASH
+  Write string from FLASH.
 
-	Extensions to output flash memory pointers. This prevents the data to
-	become part of the .data segment instead of the .code segment. That means
-	less memory is consumed for multi-character writes.
+  Extensions to output flash memory pointers. This prevents the data to
+  become part of the .data segment instead of the .code segment. That means
+  less memory is consumed for multi-character writes.
 
-	For single character writes (i.e. '\n' instead of "\n"), using
-	serial_writechar() directly is the better choice.
+  For single character writes (i.e. '\n' instead of "\n"), using
+  serial_writechar() directly is the better choice.
 */
-void serial_writeblock_P(PGM_P data_P, int datalen)
-{
-	int i;
-
-	for (i = 0; i < datalen; i++)
-		serial_writechar(pgm_read_byte(&data_P[i]));
-}
-
-/// Write string from FLASH
 void serial_writestr_P(PGM_P data_P)
 {
 	uint8_t r, i = 0;
