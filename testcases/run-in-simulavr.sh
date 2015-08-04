@@ -297,9 +297,9 @@ EOF
         } else { # falling flange
           print time " b" bit " " ledID;
           if (ledOnTime != 0) {
-            ledTime = time - ledOnTime;
+            # Convert from nanoseconds to clock cycles.
+            ledTime = (time - ledOnTime) / 50;
             print ledOnTime " b" print_binary(ledTime, 32) " " ledTimeID;
-            ledTime /= 50; # Convert from nanoseconds to clock cycles.
             if (ledTimeMin == 0 || ledTime < ledTimeMin) {
               ledTimeMin = ledTime;
             }
@@ -352,7 +352,7 @@ EOF
       print "$upscope $end";
       print "$scope module Timings $end";
       print "$var wire 1 " ledID " Debug_LED $end";
-      print "$var integer " 32 " " ledTimeID " LED_on_time $end";
+      print "$var integer " 32 " " ledTimeID " LED_on_clocks $end";
       print "$upscope $end";
       print "$enddefinitions $end";
       print "#0";
