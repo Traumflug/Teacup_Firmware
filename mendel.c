@@ -39,8 +39,8 @@
 #include	"watchdog.h"
 #include	"debug.h"
 #include	"heater.h"
-#include	"analog.h"
 #endif /* __ARMEL_NOTYET__ */
+#include	"analog.h"
 #include	"pinio.h"
 #include	"clock.h"
 #ifndef __ARMEL_NOTYET__
@@ -105,11 +105,11 @@ void init(void) {
 	// set up dda
 	dda_init();
 
-  #ifndef __ARMEL_NOTYET__
 	// start up analog read interrupt loop,
 	// if any of the temp sensors in your config.h use analog interface
 	analog_init();
 
+  #ifndef __ARMEL_NOTYET__
 	// set up temperature inputs
 	temp_init();
 
