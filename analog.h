@@ -3,6 +3,10 @@
 
 #include	<stdint.h>
 
+#ifdef __AVR__
+  // TODO: these reference selectors should go away. A nice feature, but
+  //       none of the RepRap controllers has use for it.
+
 /** \def REFERENCE_AREF
   This compares the voltage to be measured against the voltage on the Aref pin.
   This also requires a voltage to be actually provided on the Aref pin, which
@@ -44,6 +48,8 @@
 #ifndef	REFERENCE
   #error REFERENCE undefined. See analog.h on how to choose it.
 #endif
+
+#endif /* __AVR__ */
 
 void 			analog_init(void);
 
