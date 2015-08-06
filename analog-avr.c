@@ -82,23 +82,28 @@ ISR(ADC_vect, ISR_NOBLOCK) {
 	}
 }
 
-/*! Read analog value from saved result array
-	\param channel Channel to be read
-	\return analog reading, 10-bit right aligned
+/** Read analog value from saved result array.
+
+  \param channel Channel to be read. Channel numbering starts at zero.
+
+  \return Analog reading, 10-bit right aligned.
 */
-uint16_t	analog_read(uint8_t index) {
-	if (analog_mask > 0) {
-		uint16_t r;
+uint16_t analog_read(uint8_t index) {
+  uint16_t result = 0;
+
+  #ifdef AIO8_PIN
+    if (index < sizeof(adc_channel) && adc_channel[index] < 16) {
+  #else
+    if (index < sizeof(adc_channel) && adc_channel[index] < 8) {
+  #endif
 
     ATOMIC_START
-      // atomic 16-bit copy
-      r = adc_result[index];
+      // Atomic 16-bit copy.
+      result = adc_result[index];
     ATOMIC_END
+  }
 
-		return r;
-	} else {
-		return 0;
-	}
+  return result;
 }
 
 #endif /* defined TEACUP_C_INCLUDE && defined __AVR__ */
