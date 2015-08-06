@@ -15,7 +15,6 @@
 
 #include "cmsis-lpc11xx.h"
 #include "arduino.h"
-#include "temp.h"
 
 
 /** Inititalise the analog subsystem.
@@ -29,7 +28,7 @@
 */
 void analog_init() {
 
-  if (NUM_TEMP_SENSORS) {                       // At least one channel in use.
+  if (analog_mask) {                            // At least one channel in use.
 
     LPC_SYSCON->PDRUNCFG &= ~(1 << 4);            // Turn on ADC clock.
     LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 13);       // Turn on ADC power.
@@ -45,8 +44,7 @@ void analog_init() {
         AD0DRn         LPC_ADC->DR[n]    A/D channel n data register.
         AD0STAT        LPC_ADC->STAT     A/D status register.
     */
-    // TODO: enable only the channels we use.
-    LPC_ADC->CR = (0xFF << 0)                     // All pins on (for now).
+    LPC_ADC->CR = ((uint32_t)analog_mask << 0)    // Mask of used pins.
                 | ((F_CPU / 1000000) << 8)        // 1 MHz ADC clock.
                 | (1 << 16)                       // Hardware scan mode.
                 | (0x0 << 17)                     // Maximum accuracy.
@@ -54,14 +52,18 @@ void analog_init() {
 
     LPC_ADC->INTEN = 0;                           // No interrupt generation.
 
-    // TODO: set up the channels configured, not two arbitrary ones.
-    LPC_IOCON->PIO1_0_CMSIS = (0x2 << 0)          // Function AD1.
-                            | (0 << 3)            // Pullup inactive.
-                            | (0 << 7);           // Analog input mode.
-    LPC_IOCON->PIO1_1_CMSIS = (0x2 << 0)          // Function AD2.
-                            | (0 << 3)            // Pullup inactive.
-                            | (0 << 7);           // Analog input mode.
-  }
+    // Auto-generate pin setup.
+    #undef DEFINE_TEMP_SENSOR
+    #define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
+      LPC_IOCON->pin ## _CMSIS = \
+        ((type == TT_THERMISTOR) || (type == TT_AD595)) ? ( \
+                                 (0x2 << 0)       /* Function ADx.       */ \
+                               | (0 << 3)         /* Pullup inactive.    */ \
+                               | (0 << 7))        /* Analog input mode.  */ \
+          : LPC_IOCON->pin ## _CMSIS;
+    #include "config_wrapper.h"
+    #undef DEFINE_TEMP_SENSOR
+  } /* analog_mask */
 }
 
 /** Read analog value.

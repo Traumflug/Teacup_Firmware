@@ -145,31 +145,37 @@
 #define PIO0_11_PIN     11
 #define PIO0_11_PORT    LPC_GPIO0
 #define PIO0_11_OUTPUT  ((0x01 << 0) | (0x01 << 7))
+#define PIO0_11_ADC     0
 
 #define PIO1_0_CMSIS    R_PIO1_0
 #define PIO1_0_PIN      0
 #define PIO1_0_PORT     LPC_GPIO1
 #define PIO1_0_OUTPUT   ((0x01 << 0) | (0x01 << 7))
+#define PIO1_0_ADC      1
 
 #define PIO1_1_CMSIS    R_PIO1_1
 #define PIO1_1_PIN      1
 #define PIO1_1_PORT     LPC_GPIO1
 #define PIO1_1_OUTPUT   ((0x01 << 0) | (0x01 << 7))
+#define PIO1_1_ADC      2
 
 #define PIO1_2_CMSIS    R_PIO1_2
 #define PIO1_2_PIN      2
 #define PIO1_2_PORT     LPC_GPIO1
 #define PIO1_2_OUTPUT   ((0x01 << 0) | (0x01 << 7))
+#define PIO1_2_ADC      3
 
 #define PIO1_3_CMSIS    SWDIO_PIO1_3
 #define PIO1_3_PIN      3
 #define PIO1_3_PORT     LPC_GPIO1
 #define PIO1_3_OUTPUT   ((0x01 << 0) | (0x01 << 7))
+#define PIO1_3_ADC      4
 
 #define PIO1_4_CMSIS    PIO1_4
 #define PIO1_4_PIN      4
 #define PIO1_4_PORT     LPC_GPIO1
 #define PIO1_4_OUTPUT   (0x01 << 7)
+#define PIO1_4_ADC      5
 
 #define PIO1_5_CMSIS    PIO1_5
 #define PIO1_5_PIN      5

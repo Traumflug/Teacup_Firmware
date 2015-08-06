@@ -5,27 +5,14 @@
 
 #if defined TEACUP_C_INCLUDE && defined __AVR__
 
-#include "temp.h"
 #include "pinio.h"
 #include	"memory_barrier.h"
 
-/* OR-combined mask of all channels */
-#undef DEFINE_TEMP_SENSOR
-//! automagically generate analog_mask from DEFINE_TEMP_SENSOR entries in config.h
-#define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
-	| (((type == TT_THERMISTOR) || (type == TT_AD595)) ? (1 << (pin ## _ADC)) : 0)
-#ifdef	AIO8_PIN
-	static const uint16_t analog_mask = 0
-#else
-	static const uint8_t analog_mask = 0
-#endif
-#include "config_wrapper.h"
-;
-#undef DEFINE_TEMP_SENSOR
 
 static uint8_t adc_counter;
 static volatile uint16_t BSS adc_result[NUM_TEMP_SENSORS];
 
+#undef DEFINE_TEMP_SENSOR
 #define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
 	((type == TT_THERMISTOR) || (type == TT_AD595)) ? (pin ## _ADC) : 255,
 static uint8_t adc_channel[NUM_TEMP_SENSORS] =
