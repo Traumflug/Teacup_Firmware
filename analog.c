@@ -22,6 +22,17 @@
 ;
 #undef DEFINE_TEMP_SENSOR
 
+/**
+  A map of the ADC channels of the defined sensors.
+*/
+#undef DEFINE_TEMP_SENSOR
+#define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
+  ((type == TT_THERMISTOR) || (type == TT_AD595)) ? (pin ## _ADC) : 255,
+static uint8_t adc_channel[NUM_TEMP_SENSORS] = {
+  #include "config_wrapper.h"
+};
+#undef DEFINE_TEMP_SENSOR
+
 #define TEACUP_C_INCLUDE
 #include "analog-avr.c"
 #include "analog-arm.c"

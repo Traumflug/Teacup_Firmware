@@ -12,18 +12,10 @@
 static uint8_t adc_counter;
 static volatile uint16_t BSS adc_result[NUM_TEMP_SENSORS];
 
-#undef DEFINE_TEMP_SENSOR
-#define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
-	((type == TT_THERMISTOR) || (type == TT_AD595)) ? (pin ## _ADC) : 255,
-static uint8_t adc_channel[NUM_TEMP_SENSORS] =
-{
-  #include "config_wrapper.h"
-};
-#undef DEFINE_TEMP_SENSOR
-
 //! Configure all registers, start interrupt loop
 void analog_init() {
-	if (analog_mask > 0) {
+
+  if (analog_mask) {  // At least one temp sensor uses an analog channel.
 		// clear ADC bit in power reduction register because of ADC use.
 		#ifdef	PRR
 			PRR &= ~MASK(PRADC);
@@ -56,7 +48,7 @@ void analog_init() {
 
 		// now we start the first conversion and leave the rest to the interrupt
 		ADCSRA |= MASK(ADIE) | MASK(ADSC);
-	} /* analog_mask > 0 */
+  } /* analog_mask */
 }
 
 /*! Analog Interrupt
@@ -65,7 +57,7 @@ void analog_init() {
 */
 ISR(ADC_vect, ISR_NOBLOCK) {
 	// emulate free-running mode but be more deterministic about exactly which result we have, since this project has long-running interrupts
-	if (analog_mask > 0) { // at least one temp sensor uses an analog channel
+  if (analog_mask) {
 		// store next result
 		adc_result[adc_counter] = ADC;
 

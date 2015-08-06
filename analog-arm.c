@@ -68,7 +68,7 @@ void analog_init() {
 
 /** Read analog value.
 
-  \param channel Channel to be read.
+  \param channel Channel to be read. Channel numbering starts at zero.
 
   \return Analog reading, 10-bit right aligned.
 
@@ -76,7 +76,13 @@ void analog_init() {
   there's no need to hold them in a copy.
 */
 uint16_t analog_read(uint8_t index) {
-  return (LPC_ADC->DR[index] & 0xFFC0) >> 6;
+  uint16_t result = 0;
+
+  if (index < sizeof(adc_channel) && adc_channel[index] < 8) {
+    result = (LPC_ADC->DR[adc_channel[index]] & 0xFFC0) >> 6;
+  }
+
+  return result;
 }
 
 #endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
