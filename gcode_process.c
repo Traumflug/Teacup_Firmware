@@ -676,33 +676,33 @@ void process_gcode_command() {
           const char* const triggered = PSTR("triggered ");
 
           #if defined(X_MIN_PIN)
-            sersendf_P(PSTR("x_min:"));
-            x_min() ? sersendf_P(triggered) : sersendf_P(open);
+            serial_writestr_P(PSTR("x_min:"));
+            x_min() ? serial_writestr_P(triggered) : serial_writestr_P(open);
           #endif
           #if defined(X_MAX_PIN)
-            sersendf_P(PSTR("x_max:"));
-            x_max() ? sersendf_P(triggered) : sersendf_P(open);
+            serial_writestr_P(PSTR("x_max:"));
+            x_max() ? serial_writestr_P(triggered) : serial_writestr_P(open);
           #endif
           #if defined(Y_MIN_PIN)
-            sersendf_P(PSTR("y_min:"));
-            y_min() ? sersendf_P(triggered) : sersendf_P(open);
+            serial_writestr_P(PSTR("y_min:"));
+            y_min() ? serial_writestr_P(triggered) : serial_writestr_P(open);
           #endif
           #if defined(Y_MAX_PIN)
-            sersendf_P(PSTR("y_max:"));
-            y_max() ? sersendf_P(triggered) : sersendf_P(open);
+            serial_writestr_P(PSTR("y_max:"));
+            y_max() ? serial_writestr_P(triggered) : serial_writestr_P(open);
           #endif
           #if defined(Z_MIN_PIN)
-            sersendf_P(PSTR("z_min:"));
-            z_min() ? sersendf_P(triggered) : sersendf_P(open);
+            serial_writestr_P(PSTR("z_min:"));
+            z_min() ? serial_writestr_P(triggered) : serial_writestr_P(open);
           #endif
           #if defined(Z_MAX_PIN)
-            sersendf_P(PSTR("z_max:"));
-            z_max() ? sersendf_P(triggered) : sersendf_P(open);
+            serial_writestr_P(PSTR("z_max:"));
+            z_max() ? serial_writestr_P(triggered) : serial_writestr_P(open);
           #endif
           #if ! (defined(X_MIN_PIN) || defined(X_MAX_PIN) || \
                  defined(Y_MIN_PIN) || defined(Y_MAX_PIN) || \
                  defined(Z_MIN_PIN) || defined(Z_MAX_PIN))
-            sersendf_P(PSTR("No endstops defined."));
+            serial_writestr_P(PSTR("No endstops defined."));
           #endif
         }
         endstops_off();
