@@ -81,7 +81,6 @@ void queue_step() {
 	if (current_movebuffer->live) {
 		if (current_movebuffer->waitfor_temp) {
       timer_set(HEATER_WAIT_TIMEOUT, 0);
-      #ifndef __ARMEL_NOTYET__
 			if (temp_achieved()) {
 				current_movebuffer->live = current_movebuffer->done = 0;
 				serial_writestr_P(PSTR("Temp achieved\n"));
@@ -89,7 +88,6 @@ void queue_step() {
       else {
         temp_print(TEMP_SENSOR_none);
       }
-      #endif /* __ARMEL_NOTYET__ */
 		}
 		else {
 			dda_step(current_movebuffer);

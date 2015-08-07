@@ -118,9 +118,7 @@ static void clock_10ms(void) {
 	// reset watchdog
 	wd_reset();
 
-  #ifndef __ARMEL_NOTYET__
 	temp_sensor_tick();
-  #endif /* __ARMEL_NOTYET__ */
 
 	ifclock(clock_flag_250ms) {
 		clock_250ms();

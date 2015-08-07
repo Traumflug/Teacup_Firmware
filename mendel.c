@@ -34,8 +34,8 @@
 #include	"dda_queue.h"
 #include	"gcode_parse.h"
 #include	"timer.h"
-#ifndef __ARMEL_NOTYET__
 #include	"temp.h"
+#ifndef __ARMEL_NOTYET__
 #include	"watchdog.h"
 #include	"debug.h"
 #include	"heater.h"
@@ -109,10 +109,10 @@ void init(void) {
 	// if any of the temp sensors in your config.h use analog interface
 	analog_init();
 
-  #ifndef __ARMEL_NOTYET__
 	// set up temperature inputs
 	temp_init();
 
+  #ifndef __ARMEL_NOTYET__
   #ifdef SD
     sd_init();
   #endif

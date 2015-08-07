@@ -297,7 +297,9 @@ void temp_sensor_tick() {
 		}
 
 		if (temp_sensors[i].heater < NUM_HEATERS) {
+      #ifndef __ARMEL_NOTYET__
 			heater_tick(temp_sensors[i].heater, temp_sensors[i].temp_type, temp_sensors_runtime[i].last_read_temp, temp_sensors_runtime[i].target_temp);
+      #endif /* __ARMEL_NOTYET__ */
 		}
 
     if (DEBUG_PID && (debug_flags & DEBUG_PID))

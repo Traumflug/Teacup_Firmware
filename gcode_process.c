@@ -346,9 +346,7 @@ void process_gcode_command() {
 		}
 	}
 	else if (next_target.seen_M) {
-    #ifndef __ARMEL_NOTYET__
 		uint8_t i;
-    #endif /* __ARMEL_NOTYET__ */
 
 		switch (next_target.M) {
 			case 0:
@@ -369,10 +367,8 @@ void process_gcode_command() {
 				//? http://linuxcnc.org/handbook/RS274NGC_3/RS274NGC_33a.html#1002379
 				//?
 				queue_wait();
-        #ifndef __ARMEL_NOTYET__
 				for (i = 0; i < NUM_HEATERS; i++)
 					temp_set(i, 0);
-        #endif /* __ARMEL_NOTYET__ */
 				power_off();
         serial_writestr_P(PSTR("\nstop\n"));
 				break;
@@ -466,10 +462,10 @@ void process_gcode_command() {
 				//? --- M101: extruder on ---
 				//?
 				//? Undocumented.
-        #ifndef __ARMEL_NOTYET__
 				if (temp_achieved() == 0) {
 					enqueue(NULL);
 				}
+        #ifndef __ARMEL_NOTYET__
 				#ifdef DC_EXTRUDER
 					heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
 				#endif
@@ -505,7 +501,6 @@ void process_gcode_command() {
         //?
 				if ( ! next_target.seen_S)
 					break;
-        #ifndef __ARMEL_NOTYET__
         if ( ! next_target.seen_P)
           #ifdef HEATER_EXTRUDER
             next_target.P = HEATER_EXTRUDER;
@@ -513,7 +508,6 @@ void process_gcode_command() {
             next_target.P = 0;
           #endif
 				temp_set(next_target.P, next_target.S);
-        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 105:
@@ -533,11 +527,9 @@ void process_gcode_command() {
 				#ifdef ENFORCE_ORDER
 					queue_wait();
 				#endif
-        #ifndef __ARMEL_NOTYET__
 				if ( ! next_target.seen_P)
 					next_target.P = TEMP_SENSOR_none;
 				temp_print(next_target.P);
-        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 7:
@@ -820,9 +812,7 @@ void process_gcode_command() {
 				#ifdef	HEATER_BED
 					if ( ! next_target.seen_S)
 						break;
-          #ifndef __ARMEL_NOTYET__
 					temp_set(HEATER_BED, next_target.S);
-          #endif /* __ARMEL_NOTYET__ */
 				#endif
 				break;
 
