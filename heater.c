@@ -457,20 +457,6 @@ uint8_t heaters_all_zero() {
   return 255;
 }
 
-/** \brief turn off all heaters
-
-	for emergency stop
-*/
-uint8_t heaters_all_off() {
-	uint8_t i;
-	for (i = 0; i < NUM_HEATERS; i++) {
-		if (heaters_runtime[i].heater_output > 0)
-			return 0;
-	}
-
-	return 255;
-}
-
 #ifdef EECONFIG
 /** \brief set heater P factor
 	\param index heater to change factor for
