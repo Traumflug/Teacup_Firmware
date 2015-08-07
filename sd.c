@@ -27,7 +27,7 @@ void sd_init(void) {
 void sd_mount(void) {
   result = pf_mount(&sdfile);
   if (result != FR_OK)
-    sersendf_P(PSTR("E: SD init failed. (%su)"), result);
+    sersendf_P(PSTR("E: SD init failed. (%su)\n"), result);
 }
 
 /** Unmount the SD card.
@@ -51,7 +51,6 @@ void sd_list(const char* path) {
   FILINFO fno;
   DIR dir;
 
-  serial_writechar('\n');
   result = pf_opendir(&dir, path);
   if (result == FR_OK) {
     for (;;) {
@@ -66,7 +65,7 @@ void sd_list(const char* path) {
     }
   }
   else {
-    sersendf_P(PSTR("E: failed to open dir. (%su)"), result);
+    sersendf_P(PSTR("E: failed to open dir. (%su)\n"), result);
   }
 }
 
@@ -80,7 +79,7 @@ void sd_list(const char* path) {
 void sd_open(const char* filename) {
   result = pf_open(filename);
   if (result != FR_OK) {
-    sersendf_P(PSTR("E: failed to open file. (%su)"), result);
+    sersendf_P(PSTR("E: failed to open file. (%su)\n"), result);
   }
 }
 
@@ -108,7 +107,7 @@ uint8_t sd_read_gcode_line(void) {
     return 1;
   }
   else if (result != FR_OK) {
-    sersendf_P(PSTR("E: failed to parse from file. (%su)"), result);
+    sersendf_P(PSTR("E: failed to parse from file. (%su)\n"), result);
     return 1;
   }
 

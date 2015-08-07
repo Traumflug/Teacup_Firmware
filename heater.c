@@ -145,8 +145,8 @@ void heater_init() {
 			TCCR4D = MASK(WGM40); // Phase correct
 			TCCR4B = MASK(CS40);  // no prescaler
 			#ifndef FAST_PWM
-				TCCR4B = MASK(CS40) | MASK(CS42) | MASK(CS43); // 16 MHz / 1024 / 256 
-				//TCCR4B = MASK(CS40) | MASK(CS41) | MASK(CS43); // 16 MHz / 4096 / 256 
+				TCCR4B = MASK(CS40) | MASK(CS42) | MASK(CS43); // 16 MHz / 1024 / 256
+				//TCCR4B = MASK(CS40) | MASK(CS41) | MASK(CS43); // 16 MHz / 4096 / 256
 			#endif
 			TC4H   = 0;           // clear high bits
 			OCR4C  = 0xff;        // 8 bit max count at top before reset
@@ -157,7 +157,7 @@ void heater_init() {
 		TIMSK4 = 0;
 		OCR4A = 0;
 		OCR4B = 0;
-		#ifdef OCR4D  
+		#ifdef OCR4D
 			OCR4D = 0;
 		#endif
 	#endif
@@ -222,7 +222,7 @@ void heater_init() {
 					case (uint16_t) &OCR4B:
 						TCCR4A |= MASK(COM4B1);
 						break;
-					#ifdef OCR4D  
+					#ifdef OCR4D
 						case (uint16_t) &OCR4D:
 							TCCR4C |= MASK(COM4D1);
 							break;
@@ -544,6 +544,6 @@ void heater_save_settings() {
 	\param i index of heater to send info for
 */
 void heater_print(uint16_t i) {
-	sersendf_P(PSTR("P:%ld I:%ld D:%ld Ilim:%u crc:%u "), heaters_pid[i].p_factor, heaters_pid[i].i_factor, heaters_pid[i].d_factor, heaters_pid[i].i_limit, crc_block(&heaters_pid[i].p_factor, 14));
+	sersendf_P(PSTR("P:%ld I:%ld D:%ld Ilim:%u crc:%u\n"), heaters_pid[i].p_factor, heaters_pid[i].i_factor, heaters_pid[i].d_factor, heaters_pid[i].i_limit, crc_block(&heaters_pid[i].p_factor, 14));
 }
 #endif

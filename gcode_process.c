@@ -335,7 +335,7 @@ void process_gcode_command() {
 
 				// unknown gcode: spit an error
 			default:
-				sersendf_P(PSTR("E: Bad G-code %d"), next_target.G);
+				sersendf_P(PSTR("E: Bad G-code %d\n"), next_target.G);
 				// newline is sent from gcode_parse after we return
 				return;
 		}
@@ -614,21 +614,23 @@ void process_gcode_command() {
 					queue_wait();
 				#endif
 				update_current_position();
-				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%lu"),
+				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%lu\n"),
                         current_position.axis[X], current_position.axis[Y],
                         current_position.axis[Z], current_position.axis[E],
 				                current_position.F);
 
         if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
-          sersendf_P(PSTR(",c:%lu}\nEndpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}"),
-                          movebuffer[mb_tail].c, movebuffer[mb_tail].endpoint.axis[X],
-                          movebuffer[mb_tail].endpoint.axis[Y], movebuffer[mb_tail].endpoint.axis[Z],
-                          movebuffer[mb_tail].endpoint.axis[E], movebuffer[mb_tail].endpoint.F,
-          #ifdef ACCELERATION_REPRAP
-            movebuffer[mb_tail].end_c
-          #else
-            movebuffer[mb_tail].c
-          #endif
+          sersendf_P(PSTR("Endpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\n"),
+                     movebuffer[mb_tail].endpoint.axis[X],
+                     movebuffer[mb_tail].endpoint.axis[Y],
+                     movebuffer[mb_tail].endpoint.axis[Z],
+                     movebuffer[mb_tail].endpoint.axis[E],
+                     movebuffer[mb_tail].endpoint.F,
+                     #ifdef ACCELERATION_REPRAP
+                       movebuffer[mb_tail].end_c
+                     #else
+                       movebuffer[mb_tail].c
+                     #endif
           );
           print_queue();
         }
@@ -648,7 +650,7 @@ void process_gcode_command() {
 				//?  FIRMWARE_NAME:Teacup FIRMWARE_URL:http://github.com/traumflug/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:1 TEMP_SENSOR_COUNT:1 HEATER_COUNT:1
 				//?
 
-				sersendf_P(PSTR("FIRMWARE_NAME:Teacup FIRMWARE_URL:http://github.com/traumflug/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d"), 1, NUM_TEMP_SENSORS, NUM_HEATERS);
+				sersendf_P(PSTR("FIRMWARE_NAME:Teacup FIRMWARE_URL:http://github.com/traumflug/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d\n"), 1, NUM_TEMP_SENSORS, NUM_HEATERS);
 				// newline is sent from gcode_parse after we return
 				break;
 
@@ -700,10 +702,11 @@ void process_gcode_command() {
           #if ! (defined(X_MIN_PIN) || defined(X_MAX_PIN) || \
                  defined(Y_MIN_PIN) || defined(Y_MAX_PIN) || \
                  defined(Z_MIN_PIN) || defined(Z_MAX_PIN))
-            sersendf_P(PSTR("no endstops defined"));
+            sersendf_P(PSTR("No endstops defined."));
           #endif
         }
         endstops_off();
+        serial_writechar('\n');
         break;
 
       #ifdef EECONFIG

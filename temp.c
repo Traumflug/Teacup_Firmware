@@ -17,6 +17,7 @@
 #include "simulator.h"
 
 #include	"arduino.h"
+#include "serial.h"
 #include	"debug.h"
 #ifndef	EXTRUDER
 	#include	"sersendf.h"
@@ -387,5 +388,6 @@ void temp_print(temp_sensor_t index) {
 		sersendf_P(PSTR("T[%su]:"), index);
 		single_temp_print(index);
 	}
+  serial_writechar('\n');
 }
 #endif
