@@ -10,12 +10,6 @@
 */
 
 #include	<stdlib.h>
-#ifdef __AVR__
-#include	<avr/eeprom.h>
-#include	<avr/pgmspace.h>
-#endif
-#include "simulator.h"
-
 #include	"arduino.h"
 #include "serial.h"
 #include	"debug.h"
@@ -23,6 +17,8 @@
 	#include	"sersendf.h"
 #endif
 #include	"heater.h"
+#include "simulator.h"
+
 #ifdef	TEMP_INTERCOM
 	#include	"intercom.h"
 #endif
