@@ -71,11 +71,8 @@ void clock_tick(void) {
 	called from clock_10ms(), do not call directly
 */
 static void clock_250ms(void) {
-  #ifndef __ARMEL_NOTYET__
+
   if (heaters_all_zero()) {
-  #else
-  if (1) {
-  #endif /* __ARMEL_NOTYET__, ! __ARMEL_NOTYET__ */
 		if (psu_timeout > (30 * 4)) {
 			power_off();
 		}

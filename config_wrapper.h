@@ -42,3 +42,32 @@
            Lookahead disabled.
   #undef LOOKAHEAD
 #endif
+
+/**
+  Silently discard EECONFIG on ARM. Silently to not disturb regression tests.
+
+  TODO:
+
+   - EECONFIG is currently misplaced as a printer property. Move EECONFIG to
+     the board configuration or drop it entirely in favour of PID settings in
+     Configtool.
+
+   - Remove this silent discard in favour of the #error in heater-arm.c.
+*/
+#if defined __ARMEL__ && defined EECONFIG
+  #undef EECONFIG
+#endif
+
+/**
+  Silently discard BANG_BANG on ARM. Silently to not disturb regression tests.
+
+  TODO:
+
+   - BANG_BANG is currently misplaced as a printer property. Move BANG_BANG to
+     the board configuration.
+
+   - Remove this silent discard in favour of the #error in heater-arm.c.
+*/
+#if defined __ARMEL__ && defined BANG_BANG
+  #undef BANG_BANG
+#endif

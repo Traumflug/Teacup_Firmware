@@ -38,8 +38,8 @@
 #ifndef __ARMEL_NOTYET__
 #include	"watchdog.h"
 #include	"debug.h"
-#include	"heater.h"
 #endif /* __ARMEL_NOTYET__ */
+#include	"heater.h"
 #include	"analog.h"
 #include	"pinio.h"
 #include	"clock.h"
@@ -97,10 +97,7 @@ void init(void) {
 	// set up timers
 	timer_init();
 
-  #ifndef __ARMEL_NOTYET__
-	// read PID settings from EEPROM
 	heater_init();
-  #endif /* __ARMEL_NOTYET__ */
 
 	// set up dda
 	dda_init();

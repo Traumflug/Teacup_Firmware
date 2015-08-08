@@ -724,7 +724,6 @@ void process_gcode_command() {
         serial_writechar('\n');
         break;
 
-      #ifndef __ARMEL_NOTYET__
       #ifdef EECONFIG
 			case 130:
 				//? --- M130: heater P factor ---
@@ -787,7 +786,6 @@ void process_gcode_command() {
 				heater_save_settings();
 				break;
       #endif /* EECONFIG */
-      #endif /* __ARMEL_NOTYET__ */
 
       #ifdef DEBUG
 			case 136:
@@ -800,9 +798,7 @@ void process_gcode_command() {
           #else
             next_target.P = 0;
           #endif
-        #ifndef __ARMEL_NOTYET__
 				heater_print(next_target.P);
-        #endif /* __ARMEL_NOTYET__ */
 				break;
       #endif /* DEBUG */
 
