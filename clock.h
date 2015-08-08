@@ -19,4 +19,6 @@ void clock_tick(void);
 
 void clock(void);
 
+//void setCursorLim(uint8_t start,uint8_t end);
+
 #endif	/* _CLOCK_H */

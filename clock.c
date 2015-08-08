@@ -43,6 +43,9 @@ unsigned char enc_A_prev = 0;
 uint8_t count = 0; //position in the menu itself
 int8_t pos = 0; //position on screen
 uint8_t prevcnt = 0; //previuos count
+uint8_t debounce_counter_enc_C = 0; //debounce testing
+uint8_t enc_C_STEPS = 4;
+//uint8_t start = 0,end = 3;
 /** Advance our clock by a tick.
 
   Update clock counters accordingly. Should be called from the TICK_TIME
@@ -177,6 +180,7 @@ static void clock_250ms(void) {
 			temp_lcd(HEATER_BED);
 			#endif
 		#endif
+                
 	}
 	#ifdef	TEMP_INTERCOM
 	start_send();
@@ -226,7 +230,8 @@ void clock() {
 		}
             
   
- }
+        }
+        
 enc_A_prev=enc_A;//============  code for rotary encoder
 
 	
@@ -234,19 +239,20 @@ enc_A_prev=enc_A;//============  code for rotary encoder
 		clock_10ms();
 	}
 
-        #ifdef BEEPER //crude beep-on-select
+          encCursor(/*start,end,*/pos);
+
+          //read encoder psuh button, debounce it and make selection
           enc_C = READ(BTN_ENC);
-          if(!enc_C){ beep(); }
-          enc_C = 1;
-        #endif
-        
-        encCursor(pos);
-          
-#endif        
+          if(enc_C == 0){debounce_counter_enc_C++;}else{debounce_counter_enc_C = 0;}
+          if(debounce_counter_enc_C >= enc_C_STEPS){select(); pos=0;}//pos);}
+                    
+#endif //encoder       
             
 #ifdef SIMULATOR
   sim_time_warp();
 #endif
 }
+
+void setCursorLim(uint8_t start,uint8_t end){start=start; end=end;}
 
 

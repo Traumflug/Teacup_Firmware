@@ -255,24 +255,7 @@ void init(void) {
     sd_init();
   #endif
   
-#ifdef RRD_SMART_CONTROLLER
-  #ifdef LCD
-    // initialize LCD
-    lcdInit();
-    splashScreen();
-  #endif
-  
-  #ifdef BEEPER
-    BEEPER_INIT();
-    #ifdef POWER_ON_TONE
-      beep();
-    #endif
-  #endif
-  
-  #ifdef LCD
-    disp();
-  #endif
-#endif
+
 
 	// enable interrupts
 	sei();
@@ -307,10 +290,31 @@ void init(void) {
       sersendf_P(PSTR("Acceleration: %lu\n"),(uint32_t)ACCELERATION);
    #endif
    sersendf_P(PSTR("------------------------------\n"));
-   
-   #ifdef POWER_ON_HOME
-     home();
-   #endif
+
+   #ifdef RRD_SMART_CONTROLLER
+    #ifdef LCD
+      // initialize LCD
+      lcdInit();
+      splashScreen();
+    #endif
+  #endif
+  
+  #ifdef POWER_ON_HOM
+    home();
+  #endif
+  
+  #ifdef RRD_SMART_CONTROLLER  
+    #ifdef BEEPER
+      BEEPER_INIT();
+      #ifdef POWER_ON_TONE
+        beep();
+      #endif
+    #endif
+  
+    #ifdef LCD
+      disp(0);
+    #endif
+  #endif
 
 }
 
