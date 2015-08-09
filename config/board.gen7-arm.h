@@ -211,17 +211,26 @@ DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PIO1_0,THERMISTOR_EXTRUDER)
   device has the index 0 (zero).
 
   Set 'pwm' to ...
-    1  for using PWM on a PWM-able pin and on/off on other pins.
-    0  for using on/off on a PWM-able pin, too.
+    frequency  in Hertz (Hz) on ARM based controllers to set PWM frequency of
+               this pin's output. Frequency isn't always accurate, Teacup
+               will choose the closest possible one. FAST_PWM is ignored
+               on such controllers. Valid range is 2 to 200'000 Hz.
+    1          on AVR based controllers for using Pulse Width Modulation (PWM)
+               on a pin supporting it. PWM frequency can be influenced only
+               somewhat and only globally with FAST_PWM.
+    0          for using a PWM-able pin in on/off mode.
 
   Using PWM usually gives smoother temperature control but can conflict
-  with slow switches, like solid state relays. PWM frequency can be
-  influenced globally with FAST_PWM, see below.
+  with slow switches, like solid state relays. A too high frequency can
+  overheat MOSFETs; a too low frequency can make your heater to emit audible
+  noise; so choose wisely.
+
+  Pins which don't allow PWM are always operated in on/off mode.
 */
 //DEFINE_HEATERS_START
 //            name      port   pwm
-DEFINE_HEATER(extruder, PIO0_10, 1)
-//DEFINE_HEATER(bed,      PIO0_11, 1)
+DEFINE_HEATER(extruder, PIO0_10, 20000)
+//DEFINE_HEATER(bed,      PIO0_11, 10)
 
 #define HEATER_EXTRUDER HEATER_extruder
 //#define HEATER_BED HEATER_bed

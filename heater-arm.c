@@ -115,6 +115,7 @@ void heater_init() {
       PIO1_9   CT16B1_MAT0     0x1            ---
   */
   if (NUM_HEATERS) {                            // At least one channel in use.
+    uint32_t freq;
 
     // Auto-generate pin setup.
     #undef DEFINE_HEATER
@@ -132,10 +133,12 @@ void heater_init() {
       LPC_IOCON->pin ## _CMSIS = pin ## _PWM;     /* Connect to timer.   */ \
       /*pin ## _TIMER->IR  = 0; ( = reset value)     No interrupts.      */ \
       pin ## _TIMER->TCR   = (1 << 0);            /* Enable counter.     */ \
-      /* TODO: set PWM frequency here according to configuration. */        \
-      /* TODO: check wether configured freq. is within range (1..65536). */ \
-      pin ## _TIMER->PR    =                      /* Prescaler to        */ \
-          F_CPU / PWM_SCALE / 1000 - 1;           /*   1000 Hz.          */ \
+      freq = F_CPU / PWM_SCALE / pwm;             /* Figure PWM freq.    */ \
+      if (freq > 65535)                                                     \
+        freq = 65535;                                                       \
+      if (freq < 1)                                                         \
+        freq = 1;                                                           \
+      pin ## _TIMER->PR    = freq - 1;            /* Prescaler to freq.  */ \
       pin ## _TIMER->MCR   = (1 << 10);           /* Reset on Match 3.   */ \
       /* PWM_SCALE - 1, so match = 255 is full off. */                      \
       pin ## _TIMER->MR[3] = PWM_SCALE - 1;       /* Match 3 at 254.     */ \
