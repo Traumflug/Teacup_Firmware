@@ -5,6 +5,11 @@
 
 #if defined TEACUP_C_INCLUDE && defined __ARMEL__
 
+#include "cmsis-lpc11xx.h"
+#include "pinio.h"
+#include "sersendf.h"
+#include "debug.h"
+
 /**
   Test configuration.
 */
@@ -45,6 +50,25 @@
 */
 #define PWM_SCALE 255
 
+/** \struct heater_definition_t
+
+  Holds pinout data to allow changing PWM output after initialisation. Port,
+  pin, PWM channel if used. After inititalisation we can no longer do the
+  #include "config_wrapper.h" trick.
+*/
+typedef struct {
+  /// Pointer to the match register which changes PWM duty.
+  __IO uint32_t* match;
+} heater_definition_t;
+
+
+#undef DEFINE_HEATER
+#define DEFINE_HEATER(name, pin, pwm) \
+  { &(pin ## _TIMER->MR[pin ## _MATCH]) },
+static const heater_definition_t heaters[NUM_HEATERS] = {
+  #include "config_wrapper.h"
+};
+#undef DEFINE_HEATER
 
 /** Initialise heater subsystem.
 
@@ -111,9 +135,8 @@ void heater_init() {
       pin ## _TIMER->MCR   = (1 << 10);           /* Reset on Match 3.   */ \
       /* PWM_SCALE - 1, so match = 255 is full off. */                      \
       pin ## _TIMER->MR[3] = PWM_SCALE - 1;       /* Match 3 at 254.     */ \
-      /* TODO: Heaters should start at zero, of course. 10% is as demo. */  \
       pin ## _TIMER->MR[pin ## _MATCH] =          /* Match pin = duty.   */ \
-          (PWM_SCALE * 0.9);                                                \
+          PWM_SCALE;                                                        \
       /*pin ## _TIMER->CCR = 0; ( = reset value)     No pin capture.     */ \
       pin ## _TIMER->EMR |= ((1 << pin ## _MATCH) /* Connect to pin.     */ \
           | (0x03 << ((pin ## _MATCH * 2) + 4))); /* Toggle pin on match.*/ \
@@ -127,6 +150,33 @@ void heater_init() {
 #if 0
   pid_init(i);
 #endif /* 0 */
+}
+
+/** Set PWM output.
+
+  \param index The heater we're setting the output for.
+
+  \param value The PWM value to write, range 0 (off) to 255 (full on).
+
+  This function is called by M106 or, if a temp sensor is connected to the
+  heater, every few milliseconds by its PID handler. Using M106 on an output
+  with a sensor changes its setting only for a short moment.
+*/
+void heater_set(heater_t index, uint8_t value) {
+
+  if (index < NUM_HEATERS) {
+
+    heaters_runtime[index].heater_output = value;
+
+    // Remember, we scale, and duty cycle is inverted.
+    *heaters[index].match = PWM_SCALE - ((uint32_t)value * (PWM_SCALE / 255));
+
+    if (DEBUG_PID && (debug_flags & DEBUG_PID))
+      sersendf_P(PSTR("PWM %su = %lu\n"), index, *heaters[index].match);
+
+    if (value)
+      power_on();
+  }
 }
 
 #endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */

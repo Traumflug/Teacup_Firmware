@@ -465,11 +465,9 @@ void process_gcode_command() {
 				if (temp_achieved() == 0) {
 					enqueue(NULL);
 				}
-        #ifndef __ARMEL_NOTYET__
 				#ifdef DC_EXTRUDER
 					heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
 				#endif
-        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			// M5/M103- extruder off
@@ -478,11 +476,9 @@ void process_gcode_command() {
 				//? --- M103: extruder off ---
 				//?
 				//? Undocumented.
-        #ifndef __ARMEL_NOTYET__
 				#ifdef DC_EXTRUDER
 					heater_set(DC_EXTRUDER, 0);
 				#endif
-        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 104:
@@ -556,9 +552,7 @@ void process_gcode_command() {
           #endif
 				if ( ! next_target.seen_S)
 					break;
-        #ifndef __ARMEL_NOTYET__
         heater_set(next_target.P, next_target.S);
-        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 110:
