@@ -116,15 +116,19 @@ void heater_init() {
   */
   if (NUM_HEATERS) {                            // At least one channel in use.
 
-    // For simplicity, turn on all timers, not only the used ones.
-    // TODO: turn on only the used ones. we know pin ## TIMER.
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 7);        // Turn on CT16B0 power.
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 8);        // Turn on CT16B1 power.
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 10);       // Turn on CT32B1 power.
-
     // Auto-generate pin setup.
     #undef DEFINE_HEATER
     #define DEFINE_HEATER(name, pin, pwm) \
+      if (pin ## _TIMER == LPC_TMR16B0) {                                   \
+        LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 7);    /* Turn on CT16B0.     */ \
+      }                                                                     \
+      else if (pin ## _TIMER == LPC_TMR16B1) {                              \
+        LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 8);    /* Turn on CT16B1.     */ \
+      }                                                                     \
+      else if (pin ## _TIMER == LPC_TMR32B1) {                              \
+        LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 10);   /* Turn on CT32B1.     */ \
+      }                                                                     \
+                                                                            \
       LPC_IOCON->pin ## _CMSIS = pin ## _PWM;     /* Connect to timer.   */ \
       /*pin ## _TIMER->IR  = 0; ( = reset value)     No interrupts.      */ \
       pin ## _TIMER->TCR   = (1 << 0);            /* Enable counter.     */ \
