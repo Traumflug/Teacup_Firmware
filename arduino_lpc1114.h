@@ -84,48 +84,86 @@
 
                 To achieve appropriate pulling behaviour for inputs, 'or'
                 this value with one of the IO_MODEMASKs.
+
+    xxx_TIMER   The timer a pin can be connected to, or NO_TIMER, if this
+                pin can't be connected to a timer for some reason. If a pin
+                can be connected to a timer, it can output PWM.
+
+    xxx_MATCH   Number of the match register of PWM-able pins. Must be defined
+                for non-PWM-able pins, too, to allow macros to expand. Value
+                doesn't matter in the latter case.
+
+    xxx_PWM     Bits to set/clear to set this pin as PWM output pin in the
+                IOCON register. See chapter 7.4 of the User Manual. Must be
+                defined, but value doesn't matter for non-PWM-able pins.
 */
+#define NO_TIMER        ((LPC_TMR_TypeDef *)0)
+
 // Reset pin. Don't use.
 //#define PIO0_0_CMSIS    RESET_PIO0_0
 //#define PIO0_0_PIN      0
 //#define PIO0_0_PORT     LPC_GPIO0
 //#define PIO0_0_OUTPUT   (0x01 << 0)
+//#define PIO0_0_TIMER    NO_TIMER
+//#define PIO0_0_MATCH    0
+//#define PIO0_0_PWM      0
 
 #define PIO0_1_CMSIS    PIO0_1
 #define PIO0_1_PIN      1
 #define PIO0_1_PORT     LPC_GPIO0
 #define PIO0_1_OUTPUT   0x00
 // Timer pin CT32B0_MAT2, but timer used for Step interrupt.
+#define PIO0_1_TIMER    NO_TIMER
+#define PIO0_1_MATCH    0
+#define PIO0_1_PWM      0
 
 #define PIO0_2_CMSIS    PIO0_2
 #define PIO0_2_PIN      2
 #define PIO0_2_PORT     LPC_GPIO0
 #define PIO0_2_OUTPUT   0x00
+#define PIO0_2_TIMER    NO_TIMER
+#define PIO0_2_MATCH    0
+#define PIO0_2_PWM      0
 
 #define PIO0_3_CMSIS    PIO0_3
 #define PIO0_3_PIN      3
 #define PIO0_3_PORT     LPC_GPIO0
 #define PIO0_3_OUTPUT   0x00
+#define PIO0_3_TIMER    NO_TIMER
+#define PIO0_3_MATCH    0
+#define PIO0_3_PWM      0
 
 #define PIO0_4_CMSIS    PIO0_4
 #define PIO0_4_PIN      4
 #define PIO0_4_PORT     LPC_GPIO0
 #define PIO0_4_OUTPUT   (0x01 << 8)
+#define PIO0_4_TIMER    NO_TIMER
+#define PIO0_4_MATCH    0
+#define PIO0_4_PWM      0
 
 #define PIO0_5_CMSIS    PIO0_5
 #define PIO0_5_PIN      5
 #define PIO0_5_PORT     LPC_GPIO0
 #define PIO0_5_OUTPUT   (0x01 << 8)
+#define PIO0_5_TIMER    NO_TIMER
+#define PIO0_5_MATCH    0
+#define PIO0_5_PWM      0
 
 #define PIO0_6_CMSIS    PIO0_6
 #define PIO0_6_PIN      6
 #define PIO0_6_PORT     LPC_GPIO0
 #define PIO0_6_OUTPUT   0x00
+#define PIO0_6_TIMER    NO_TIMER
+#define PIO0_6_MATCH    0
+#define PIO0_6_PWM      0
 
 #define PIO0_7_CMSIS    PIO0_7
 #define PIO0_7_PIN      7
 #define PIO0_7_PORT     LPC_GPIO0
 #define PIO0_7_OUTPUT   0x00
+#define PIO0_7_TIMER    NO_TIMER
+#define PIO0_7_MATCH    0
+#define PIO0_7_PWM      0
 
 #define PIO0_8_CMSIS    PIO0_8
 #define PIO0_8_PIN      8
@@ -157,12 +195,18 @@
 #define PIO0_11_OUTPUT  ((0x01 << 0) | (0x01 << 7))
 #define PIO0_11_ADC     0
 // Timer pin CT32B0_MAT3, but timer used for Step interrupt.
+#define PIO0_11_TIMER   NO_TIMER
+#define PIO0_11_MATCH   0
+#define PIO0_11_PWM     0
 
 #define PIO1_0_CMSIS    R_PIO1_0
 #define PIO1_0_PIN      0
 #define PIO1_0_PORT     LPC_GPIO1
 #define PIO1_0_OUTPUT   ((0x01 << 0) | (0x01 << 7))
 #define PIO1_0_ADC      1
+#define PIO1_0_TIMER    NO_TIMER
+#define PIO1_0_MATCH    0
+#define PIO1_0_PWM      0
 
 #define PIO1_1_CMSIS    R_PIO1_1
 #define PIO1_1_PIN      1
@@ -197,28 +241,43 @@
 #define PIO1_4_OUTPUT   (0x01 << 7)
 #define PIO1_4_ADC      5
 // Timer pin CT32B1_MAT3, but match used for PWM reset.
+#define PIO1_4_TIMER    NO_TIMER
+#define PIO1_4_MATCH    0
+#define PIO1_4_PWM      0
 
 #define PIO1_5_CMSIS    PIO1_5
 #define PIO1_5_PIN      5
 #define PIO1_5_PORT     LPC_GPIO1
 #define PIO1_5_OUTPUT   0x00
+#define PIO1_5_TIMER    NO_TIMER
+#define PIO1_5_MATCH    0
+#define PIO1_5_PWM      0
 
 #define PIO1_6_CMSIS    PIO1_6
 #define PIO1_6_PIN      6
 #define PIO1_6_PORT     LPC_GPIO1
 #define PIO1_6_OUTPUT   0x00
 // Timer pin CT32B0_MAT0, but timer used for Step interrupt.
+#define PIO1_6_TIMER    NO_TIMER
+#define PIO1_6_MATCH    0
+#define PIO1_6_PWM      0
 
 #define PIO1_7_CMSIS    PIO1_7
 #define PIO1_7_PIN      7
 #define PIO1_7_PORT     LPC_GPIO1
 #define PIO1_7_OUTPUT   0x00
 // Timer pin CT32B0_MAT1, but timer used for Step interrupt.
+#define PIO1_7_TIMER    NO_TIMER
+#define PIO1_7_MATCH    0
+#define PIO1_7_PWM      0
 
 #define PIO1_8_CMSIS    PIO1_8
 #define PIO1_8_PIN      8
 #define PIO1_8_PORT     LPC_GPIO1
 #define PIO1_8_OUTPUT   0x00
+#define PIO1_8_TIMER    NO_TIMER
+#define PIO1_8_MATCH    0
+#define PIO1_8_PWM      0
 
 #define PIO1_9_CMSIS    PIO1_9
 #define PIO1_9_PIN      9

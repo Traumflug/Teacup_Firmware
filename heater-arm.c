@@ -6,6 +6,7 @@
 #if defined TEACUP_C_INCLUDE && defined __ARMEL__
 
 #include "cmsis-lpc11xx.h"
+#include <stddef.h>
 #include "pinio.h"
 #include "sersendf.h"
 #include "debug.h"
@@ -57,14 +58,24 @@
   #include "config_wrapper.h" trick.
 */
 typedef struct {
-  /// Pointer to the match register which changes PWM duty.
-  __IO uint32_t* match;
+  union {
+    /// Pointer to the match register which changes PWM duty.
+    __IO uint32_t* match;
+    /// Pointer to the port for non-PWM pins.
+    __IO uint32_t* masked_port;
+  };
+  uint8_t uses_pwm;
 } heater_definition_t;
 
 
 #undef DEFINE_HEATER
 #define DEFINE_HEATER(name, pin, pwm) \
-  { &(pin ## _TIMER->MR[pin ## _MATCH]) },
+  { \
+    { pwm && pin ## _TIMER ? \
+      &(pin ## _TIMER->MR[pin ## _MATCH]) : \
+      &(pin ## _PORT->MASKED_ACCESS[MASK(pin ## _PIN)]) }, \
+    pwm && pin ## _TIMER \
+  },
 static const heater_definition_t heaters[NUM_HEATERS] = {
   #include "config_wrapper.h"
 };
@@ -114,12 +125,12 @@ void heater_init() {
       PIO1_7   CT32B0_MAT1     0x2            TXD, Step timer
       PIO1_9   CT16B1_MAT0     0x1            ---
   */
-  if (NUM_HEATERS) {                            // At least one channel in use.
-    uint32_t freq;
-
-    // Auto-generate pin setup.
-    #undef DEFINE_HEATER
-    #define DEFINE_HEATER(name, pin, pwm) \
+  // Auto-generate pin setup.
+  #undef DEFINE_HEATER
+  #define DEFINE_HEATER(name, pin, pwm) \
+    if (pwm && pin ## _TIMER) {                                             \
+      uint32_t freq;                                                        \
+                                                                            \
       if (pin ## _TIMER == LPC_TMR16B0) {                                   \
         LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 7);    /* Turn on CT16B0.     */ \
       }                                                                     \
@@ -133,7 +144,7 @@ void heater_init() {
       LPC_IOCON->pin ## _CMSIS = pin ## _PWM;     /* Connect to timer.   */ \
       /*pin ## _TIMER->IR  = 0; ( = reset value)     No interrupts.      */ \
       pin ## _TIMER->TCR   = (1 << 0);            /* Enable counter.     */ \
-      freq = F_CPU / PWM_SCALE / pwm;             /* Figure PWM freq.    */ \
+      freq = F_CPU / PWM_SCALE / (pwm ? pwm : 1); /* Figure PWM freq.    */ \
       if (freq > 65535)                                                     \
         freq = 65535;                                                       \
       if (freq < 1)                                                         \
@@ -149,10 +160,14 @@ void heater_init() {
           | (0x03 << ((pin ## _MATCH * 2) + 4))); /* Toggle pin on match.*/ \
       /*pin ## _TIMER->CTCR = 0; ( = reset value)    Timer mode.         */ \
       pin ## _TIMER->PWMC |= ((1 << 3)            /* 3 to PWM mode.      */ \
-          | (1 << pin ## _MATCH));                /* Pin to PWM mode.    */
-    #include "config_wrapper.h"
-    #undef DEFINE_HEATER
-  } /* NUM_HEATERS */
+          | (1 << pin ## _MATCH));                /* Pin to PWM mode.    */ \
+    }                                                                       \
+    else {                                                                  \
+      SET_OUTPUT(pin);                                                      \
+      WRITE(pin, 0);                                                        \
+    }
+  #include "config_wrapper.h"
+  #undef DEFINE_HEATER
 
 #if 0
   pid_init(i);
@@ -175,11 +190,17 @@ void heater_set(heater_t index, uint8_t value) {
 
     heaters_runtime[index].heater_output = value;
 
-    // Remember, we scale, and duty cycle is inverted.
-    *heaters[index].match = PWM_SCALE - ((uint32_t)value * (PWM_SCALE / 255));
+    if (heaters[index].uses_pwm) {
+      // Remember, we scale, and duty cycle is inverted.
+      *heaters[index].match = PWM_SCALE - ((uint32_t)value * (PWM_SCALE / 255));
 
-    if (DEBUG_PID && (debug_flags & DEBUG_PID))
-      sersendf_P(PSTR("PWM %su = %lu\n"), index, *heaters[index].match);
+      if (DEBUG_PID && (debug_flags & DEBUG_PID))
+        sersendf_P(PSTR("PWM %su = %lu\n"), index, *heaters[index].match);
+    }
+    else {
+      *(heaters[index].masked_port) =
+        (value >= HEATER_THRESHOLD) ? 0xFFFF : 0x0000;
+    }
 
     if (value)
       power_on();
