@@ -43,8 +43,8 @@
 #include	"analog.h"
 #include	"pinio.h"
 #include	"clock.h"
-#ifndef __ARMEL_NOTYET__
 #include	"intercom.h"
+#ifndef __ARMEL_NOTYET__
 #include "spi.h"
 #include "sd.h"
 #include "simulator.h"

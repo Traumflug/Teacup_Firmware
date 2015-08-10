@@ -101,9 +101,10 @@ SOURCES  = mendel.c cpu.c serial.c sermsg.c sersendf.c delay.c
 SOURCES += gcode_parse.c gcode_process.c pinio.c timer.c clock.c
 SOURCES += dda_queue.c dda_maths.c dda_kinematics.c dda.c dda_lookahead.c
 SOURCES += analog.c temp.c heater.c home.c debug.c crc.c
+SOURCES += intercom.c graycode.c
 # Sources left:
-# intercom.c spi.c usb_serial.c
-# graycode.c pff.c watchdog.c pff_diskio.c
+# spi.c usb_serial.c
+# pff.c watchdog.c pff_diskio.c
 
 ifeq ($(MCU), lpc1114)
   SOURCES += cmsis-system_lpc11xx.c
