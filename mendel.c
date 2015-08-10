@@ -37,8 +37,8 @@
 #include	"temp.h"
 #ifndef __ARMEL_NOTYET__
 #include	"watchdog.h"
-#include	"debug.h"
 #endif /* __ARMEL_NOTYET__ */
+#include	"debug.h"
 #include	"heater.h"
 #include	"analog.h"
 #include	"pinio.h"
