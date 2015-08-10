@@ -191,7 +191,6 @@ void heater_init() {
 			}
 		}
 
-    pid_init(i);
 	}
 
 	// set all heater pins to output
@@ -201,6 +200,8 @@ void heater_init() {
     WRITE(pin, invert ? 1 : 0);
   #include "config_wrapper.h"
   #undef DEFINE_HEATER
+
+  pid_init();
 }
 
 /** \brief manually set PWM output

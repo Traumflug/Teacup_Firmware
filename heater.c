@@ -78,35 +78,38 @@ heater_runtime_t heaters_runtime[NUM_HEATERS];
 
   \param i Index of the heater to initialise by Teacup numbering.
 */
-void pid_init(heater_t i) {
+void pid_init() {
+  uint8_t i;
 
-  #ifdef HEATER_SANITY_CHECK
-    // 0 is a "sane" temperature when we're trying to cool down.
-    heaters_runtime[i].sane_temperature = 0;
-  #endif
+  for (i = 0; i < NUM_HEATERS; i++) {
+    #ifdef HEATER_SANITY_CHECK
+      // 0 is a "sane" temperature when we're trying to cool down.
+      heaters_runtime[i].sane_temperature = 0;
+    #endif
 
-  #ifndef BANG_BANG
-    #ifdef EECONFIG
-      // Read factors from EEPROM.
-      heaters_pid[i].p_factor =
-        eeprom_read_dword((uint32_t *)&EE_factors[i].EE_p_factor);
-      heaters_pid[i].i_factor =
-        eeprom_read_dword((uint32_t *)&EE_factors[i].EE_i_factor);
-      heaters_pid[i].d_factor =
-        eeprom_read_dword((uint32_t *)&EE_factors[i].EE_d_factor);
-      heaters_pid[i].i_limit =
-        eeprom_read_word((uint16_t *)&EE_factors[i].EE_i_limit);
+    #ifndef BANG_BANG
+      #ifdef EECONFIG
+        // Read factors from EEPROM.
+        heaters_pid[i].p_factor =
+          eeprom_read_dword((uint32_t *)&EE_factors[i].EE_p_factor);
+        heaters_pid[i].i_factor =
+          eeprom_read_dword((uint32_t *)&EE_factors[i].EE_i_factor);
+        heaters_pid[i].d_factor =
+          eeprom_read_dword((uint32_t *)&EE_factors[i].EE_d_factor);
+        heaters_pid[i].i_limit =
+          eeprom_read_word((uint16_t *)&EE_factors[i].EE_i_limit);
 
-    if (crc_block(&heaters_pid[i].p_factor, 14) !=
-        eeprom_read_word((uint16_t *)&EE_factors[i].crc))
-    #endif /* EECONFIG */
-    {
-      heaters_pid[i].p_factor = DEFAULT_P;
-      heaters_pid[i].i_factor = DEFAULT_I;
-      heaters_pid[i].d_factor = DEFAULT_D;
-      heaters_pid[i].i_limit = DEFAULT_I_LIMIT;
-    }
-  #endif /* BANG_BANG */
+      if (crc_block(&heaters_pid[i].p_factor, 14) !=
+          eeprom_read_word((uint16_t *)&EE_factors[i].crc))
+      #endif /* EECONFIG */
+      {
+        heaters_pid[i].p_factor = DEFAULT_P;
+        heaters_pid[i].i_factor = DEFAULT_I;
+        heaters_pid[i].d_factor = DEFAULT_D;
+        heaters_pid[i].i_limit = DEFAULT_I_LIMIT;
+      }
+    #endif /* BANG_BANG */
+  }
 }
 
 /** \brief run heater PID algorithm

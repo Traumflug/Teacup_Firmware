@@ -69,7 +69,7 @@ typedef struct {
 extern heater_runtime_t heaters_runtime[];
 
 void heater_init(void);
-void pid_init(heater_t index);
+void pid_init(void);
 
 void heater_set(heater_t index, uint8_t value);
 void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t target_temp);
