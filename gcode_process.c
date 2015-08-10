@@ -196,7 +196,6 @@ void process_gcode_command() {
 
 				queue_wait();
 
-        #ifndef __ARMEL_NOTYET__
 				if (next_target.seen_X) {
 					#if defined	X_MIN_PIN
 						home_x_negative();
@@ -226,7 +225,6 @@ void process_gcode_command() {
 				if (!axisSelected) {
 					home();
 				}
-        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 90:
@@ -301,7 +299,6 @@ void process_gcode_command() {
 				//?
 				//? Find the minimum limit of the specified axes by searching for the limit switch.
 				//?
-        #ifndef __ARMEL_NOTYET__
         #if defined X_MIN_PIN
           if (next_target.seen_X)
             home_x_negative();
@@ -314,7 +311,6 @@ void process_gcode_command() {
           if (next_target.seen_Z)
             home_z_negative();
         #endif
-        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 			case 162:
@@ -322,7 +318,6 @@ void process_gcode_command() {
 				//?
 				//? Find the maximum limit of the specified axes by searching for the limit switch.
 				//?
-        #ifndef __ARMEL_NOTYET__
         #if defined X_MAX_PIN
           if (next_target.seen_X)
             home_x_positive();
@@ -335,7 +330,6 @@ void process_gcode_command() {
           if (next_target.seen_Z)
             home_z_positive();
         #endif
-        #endif /* __ARMEL_NOTYET__ */
 				break;
 
 				// unknown gcode: spit an error

@@ -100,9 +100,9 @@ TARGET = $(PROGRAM).hex
 SOURCES  = mendel.c cpu.c serial.c sermsg.c sersendf.c delay.c
 SOURCES += gcode_parse.c gcode_process.c pinio.c timer.c clock.c
 SOURCES += dda_queue.c dda_maths.c dda_kinematics.c dda.c dda_lookahead.c
-SOURCES += analog.c temp.c heater.c
+SOURCES += analog.c temp.c heater.c home.c
 # Sources left:
-# home.c crc.c intercom.c debug.c spi.c usb_serial.c
+# crc.c intercom.c debug.c spi.c usb_serial.c
 # graycode.c pff.c watchdog.c pff_diskio.c
 
 ifeq ($(MCU), lpc1114)
