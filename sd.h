@@ -14,6 +14,13 @@
 
 // Feature set of Petit FatFs is currently defined early in pff_conf.h.
 
+/**
+  Test configuration.
+*/
+#ifdef __ARMEL__
+  #error SD card (SD_CARD_SELECT_PIN) not yet supported on ARM.
+#endif
+
 
 void sd_init(void);
 

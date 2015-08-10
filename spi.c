@@ -15,7 +15,7 @@
 
 #ifdef SPI
 
-/** Initialise serial subsystem.
+/** Initialise SPI subsystem.
 
   Code copied from ATmega164/324/644/1284 data sheet, section 18.2, page 160,
   or moved here from mendel.c.

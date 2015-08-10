@@ -35,16 +35,13 @@
 #include	"gcode_parse.h"
 #include	"timer.h"
 #include	"temp.h"
-#ifndef __ARMEL_NOTYET__
 #include	"watchdog.h"
-#endif /* __ARMEL_NOTYET__ */
 #include	"debug.h"
 #include	"heater.h"
 #include	"analog.h"
 #include	"pinio.h"
 #include	"clock.h"
 #include	"intercom.h"
-#ifndef __ARMEL_NOTYET__
 #include "spi.h"
 #include "sd.h"
 #include "simulator.h"
@@ -59,6 +56,7 @@
   #endif
 #endif
 
+#ifndef __ARMEL_NOTYET__
 #ifdef CANNED_CYCLE
   const char PROGMEM canned_gcode_P[] = CANNED_CYCLE;
 #endif
@@ -74,10 +72,8 @@ void init(void) {
 
   cpu_init();
 
-  #ifndef __ARMEL_NOTYET__
 	// set up watchdog
 	wd_init();
-  #endif /* __ARMEL_NOTYET__ */
 
 	// set up serial
 	serial_init();
@@ -88,11 +84,9 @@ void init(void) {
 	// set up inputs and outputs
   pinio_init();
 
-  #ifndef __ARMEL_NOTYET__
-  #if defined SPI
+  #ifdef SPI
     spi_init();
   #endif
-  #endif /* __ARMEL_NOTYET__ */
 
 	// set up timers
 	timer_init();
@@ -109,19 +103,15 @@ void init(void) {
 	// set up temperature inputs
 	temp_init();
 
-  #ifndef __ARMEL_NOTYET__
   #ifdef SD
     sd_init();
   #endif
-  #endif /* __ARMEL_NOTYET__ */
 
 	// enable interrupts
 	sei();
 
-  #ifndef __ARMEL_NOTYET__
 	// reset watchdog
 	wd_reset();
-  #endif /* __ARMEL_NOTYET__ */
 
   // prepare the power supply
   power_init();
@@ -180,7 +170,6 @@ int main (void)
         }
       }
 
-    #ifndef __ARMEL_NOTYET__
       #ifdef SD
         if (( ! gcode_active || gcode_active & GCODE_SOURCE_SD) &&
             gcode_sources & GCODE_SOURCE_SD) {
@@ -193,6 +182,7 @@ int main (void)
         }
       #endif
 
+      #ifndef __ARMEL_NOTYET__
       #ifdef CANNED_CYCLE
         /**
           WARNING!

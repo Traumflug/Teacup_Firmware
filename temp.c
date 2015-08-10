@@ -20,11 +20,17 @@
 #include "simulator.h"
 
 #ifdef	TEMP_INTERCOM
+  #ifdef __ARMEL__
+    #error TEMP_INTERCOM not yet supported on ARM.
+  #endif
 	#include	"intercom.h"
   #include "pinio.h"
 #endif
 
 #ifdef	TEMP_MAX6675
+  #ifdef __ARMEL__
+    #error MAX6675 sensors (TEMP_MAX6675) not yet supported on ARM.
+  #endif
   #include "spi.h"
 #endif
 

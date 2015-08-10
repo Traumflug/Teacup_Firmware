@@ -374,7 +374,6 @@ void process_gcode_command() {
 				tool = next_tool;
 				break;
 
-      #ifndef __ARMEL_NOTYET__
       #ifdef SD
       case 20:
         //? --- M20: list SD card. ---
@@ -423,7 +422,6 @@ void process_gcode_command() {
         gcode_sources &= ! GCODE_SOURCE_SD;
         break;
       #endif /* SD */
-      #endif /* __ARMEL_NOTYET__ */
 
 			case 82:
 				//? --- M82 - Set E codes absolute ---
