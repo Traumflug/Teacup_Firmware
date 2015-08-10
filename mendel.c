@@ -56,11 +56,9 @@
   #endif
 #endif
 
-#ifndef __ARMEL_NOTYET__
 #ifdef CANNED_CYCLE
   const char PROGMEM canned_gcode_P[] = CANNED_CYCLE;
 #endif
-#endif /* __ARMEL_NOTYET__ */
 
 /** Initialise all the subsystems.
 
@@ -182,7 +180,6 @@ int main (void)
         }
       #endif
 
-      #ifndef __ARMEL_NOTYET__
       #ifdef CANNED_CYCLE
         /**
           WARNING!
@@ -206,7 +203,6 @@ int main (void)
           canned_gcode_pos = 0;
 
       #endif /* CANNED_CYCLE */
-      #endif /* __ARMEL_NOTYET__ */
 		}
 
 		clock();
