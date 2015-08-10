@@ -5,6 +5,13 @@
 
 #ifdef USE_WATCHDOG
 
+/**
+  Test configuration.
+*/
+#ifdef __ARMEL__
+  #error Watchdog (USE_WATCHDOG) not yet supported on ARM.
+#endif
+
 // initialize
 void wd_init(void) __attribute__ ((cold));
 

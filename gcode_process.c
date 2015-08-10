@@ -593,10 +593,8 @@ void process_gcode_command() {
         queue_flush();
         power_off();
         cli();
-        #ifndef __ARMEL_NOTYET__
         for (;;)
           wd_reset();
-        #endif /* __ARMEL_NOTYET__ */
         break;
 
 			case 114:
