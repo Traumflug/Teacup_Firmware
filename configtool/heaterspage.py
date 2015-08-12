@@ -116,7 +116,7 @@ class HeatersPage(wx.Panel, Page):
     h = self.heaters[self.selection]
 
     dlg = AddHeaterDlg(self, nm, [h[1]] + self.getFreePins(), self.font,
-                       name = h[0], pin = h[1], pwm = h[2])
+                       name = h[0], pin = h[1], invert = h[2], pwm = h[3])
     rc = dlg.ShowModal()
     if rc == wx.ID_OK:
       ht = dlg.getValues()

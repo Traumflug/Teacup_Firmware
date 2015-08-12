@@ -164,7 +164,7 @@
 //DEFINE_TEMP_SENSORS_START
 //                 name      type           pin    additional
 DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PIO1_0,THERMISTOR_EXTRUDER)
-//DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, PIO1_1,THERMISTOR_BED)
+DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, PIO1_1,THERMISTOR_BED)
 
 // Beta algorithm      r0      beta  r2    vadc
 // Steinhart-Hart      rp      t0    r0      t1    r1      t2    r2
@@ -210,6 +210,9 @@ DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PIO1_0,THERMISTOR_EXTRUDER)
   are defined or the order of the definitions differs. The first defined
   device has the index 0 (zero).
 
+  Set 'invert' to 0 for normal heaters. Setting it to 1 inverts the pin signal
+  for this pin, e.g. for a MOSFET with a driver.
+
   Set 'pwm' to ...
     frequency  in Hertz (Hz) on ARM based controllers to set PWM frequency of
                this pin's output. Frequency isn't always accurate, Teacup
@@ -228,12 +231,12 @@ DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PIO1_0,THERMISTOR_EXTRUDER)
   Pins which don't allow PWM are always operated in on/off mode.
 */
 //DEFINE_HEATERS_START
-//            name      port   pwm
-DEFINE_HEATER(extruder, PIO0_10, 20000)
-//DEFINE_HEATER(bed,      PIO0_11, 10)
+//            name      pin      invert  pwm
+DEFINE_HEATER(extruder, PIO0_10, 0,      20000)
+DEFINE_HEATER(bed,      PIO0_11, 1,      10)
 
 #define HEATER_EXTRUDER HEATER_extruder
-//#define HEATER_BED HEATER_bed
+#define HEATER_BED HEATER_bed
 //DEFINE_HEATERS_END
 
 

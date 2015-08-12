@@ -447,6 +447,9 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO0,      THERMISTOR_EXTRUDER)
 * are defined or the order of the definitions differs. The first defined    *
 * device has the index 0 (zero).                                            *
 *                                                                           *
+* Set 'invert' to 0 for normal heaters. Setting it to 1 inverts the pin     *
+* signal for this pin, e.g. for a MOSFET with a driver.                     *
+*                                                                           *
 * Set 'pwm' to ...                                                          *
 *  1  for using PWM on a PWM-able pin and on/off on other pins.             *
 *  0  for using on/off on a PWM-able pin, too.                              *
@@ -460,9 +463,9 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO0,      THERMISTOR_EXTRUDER)
 	#define DEFINE_HEATER(...)
 #endif
 
-//            name      port   pwm
-DEFINE_HEATER(extruder, DIO4,  1)
-DEFINE_HEATER(bed,      DIO3,  1)
+//            name      pin      invert  pwm
+DEFINE_HEATER(extruder, DIO4,    0,      1)
+DEFINE_HEATER(bed,      DIO3,    0,      1)
 
 /// and now because the c preprocessor isn't as smart as it could be,
 /// uncomment the ones you've listed above and comment the rest.

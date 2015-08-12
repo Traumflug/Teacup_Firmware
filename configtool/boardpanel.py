@@ -13,7 +13,7 @@ from configtool.data import (defineValueFormat,
                              reCandProcessors, reCandCPUClocks, reFloatAttr,
                              reDefine, reDefineBL, reDefQS, reDefQSm,
                              reDefQSm2, reDefBool, reDefBoolBL, reDefHT,
-                             reDefTS, reDefTT, reSensor, reHeater,
+                             reDefTS, reDefTT, reSensor, reHeater3, reHeater4,
                              reTempTable4, reTempTable7)
 from configtool.pinoutspage import PinoutsPage
 from configtool.sensorpage import SensorsPage
@@ -468,11 +468,20 @@ class BoardPanel(wx.Panel):
     return None
 
   def parseHeater(self, s):
-    m = reHeater.search(s)
+    m = reHeater4.search(s)
+    if m:
+      t = m.groups()
+      if len(t) == 4:
+        return list(t)
+    # reHeater3 deprecated, for compatibility with old config files only.
+    m = reHeater3.search(s)
     if m:
       t = m.groups()
       if len(t) == 3:
-        return list(t)
+        t = list(t)
+        t.insert(2, '0')
+        return t
+    # End of deprecated part.
     return None
 
   def parseTempTable(self, s):
@@ -604,9 +613,10 @@ class BoardPanel(wx.Panel):
       m = reStartHeaters.match(ln)
       if m:
         fp.write(ln)
-        fp.write("//            name      port   pwm\n")
+        fp.write("//            name      pin      invert  pwm\n")
         for s in self.heaters:
-          sstr = "%-10s%-7s%s" % ((s[0] + ","), (s[1] + ","), s[2])
+          sstr = "%-10s%-9s%-8s%s" % ((s[0] + ","), (s[1] + ","),
+                                      (s[2] + ","), s[3])
           fp.write("DEFINE_HEATER(%s)\n" % sstr)
         fp.write("\n")
         for s in self.heaters:

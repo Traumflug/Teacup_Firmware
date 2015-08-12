@@ -1,6 +1,8 @@
 
 /** \file
   \brief Manage heaters, including PID and PWM, AVR specific part.
+
+  For test cases see the intro comment in heater.c.
 */
 
 #if defined TEACUP_C_INCLUDE && defined __AVR__
@@ -16,13 +18,15 @@
 typedef struct {
 	volatile uint8_t *heater_port; ///< pointer to port. DDR is inferred from this pointer too
 	uint8_t						heater_pin;  ///< heater pin, not masked. eg for PB3 enter '3' here, or PB3_PIN or similar
+  /// Wether the heater pin signal needs to be inverted.
+  uint8_t          invert;
 	volatile uint8_t *heater_pwm;  ///< pointer to 8-bit PWM register, eg OCR0A (8-bit) or ORC3L (low byte, 16-bit)
 } heater_definition_t;
 
 #undef DEFINE_HEATER
 /// \brief helper macro to fill heater definition struct from config.h
-#define	DEFINE_HEATER(name, pin, pwm) { &(pin ## _WPORT), pin ## _PIN, \
-                                        pwm ? (pin ## _PWM) : NULL},
+#define	DEFINE_HEATER(name, pin, invert, pwm) { \
+  &(pin ## _WPORT), pin ## _PIN, invert ? 1 : 0, pwm ? (pin ## _PWM) : NULL},
 static const heater_definition_t heaters[NUM_HEATERS] =
 {
 	#include	"config_wrapper.h"
@@ -102,10 +106,22 @@ void heater_init() {
 		OCR5B = 0;
 	#endif
 
+  /**
+    - - TODO - - - TODO - - - TODO - - - TODO - -
+
+    This produces a lot of initialisation code for setting up just 2 or 3
+    pins. Can't be optimized out, because heaters[] could have been changed
+    since initialisation.
+
+    A much better strategy for this is the one found in heaters-arm.c: use
+    the config_wrapper.h magic to initialise only what's needed. The needed
+    values are likely already in arduino_xxx.h.
+  */
+
 	// setup pins
 	for (i = 0; i < NUM_HEATERS; i++) {
 		if (heaters[i].heater_pwm) {
-			*heaters[i].heater_pwm = 0;
+			*heaters[i].heater_pwm = heaters[i].invert ? 255 : 0;
 			// this is somewhat ugly too, but switch() won't accept pointers for reasons unknown
 			switch((uint16_t) heaters[i].heater_pwm) {
 				case (uint16_t) &OCR0A:
@@ -180,7 +196,9 @@ void heater_init() {
 
 	// set all heater pins to output
   #undef DEFINE_HEATER
-  #define DEFINE_HEATER(name, pin, pwm) SET_OUTPUT(pin); WRITE(pin, 0);
+  #define DEFINE_HEATER(name, pin, invert, pwm) \
+    SET_OUTPUT(pin);                            \
+    WRITE(pin, invert ? 1 : 0);
   #include "config_wrapper.h"
   #undef DEFINE_HEATER
 }
@@ -198,13 +216,15 @@ void heater_set(heater_t index, uint8_t value) {
 	heaters_runtime[index].heater_output = value;
 
 	if (heaters[index].heater_pwm) {
-		*(heaters[index].heater_pwm) = value;
+    *(heaters[index].heater_pwm) = heaters[index].invert ?
+      (255 - value) : value;
 
 		if (DEBUG_PID && (debug_flags & DEBUG_PID))
 			sersendf_P(PSTR("PWM{%u = %u}\n"), index, *heaters[index].heater_pwm);
 	}
 	else {
-		if (value >= HEATER_THRESHOLD)
+    if ((value >= HEATER_THRESHOLD && ! heaters[index].invert) ||
+        (value < HEATER_THRESHOLD && heaters[index].invert))
 			*(heaters[index].heater_port) |= MASK(heaters[index].heater_pin);
 		else
 			*(heaters[index].heater_port) &= ~MASK(heaters[index].heater_pin);

@@ -7,7 +7,7 @@ class HeaterList(wx.ListCtrl):
     self.parent = parent
     self.currentItem = None
     wx.ListCtrl.__init__(self, parent, wx.ID_ANY,
-                         size = (95 + 55 + 55 + 4, 100),
+                         size = (95 + 75 + 55 + 55 + 4, 100),
                          style = wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_HRULES |
                          wx.LC_VRULES)
     self.SetFont(font)
@@ -17,10 +17,12 @@ class HeaterList(wx.ListCtrl):
 
     self.InsertColumn(0, "Name")
     self.InsertColumn(1, "Pin")
-    self.InsertColumn(2, "PWM")
+    self.InsertColumn(2, "Invert")
+    self.InsertColumn(3, "PWM")
     self.SetColumnWidth(0, 95)
-    self.SetColumnWidth(1, 55)
+    self.SetColumnWidth(1, 75)
     self.SetColumnWidth(2, 55)
+    self.SetColumnWidth(3, 55)
 
     self.SetItemCount(0)
 
@@ -64,7 +66,7 @@ class HeaterList(wx.ListCtrl):
 
   def OnGetItemText(self, item, col):
     if item < 0 or item >= len(self.heaterList):
-      return "Error - no heaters"
+      return "Error - no heaters."
 
     s = self.heaterList[item]
 
@@ -74,6 +76,11 @@ class HeaterList(wx.ListCtrl):
       return s[1]
     elif col == 2:
       if s[2] == "1":
+        return "True"
+      else:
+        return "False"
+    elif col == 3:
+      if int(s[3]):
         return "True"
       else:
         return "False"

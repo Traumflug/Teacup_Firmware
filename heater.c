@@ -1,6 +1,24 @@
 
 /** \file
   \brief Manage heaters, including PID and PWM.
+
+  Code for heater_init() and heater_set() is in the platform dependant include
+  file and should pass six test cases when operating the heater via M106, temp
+  sensors disabled:
+
+   - PWM used on PWM-able pin, not inverted.
+   - PWM pin used as on/off pin, not inverted.
+   - Non-PWM-able pin, not inverted.
+   - The three above, but inverted.
+
+  In each test it should pass these tests:
+
+   - Heater full on with M106 S255.
+   - Heater full off with M106 S0.
+   - Heater 10% on with M106 S25 on PWM pins.
+   - Heater full off after reset, power supply turned on by other means.
+   - For testing the inverted cases it's OK to check for behaving the opposite
+     of the M106 command.
 */
 
 #include "heater.h"

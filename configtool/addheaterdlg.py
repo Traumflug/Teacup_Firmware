@@ -5,7 +5,7 @@ from configtool.data import BSIZESMALL, offsetChLabel, offsetTcLabel
 
 class AddHeaterDlg(wx.Dialog):
   def __init__(self, parent, names, pins, font,
-               name = "", pin = "", pwm = "1"):
+               name = "", pin = "", invert = "0", pwm = "1"):
     wx.Dialog.__init__(self, parent, wx.ID_ANY, "Add heater", size = (400, 204))
     self.SetFont(font)
     self.Bind(wx.EVT_CLOSE, self.onCancel)
@@ -53,6 +53,13 @@ class AddHeaterDlg(wx.Dialog):
     self.chPin.SetToolTipString("Choose a pin for this heater.")
 
     gsz.Add(lsz, pos = (3, 1))
+
+    self.cbInv = wx.CheckBox(self, wx.ID_ANY, "Invert")
+    self.cbInv.SetFont(font)
+    self.cbInv.SetValue(int(invert) != 0)
+    self.cbInv.SetToolTipString("Invert the pin signal.")
+
+    gsz.Add(self.cbInv, pos = (3, 3))
 
     self.cbPwm = wx.CheckBox(self, wx.ID_ANY, "PWM")
     self.cbPwm.SetFont(font)
@@ -120,12 +127,18 @@ class AddHeaterDlg(wx.Dialog):
   def getValues(self):
     nm = self.tcName.GetValue()
     pin = self.choices[self.chPin.GetSelection()]
+
+    if self.cbInv.IsChecked():
+      invert = "1"
+    else:
+      invert = "0"
+
     if self.cbPwm.IsChecked():
       pwm = "1"
     else:
       pwm = "0"
 
-    return (nm, pin, pwm)
+    return (nm, pin, invert, pwm)
 
   def onSave(self, evt):
     self.EndModal(wx.ID_OK)

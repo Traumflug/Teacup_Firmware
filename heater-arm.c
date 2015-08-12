@@ -1,6 +1,8 @@
 
 /** \file
   \brief Manage heaters, including PID and PWM, ARM specific part.
+
+  For test cases see the intro comment in heater.c.
 */
 
 #if defined TEACUP_C_INCLUDE && defined __ARMEL__
@@ -65,16 +67,18 @@ typedef struct {
     __IO uint32_t* masked_port;
   };
   uint8_t uses_pwm;
+  uint8_t invert;
 } heater_definition_t;
 
 
 #undef DEFINE_HEATER
-#define DEFINE_HEATER(name, pin, pwm) \
+#define DEFINE_HEATER(name, pin, invert, pwm) \
   { \
     { pwm && pin ## _TIMER ? \
       &(pin ## _TIMER->MR[pin ## _MATCH]) : \
       &(pin ## _PORT->MASKED_ACCESS[MASK(pin ## _PIN)]) }, \
-    pwm && pin ## _TIMER \
+    pwm && pin ## _TIMER, \
+    invert ? 1 : 0 \
   },
 static const heater_definition_t heaters[NUM_HEATERS] = {
   #include "config_wrapper.h"
@@ -127,7 +131,7 @@ void heater_init() {
   */
   // Auto-generate pin setup.
   #undef DEFINE_HEATER
-  #define DEFINE_HEATER(name, pin, pwm) \
+  #define DEFINE_HEATER(name, pin, invert, pwm) \
     if (pwm && pin ## _TIMER) {                                             \
       uint32_t freq;                                                        \
                                                                             \
@@ -154,7 +158,7 @@ void heater_init() {
       /* PWM_SCALE - 1, so match = 255 is full off. */                      \
       pin ## _TIMER->MR[3] = PWM_SCALE - 1;       /* Match 3 at 254.     */ \
       pin ## _TIMER->MR[pin ## _MATCH] =          /* Match pin = duty.   */ \
-          PWM_SCALE;                                                        \
+          invert ? 0 : PWM_SCALE;                                           \
       /*pin ## _TIMER->CCR = 0; ( = reset value)     No pin capture.     */ \
       pin ## _TIMER->EMR |= ((1 << pin ## _MATCH) /* Connect to pin.     */ \
           | (0x03 << ((pin ## _MATCH * 2) + 4))); /* Toggle pin on match.*/ \
@@ -164,7 +168,7 @@ void heater_init() {
     }                                                                       \
     else {                                                                  \
       SET_OUTPUT(pin);                                                      \
-      WRITE(pin, 0);                                                        \
+      WRITE(pin, invert ? 1 : 0);                                           \
     }
   #include "config_wrapper.h"
   #undef DEFINE_HEATER
@@ -191,15 +195,22 @@ void heater_set(heater_t index, uint8_t value) {
     heaters_runtime[index].heater_output = value;
 
     if (heaters[index].uses_pwm) {
-      // Remember, we scale, and duty cycle is inverted.
-      *heaters[index].match = PWM_SCALE - ((uint32_t)value * (PWM_SCALE / 255));
+      uint32_t pwm_value;
+
+      // Remember, we scale, and the timer inverts already.
+      pwm_value = (uint32_t)value * (PWM_SCALE / 255);
+      if ( ! heaters[index].invert)
+        pwm_value = PWM_SCALE - pwm_value;
+      *heaters[index].match = pwm_value;
 
       if (DEBUG_PID && (debug_flags & DEBUG_PID))
         sersendf_P(PSTR("PWM %su = %lu\n"), index, *heaters[index].match);
     }
     else {
       *(heaters[index].masked_port) =
-        (value >= HEATER_THRESHOLD) ? 0xFFFF : 0x0000;
+        ((value >= HEATER_THRESHOLD && ! heaters[index].invert) ||
+         (value < HEATER_THRESHOLD && heaters[index].invert)) ?
+        0xFFFF : 0x0000;
     }
 
     if (value)

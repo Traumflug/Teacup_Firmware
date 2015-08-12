@@ -211,6 +211,9 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO14, THERMISTOR_BED)
   are defined or the order of the definitions differs. The first defined
   device has the index 0 (zero).
 
+  Set 'invert' to 0 for normal heaters. Setting it to 1 inverts the pin signal
+  for this pin, e.g. for a MOSFET with a driver.
+
   Set 'pwm' to ...
     1  for using PWM on a PWM-able pin and on/off on other pins.
     0  for using on/off on a PWM-able pin, too.
@@ -220,10 +223,10 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO14, THERMISTOR_BED)
   influenced globally with FAST_PWM, see below.
 */
 //DEFINE_HEATERS_START
-//            name      port   pwm
-DEFINE_HEATER(extruder, DIO10, 1)
-DEFINE_HEATER(bed,      DIO9,  1)
-DEFINE_HEATER(fan,      DIO8,  1)
+//            name      pin      invert  pwm
+DEFINE_HEATER(extruder, DIO10,   0,      1)
+DEFINE_HEATER(bed,      DIO9,    0,      1)
+DEFINE_HEATER(fan,      DIO8,    0,      1)
 
 #define HEATER_EXTRUDER HEATER_extruder
 #define HEATER_BED HEATER_bed
