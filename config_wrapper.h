@@ -35,6 +35,13 @@
 #endif
 
 /**
+  Check wether we need SPI.
+*/
+#if (defined SD_CARD_SELECT_PIN || defined TEMP_MAX6675) && ! defined SIMULATOR
+  #define SPI
+#endif
+
+/**
   ACCELERATION_TEMPORAL doesn't support lookahead, yet.
 */
 #if defined ACCELERATION_TEMPORAL && defined LOOKAHEAD

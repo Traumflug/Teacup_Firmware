@@ -89,7 +89,7 @@ void init(void) {
   pinio_init();
 
   #ifndef __ARMEL_NOTYET__
-  #if defined TEMP_MAX6675 || defined SD
+  #if defined SPI
     spi_init();
   #endif
   #endif /* __ARMEL_NOTYET__ */

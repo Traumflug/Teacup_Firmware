@@ -13,9 +13,7 @@
 */
 #include "spi.h"
 
-#include "arduino.h"
-#include "pinio.h"
-
+#ifdef SPI
 
 /** Initialise serial subsystem.
 
@@ -44,3 +42,5 @@ void spi_init() {
   // This sets the whole SPRC register.
   spi_speed_100_400();
 }
+
+#endif /* SPI */

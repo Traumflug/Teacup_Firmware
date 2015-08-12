@@ -18,13 +18,13 @@
 */
 void cpu_init() {
   #ifdef PRR
-    #if defined TEMP_MAX6675 || defined SD
+    #if defined SPI
       PRR = MASK(PRTWI) | MASK(PRADC);
     #else
       PRR = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
     #endif
   #elif defined PRR0
-    #if defined TEMP_MAX6675 || defined SD
+    #if defined SPI
       PRR0 = MASK(PRTWI) | MASK(PRADC);
     #else
       PRR0 = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);

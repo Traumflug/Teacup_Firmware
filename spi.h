@@ -5,6 +5,8 @@
 #include "arduino.h"
 #include "pinio.h"
 
+#ifdef SPI
+
 // Uncomment this to double SPI frequency from (F_CPU / 4) to (F_CPU / 2).
 //#define SPI_2X
 
@@ -12,8 +14,6 @@
 /** Initialise SPI subsystem.
 */
 void spi_init(void);
-
-#ifndef SIMULATOR /* Avoid inlining code on simulator. */
 
 /** SPI device selection.
 
@@ -102,5 +102,6 @@ inline uint8_t spi_rw(uint8_t byte) {
   return SPDR;
 }
 
-#endif /* SIMULATOR */
+#endif /* SPI */
+
 #endif /* _SPI_H */
