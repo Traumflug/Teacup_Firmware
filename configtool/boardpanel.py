@@ -108,11 +108,11 @@ class BoardPanel(wx.Panel):
   def getCPUInfo(self):
     vF_CPU = None
     if 'F_CPU' in self.cfgValues.keys():
-      vF_CPU = self.cfgValues['F_CPU']
+      vF_CPU = self.cfgValues['F_CPU'][0]
 
     vCPU = None
     if 'CPU' in self.cfgValues.keys():
-      vCPU = self.cfgValues['CPU']
+      vCPU = self.cfgValues['CPU'][0]
 
     return vF_CPU, vCPU
 
