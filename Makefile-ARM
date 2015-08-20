@@ -78,8 +78,8 @@ TOOLCHAIN = arm-none-eabi-
 F_CRYSTAL ?= 12000000
 
 # Serial port the electronics is connected to.
-UPLOADER_PORT ?= /dev/ttyUSB0
-#UPLOADER_PORT ?= /dev/ttyACM0
+#UPLOADER_PORT ?= /dev/ttyUSB0
+UPLOADER_PORT ?= /dev/ttyACM0
 #UPLOADER_PORT ?= com1
 
 ##############################################################################
@@ -135,6 +135,8 @@ endif
 LDFLAGS += -Wl,--as-needed
 LDFLAGS += -Wl,--gc-sections
 
+UPLOAD_PORT_BASENAME=$(patsubst /dev/%,%,$(UPLOADER_PORT))
+
 LIBS  = -lm
 
 -include Makefile-common
@@ -147,12 +149,15 @@ all: $(PROGRAM).hex $(BUILDDIR)/$(PROGRAM).lst $(BUILDDIR)/$(PROGRAM).sym size
 
 program: $(PROGRAM).hex config.h
 	@echo
-	@echo "To let the bootloader complete his work, connect now PIO0_1 to GND,"
-	@echo "then press Reset for a moment. The bootloader should begin uploading."
-	@echo "After being done, disconnect PIO0_1 and press reset again. On a"
-	@echo "Gen7-ARM, PIO0_1 is the Step pin of the Z stepper driver."
+	@echo "Touch programming port ..."
 	@echo
-	lpc21isp -control $< $(UPLOADER_PORT) 115200 $(F_CRYSTAL)
+	@stty -F "/dev/$(UPLOAD_PORT_BASENAME)" raw ispeed 1200 ospeed 1200 cs8 -cstopb ignpar eol 255 eof 255
+	@printf "\x00" > "/dev/$(UPLOAD_PORT_BASENAME)"
+	@echo "Waiting before uploading ..."
+	@sleep 1
+	@echo "Uploading ..."
+	@bossac -p "$(UPLOAD_PORT_BASENAME)" -U false -e -w -b "$(BUILDDIR)/$(PROGRAM).elf" -R
+	@echo "Done."
 
 $(BUILDDIR)/teacup.elf: $(BUILDDIR)/startup.o
 
