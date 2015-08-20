@@ -40,7 +40,8 @@
 #                                                                            #
 ##############################################################################
 
-MCU ?= lpc1114
+# MCU ?= lpc1114
+MCU ?= sam3x8e
 # MCU ?= atmega328p
 # MCU ?= atmega644
 # MCU ?= atmega1284p
@@ -108,6 +109,11 @@ ifeq ($(MCU), lpc1114)
   CFLAGS += -mtune=cortex-m0
   CFLAGS += -D__ARM_LPC1114__
 endif
+ifeq ($(MCU), sam3x8e)
+  CFLAGS += -mthumb -mcpu=cortex-m3
+  CFLAGS += -mtune=cortex-m3
+  CFLAGS += -D__SAM3X8E__
+endif
 # Other options ...
 CFLAGS += -Wall
 CFLAGS += -Wstrict-prototypes
@@ -122,6 +128,9 @@ LDFLAGS  = --specs=nano.specs
 LDFLAGS += --specs=nosys.specs
 ifeq ($(MCU), lpc1114)
   LDFLAGS += -T arm-lpc1114.ld
+endif
+ifeq ($(MCU), sam3x8e)
+  LDFLAGS += -T arm-due.ld
 endif
 LDFLAGS += -Wl,--as-needed
 LDFLAGS += -Wl,--gc-sections
@@ -147,23 +156,29 @@ program: $(PROGRAM).hex config.h
 
 $(BUILDDIR)/teacup.elf: $(BUILDDIR)/startup.o
 
+ifeq ($(MCU), lpc1114)
 $(BUILDDIR)/startup.o: arm-startup_lpc11xx.s | $(BUILDDIR)
 	@echo "  CC        $@"
 	@$(CC) -c $(CFLAGS) -o $@ $<
-
+endif
+ifeq ($(MCU), sam3x8e)
+$(BUILDDIR)/startup.o: arm-startup_due.s | $(BUILDDIR)
+	@echo "  CC        $@"
+	@$(CC) -c $(CFLAGS) -o $@ $<
+endif
 ## Interpret TARGET section sizes wrt different ARM chips
-## Usage:  $(call show_size,section-name,section-regex,lpc1114-size-in-k)
+## Usage:  $(call show_size,section-name,section-regex,sam3x8e-size-in-k)
 define show_size
 	@$(OBJDUMP) -h $^ | \
 		perl -MPOSIX -ne \
 		'/.($2)\s+([0-9a-f]+)/ && do { $$a += eval "0x$$2" }; \
 		END { printf "    %-7s: %5d bytes         %3d%%\n", "$1", $$a, \
-			ceil($$a * 100 / ($3 * 1024)), \
+			ceil($$a * 100 / ($3 * 1024)) \
 		}'
 endef
 
 size: $(BUILDDIR)/$(PROGRAM).elf
-	@echo "    SIZES          ARM...     lpc1114"
-	$(call show_size,FLASH,text,32)
-	$(call show_size,RAM,data|bss,4)
+	@echo "    SIZES          ARM...     sam3x8e"
+	$(call show_size,FLASH,text,512)
+	$(call show_size,RAM,data|bss,96)
 	$(call show_size,EEPROM,eeprom,0.0001)
