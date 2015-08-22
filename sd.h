@@ -23,6 +23,10 @@ void sd_unmount(void);
 
 void sd_list(const char* path);
 
+#ifdef LCD
+void sd_list_offset(const char* path, uint16_t offset);
+#endif
+
 void sd_open(const char* filename);
 
 uint8_t sd_read_char(void);

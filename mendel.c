@@ -52,6 +52,7 @@
 #include "simulator.h"
 #include "spi.h"
 #include "sd.h"
+#include "SimpleLCD.h"
 
 #ifdef SIMINFO
   #include "../simulavr/src/simulavr_info.h"
@@ -189,6 +190,19 @@ void io_init(void) {
 	#ifdef	STEPPER_ENABLE_PIN
 		power_off();
 	#endif
+	#ifdef RRD_SMART_CONTROLLER
+		SET_INPUT(BTN_ENC);// setting pins as input for the rotary encoder for the Reprap discount smart controller
+		SET_INPUT(BTN_EN1);
+		SET_INPUT(BTN_EN2);
+		WRITE(BTN_ENC,1);// turns on a pulldown/pullup
+		WRITE(BTN_EN1,1);
+		WRITE(BTN_EN2,1);
+	#endif
+
+
+
+
+
 
   #ifdef DEBUG_LED_PIN 
     WRITE(DEBUG_LED_PIN, 0);
@@ -235,9 +249,29 @@ void init(void) {
 	// set up temperature inputs
 	temp_init();
 
-  #ifdef SD
-    sd_init();
+// i have changed the order in which the sd and lcd stuff inits ,
+// this is so we can display debug data on the screen should the sdcard no initialise
+
+  #ifdef LCD
+    // initialize LCD
+    lcdInit();
+    lcdClear();
+    	//lcdWriteText((uint8_t *)"->Teacup LCD Init<-");
+    	//lcdGoToAddr(0x54); 
+   	// lcdWriteText((uint8_t *)"Teacup Firmware");
+	//jgrjgr i removed this because this is where i'm putting the menu
+
   #endif
+
+  #ifdef SD// the sdcard now tried to mount upon powerup, this will work most of the time 
+// todo add in an if statement that checks the sd card detect input if applicable, 
+// most reprap based lcds have them however in some cases it may ot exist in order to save pins on the mcu
+	sd_init();
+	sd_mount();
+	
+  #endif
+
+
 
 	// enable interrupts
 	sei();
@@ -249,7 +283,32 @@ void init(void) {
   power_init();
 
 	// say hi to host
-	serial_writestr_P(PSTR("start\nok\n"));
+  serial_writestr_P(PSTR("start\nok\n"));
+
+   sersendf_P(PSTR("\n------------------------------\n"));
+   sersendf_P(PSTR("Teacup Firmware\n"));
+   #ifdef DELTA_PRINTER
+   sersendf_P(PSTR("Using Delta Kinematics:\n"));
+   #endif
+   #ifdef ACCELERATION_REPRAP
+      sersendf_P(PSTR("Acceleration Reprap\n"));
+   #endif
+   #ifdef ACCELERATION_RAMPING
+      sersendf_P(PSTR("Acceleration Ramping\n"));
+   #endif
+   #ifdef LOOKAHEAD
+      sersendf_P(PSTR("  With Lookahead\n"));
+   #endif
+   #ifdef ACCELERATION_TEMPORAL
+      sersendf_P(PSTR("Acceleration Temporal\n"));
+   #endif
+   #ifdef ACCELERATION
+      sersendf_P(PSTR("Acceleration: %lu\n"),(uint32_t)ACCELERATION);
+   #endif
+   sersendf_P(PSTR("------------------------------\n"));
+   #ifdef SD
+      sersendf_P(PSTR("sd support\n"));
+   #endif
 
 }
 

@@ -9,6 +9,7 @@
 #include "delay.h"
 #include "serial.h"
 #include "sersendf.h"
+#include "SimpleLCD.h"
 
 #define SD_BUFFER_SIZE 16
 
@@ -30,8 +31,21 @@ void sd_init(void) {
 */
 void sd_mount(void) {
   result = pf_mount(&sdfile);
-  if (result != FR_OK)
+  if (result != FR_OK){
     sersendf_P(PSTR("E: SD init failed. (%su)"), result);
+		lcdGoToAddr(0x54); 
+		lcdWriteText((uint8_t *)"SD init Failed      ");
+
+    }
+    else
+    {
+		lcdGoToAddr(0x54); 
+		lcdWriteText((uint8_t *)"SD init Success     ");
+
+    sersendf_P(PSTR("E: SD init OK. (%su)"), result);
+    }
+
+
 }
 
 /** Unmount the SD card.
@@ -73,6 +87,52 @@ void sd_list(const char* path) {
     sersendf_P(PSTR("E: failed to open dir. (%su)"), result);
   }
 }
+
+#ifdef LCD
+/** List to LCD with offset.
+
+  \param path    The path to list. Toplevel path is "/".
+  \param offset  Offset in the file list.
+
+  We display three file names, all indented by two spaces, and a '>' in front
+  of the current file. To scroll through a long file list, change the offset
+  incrementally depending on up/down buttons or an turning encoder and call
+  this function on each such event.
+
+  A slash is added to directory names, to make it easier for users to
+  recognize them.
+*/
+
+
+
+sd_list_offset(const char* path,uint16_t count) {
+  FILINFO fno;
+  DIR dir;
+  uint16_t listpos=0;
+  result = pf_opendir(&dir, path);
+  if (result == FR_OK) {
+    for (;;) {
+	
+      result = pf_readdir(&dir, &fno);
+      if (result != FR_OK || fno.fname[0] == 0)
+	break;
+
+
+       
+      
+      if (listpos==count){
+	lcdGoToAddr(0x54); 
+	lcdWriteText((uint8_t *)fno.fname);
+	break;
+	}
+	listpos++;
+
+}
+
+  }
+
+}
+#endif
 
 /** Open a file for reading.
 

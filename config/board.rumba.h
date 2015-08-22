@@ -83,6 +83,27 @@
 //#define STEPPER_ENABLE_PIN       xxxx
 //#define STEPPER_INVERT_ENABLE
 
+#define LCD
+#define BEEPER             DIO44
+#define LCD_RS_PIN        DIO19
+#define LCD_EN_PIN    	DIO42
+#define LCD_D4_PIN        DIO18
+#define LCD_D5_PIN        DIO38
+#define LCD_D6_PIN        DIO41
+#define LCD_D7_PIN        DIO40
+#define BTN_EN1            DIO11
+#define BTN_EN2            DIO12
+#define BTN_ENC            DIO43
+
+#define RRD_SMART_CONTROLLER
+#define SD_CARD_SELECT_PIN DIO53
+
+#define SD
+
+
+
+
+
 /** \def DEBUG_LED_PIN
 
   Enable flashing of a LED during motor stepping.
