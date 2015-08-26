@@ -6,7 +6,6 @@
 
 #include	<stdlib.h>
 #include	<avr/eeprom.h>
-#include	<avr/pgmspace.h>
 
 #include	"arduino.h"
 #include	"debug.h"

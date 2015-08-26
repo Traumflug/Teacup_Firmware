@@ -48,11 +48,9 @@ SECTIONS
         . = ALIGN(4);
         _sfixed = .;
         KEEP(*(.vectors .vectors.*))
-        /*
         *(.text.Reset_Handler)
         *(.text.SystemInit)
         . = 0x200;
-        */
         *(.text .text.* .gnu.linkonce.t.*)
         *(.glue_7t) *(.glue_7)
         *(.rodata .rodata* .gnu.linkonce.r.*)

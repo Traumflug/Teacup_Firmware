@@ -98,7 +98,13 @@ TARGET = $(PROGRAM).hex
 #SOURCES = $(wildcard *.c)
 # Until the generic ARM port is completed, we'd have to wrap all sources
 # in #ifdef __AVR__. To avoid this, build only a selection for now:
-SOURCES = mendel.c cpu.c serial.c
+SOURCES  = mendel.c cpu.c serial.c sermsg.c sersendf.c
+SOURCES += mbed-pinmap.c
+ifeq ($(MCU), lpc1114)
+  SOURCES += mbed-system_LPC11xx.c
+else ifeq ($(MCU), sam3x8e)
+  SOURCES += cmsis_system_sam3xa.c
+endif
 
 # Other target MCU specific adjustments:
 
@@ -108,8 +114,7 @@ ifeq ($(MCU), lpc1114)
   CFLAGS += -mthumb -mcpu=cortex-m0
   CFLAGS += -mtune=cortex-m0
   CFLAGS += -D__ARM_LPC1114__
-endif
-ifeq ($(MCU), sam3x8e)
+else ifeq ($(MCU), sam3x8e)
   CFLAGS += -mthumb -mcpu=cortex-m3
   CFLAGS += -mtune=cortex-m3
   CFLAGS += -D__SAM3X8E__
@@ -121,6 +126,7 @@ CFLAGS += -Os
 CFLAGS += -flto
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
+#CFLAGS += -dM -E # To list all predefined macros into the .o file.
 # Until we're done with basic porting ...
 CFLAGS += -D__ARMEL_NOTYET__
 
@@ -128,8 +134,7 @@ LDFLAGS  = --specs=nano.specs
 LDFLAGS += --specs=nosys.specs
 ifeq ($(MCU), lpc1114)
   LDFLAGS += -T arm-lpc1114.ld
-endif
-ifeq ($(MCU), sam3x8e)
+else ifeq ($(MCU), sam3x8e)
   LDFLAGS += -T arm-due.ld
 endif
 LDFLAGS += -Wl,--as-needed
@@ -165,8 +170,7 @@ ifeq ($(MCU), lpc1114)
 $(BUILDDIR)/startup.o: arm-startup_lpc11xx.s | $(BUILDDIR)
 	@echo "  CC        $@"
 	@$(CC) -c $(CFLAGS) -o $@ $<
-endif
-ifeq ($(MCU), sam3x8e)
+else ifeq ($(MCU), sam3x8e)
 $(BUILDDIR)/startup.o: arm-startup_due.s | $(BUILDDIR)
 	@echo "  CC        $@"
 	@$(CC) -c $(CFLAGS) -o $@ $<

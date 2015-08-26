@@ -38,10 +38,8 @@
 #include	"gcode_parse.h"
 #include	"timer.h"
 #include	"temp.h"
-#include	"sermsg.h"
 #include	"watchdog.h"
 #include	"debug.h"
-#include	"sersendf.h"
 #include	"heater.h"
 #include	"analog.h"
 #include	"pinio.h"
@@ -209,10 +207,12 @@ void init(void) {
   #ifndef __ARMEL_NOTYET__
 	// set up watchdog
 	wd_init();
+  #endif /* __ARMEL_NOTYET__ */
 
 	// set up serial
 	serial_init();
 
+  #ifndef __ARMEL_NOTYET__
 	// set up G-code parsing
 	gcode_init();
 
