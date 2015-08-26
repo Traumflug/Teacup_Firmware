@@ -103,7 +103,7 @@ SOURCES += mbed-pinmap.c
 ifeq ($(MCU), lpc1114)
   SOURCES += mbed-system_LPC11xx.c
 else ifeq ($(MCU), sam3x8e)
-  SOURCES += cmsis_system_sam3xa.c
+  SOURCES += cmsis-system_sam3xa.c
 endif
 
 # Other target MCU specific adjustments:
