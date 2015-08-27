@@ -99,8 +99,9 @@ TARGET = $(PROGRAM).hex
 # Until the generic ARM port is completed, we'd have to wrap all sources
 # in #ifdef __AVR__. To avoid this, build only a selection for now:
 SOURCES  = mendel.c cpu.c serial.c sermsg.c sersendf.c
-SOURCES += mbed-pinmap.c
+
 ifeq ($(MCU), lpc1114)
+  SOURCES += mbed-pinmap.c
   SOURCES += mbed-system_LPC11xx.c
 else ifeq ($(MCU), sam3x8e)
   SOURCES += cmsis-system_sam3xa.c
@@ -135,7 +136,7 @@ LDFLAGS += --specs=nosys.specs
 ifeq ($(MCU), lpc1114)
   LDFLAGS += -T arm-lpc1114.ld
 else ifeq ($(MCU), sam3x8e)
-  LDFLAGS += -T arm-due.ld
+  LDFLAGS += -T arm-due_test.ld
 endif
 LDFLAGS += -Wl,--as-needed
 LDFLAGS += -Wl,--gc-sections

@@ -176,7 +176,7 @@ void serial_init() {
   port->UART_BRGR = 45; // 84000000 / 16 * x = BaudRate (write x into UART_BRGR)
  
   // No Parity
-  port->UART_MR = UART_MR_PAR_NO;
+  port->UART_MR = US_MR_CHRL_8_BIT | US_MR_NBSTOP_1_BIT | UART_MR_PAR_NO;
  
   // Disable PDC channel requests
   port->UART_PTCR = UART_PTCR_RXTDIS | UART_PTCR_TXTDIS;

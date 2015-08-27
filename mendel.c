@@ -278,6 +278,9 @@ int main (void)
 	// main loop
 	for (;;)
 	{
+		if (serial_rxchars() != 0) {
+    		serial_writechar(serial_popchar());
+  		}
     #ifndef __ARMEL_NOTYET__
 		// if queue is full, no point in reading chars- host will just have to wait
     if (queue_full() == 0) {
