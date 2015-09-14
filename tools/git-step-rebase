@@ -41,8 +41,7 @@ COMMON_PARENT=$(git merge-base HEAD ${BASE_BRANCH})
 echo
 echo "Common parent is ${COMMON_PARENT}."
 
-PARENTS=$(git log --oneline --ancestry-path ${COMMON_PARENT}..${BASE_BRANCH} | \
-          wc -l)
+PARENTS=$(git rev-list ${COMMON_PARENT}..${BASE_BRANCH} | wc -l)
 echo "${PARENTS} commits to go."
 let PARENTS=${PARENTS}-1
 

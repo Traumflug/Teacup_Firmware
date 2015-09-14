@@ -42,7 +42,7 @@ PARENTS=$(git log --oneline --ancestry-path \
 let PARENTS1=${PARENTS}+1
 echo "${PARENTS1} commits to go."
 
-trap "echo -n \"Current commit is \"
+trap "echo -n \"Current commit is\"
       git log HEAD^..HEAD | head -5 | tail -1" 0
 
 while [ ${PARENTS} -ge 0 ]; do
@@ -58,7 +58,10 @@ while [ ${PARENTS} -ge 0 ]; do
     git checkout ${CURRENT_BRANCH}~${PARENTS}
   fi
 
-  make regressiontests || exit 1
+  # Check wether target 'regressiontest' or 'check' or whatever exists, then
+  # run the test.
+  make -n regressiontests >/dev/null 2>&1 && (make regressiontests || exit 1)
+  make -n check >/dev/null 2>&1 && ((make && make check) || exit 1)
 
   let PARENTS=${PARENTS}-1
 done
