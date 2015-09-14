@@ -221,11 +221,11 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO6,  THERMISTOR_BED)
   influenced globally with FAST_PWM, see below.
 */
 //DEFINE_HEATERS_START
-//            name      port   pwm
-DEFINE_HEATER(extruder, DIO13, 1)
-DEFINE_HEATER(bed,      DIO12, 1)
-DEFINE_HEATER(fan,      DIO4,  0)
-DEFINE_HEATER(side_fan, DIO28, 0)
+//            name      pin      invert  pwm
+DEFINE_HEATER(extruder, DIO13,   0,      1)
+DEFINE_HEATER(bed,      DIO12,   0,      1)
+DEFINE_HEATER(fan,      DIO4,    0,      0)
+DEFINE_HEATER(side_fan, DIO28,   0,      0)
 
 #define HEATER_EXTRUDER HEATER_extruder
 #define HEATER_BED      HEATER_bed
