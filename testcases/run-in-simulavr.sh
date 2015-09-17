@@ -53,21 +53,21 @@ echo                             > ${STATISTICS_FILE}
 # Prepare a pin tracing file, assuming a Gen7-v1.4 configuration. See
 # http://reprap.org/wiki/SimulAVR#Putting_things_together:_an_example
 #
-#   #define X_DIR_PIN        DIO28
-#   #define X_STEP_PIN       DIO29
-#   #define Y_DIR_PIN        DIO26
-#   #define Y_STEP_PIN       DIO27
-#   #define DEBUG_LED_PIN    DIO21
+#   #define X_DIR_PIN        DIO21
+#   #define X_STEP_PIN       DIO15
+#   #define E_DIR_PIN        DIO0
+#   #define E_STEP_PIN       DIO1
+#   #define DEBUG_LED_PIN    DIO27
 echo "# X Dir"              > ${TRACEIN_FILE}
-echo "+ PORTA.A3-Out"      >> ${TRACEIN_FILE}
-echo "# X Step"            >> ${TRACEIN_FILE}
-echo "+ PORTA.A2-Out"      >> ${TRACEIN_FILE}
-echo "# Y Dir"             >> ${TRACEIN_FILE}
-echo "+ PORTA.A5-Out"      >> ${TRACEIN_FILE}
-echo "# Y Step"            >> ${TRACEIN_FILE}
-echo "+ PORTA.A4-Out"      >> ${TRACEIN_FILE}
-echo "# DEBUG LED"         >> ${TRACEIN_FILE}
 echo "+ PORTC.C5-Out"      >> ${TRACEIN_FILE}
+echo "# X Step"            >> ${TRACEIN_FILE}
+echo "+ PORTD.D7-Out"      >> ${TRACEIN_FILE}
+echo "# E Dir"             >> ${TRACEIN_FILE}
+echo "+ PORTB.B0-Out"      >> ${TRACEIN_FILE}
+echo "# E Step"            >> ${TRACEIN_FILE}
+echo "+ PORTB.B1-Out"      >> ${TRACEIN_FILE}
+echo "# DEBUG LED"         >> ${TRACEIN_FILE}
+echo "+ PORTA.A4-Out"      >> ${TRACEIN_FILE}
 echo "Assuming pin configuration for a Gen7-v1.4 + debug LED on DIO21."
 
 STEPS_PER_M_X=$(grep STEPS_PER_M_X ${CONFIG} | \
