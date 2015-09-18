@@ -173,10 +173,13 @@ void dda_create(DDA *dda, TARGET *target) {
   // We end at the passed target.
   memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
-	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-    sersendf_P(PSTR("\nCreate: X %lq  Y %lq  Z %lq  F %lu\n"),
+//	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("\nFrom: X %lq  Y %lq  Z %lq  E %lq\n"),
+               startpoint.axis[X], startpoint.axis[Y],
+               startpoint.axis[Z], startpoint.axis[E]);
+    sersendf_P(PSTR("Create: X %lq  Y %lq  Z %lq  E %lq  F %lu\n"),
                dda->endpoint.axis[X], dda->endpoint.axis[Y],
-               dda->endpoint.axis[Z], dda->endpoint.F);
+               dda->endpoint.axis[Z], dda->endpoint.axis[E], dda->endpoint.F);
 
   #ifdef LOOKAHEAD
     // Set the start and stop speeds to zero for now = full stops between
@@ -831,7 +834,7 @@ void dda_clock() {
     #endif
 
     // If an endstop is definitely triggered, stop the movement.
-    if (endstop_trigger) {
+    if (0 /*endstop_trigger*/) {
       #ifdef ACCELERATION_RAMPING
         // For always smooth operations, don't halt apruptly,
         // but start deceleration here.
