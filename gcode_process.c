@@ -335,7 +335,6 @@ void process_gcode_command() {
 				// unknown gcode: spit an error
 			default:
 				sersendf_P(PSTR("E: Bad G-code %d\n"), next_target.G);
-				// newline is sent from gcode_parse after we return
 				return;
 		}
 	}
@@ -634,7 +633,6 @@ void process_gcode_command() {
           print_queue();
         }
 
-				// newline is sent from gcode_parse after we return
 				break;
 
 			case 115:
@@ -650,7 +648,6 @@ void process_gcode_command() {
 				//?
 
 				sersendf_P(PSTR("FIRMWARE_NAME:Teacup FIRMWARE_URL:http://github.com/traumflug/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d\n"), 1, NUM_TEMP_SENSORS, NUM_HEATERS);
-				// newline is sent from gcode_parse after we return
 				break;
 
 			case 116:
@@ -802,8 +799,7 @@ void process_gcode_command() {
 				//? Disable echo.
 				//? This command is only available in DEBUG builds.
 				debug_flags &= ~DEBUG_ECHO;
-				serial_writestr_P(PSTR("Echo off"));
-				// newline is sent from gcode_parse after we return
+				serial_writestr_P(PSTR("Echo off\n"));
 				break;
 
 			case 241:
@@ -811,15 +807,13 @@ void process_gcode_command() {
 				//? Enable echo.
 				//? This command is only available in DEBUG builds.
 				debug_flags |= DEBUG_ECHO;
-				serial_writestr_P(PSTR("Echo on"));
-				// newline is sent from gcode_parse after we return
+				serial_writestr_P(PSTR("Echo on\n"));
 				break;
       #endif /* DEBUG */
 
 				// unknown mcode: spit an error
 			default:
-				sersendf_P(PSTR("E: Bad M-code %d"), next_target.M);
-				// newline is sent from gcode_parse after we return
+				sersendf_P(PSTR("E: Bad M-code %d\n"), next_target.M);
 		} // switch (next_target.M)
 	} // else if (next_target.seen_M)
 } // process_gcode_command()
