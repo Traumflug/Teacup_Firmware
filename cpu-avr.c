@@ -18,16 +18,24 @@
 */
 void cpu_init() {
   #ifdef PRR
-    #if defined SPI
-      PRR = MASK(PRTWI) | MASK(PRADC);
+    #if defined I2C && defined SPI
+      PRR = MASK(PRADC);
+    #elif defined SPI
+      PRR = MASK(PRADC) | MASK(PRTWI);
+    #elif defined I2C
+      PRR = MASK(PRADC) | MASK(PRSPI);
     #else
-      PRR = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
+      PRR = MASK(PRADC) | MASK(PRTWI) | MASK(PRSPI);
     #endif
   #elif defined PRR0
-    #if defined SPI
-      PRR0 = MASK(PRTWI) | MASK(PRADC);
+    #if defined I2C && defined SPI
+      PRR0 = MASK(PRADC);
+    #elif defined SPI
+      PRR0 = MASK(PRADC) | MASK(PRTWI);
+    #elif defined I2C
+      PRR0 = MASK(PRADC) | MASK(PRSPI);
     #else
-      PRR0 = MASK(PRTWI) | MASK(PRADC) | MASK(PRSPI);
+      PRR0 = MASK(PRADC) | MASK(PRTWI) | MASK(PRSPI);
     #endif
     #if defined(PRUSART3)
       // Don't use USART2 or USART3. Leave USART1 for GEN3 and derivatives.

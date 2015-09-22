@@ -24,11 +24,19 @@
 			ctrl+d \endcode
 */
 
+
 #ifdef __AVR__
 #include	<avr/interrupt.h>
 #endif
 
 #include	"config_wrapper.h"
+#ifdef I2C
+  // This is temporary, until display code is completed.
+  // It includes static i2c_test(), which is called in main():
+  #define I2C_TEST
+  #include "i2c_test.c"
+  #undef I2C_TEST
+#endif
 #include "cpu.h"
 #include	"serial.h"
 #include	"dda_queue.h"
@@ -43,6 +51,7 @@
 #include	"clock.h"
 #include	"intercom.h"
 #include "spi.h"
+#include "i2c.h"
 #include "sd.h"
 #include "simulator.h"
 
@@ -84,6 +93,10 @@ void init(void) {
 
   #ifdef SPI
     spi_init();
+  #endif
+
+  #ifdef I2C
+    i2c_init(DISPLAY_I2C_ADDRESS, i2c_do_nothing);
   #endif
 
 	// set up timers
@@ -133,6 +146,11 @@ int main (void)
   uint8_t c, line_done, ack_waiting = 0;
 
 	init();
+
+  #ifdef I2C
+    // This is temporary, until display code is completed.
+    i2c_test();
+  #endif
 
 	// main loop
 	for (;;)
