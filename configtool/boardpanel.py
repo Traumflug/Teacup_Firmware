@@ -56,54 +56,28 @@ class BoardPanel(wx.Panel):
     self.pageModified = []
     self.pageValid = []
 
-    self.pgCpu = CpuPage(self, self.nb, len(self.pages), self.settings.font)
-    text = "CPU"
-    self.nb.AddPage(self.pgCpu, text)
-    self.pages.append(self.pgCpu)
-    self.titles.append(text)
-    self.pageModified.append(False)
-    self.pageValid.append(True)
-
-    self.pgPins = PinoutsPage(self, self.nb, len(self.pages),
-                              self.settings.font)
-    text = "Pinouts"
-    self.nb.AddPage(self.pgPins, text)
-    self.pages.append(self.pgPins)
-    self.titles.append(text)
-    self.pageModified.append(False)
-    self.pageValid.append(True)
-
-    self.pgHeaters = HeatersPage(self, self.nb, len(self.pages),
-                                 self.settings.font)
-    text = "Heaters"
-    self.nb.AddPage(self.pgHeaters, text)
-    self.pages.append(self.pgHeaters)
-    self.titles.append(text)
-    self.pageModified.append(False)
-    self.pageValid.append(True)
-
-    self.pgSensors = SensorsPage(self, self.nb, len(self.pages), self.pgHeaters,
-                                 self.settings.font)
-    text = "Temperature Sensors"
-    self.nb.AddPage(self.pgSensors, text)
-    self.pages.append(self.pgSensors)
-    self.titles.append(text)
-    self.pageModified.append(False)
-    self.pageValid.append(True)
-
-    self.pgCommunications = CommunicationsPage(self, self.nb, len(self.pages),
-                                               self.settings.font)
-    text = "Communications"
-    self.nb.AddPage(self.pgCommunications, text)
-    self.pages.append(self.pgCommunications)
-    self.titles.append(text)
-    self.pageModified.append(False)
-    self.pageValid.append(True)
+    self.pgCpu = self.registerPage(CpuPage, "CPU")
+    self.pgPins = self.registerPage(PinoutsPage, "Pinouts")
+    self.pgHeaters = self.registerPage(HeatersPage, "Heaters")
+    self.pgSensors = self.registerPage(SensorsPage, "Temperature Sensors",
+                                       heatersPage = self.pgHeaters)
+    self.pgCommunications = self.registerPage(CommunicationsPage,
+                                              "Communications")
 
     sz.Add(self.nb, 1, wx.EXPAND + wx.ALL, 5)
 
     self.SetSizer(sz)
     self.Fit()
+
+  def registerPage(self, klass, label, *args, **kwargs):
+    page = klass(self, self.nb, len(self.pages), *args,
+                 font = self.settings.font, **kwargs)
+    self.nb.AddPage(page, label)
+    self.pages.append(page)
+    self.titles.append(label)
+    self.pageModified.append(False)
+    self.pageValid.append(True)
+    return page
 
   def getCPUInfo(self):
     vF_CPU = None
@@ -535,7 +509,7 @@ class BoardPanel(wx.Panel):
 
     if not os.path.basename(path).startswith("board."):
       dlg = wx.MessageDialog(self, "Illegal file name: %s.\n"
-                                   "File name must begin with \"board.\"" % path,
+                             "File name must begin with \"board.\"" % path,
                              "Illegal file name", wx.OK + wx.ICON_ERROR)
       dlg.ShowModal()
       dlg.Destroy()
@@ -567,11 +541,11 @@ class BoardPanel(wx.Panel):
 
     skipToSensorEnd = False
     skipToHeaterEnd = False
-    tempTables = {}
     candThermPinsWritten = False
     candHeatPinsWritten = False
     candProcessorsWritten = False
     candCPUClocksWritten = False
+
     for ln in self.cfgBuffer:
       m = reStartSensors.match(ln)
       if m:

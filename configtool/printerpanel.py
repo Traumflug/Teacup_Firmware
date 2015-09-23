@@ -45,37 +45,25 @@ class PrinterPanel(wx.Panel):
     self.pageModified = []
     self.pageValid = []
 
-    self.pgMech = MechanicalPage(self, self.nb, len(self.pages),
-                                 self.settings.font)
-    text = "Mechanical"
-    self.nb.AddPage(self.pgMech, text)
-    self.pages.append(self.pgMech)
-    self.titles.append(text)
-    self.pageModified.append(False)
-    self.pageValid.append(True)
-
-    self.pgAcc = AccelerationPage(self, self.nb, len(self.pages),
-                                  self.settings.font)
-    text = "Acceleration"
-    self.nb.AddPage(self.pgAcc, text)
-    self.pages.append(self.pgAcc)
-    self.titles.append(text)
-    self.pageModified.append(False)
-    self.pageValid.append(True)
-
-    self.pgMiscellaneous = MiscellaneousPage(self, self.nb, len(self.pages),
-                                             self.settings.font)
-    text = "Miscellaneous"
-    self.nb.AddPage(self.pgMiscellaneous, text)
-    self.pages.append(self.pgMiscellaneous)
-    self.titles.append(text)
-    self.pageModified.append(False)
-    self.pageValid.append(True)
+    self.pgMech = self.registerPage(MechanicalPage, "Mechanical")
+    self.pgAcc = self.registerPage(AccelerationPage, "Acceleration")
+    self.pgMiscellaneous = self.registerPage(MiscellaneousPage,
+                                             "Miscellaneous")
 
     sz.Add(self.nb, 1, wx.EXPAND + wx.ALL, 5)
 
     self.SetSizer(sz)
     self.Fit()
+
+  def registerPage(self, klass, label, *args, **kwargs):
+    page = klass(self, self.nb, len(self.pages), *args,
+                 font = self.settings.font, **kwargs)
+    self.nb.AddPage(page, label)
+    self.pages.append(page)
+    self.titles.append(label)
+    self.pageModified.append(False)
+    self.pageValid.append(True)
+    return page
 
   def getFileName(self):
     return self.configFile
