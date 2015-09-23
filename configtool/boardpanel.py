@@ -11,11 +11,13 @@ from configtool.data import (defineValueFormat,
                              reStartSensors, reEndSensors, reStartHeaters,
                              reEndHeaters, reCandHeatPins, reCandThermPins,
                              reCandProcessors, reCandCPUClocks, reFloatAttr,
+                             reCandDisplayBuses, reCandDisplayTypes,
                              reDefine, reDefineBL, reDefQS, reDefQSm,
                              reDefQSm2, reDefBool, reDefBoolBL, reDefHT,
                              reDefTS, reDefTT, reSensor, reHeater3, reHeater4,
                              reTempTable4, reTempTable7)
 from configtool.pinoutspage import PinoutsPage
+from configtool.displaypage import DisplayPage
 from configtool.sensorpage import SensorsPage
 from configtool.heaterspage import HeatersPage
 from configtool.communicationspage import CommunicationsPage
@@ -58,6 +60,7 @@ class BoardPanel(wx.Panel):
 
     self.pgCpu = self.registerPage(CpuPage, "CPU")
     self.pgPins = self.registerPage(PinoutsPage, "Pinouts")
+    self.pgDisplay = self.registerPage(DisplayPage, "Display")
     self.pgHeaters = self.registerPage(HeatersPage, "Heaters")
     self.pgSensors = self.registerPage(SensorsPage, "Temperature Sensors",
                                        heatersPage = self.pgHeaters)
@@ -215,6 +218,8 @@ class BoardPanel(wx.Panel):
     self.candThermPins = []
     self.candProcessors = []
     self.candClocks = []
+    self.candDisplayBuses = []
+    self.candDisplayTypes = []
     self.tempTables = {}
     gatheringHelpText = False
     helpTextString = ""
@@ -273,6 +278,8 @@ class BoardPanel(wx.Panel):
     self.candThermPins = []
     self.candProcessors = []
     self.candClocks = []
+    self.candDisplayBuses = []
+    self.candDisplayTypes = []
     self.tempTables = {}
     gatheringHelpText = False
 
@@ -338,6 +345,8 @@ class BoardPanel(wx.Panel):
     self.pgSensors.setCandidatePins(self.candThermPins)
     self.pgCpu.setCandidateProcessors(self.candProcessors)
     self.pgCpu.setCandidateClocks(self.candClocks)
+    self.pgDisplay.setCandidateDisplayBuses(self.candDisplayBuses)
+    self.pgDisplay.setCandidateDisplayTypes(self.candDisplayTypes)
 
     for pg in self.pages:
       pg.insertValues(self.cfgValues)
@@ -420,6 +429,20 @@ class BoardPanel(wx.Panel):
       t = m.groups()
       if len(t) == 1:
         self.candClocks.append(t[0])
+      return True
+
+    m = reCandDisplayBuses.match(ln)
+    if m:
+      t = m.groups()
+      if len(t) == 1:
+        self.candDisplayBuses.append(t[0])
+      return True
+
+    m = reCandDisplayTypes.match(ln)
+    if m:
+      t = m.groups()
+      if len(t) == 1:
+        self.candDisplayTypes.append(t[0])
       return True
 
     m = reDefTT.match(ln)
@@ -545,6 +568,8 @@ class BoardPanel(wx.Panel):
     candHeatPinsWritten = False
     candProcessorsWritten = False
     candCPUClocksWritten = False
+    candDisplayBusesWritten = False
+    candDisplayTypesWritten = False
 
     for ln in self.cfgBuffer:
       m = reStartSensors.match(ln)
@@ -631,6 +656,20 @@ class BoardPanel(wx.Panel):
           for pin in self.candClocks:
             fp.write("//#define F_CPU_OPT " + pin + "\n")
           candCPUClocksWritten = True
+        continue
+
+      if reCandDisplayBuses.match(ln):
+        if not candDisplayBusesWritten:
+          for value in self.candDisplayBuses:
+            fp.write("//#define DISPLAY_BUS_OPT {}\n".format(value))
+          candDisplayBusesWritten = True
+        continue
+
+      if reCandDisplayTypes.match(ln):
+        if not candDisplayTypesWritten:
+          for value in self.candDisplayTypes:
+            fp.write("//#define DISPLAY_TYPE_OPT {}\n".format(value))
+          candDisplayTypesWritten = True
         continue
 
       m = reDefine.match(ln)
