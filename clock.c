@@ -76,8 +76,8 @@ static void clock_250ms(void) {
   if (heaters_all_zero()) {
 		if (psu_timeout > (30 * 4)) {
 			power_off();
-		}
-		else {
+    }
+    else {
       ATOMIC_START
         psu_timeout++;
       ATOMIC_END
@@ -92,10 +92,18 @@ static void clock_250ms(void) {
 		if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
 			// current position
 			update_current_position();
-      sersendf_P(PSTR("Pos: %lq,%lq,%lq,%lq,%lu\n"), current_position.axis[X], current_position.axis[Y], current_position.axis[Z], current_position.axis[E], current_position.F);
+      sersendf_P(PSTR("Pos: %lq,%lq,%lq,%lq,%lu\n"),
+                 current_position.axis[X], current_position.axis[Y],
+                 current_position.axis[Z], current_position.axis[E],
+                 current_position.F);
 
 			// target position
-      sersendf_P(PSTR("Dst: %lq,%lq,%lq,%lq,%lu\n"), movebuffer[mb_tail].endpoint.axis[X], movebuffer[mb_tail].endpoint.axis[Y], movebuffer[mb_tail].endpoint.axis[Z], movebuffer[mb_tail].endpoint.axis[E], movebuffer[mb_tail].endpoint.F);
+      sersendf_P(PSTR("Dst: %lq,%lq,%lq,%lq,%lu\n"),
+                 movebuffer[mb_tail].endpoint.axis[X],
+                 movebuffer[mb_tail].endpoint.axis[Y],
+                 movebuffer[mb_tail].endpoint.axis[Z],
+                 movebuffer[mb_tail].endpoint.axis[E],
+                 movebuffer[mb_tail].endpoint.F);
 
 			// Queue
 			print_queue();
