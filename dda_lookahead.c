@@ -324,7 +324,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
 
     // If we were not fast enough, any feedback will happen outside the atomic block:
     if(timeout) {
-      sersendf_P(PSTR("Error: look ahead not fast enough\r\n"));
+      sersendf_P(PSTR("// Notice: look ahead not fast enough\r\n"));
       lookahead_timeout++;
     }
   }
