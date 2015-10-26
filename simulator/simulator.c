@@ -329,6 +329,8 @@ bool _READ(pin_t pin) {
   return state[pin];
 }
 
+static void sim_endstop(int axis);
+
 void _WRITE(pin_t pin, bool s) {
   bool old_state = state[pin];
   uint64_t nseconds = sim_runtime_ns();
@@ -397,8 +399,63 @@ void _WRITE(pin_t pin, bool s) {
       pos[axis] += dir;
       record_pin(TRACE_POS + axis, pos[axis], nseconds);
       print_pos();
+
+      for (int a = X_AXIS; a < E_AXIS; a++)
+        sim_endstop(a);
     }
   }
+}
+
+/**
+  Simulate min endstops.  "on" at -10, "off" at 0.
+*/
+static void sim_endstop( int axis ) {
+  bool on ;
+
+  if (axis == AXIS_NONE)        return;
+  else if (pos[axis] <= -10)    on = true;
+  else if (pos[axis] >= 0)      on = false;
+  else                          return ;
+
+  const char * strstate = on ? "ON" : "OFF";
+  int minpin;
+  switch (axis) {
+    case X_AXIS:
+      #ifdef X_INVERT_MIN
+        on = ! on;
+      #endif
+      minpin = X_MIN_PIN;
+      break;
+    case Y_AXIS:
+      #ifdef Y_INVERT_MIN
+        on = ! on;
+      #endif
+      minpin = Y_MIN_PIN;
+      break;
+    case Z_AXIS:
+      #ifdef Z_INVERT_MIN
+        on = ! on;
+      #endif
+      minpin = Z_MIN_PIN;
+      break;
+    default:
+      return;
+  }
+
+  // No change
+  if (state[minpin] == on) return;
+
+  // Change the endstop state and report it
+  state[minpin] = on;
+  record_pin(TRACE_PINS + minpin, on, sim_runtime_ns());
+  bred();
+  if (on)
+    sim_tick('A' + minpin);
+  else
+    sim_tick('a' + minpin);
+  fbreset();
+
+  sim_info("%c-Endstop: %s", "XYZE???"[axis], strstate);
 }
 
 void _SET_OUTPUT(pin_t pin) {
