@@ -32,7 +32,7 @@
 #include	"config_wrapper.h"
 #ifdef I2C
   // This is temporary, until display code is completed.
-  // It includes static i2c_test(), which is called in main():
+  // It includes static i2c_test(), which is called in init():
   #define I2C_TEST
   #include "i2c_test.c"
   #undef I2C_TEST
@@ -51,8 +51,8 @@
 #include	"clock.h"
 #include	"intercom.h"
 #include "spi.h"
-#include "displaybus.h"
 #include "sd.h"
+#include "display_ssd1306.h"
 #include "simulator.h"
 
 #ifdef SIMINFO
@@ -95,10 +95,6 @@ void init(void) {
     spi_init();
   #endif
 
-  #ifdef DISPLAY_BUS
-    displaybus_init(DISPLAY_I2C_ADDRESS);
-  #endif
-
 	// set up timers
 	timer_init();
 
@@ -127,6 +123,12 @@ void init(void) {
   // prepare the power supply
   power_init();
 
+  #ifdef DISPLAY
+    display_init();
+    display_clear();
+    i2c_test();
+  #endif
+
 	// say hi to host
 	serial_writestr_P(PSTR("start\nok\n"));
 
@@ -146,11 +148,6 @@ int main (void)
   uint8_t c, line_done, ack_waiting = 0;
 
 	init();
-
-  #ifdef DISPLAY_BUS
-    // This is temporary, until display code is completed.
-    i2c_test();
-  #endif
 
 	// main loop
 	for (;;)
