@@ -11,7 +11,7 @@
   mbed/libraries/mbed/targets/hal/TARGET_NXP/TARGET_LPC11XX_11CXX/.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARMEL__
+#if defined TEACUP_C_INCLUDE && defined __ARM_LPC1114__
 
 #include "arduino.h"
 #include "cmsis-lpc11xx.h"
