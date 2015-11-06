@@ -44,7 +44,6 @@
   - Fixed mbed_uart0_irq() function prototype.
 */
 #ifdef __ARM_STM32F411__
-#include "mbed-mbed_assert.h"
 #include "mbed-serial_api.h"
 
 #if DEVICE_SERIAL
@@ -97,7 +96,6 @@ void mbed_serial_init(serial_t *obj, PinName tx, PinName rx)
 
     // Get the peripheral name (UART_1, UART_2, ...) from the pin and assign it to the object
     obj->uart = (UARTName)pinmap_merge(uart_tx, uart_rx);
-    MBED_ASSERT(obj->uart != (UARTName)NC);
 
     // Enable USART clock
     switch (obj->uart) {

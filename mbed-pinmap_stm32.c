@@ -42,7 +42,6 @@
     AVR builds.
 */
 #ifdef __ARM_STM32F411__
-#include "mbed-mbed_assert.h"
 #include "mbed-pinmap.h"
 #include "mbed-PortNames_stm32.h"
 #include "mbed-mbed_error.h"
@@ -141,7 +140,6 @@ uint32_t Set_GPIO_Clock(uint32_t port_idx)
  */
 void pin_function(PinName pin, int data)
 {
-    MBED_ASSERT(pin != (PinName)NC);
     // Get the pin informations
     uint32_t mode  = STM_PIN_MODE(data);
     uint32_t pupd  = STM_PIN_PUPD(data);
@@ -178,7 +176,6 @@ void pin_function(PinName pin, int data)
  */
 void pin_mode(PinName pin, PinMode mode)
 {
-    MBED_ASSERT(pin != (PinName)NC);
     uint32_t port_index = STM_PORT(pin);
     uint32_t pin_index  = STM_PIN(pin);
 
