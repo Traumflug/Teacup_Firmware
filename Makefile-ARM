@@ -119,20 +119,15 @@ TARGET = $(PROGRAM).hex
 SOURCES = $(wildcard *.c)
 
 ifeq ($(MCU), stm32f411)
+  SOURCES += mbed-pinmap_stm32.c
   SOURCES += mbed-system_stm32f4xx.c
-  SOURCES += mbed-serial_api_stm32.c
   SOURCES += mbed-stm32f4xx_hal.c
   SOURCES += mbed-stm32f4xx_hal_cortex.c
   SOURCES += mbed-stm32f4xx_hal_gpio.c
   SOURCES += mbed-stm32f4xx_hal_rcc.c
   SOURCES += mbed-stm32f4xx_hal_tim.c
-  SOURCES += mbed-stm32f4xx_hal_uart.c
-  SOURCES += mbed-cmsis_nvic_stm32.c
-  SOURCES += mbed-pinmap_stm32.c
-  SOURCES += mbed-PeripheralPins_stm32.c
   SOURCES += mbed-ticker_api.c
-  SOURCES += mbed-us_ticker_api.c
-  SOURCES += mbed-us_ticker_stm32.c
+  SOURCES += mbed-cmsis_nvic_stm32.c
   SOURCES += mbed-hal_tick_stm32.c
 endif
 
