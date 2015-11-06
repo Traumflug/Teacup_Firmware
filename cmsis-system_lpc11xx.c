@@ -30,7 +30,7 @@
 
   - Prefixed names of #include files with cmsis- to match the names of the
     copies in the Teacup repo.
-  - Wrapped the whole file in #ifdef __ARMEL__ to not cause conflicts with
+  - Wrapped the whole file in #ifdef __ARM_LPC1114__ to not cause conflicts with
     AVR builds.
   - Silenced this warning:
       system_LPC11xx.c:344:21: warning: unused variable 'i'
@@ -42,7 +42,7 @@
   - Replaced tabs by spaces and removed trailing whitespace.
 */
 
-#ifdef __ARMEL__
+#ifdef __ARM_LPC1114__
 
 #include "cmsis-system_lpc11xx.h"
 #include "cmsis-lpc11xx.h"
@@ -180,4 +180,4 @@ void SystemInit (void) {
   most of the I/O related peripherals won't work. */
   LPC_SYSCON->SYSAHBCLKCTRL |= (1<<16);
 }
-#endif /* __ARMEL__ */
+#endif /* __ARM_LPC1114__ */
