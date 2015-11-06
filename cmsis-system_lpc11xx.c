@@ -42,7 +42,7 @@
   - Replaced tabs by spaces and removed trailing whitespace.
 */
 
-#ifdef __ARMEL__
+#ifdef __ARM_LPC1114__
 
 #include "cmsis-system_lpc11xx.h"
 #include "cmsis-lpc11xx.h"

@@ -43,6 +43,15 @@
 # MCU ?= lpc1114
 MCU ?= stm32f411
 
+# some size parameters. Not important for flashing and compiling.
+ifeq ($(MCU), lpc1114)
+  FLASH_SIZE = 32
+  RAM_SIZE = 4
+else ifeq ($(MCU), stm32f411)
+  FLASH_SIZE = 512
+  RAM_SIZE = 128
+endif
+
 # CPU clock rate not defined here, but in the CMSIS headers.
 
 ##############################################################################
@@ -111,6 +120,23 @@ SOURCES = $(wildcard *.c)
 
 ifeq ($(MCU), lpc1114)
   SOURCES += cmsis-system_lpc11xx.c
+else ifeq ($(MCU), stm32f411)
+  SOURCES += mbed-system_stm32f4xx.c
+  SOURCES += mbed-serial_api_stm32.c
+  SOURCES += mbed-stm32f4xx_hal.c
+  SOURCES += mbed-stm32f4xx_hal_cortex.c
+  SOURCES += mbed-stm32f4xx_hal_gpio.c
+  SOURCES += mbed-stm32f4xx_hal_rcc.c
+  SOURCES += mbed-stm32f4xx_hal_tim.c
+  SOURCES += mbed-stm32f4xx_hal_uart.c
+  SOURCES += mbed-assert.c
+  SOURCES += mbed-cmsis_nvic_stm32.c
+  SOURCES += mbed-pinmap_stm32.c
+  SOURCES += mbed-PeripheralPins_stm32.c
+  SOURCES += mbed-ticker_api.c
+  SOURCES += mbed-us_ticker_api.c
+  SOURCES += mbed-us_ticker_stm32.c
+  SOURCES += mbed-hal_tick_stm32.c
 endif
 
 # Other target MCU specific adjustments:
@@ -208,6 +234,6 @@ endef
 
 size: $(BUILDDIR)/$(PROGRAM).elf
 	@echo "    SIZES          ARM...     $(MCU)"
-	$(call show_size,FLASH,text,32)
-	$(call show_size,RAM,data|bss,4)
+	$(call show_size,FLASH,text,$(FLASH_SIZE))
+	$(call show_size,RAM,data|bss,$(RAM_SIZE))
 	$(call show_size,EEPROM,eeprom,0.0001)
