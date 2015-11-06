@@ -88,12 +88,9 @@ static void mbed_init_uart(serial_t *obj)
 
 void mbed_serial_init(serial_t *obj, PinName tx, PinName rx)
 {
-    // Determine the UART to use (UART_1, UART_2, ...)
-    UARTName uart_tx = (UARTName)pinmap_peripheral(tx, PinMap_UART_TX);
-    UARTName uart_rx = (UARTName)pinmap_peripheral(rx, PinMap_UART_RX);
 
     // Get the peripheral name (UART_1, UART_2, ...) from the pin and assign it to the object
-    obj->uart = (UARTName)pinmap_merge(uart_tx, uart_rx);
+    obj->uart = UART_2;
 
     // Enable USART clock
     switch (obj->uart) {
@@ -144,14 +141,10 @@ void mbed_serial_init(serial_t *obj, PinName tx, PinName rx)
     }
 
     // Configure the UART pins
-    pinmap_pinout(tx, PinMap_UART_TX);
-    pinmap_pinout(rx, PinMap_UART_RX);
-    if (tx != NC) {
-        pin_mode(tx, PullUp);
-    }
-    if (rx != NC) {
-        pin_mode(rx, PullUp);
-    }
+    pin_function(tx, 0x393);
+    pin_mode(tx, PullUp);
+    pin_function(rx, 0x393);
+    pin_mode(rx, PullUp);
 
     // Configure UART
     obj->baudrate = 9600;
@@ -475,11 +468,6 @@ void mbed_serial_clear(serial_t *obj)
     UartHandle.Instance = (USART_TypeDef *)(obj->uart);
     __HAL_UART_CLEAR_FLAG(&UartHandle, UART_FLAG_TXE);
     __HAL_UART_CLEAR_FLAG(&UartHandle, UART_FLAG_RXNE);
-}
-
-void mbed_serial_pinout_tx(PinName tx)
-{
-    pinmap_pinout(tx, PinMap_UART_TX);
 }
 
 void mbed_serial_break_set(serial_t *obj)
