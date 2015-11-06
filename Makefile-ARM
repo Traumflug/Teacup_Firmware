@@ -129,7 +129,6 @@ else ifeq ($(MCU), stm32f411)
   SOURCES += mbed-stm32f4xx_hal_rcc.c
   SOURCES += mbed-stm32f4xx_hal_tim.c
   SOURCES += mbed-stm32f4xx_hal_uart.c
-  SOURCES += mbed-assert.c
   SOURCES += mbed-cmsis_nvic_stm32.c
   SOURCES += mbed-pinmap_stm32.c
   SOURCES += mbed-PeripheralPins_stm32.c

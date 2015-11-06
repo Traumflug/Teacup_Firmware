@@ -42,7 +42,6 @@
 #ifndef MBED_GPIO_OBJECT_H
 #define MBED_GPIO_OBJECT_H
 
-#include "mbed-mbed_assert.h"
 #include "mbed-cmsis_stm32.h"
 #include "mbed-PortNames_stm32.h"
 #include "mbed-PeripheralNames_stm32.h"
@@ -61,7 +60,6 @@ typedef struct {
 
 static inline void gpio_write(gpio_t *obj, int value)
 {
-    MBED_ASSERT(obj->pin != (PinName)NC);
     if (value) {
         *obj->reg_set_clr = obj->mask;
     } else {
@@ -71,7 +69,6 @@ static inline void gpio_write(gpio_t *obj, int value)
 
 static inline int gpio_read(gpio_t *obj)
 {
-    MBED_ASSERT(obj->pin != (PinName)NC);
     return ((*obj->reg_in & obj->mask) ? 1 : 0);
 }
 
