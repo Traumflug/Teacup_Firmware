@@ -44,7 +44,6 @@
 #ifdef __ARM_STM32F411__
 #include "mbed-pinmap.h"
 #include "mbed-PortNames_stm32.h"
-#include "mbed-mbed_error.h"
 
 // GPIO mode look-up table
 static const uint32_t gpio_mode[13] = {
@@ -129,7 +128,6 @@ uint32_t Set_GPIO_Clock(uint32_t port_idx)
             break;
 #endif
         default:
-            error("Pinmap error: wrong port number.");
             break;
     }
     return gpio_add;
