@@ -52,7 +52,6 @@
 #include "mbed-pinmap.h"
 #include <string.h>
 #include "mbed-PeripheralPins_stm32.h"
-#include "mbed-mbed_error.h"
 
 #define UART_NUM (8)
 
@@ -84,7 +83,6 @@ static void mbed_init_uart(serial_t *obj)
     }
 
     if (HAL_UART_Init(&UartHandle) != HAL_OK) {
-        error("Cannot initialize UART");
     }
 }
 
