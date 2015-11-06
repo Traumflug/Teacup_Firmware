@@ -40,7 +40,8 @@
 #                                                                            #
 ##############################################################################
 
-MCU ?= lpc1114
+# MCU ?= lpc1114
+MCU ?= stm32f411
 
 # CPU clock rate not defined here, but in the CMSIS headers.
 
@@ -70,6 +71,24 @@ TOOLCHAIN = arm-none-eabi-
 # Not to confuse with the CPU's clock frequency, which is usually much higher.
 F_CRYSTAL ?= 12000000
 
+# This is your uploader with any option before your uploadfile $<
+# and your uploadfile (hex, bin or whatelse)
+ifeq ($(MCU), lpc1114)
+  UPLOADER ?= lpc21isp -control
+  UPLOAD_FILE = $(PROGRAM).hex
+else ifeq ($(MCU), stm32f411)
+  UPLOADER ?= st-flash --reset write
+  UPLOAD_FILE = $(BUILDDIR)/$(PROGRAM).bin
+endif
+
+ifeq ($(MCU), lpc1114)
+  UPLOADER_FLAGS = $(UPLOADER_PORT)
+  UPLOADER_FLAGS += 115200
+  UPLOADER_FLAGS += $(F_CRYSTAL)
+else ifeq ($(MCU), stm32f411)
+  UPLOADER_FLAGS = 0x8000000
+endif
+
 # Serial port the electronics is connected to.
 #UPLOADER_PORT ?= /dev/ttyUSB0
 UPLOADER_PORT ?= /dev/ttyACM0
@@ -95,6 +114,11 @@ ifeq ($(MCU), lpc1114)
 endif
 
 # Other target MCU specific adjustments:
+ifeq ($(MCU), lpc1114)
+  STARTUP_FILE = cmsis-startup_lpc11xx.s
+else ifeq ($(MCU), stm32f411)
+  STARTUP_FILE = arm-startup_stm32f411xe.s
+endif
 
 # Startup definitions. Not target MCU specific.
 CFLAGS  = -D__STARTUP_CLEAR_BSS -D__START=main
@@ -102,6 +126,14 @@ ifeq ($(MCU), lpc1114)
   CFLAGS += -mthumb -mcpu=cortex-m0
   CFLAGS += -mtune=cortex-m0
   CFLAGS += -D__ARM_LPC1114__
+else ifeq ($(MCU), stm32f411)
+  CFLAGS += -mthumb -mcpu=cortex-m4
+  CFLAGS += -mtune=cortex-m4
+  CFLAGS += -D__ARM_STM32F411__
+  CFLAGS += -mfpu=fpv4-sp-d16
+  CFLAGS += -mfloat-abi=hard
+  CFLAGS += -mlittle-endian
+  CFLAGS += -D__FPU_PRESENT=1
 endif
 # Other options ...
 CFLAGS += -Wall
@@ -116,6 +148,8 @@ LDFLAGS  = --specs=nano.specs
 LDFLAGS += --specs=nosys.specs
 ifeq ($(MCU), lpc1114)
   LDFLAGS += -T cmsis-lpc1114.ld
+else ifeq ($(MCU), stm32f411)
+  LDFLAGS += -T arm-stm32f411xe.ld
 endif
 LDFLAGS += -Wl,--as-needed
 LDFLAGS += -Wl,--gc-sections
@@ -130,18 +164,34 @@ LIBS  = -lm
 
 all: $(PROGRAM).hex $(BUILDDIR)/$(PROGRAM).lst $(BUILDDIR)/$(PROGRAM).sym size
 
-program: $(PROGRAM).hex config.h
+# TODO: The echo is only for Gen7-ARM LPC1114. The stm flashes don't need this. 
+# This message could confuse someone. Remove this message for stm or write some 
+# friendly text for it.
+ifeq ($(MCU), lpc1114)
+define upload_echo
 	@echo
 	@echo "To let the bootloader complete his work, connect now PIO0_1 to GND,"
 	@echo "then press Reset for a moment. The bootloader should begin uploading."
 	@echo "After being done, disconnect PIO0_1 and press reset again. On a"
 	@echo "Gen7-ARM, PIO0_1 is the Step pin of the Z stepper driver."
 	@echo
-	lpc21isp -control $< $(UPLOADER_PORT) 115200 $(F_CRYSTAL)
+endef
+else ifeq ($(MCU), stm32f411)
+define upload_echo
+	@echo
+	@echo "Starting upload..."
+	@echo "This should normally take no time."
+	@echo
+endef
+endif
+
+program: $(UPLOAD_FILE) config.h
+	$(call upload_echo)
+	$(UPLOADER) $< $(UPLOADER_FLAGS)
 
 $(BUILDDIR)/teacup.elf: $(BUILDDIR)/startup.o
 
-$(BUILDDIR)/startup.o: cmsis-startup_lpc11xx.s | $(BUILDDIR)
+$(BUILDDIR)/startup.o: $(STARTUP_FILE) | $(BUILDDIR)
 	@echo "  CC        $@"
 	@$(CC) -c $(CFLAGS) -o $@ $<
 
@@ -157,7 +207,7 @@ define show_size
 endef
 
 size: $(BUILDDIR)/$(PROGRAM).elf
-	@echo "    SIZES          ARM...     lpc1114"
+	@echo "    SIZES          ARM...     $(MCU)"
 	$(call show_size,FLASH,text,32)
 	$(call show_size,RAM,data|bss,4)
 	$(call show_size,EEPROM,eeprom,0.0001)
