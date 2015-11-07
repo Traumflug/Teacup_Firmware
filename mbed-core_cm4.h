@@ -42,8 +42,9 @@
   impossible to see wether code changes work. Should go away soon, because
   all this MBED stuff is too bloated for Teacup's purposes.
 
-  - Prefixed names of #include files with mbed- to match the names of the
-    copies in the Teacup repo.
+  - Replaced __DSB(); with __ASM volatile ("dsb").
+  - Added from mbed-core_cmFunc.h: __enable_irq() and __disable_irq()\
+  - Added from mbed-core_cmInstr: __CLZ and __RBIT
 */
 
 #if defined ( __ICCARM__ )
@@ -177,9 +178,59 @@
 #endif
 
 #include <stdint.h>                      /* standard types definitions                      */
-#include "mbed-core_cmInstr.h"                /* Core Instruction Access                         */
-#include "mbed-core_cmFunc.h"                 /* Core Function Access                            */
+//#include "mbed-core_cmInstr.h"                /* Core Instruction Access                         */
+//#include "mbed-core_cmFunc.h"                 /* Core Function Access                            */
 #include "mbed-core_cm4_simd.h"               /* Compiler specific SIMD Intrinsics               */
+
+/** \brief  Count leading zeros
+
+    This function counts the number of leading zeros of a data value.
+
+    \param [in]  value  Value to count the leading zeros
+    \return             number of leading zeros in value
+ */
+__attribute__( ( always_inline ) ) __STATIC_INLINE uint8_t __CLZ(uint32_t value)
+{
+   uint32_t result;
+
+  __ASM volatile ("clz %0, %1" : "=r" (result) : "r" (value) );
+  return(result);
+}
+
+/** \brief  Reverse bit order of value
+
+    This function reverses the bit order of the given value.
+
+    \param [in]    value  Value to reverse
+    \return               Reversed value
+ */
+__attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __RBIT(uint32_t value)
+{
+  uint32_t result;
+
+   __ASM volatile ("rbit %0, %1" : "=r" (result) : "r" (value) );
+   return(result);
+}
+
+/** \brief  Enable IRQ Interrupts
+
+  This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+  Can only be executed in Privileged modes.
+ */
+__attribute__( ( always_inline ) ) __STATIC_INLINE void __enable_irq(void)
+{
+  __ASM volatile ("cpsie i" : : : "memory");
+}
+
+/** \brief  Disable IRQ Interrupts
+
+  This function disables IRQ interrupts by setting the I-bit in the CPSR.
+  Can only be executed in Privileged modes.
+ */
+__attribute__( ( always_inline ) ) __STATIC_INLINE void __disable_irq(void)
+{
+  __ASM volatile ("cpsid i" : : : "memory");
+}
 
 #endif /* __CORE_CM4_H_GENERIC */
 
@@ -1648,12 +1699,12 @@ __STATIC_INLINE void NVIC_DecodePriority (uint32_t Priority, uint32_t PriorityGr
  */
 __STATIC_INLINE void NVIC_SystemReset(void)
 {
-  __DSB();                                                     /* Ensure all outstanding memory accesses included
+  __ASM volatile ("dsb");                                                     /* Ensure all outstanding memory accesses included
                                                                   buffered write are completed before reset */
   SCB->AIRCR  = ((0x5FA << SCB_AIRCR_VECTKEY_Pos)      |
                  (SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) |
                  SCB_AIRCR_SYSRESETREQ_Msk);                   /* Keep priority group unchanged */
-  __DSB();                                                     /* Ensure completion of memory access */
+  __ASM volatile ("dsb");                                                     /* Ensure completion of memory access */
   while(1);                                                    /* wait until reset */
 }
 

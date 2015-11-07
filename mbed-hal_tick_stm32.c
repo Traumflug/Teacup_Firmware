@@ -44,7 +44,7 @@ void us_ticker_irq_handler(void);
 void timer_irq_handler(void) {
     // Channel 1 for mbed timeout
     if (__HAL_TIM_GET_ITSTATUS(&TimMasterHandle, TIM_IT_CC1) == SET) {
-        us_ticker_irq_handler();
+        //us_ticker_irq_handler();
     }
 
     // Channel 2 for HAL tick
@@ -79,7 +79,7 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
     // Configure time base
     TimMasterHandle.Instance = TIM_MST;
     TimMasterHandle.Init.Period            = 0xFFFFFFFF;
-    TimMasterHandle.Init.Prescaler         = (uint32_t)(SystemCoreClock / 1000000) - 1; // 1 µs tick
+    TimMasterHandle.Init.Prescaler         = (uint32_t)(SystemCoreClock / 1000000) - 1; // 1 ï¿½s tick
     TimMasterHandle.Init.ClockDivision     = 0;
     TimMasterHandle.Init.CounterMode       = TIM_COUNTERMODE_UP;
     TimMasterHandle.Init.RepetitionCounter = 0;
