@@ -157,6 +157,18 @@
       IO ## _PORT->OSPEEDR |= (3 << ((IO ## _PIN) << 1)); \
     } while (0)
 
+  /// Enable pullup resistor.
+  #define _PULLUP_ON(IO) \
+    do { \
+      IO ## _PORT->PUPDR &= ~(3 << ((IO ## _PIN) << 1)); \
+      IO ## _PORT->PUPDR |= (1 << ((IO ## _PIN) << 1)) * 0x1; \
+    } while (0)
+  /// Disable pullup resistor.
+  #define _PULLUP_OFF(IO) \
+    do { \
+      IO ## _PORT->PUPDR &= ~(1 << ((IO ## _PIN) << 1)) * 0x1; \
+    } while (0)
+
 #elif defined SIMULATOR
 
   #include "simulator.h"
