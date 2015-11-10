@@ -116,7 +116,11 @@
 
 #elif defined __ARM_STM32F411__
   /**
+    Modified mbed-system of BSRR. Originally it is 32bit. Now we have low/high-bit
+    splitted in 2x16bit. Much easier to handle. Low-bit for HIGH and high-bit for LOW.
   */
+  /// Read a pin.
+  #define _READ(IO) 		(IO ## _PORT->IDR & MASK(IO ## _PIN))
   /// Write to a pin.
   #define _WRITE(IO, v) \
     do { \
@@ -126,6 +130,19 @@
       	IO ## _PORT->BSRR = MASK((IO ## _PIN + 16)); \
     } while (0)
 
+  /** 
+    Set pins as input/output. Standard is input. MODER ist 32bit. 2bits for every pin.
+  */
+  /** Set pin as input.
+      - reset pullup
+      - set input mode
+  */
+  #define _SET_INPUT(IO) \
+    do { \
+      IO ## _PORT->PUPDR &= ~(3 << ((IO ## _PIN) << 1)); \
+      IO ## _PORT->MODER &= ~(3 << ((IO ## _PIN) << 1)); \
+    } while (0)
+  
   /** Set pin as output.
       - reset Pullup
       - reset direction mode
