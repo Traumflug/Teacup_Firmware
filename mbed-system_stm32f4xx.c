@@ -95,7 +95,6 @@
 #ifdef __ARM_STM32F411__
 
 #include "mbed-stm32f4xx.h"
-#include "mbed-hal_tick_stm32.h"
 #include "mbed-stm32f4xx_hal.h"
 
 #if !defined  (HSE_VALUE) 
@@ -243,17 +242,10 @@ void SystemInit(void)
   SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH */
 #endif
 
-  /* Configure the Cube driver */
-  SystemCoreClock = 16000000; // At this stage the HSI is used as system clock
-  HAL_Init();
-
   /* Configure the System clock source, PLL Multiplier and Divider factors,
      AHB/APBx prescalers and Flash settings */
   SetSysClock();
-  
-  /* Reset the timer to avoid issues after the RAM initialization */
-  TIM_MST_RESET_ON;
-  TIM_MST_RESET_OFF;  
+ 
 }
 
 /**
