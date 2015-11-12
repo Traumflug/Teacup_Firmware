@@ -602,8 +602,9 @@ uint8_t SetSysClock_PLL_HSE(uint8_t bypass)
   /* The voltage scaling allows optimizing the power consumption when the device is 
      clocked below the maximum system frequency, to update the voltage scaling value 
      regarding system frequency refer to product datasheet. */
-  __PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG((uint32_t)0x00000000);
+  __HAL_RCC_PWR_CLK_ENABLE();
+  PWR->CR &= PWR_CR_VOS;
+  PWR->CR |= 0x00000000;
   
   /* Enable HSE oscillator and activate PLL with HSE as source */
   RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSE;
@@ -661,8 +662,9 @@ uint8_t SetSysClock_PLL_HSI(void)
   /* The voltage scaling allows optimizing the power consumption when the device is 
      clocked below the maximum system frequency, to update the voltage scaling value 
      regarding system frequency refer to product datasheet. */
-  __PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG((uint32_t)0x00000000);
+  __HAL_RCC_PWR_CLK_ENABLE();
+  PWR->CR &= PWR_CR_VOS;
+  PWR->CR |= 0x00000000;
  
   /* Enable HSI oscillator and activate PLL with HSI as source */
   RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSE;

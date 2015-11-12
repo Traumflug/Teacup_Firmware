@@ -168,19 +168,19 @@ HAL_StatusTypeDef HAL_Init(void)
 {
   /* Configure Flash prefetch, Instruction cache, Data cache */ 
 #if (INSTRUCTION_CACHE_ENABLE != 0)
-   __HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
+   FLASH->ACR |= FLASH_ACR_ICEN;
 #endif /* INSTRUCTION_CACHE_ENABLE */
 
 #if (DATA_CACHE_ENABLE != 0)
-   __HAL_FLASH_DATA_CACHE_ENABLE();
+   FLASH->ACR |= FLASH_ACR_DCEN;
 #endif /* DATA_CACHE_ENABLE */
 
 #if (PREFETCH_ENABLE != 0)
-  __HAL_FLASH_PREFETCH_BUFFER_ENABLE();
+  FLASH->ACR |= FLASH_ACR_PRFTEN;
 #endif /* PREFETCH_ENABLE */
 
   /* Set Interrupt Group Priority */
-  HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+  NVIC_SetPriorityGrouping(0x00000003);
 
   /* Use systick as time base source and configure 1ms tick (default clock after Reset is HSI) */
   HAL_InitTick(TICK_INT_PRIORITY);
@@ -263,10 +263,10 @@ __weak void HAL_MspDeInit(void)
 __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
   /*Configure the SysTick to have interrupt in 1ms time basis*/
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+  SysTick_Config(HAL_RCC_GetHCLKFreq()/1000);
 
   /*Configure the SysTick IRQ priority */
-  HAL_NVIC_SetPriority(SysTick_IRQn, TickPriority ,0);
+  NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), TickPriority, 0));
 
   /* Return function status */
   return HAL_OK;
