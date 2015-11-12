@@ -228,8 +228,16 @@ typedef enum
   * @}
   */
 
+#if defined (STM32F401xC) || defined (STM32F401xE) || defined (STM32F411xE)
+#define GPIO_GET_INDEX(__GPIOx__)    (uint8_t)(((__GPIOx__) == (GPIOA))? 0U :\
+                                               ((__GPIOx__) == (GPIOB))? 1U :\
+                                               ((__GPIOx__) == (GPIOC))? 2U :\
+                                               ((__GPIOx__) == (GPIOD))? 3U :\
+                                               ((__GPIOx__) == (GPIOE))? 4U : 5U)
+#endif /* STM32F401xC || STM32F401xE || STM32F411xE */
+
 /* Include GPIO HAL Extension module */
-#include "mbed-stm32f4xx_hal_gpio_ex.h"
+//#include "mbed-stm32f4xx_hal_gpio_ex.h"
 
 /* Exported functions --------------------------------------------------------*/
 /** @addtogroup GPIO_Exported_Functions

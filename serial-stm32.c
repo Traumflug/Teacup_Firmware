@@ -30,8 +30,8 @@ void serial_init()
     // Configure the UART pins
     // AF 4bits per channel
     // Alternate functions from DM00115249.pdf datasheet (page 47; table 9)
-    TXD_PORT->AFR[0] |= (GPIO_AF7_USART2 << ((TXD_PIN) << 2));
-    RXD_PORT->AFR[0] |= (GPIO_AF7_USART2 << ((RXD_PIN) << 2));
+    TXD_PORT->AFR[0] |= (((uint8_t)0x07) << ((TXD_PIN) << 2));
+    RXD_PORT->AFR[0] |= (((uint8_t)0x07) << ((RXD_PIN) << 2));
 
     // MODER 2bits per channel
     TXD_PORT->MODER |= (GPIO_MODE_AF_PP << ((TXD_PIN) << 1));          // set bit2: alternate function

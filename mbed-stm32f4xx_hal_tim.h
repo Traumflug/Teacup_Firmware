@@ -1124,11 +1124,22 @@ typedef struct
   */
 
 /* Include TIM HAL Extension module */
-#include "mbed-stm32f4xx_hal_tim_ex.h"
+//#include "mbed-stm32f4xx_hal_tim_ex.h"
 
 /* Exported functions --------------------------------------------------------*/
 /** @addtogroup TIM_Exported_Functions
   * @{
+  */
+
+/** @addtogroup TIMEx_Exported_Functions_Group6
+  * @{
+  */ 
+/* Extension Callback *********************************************************/
+void HAL_TIMEx_CommutationCallback(TIM_HandleTypeDef* htim);
+void HAL_TIMEx_BreakCallback(TIM_HandleTypeDef* htim);
+void TIMEx_DMACommutationCplt(DMA_HandleTypeDef *hdma);
+/**
+  * @}
   */
 
 /** @addtogroup TIM_Exported_Functions_Group1
