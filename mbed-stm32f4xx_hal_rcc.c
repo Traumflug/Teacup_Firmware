@@ -633,7 +633,8 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
   if(FLatency > (FLASH->ACR & FLASH_ACR_LATENCY))
   {    
     /* Program the new number of wait states to the LATENCY bits in the FLASH_ACR register */
-    __HAL_FLASH_SET_LATENCY(FLatency);
+    FLASH->ACR &= 0xFFFFFFF0; // clear
+    FLASH->ACR |= FLatency;
     
     /* Check that the new number of wait states is taken into account to access the Flash
     memory by reading the FLASH_ACR register */
@@ -819,7 +820,8 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
     }
     
     /* Program the new number of wait states to the LATENCY bits in the FLASH_ACR register */
-    __HAL_FLASH_SET_LATENCY(FLatency);
+    FLASH->ACR &= 0xFFFFFFF0; // clear
+    FLASH->ACR |= FLatency;
     
     /* Check that the new number of wait states is taken into account to access the Flash
     memory by reading the FLASH_ACR register */
@@ -894,50 +896,50 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
   *            @arg RCC_MCODIV_5: division by 5 applied to MCOx clock
   * @retval None
   */
-void HAL_RCC_MCOConfig(uint32_t RCC_MCOx, uint32_t RCC_MCOSource, uint32_t RCC_MCODiv)
-{
-  GPIO_InitTypeDef GPIO_InitStruct;
-  /* Check the parameters */
-  assert_param(IS_RCC_MCO(RCC_MCOx));
-  assert_param(IS_RCC_MCODIV(RCC_MCODiv));
-  /* RCC_MCO1 */
-  if(RCC_MCOx == RCC_MCO1)
-  {
-    assert_param(IS_RCC_MCO1SOURCE(RCC_MCOSource));
+// void HAL_RCC_MCOConfig(uint32_t RCC_MCOx, uint32_t RCC_MCOSource, uint32_t RCC_MCODiv)
+// {
+//   GPIO_InitTypeDef GPIO_InitStruct;
+//   /* Check the parameters */
+//   assert_param(IS_RCC_MCO(RCC_MCOx));
+//   assert_param(IS_RCC_MCODIV(RCC_MCODiv));
+//   /* RCC_MCO1 */
+//   if(RCC_MCOx == RCC_MCO1)
+//   {
+//     assert_param(IS_RCC_MCO1SOURCE(RCC_MCOSource));
     
-    /* MCO1 Clock Enable */
-    __MCO1_CLK_ENABLE();
+//     /* MCO1 Clock Enable */
+//     __MCO1_CLK_ENABLE();
     
-    /* Configure the MCO1 pin in alternate function mode */    
-    GPIO_InitStruct.Pin = MCO1_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Alternate = (uint8_t)0x00; // GPIO_AF0_MCO
-    HAL_GPIO_Init(MCO1_GPIO_PORT, &GPIO_InitStruct);
+//     /* Configure the MCO1 pin in alternate function mode */    
+//     GPIO_InitStruct.Pin = PIOA_8_PIN;
+//     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Alternate = (uint8_t)0x00; // GPIO_AF0_MCO
+//     HAL_GPIO_Init(MCO1_GPIO_PORT, &GPIO_InitStruct);
     
-    /* Mask MCO1 and MCO1PRE[2:0] bits then Select MCO1 clock source and prescaler */
-    MODIFY_REG(RCC->CFGR, (RCC_CFGR_MCO1 | RCC_CFGR_MCO1PRE), (RCC_MCOSource | RCC_MCODiv));
-  }
-  else
-  {
-    assert_param(IS_RCC_MCO2SOURCE(RCC_MCOSource));
+//      Mask MCO1 and MCO1PRE[2:0] bits then Select MCO1 clock source and prescaler 
+//     MODIFY_REG(RCC->CFGR, (RCC_CFGR_MCO1 | RCC_CFGR_MCO1PRE), (RCC_MCOSource | RCC_MCODiv));
+//   }
+//   else
+//   {
+//     assert_param(IS_RCC_MCO2SOURCE(RCC_MCOSource));
     
-    /* MCO2 Clock Enable */
-    __MCO2_CLK_ENABLE();
+//     /* MCO2 Clock Enable */
+//     __MCO2_CLK_ENABLE();
     
-    /* Configure the MCO2 pin in alternate function mode */
-    GPIO_InitStruct.Pin = MCO2_PIN;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Alternate = (uint8_t)0x00; // GPIO_AF0_MCO
-    HAL_GPIO_Init(MCO2_GPIO_PORT, &GPIO_InitStruct);
+//     /* Configure the MCO2 pin in alternate function mode */
+//     GPIO_InitStruct.Pin = PIOC_0_PIN;
+//     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+//     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+//     GPIO_InitStruct.Pull = GPIO_NOPULL;
+//     GPIO_InitStruct.Alternate = (uint8_t)0x00; // GPIO_AF0_MCO
+//     HAL_GPIO_Init(MCO2_GPIO_PORT, &GPIO_InitStruct);
     
-    /* Mask MCO2 and MCO2PRE[2:0] bits then Select MCO2 clock source and prescaler */
-    MODIFY_REG(RCC->CFGR, (RCC_CFGR_MCO2 | RCC_CFGR_MCO2PRE), (RCC_MCOSource | (RCC_MCODiv << 3)));
-  }
-}
+//     /* Mask MCO2 and MCO2PRE[2:0] bits then Select MCO2 clock source and prescaler */
+//     MODIFY_REG(RCC->CFGR, (RCC_CFGR_MCO2 | RCC_CFGR_MCO2PRE), (RCC_MCOSource | (RCC_MCODiv << 3)));
+//   }
+// }
 
 /**
   * @brief  Enables the Clock Security System.
