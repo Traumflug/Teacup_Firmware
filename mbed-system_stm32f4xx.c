@@ -603,7 +603,7 @@ uint8_t SetSysClock_PLL_HSE(uint8_t bypass)
      clocked below the maximum system frequency, to update the voltage scaling value 
      regarding system frequency refer to product datasheet. */
   __PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+  __HAL_PWR_VOLTAGESCALING_CONFIG((uint32_t)0x00000000);
   
   /* Enable HSE oscillator and activate PLL with HSE as source */
   RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSE;
@@ -634,7 +634,7 @@ uint8_t SetSysClock_PLL_HSE(uint8_t bypass)
   RCC_ClkInitStruct.AHBCLKDivider  = RCC_SYSCLK_DIV1;         // 96 MHz
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;           // 48 MHz
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;           // 96 MHz
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_ACR_LATENCY_3WS) != HAL_OK)
   {
     return 0; // FAIL
   }
@@ -662,7 +662,7 @@ uint8_t SetSysClock_PLL_HSI(void)
      clocked below the maximum system frequency, to update the voltage scaling value 
      regarding system frequency refer to product datasheet. */
   __PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+  __HAL_PWR_VOLTAGESCALING_CONFIG((uint32_t)0x00000000);
  
   /* Enable HSI oscillator and activate PLL with HSI as source */
   RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSE;
@@ -688,7 +688,7 @@ uint8_t SetSysClock_PLL_HSI(void)
   RCC_ClkInitStruct.AHBCLKDivider  = RCC_SYSCLK_DIV1;         // 96 MHz
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;           // 48 MHz
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;           // 96 MHz
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_ACR_LATENCY_3WS) != HAL_OK)
   {
     return 0; // FAIL
   }

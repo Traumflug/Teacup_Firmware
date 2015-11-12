@@ -46,9 +46,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "mbed-stm32f4xx_hal_def.h"
 
+#define PLL_TIMEOUT_VALUE          ((uint32_t)100)  /* 100 ms */
+
 /* Include RCC HAL Extended module */
 /* (include on top of file since RCC structures are defined in extended file) */
-#include "mbed-stm32f4xx_hal_rcc_ex.h"
+//#include "mbed-stm32f4xx_hal_rcc_ex.h"
 
 /** @addtogroup STM32F4xx_HAL_Driver
   * @{
@@ -62,6 +64,35 @@
 /** @defgroup RCC_Exported_Types RCC Exported Types
   * @{
   */
+
+/**
+  * @brief  RCC PLL configuration structure definition
+  */
+typedef struct
+{
+  uint32_t PLLState;   /*!< The new state of the PLL.
+                            This parameter can be a value of @ref RCC_PLL_Config                      */
+
+  uint32_t PLLSource;  /*!< RCC_PLLSource: PLL entry clock source.
+                            This parameter must be a value of @ref RCC_PLL_Clock_Source               */           
+
+  uint32_t PLLM;       /*!< PLLM: Division factor for PLL VCO input clock.
+                            This parameter must be a number between Min_Data = 0 and Max_Data = 63    */        
+
+  uint32_t PLLN;       /*!< PLLN: Multiplication factor for PLL VCO output clock.
+                            This parameter must be a number between Min_Data = 192 and Max_Data = 432 */
+
+  uint32_t PLLP;       /*!< PLLP: Division factor for main system clock (SYSCLK).
+                            This parameter must be a value of @ref RCC_PLLP_Clock_Divider             */
+
+  uint32_t PLLQ;       /*!< PLLQ: Division factor for OTG FS, SDIO and RNG clocks.
+                            This parameter must be a number between Min_Data = 4 and Max_Data = 15    */
+#if defined(STM32F446xx)
+  uint32_t PLLR;       /*!< PLLR: PLL division factor for I2S, SAI, SYSTEM, SPDIFRX clocks.
+                            This parameter is only available in STM32F446xx devices. 
+                            This parameter must be a number between Min_Data = 2 and Max_Data = 7     */
+#endif /* STM32F446xx */ 
+}RCC_PLLInitTypeDef;
    
 /**
   * @brief  RCC Internal/External Oscillator (HSE, HSI, LSE and LSI) configuration structure definition  
