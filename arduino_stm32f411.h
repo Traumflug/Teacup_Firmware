@@ -20,6 +20,13 @@
 
 #include "mbed-stm32f4xx.h"
 
+/** Pins for UART, the serial port.
+*/
+#define RXD_PORT        PIOA_3_PORT
+#define RXD_PIN         PIOA_3_PIN
+#define TXD_PORT        PIOA_2_PORT
+#define TXD_PIN         PIOA_2_PIN
+
 /**
   We define only pins available on the Nucleo F411RE here.
   Use alphas for PORT and numerics for PIN, close to the design.

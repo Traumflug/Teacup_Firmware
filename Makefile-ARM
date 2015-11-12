@@ -121,15 +121,13 @@ SOURCES = $(wildcard *.c)
 ifeq ($(MCU), lpc1114)
   SOURCES += cmsis-system_lpc11xx.c
 else ifeq ($(MCU), stm32f411)
-  SOURCES += mbed-pinmap_stm32.c
   SOURCES += mbed-system_stm32f4xx.c
-  SOURCES += mbed-cmsis_nvic_stm32.c
   SOURCES += mbed-stm32f4xx_hal.c
   SOURCES += mbed-stm32f4xx_hal_cortex.c
   SOURCES += mbed-stm32f4xx_hal_gpio.c
   SOURCES += mbed-stm32f4xx_hal_rcc.c
   SOURCES += mbed-stm32f4xx_hal_tim.c
-  SOURCES += mbed-ticker_api.c
+  SOURCES += mbed-cmsis_nvic_stm32.c
   SOURCES += mbed-hal_tick_stm32.c
 endif
 
