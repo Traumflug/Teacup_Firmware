@@ -308,8 +308,8 @@ typedef struct
   */
 
 /* Include FLASH HAL Extension module */
-#include "mbed-stm32f4xx_hal_flash_ex.h"
-#include "mbed-stm32f4xx_hal_flash_ramfunc.h"
+//#include "mbed-stm32f4xx_hal_flash_ex.h"
+//#include "mbed-stm32f4xx_hal_flash_ramfunc.h"
 
 /* Exported functions --------------------------------------------------------*/
 /** @addtogroup FLASH_Exported_Functions

@@ -323,7 +323,7 @@ typedef struct
   */
 
 /* Include PWR HAL Extension module */
-#include "mbed-stm32f4xx_hal_pwr_ex.h"
+//#include "mbed-stm32f4xx_hal_pwr_ex.h"
 
 /* Exported functions --------------------------------------------------------*/
 /** @addtogroup PWR_Exported_Functions PWR Exported Functions

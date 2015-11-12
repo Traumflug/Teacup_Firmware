@@ -913,7 +913,7 @@ void HAL_RCC_MCOConfig(uint32_t RCC_MCOx, uint32_t RCC_MCOSource, uint32_t RCC_M
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
+    GPIO_InitStruct.Alternate = (uint8_t)0x00; // GPIO_AF0_MCO
     HAL_GPIO_Init(MCO1_GPIO_PORT, &GPIO_InitStruct);
     
     /* Mask MCO1 and MCO1PRE[2:0] bits then Select MCO1 clock source and prescaler */
@@ -931,7 +931,7 @@ void HAL_RCC_MCOConfig(uint32_t RCC_MCOx, uint32_t RCC_MCOSource, uint32_t RCC_M
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
+    GPIO_InitStruct.Alternate = (uint8_t)0x00; // GPIO_AF0_MCO
     HAL_GPIO_Init(MCO2_GPIO_PORT, &GPIO_InitStruct);
     
     /* Mask MCO2 and MCO2PRE[2:0] bits then Select MCO2 clock source and prescaler */
