@@ -95,7 +95,7 @@
 #ifdef __ARM_STM32F411__
 
 #include "mbed-stm32f4xx.h"
-#include "mbed-stm32f4xx_hal.h"
+#include "mbed-stm32f4xx_hal_conf.h"
 
 #if !defined  (HSE_VALUE) 
   #define HSE_VALUE    ((uint32_t)8000000) /*!< Default value of the External oscillator in Hz */

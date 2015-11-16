@@ -4920,7 +4920,7 @@ typedef enum
   */
 
 #if defined (USE_HAL_DRIVER)
- #include "mbed-stm32f4xx_hal.h"
+ #include "mbed-stm32f4xx_hal_conf.h"
 #endif /* USE_HAL_DRIVER */
 
 #ifdef __cplusplus
