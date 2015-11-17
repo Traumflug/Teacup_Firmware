@@ -123,9 +123,6 @@ ifeq ($(MCU), lpc1114)
 else ifeq ($(MCU), stm32f411)
   SOURCES += mbed-system_stm32f4xx.c
   SOURCES += mbed-stm32f4xx_hal_rcc.c
-  SOURCES += mbed-stm32f4xx_hal_tim.c
-  SOURCES += mbed-cmsis_nvic_stm32.c
-  SOURCES += mbed-hal_tick_stm32.c
 endif
 
 # Other target MCU specific adjustments:
