@@ -109,18 +109,6 @@
                                    and STM32F446ZE Devices */
 #endif
 
-/*  Tip: To avoid modifying this file each time you need to switch between these
-        devices, you can define the device in your toolchain compiler preprocessor.
-  */
-#if !defined  (USE_HAL_DRIVER)
-/**
- * @brief Comment the line below if you will not use the peripherals drivers.
-   In this case, these drivers will not be included and the application code will
-   be based on direct access to peripherals registers
-   */
-  #define USE_HAL_DRIVER
-#endif /* USE_HAL_DRIVER */
-
 /**
   * @brief CMSIS Device version number V2.3.2
   */
@@ -4918,10 +4906,6 @@ typedef enum
 /**
   * @}
   */
-
-#if defined (USE_HAL_DRIVER)
- #include "mbed-stm32f4xx_hal_conf.h"
-#endif /* USE_HAL_DRIVER */
 
 #ifdef __cplusplus
 }
