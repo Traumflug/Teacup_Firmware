@@ -668,8 +668,14 @@ void process_gcode_command() {
         endstops_on();
         delay_ms(10); // allow the signal to stabilize
         {
-          const char* const open = PSTR("open ");
-          const char* const triggered = PSTR("triggered ");
+          #if ! (defined(X_MIN_PIN) || defined(X_MAX_PIN) || \
+                 defined(Y_MIN_PIN) || defined(Y_MAX_PIN) || \
+                 defined(Z_MIN_PIN) || defined(Z_MAX_PIN))
+            serial_writestr_P(PSTR("No endstops defined."));
+          #else
+            const char* const open = PSTR("open ");
+            const char* const triggered = PSTR("triggered ");
+          #endif
 
           #if defined(X_MIN_PIN)
             serial_writestr_P(PSTR("x_min:"));
@@ -694,11 +700,6 @@ void process_gcode_command() {
           #if defined(Z_MAX_PIN)
             serial_writestr_P(PSTR("z_max:"));
             z_max() ? serial_writestr_P(triggered) : serial_writestr_P(open);
-          #endif
-          #if ! (defined(X_MIN_PIN) || defined(X_MAX_PIN) || \
-                 defined(Y_MIN_PIN) || defined(Y_MAX_PIN) || \
-                 defined(Z_MIN_PIN) || defined(Z_MAX_PIN))
-            serial_writestr_P(PSTR("No endstops defined."));
           #endif
         }
         endstops_off();
