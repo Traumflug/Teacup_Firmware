@@ -3,7 +3,7 @@
   \brief Delay routines, ARM specific part.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARMEL__
+#if defined TEACUP_C_INCLUDE && defined __ARM_LPC1114__
 
 #include "cmsis-lpc11xx.h"  // For __ASM() and __SYSTEM_CLOCK.
 
