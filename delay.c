@@ -8,6 +8,7 @@
 #include "delay-avr.c"
 // Each ARM needs it's own file
 #include "delay-arm_lpc11xx.c"
+#include "delay-arm_stm32f4xx.c"
 #undef TEACUP_C_INCLUDE
 
 #include "watchdog.h"
@@ -19,7 +20,8 @@
 
   Accuracy on AVR, 20 MHz: delay < 0.04% too long over the whole range.
   Accuracy on AVR, 16 MHz: delay < 0.8% too short over the whole range.
-  Accuracy on ARM, 48 MHz: delay < 0.1% too long over the whole range.
+  Accuracy on LPC1114, 48 MHz: delay < 0.1% too long over the whole range.
+  Accuracy on STM32F411, 96 MHz: delay < 0.7% too short over the whole range.
 */
 void delay_ms(uint32_t delay) {
 	wd_reset();
