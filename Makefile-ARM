@@ -128,7 +128,7 @@ endif
 ifeq ($(MCU), lpc1114)
   STARTUP_FILE = cmsis-startup_lpc11xx.s
 else ifeq ($(MCU), stm32f411)
-  STARTUP_FILE = arm-startup_stm32f411xe.s
+  STARTUP_FILE = cmsis-startup_stm32f411xe.s
 endif
 
 # Startup definitions. Not target MCU specific.
