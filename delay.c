@@ -6,7 +6,8 @@
 
 #define TEACUP_C_INCLUDE
 #include "delay-avr.c"
-#include "delay-arm.c"
+// Each ARM needs it's own file
+#include "delay-lpc.c"
 #undef TEACUP_C_INCLUDE
 
 #include "watchdog.h"
