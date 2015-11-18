@@ -160,7 +160,7 @@ LDFLAGS += --specs=nosys.specs
 ifeq ($(MCU), lpc1114)
   LDFLAGS += -T cmsis-lpc1114.ld
 else ifeq ($(MCU), stm32f411)
-  LDFLAGS += -T arm-stm32f411xe.ld
+  LDFLAGS += -T cmsis-stm32f411xe.ld
 endif
 LDFLAGS += -Wl,--as-needed
 LDFLAGS += -Wl,--gc-sections
