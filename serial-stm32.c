@@ -11,7 +11,9 @@
 */
 
 #if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
+
 #include "arduino.h"
+#include "delay.h"
 
 #ifdef XONXOFF
   #error XON/XOFF protocol not yet implemented for ARM. \
@@ -83,7 +85,9 @@ void serial_init()
     Divisor = int((div - int(div))*16)
     BRR = Mantisse + Divisor
     */
+    #if !defined BAUD
     #define BAUD 115200
+    #endif
 
     #define SERIAL_APBCLK (__SYSTEM_CLOCK/2)
 
@@ -132,7 +136,8 @@ uint8_t serial_txchars(void) {
 /** Send one character.
 */
 void serial_writechar(uint8_t data) {
-  while (!serial_txchars());
+  if ( !serial_txchars())       // Queue full?
+    delay_us((1000000 / BAUD * 10) + 7);
   USART2->DR = (uint32_t)(data & 0x1FF);
 }
 
