@@ -120,7 +120,6 @@ SOURCES = $(wildcard *.c)
 
 ifeq ($(MCU), stm32f411)
   SOURCES += mbed-system_stm32f4xx.c
-  SOURCES += mbed-stm32f4xx_hal_rcc.c
 endif
 
 # Other target MCU specific adjustments:
