@@ -5,7 +5,7 @@
 
 #if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
 
-#include "mbed-stm32f4xx.h"  // For __ASM() and ...
+#include "cmsis-stm32f4xx.h"  // For __ASM() and ...
 
 
 /** Delay in microseconds.
