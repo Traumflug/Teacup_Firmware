@@ -180,7 +180,7 @@
 #include <stdint.h>                      /* standard types definitions                      */
 //#include "mbed-core_cmInstr.h"                /* Core Instruction Access                         */
 //#include "mbed-core_cmFunc.h"                 /* Core Function Access                            */
-#include "mbed-core_cm4_simd.h"               /* Compiler specific SIMD Intrinsics               */
+#include "cmsis-core_cm4_simd.h"               /* Compiler specific SIMD Intrinsics               */
 
 /** \brief  Count leading zeros
 
