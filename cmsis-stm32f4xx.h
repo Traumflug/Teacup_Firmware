@@ -222,7 +222,7 @@ typedef enum
   */
 
 #include "cmsis-core_cm4.h"             /* Cortex-M4 processor and core peripherals */
-#include "mbed-system_stm32f4xx.h"
+#include "cmsis-system_stm32f4xx.h"
 #include <stdint.h>
 
 /** @addtogroup Peripheral_registers_structures
