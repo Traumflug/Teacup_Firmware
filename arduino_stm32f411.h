@@ -18,7 +18,7 @@
   Pins set for Nucleo F411RE, for other STM32F4-boards you need to add them.
 */
 
-#include "mbed-stm32f4xx.h"
+#include "cmsis-stm32f4xx.h"
 
 /** Pins for UART, the serial port.
 */
