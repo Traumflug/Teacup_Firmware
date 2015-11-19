@@ -38,10 +38,6 @@
 
   Copied from $(MBED)/libraries/mbed/targets/cmsis/core_cm4.h.
 
-  Used only to get things running quickly. Without serial it's almost
-  impossible to see wether code changes work. Should go away soon, because
-  all this MBED stuff is too bloated for Teacup's purposes.
-
   - Replaced __DSB(); with __ASM volatile ("dsb").
   - Added from mbed-core_cmFunc.h: __enable_irq() and __disable_irq()\
   - Added from mbed-core_cmInstr: __CLZ and __RBIT
