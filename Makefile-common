@@ -161,6 +161,9 @@ regressiontests:
 	# Config scenario: ACCELERATION_RAMPING without LOOKAHEAD
 	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-no-lookahead.h \
 	  MCU=atmega644 F_CPU=20000000UL EXTRA_CFLAGS=-Werror all
+	# Continue with ARM based boards, a Nucleo-F411RE based board.
+	$(MAKE) -f Makefile-ARM USER_CONFIG=testcases/config.regtest-cnc-shield-stm32.h \
+	  MCU=stm32f411 EXTRA_CFLAGS=-Werror all
 	# Don't forget the hostside simulator.
 	$(MAKE) -f Makefile-SIM USER_CONFIG=testcases/config.regtest-gen7-avr.h \
 	  MCU=atmega644 F_CPU=20000000UL EXTRA_CFLAGS=-Werror all
