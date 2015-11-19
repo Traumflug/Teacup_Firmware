@@ -50,11 +50,7 @@
 
   Copied from $(MBED)/libraries/mbed/targets/cmsis/TARGET_STM/TARGET_STM32F4/TARGET_NUCLEO_F411RE/stm32f411xe.h and stm32f4xx.h
 
-  Used only to get things running quickly. Without serial it's almost
-  impossible to see wether code changes work. Should go away soon, because
-  all this MBED stuff is too bloated for Teacup's purposes.
-
-  - Prefixed names of #include files with mbed- to match the names of the
+  - Prefixed names of #include files with cmsis- to match the names of the
     copies in the Teacup repo.
   - Prefixed function names with mbed_ to not conflict with Teacup names.
   - Comment out HAL_DRIVERS
