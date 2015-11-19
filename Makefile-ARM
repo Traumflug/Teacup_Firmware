@@ -118,10 +118,6 @@ TARGET = $(PROGRAM).hex
 # to keep this working and can take a shortcut:
 SOURCES = $(wildcard *.c)
 
-ifeq ($(MCU), stm32f411)
-  SOURCES += mbed-system_stm32f4xx.c
-endif
-
 # Other target MCU specific adjustments:
 ifeq ($(MCU), lpc1114)
   STARTUP_FILE = cmsis-startup_lpc11xx.s
