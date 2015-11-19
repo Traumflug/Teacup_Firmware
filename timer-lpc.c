@@ -5,7 +5,7 @@
   To be included from timer.c.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARMEL__
+#if defined TEACUP_C_INCLUDE && defined __ARM_LPC1114__
 
 #include "cmsis-core_cm0.h"
 #include "clock.h"
@@ -223,4 +223,4 @@ void timer_stop() {
   SysTick->CTRL = 0;
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
+#endif /* defined TEACUP_C_INCLUDE && defined __ARM_LPC1114__ */
