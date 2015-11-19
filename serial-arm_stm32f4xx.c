@@ -22,8 +22,6 @@
 
 void serial_init()
 {
-    // Enable TX/RX clock (GPIOA)
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
     // Enable USART2 clock
     RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 
