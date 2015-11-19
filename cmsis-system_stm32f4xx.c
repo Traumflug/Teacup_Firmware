@@ -209,6 +209,13 @@ void SystemInit(void)
   /* Configure the System clock source, PLL Multiplier and Divider factors,
      AHB/APBx prescalers and Flash settings */
   SetSysClock();
+
+  // Enable power and clocking for all GPIO
+  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | \
+                  RCC_AHB1ENR_GPIOBEN | \
+                  RCC_AHB1ENR_GPIOCEN | \
+                  RCC_AHB1ENR_GPIODEN | \
+                  RCC_AHB1ENR_GPIOHEN;
  
 }
 
