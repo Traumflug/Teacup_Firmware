@@ -6,16 +6,16 @@
   * @date    19-June-2014
   * @brief   CMSIS Cortex-M4 Device Peripheral Access Layer System Source File.
   *
-  *   This file provides two functions and one global variable to be called from 
+  *   This file provides two functions and one global variable to be called from
   *   user application:
-  *      - SystemInit(): This function is called at startup just after reset and 
+  *      - SystemInit(): This function is called at startup just after reset and
   *                      before branch to main program. This call is made inside
   *                      the "startup_stm32f4xx.s" file.
   *
   *      - SystemCoreClock variable: Contains the core clock (HCLK), it can be used
-  *                                  by the user application to setup the SysTick 
+  *                                  by the user application to setup the SysTick
   *                                  timer or configure other parameters.
-  *                                     
+  *
   *      - SystemCoreClockUpdate(): Updates the variable SystemCoreClock and must
   *                                 be called whenever the core clock is changed
   *                                 during program execution.
@@ -36,7 +36,7 @@
   * APB2CLK (MHz)                      | 96                     | 96
   *-----------------------------------------------------------------------------
   * USB capable (48 MHz precise clock) | YES                    | YES
-  *-----------------------------------------------------------------------------  
+  *-----------------------------------------------------------------------------
   ******************************************************************************
   * @attention
   *
@@ -71,14 +71,11 @@
 
   Copied from $(MBED)/libraries/mbed/targets/cmsis/TARGET_STM/TARGET_STM32F4/TARGET_NUCLEO_F411RE/system_stm32f4xx.c.
 
-  Used only to get things running quickly. Without serial it's almost
-  impossible to see wether code changes work. Should go away soon, because
-  all this MBED stuff is too bloated for Teacup's purposes.
-
   - Prefixed names of #include files with mbed- to match the names of the
     copies in the Teacup repo.
   - Wrapped the whole file in #ifdef __ARMEL__ to not cause conflicts with
     AVR builds.
+  - Rebuild SystemInit() and SetSysClock() to get rid of most mbed-files. Please take a look into history.
 */
 
 /** @addtogroup CMSIS
@@ -87,7 +84,7 @@
 
 /** @addtogroup stm32f4xx_system
   * @{
-  */  
+  */
   
 /** @addtogroup STM32F4xx_System_Private_Includes
   * @{
@@ -96,7 +93,7 @@
 
 #include "cmsis-stm32f4xx.h"
 
-#if !defined  (HSE_VALUE) 
+#if !defined  (HSE_VALUE)
   #define HSE_VALUE    ((uint32_t)8000000) /*!< Default value of the External oscillator in Hz */
 #endif /* HSE_VALUE */
 
@@ -123,7 +120,7 @@
 /*!< Uncomment the following line if you need to relocate your vector Table in
      Internal SRAM. */
 /* #define VECT_TAB_SRAM */
-#define VECT_TAB_OFFSET  0x00 /*!< Vector Table base offset field. 
+#define VECT_TAB_OFFSET  0x00 /*!< Vector Table base offset field.
                                    This value must be a multiple of 0x200. */
 /******************************************************************************/
 
@@ -149,7 +146,7 @@
   /* This variable is updated in three ways:
       1) by calling CMSIS function SystemCoreClockUpdate()
       2) by calling HAL API function HAL_RCC_GetHCLKFreq()
-      3) each time HAL_RCC_ClockConfig() is called to configure the system clock frequency 
+      3) each time HAL_RCC_ClockConfig() is called to configure the system clock frequency
          Note: If you use this function to configure the system clock; then there
                is no need to call the 2 first functions listed above, since SystemCoreClock
                variable is updated automatically.
@@ -177,7 +174,7 @@ uint8_t SetSysClock_PLL_HSE(uint8_t bypass);
 
 /**
   * @brief  Setup the microcontroller system
-  *         Initialize the FPU setting, vector table location and External memory 
+  *         Initialize the FPU setting, vector table location and External memory
   *         configuration.
   * @param  None
   * @retval None
@@ -220,34 +217,34 @@ void SystemInit(void)
   *         The SystemCoreClock variable contains the core clock (HCLK), it can
   *         be used by the user application to setup the SysTick timer or configure
   *         other parameters.
-  *           
+  *
   * @note   Each time the core clock (HCLK) changes, this function must be called
   *         to update SystemCoreClock variable value. Otherwise, any configuration
-  *         based on this variable will be incorrect.         
-  *     
-  * @note   - The system frequency computed by this function is not the real 
-  *           frequency in the chip. It is calculated based on the predefined 
+  *         based on this variable will be incorrect.
+  *
+  * @note   - The system frequency computed by this function is not the real
+  *           frequency in the chip. It is calculated based on the predefined
   *           constant and the selected clock source:
-  *             
+  *
   *           - If SYSCLK source is HSI, SystemCoreClock will contain the HSI_VALUE(*)
-  *                                              
+  *
   *           - If SYSCLK source is HSE, SystemCoreClock will contain the HSE_VALUE(**)
-  *                          
-  *           - If SYSCLK source is PLL, SystemCoreClock will contain the HSE_VALUE(**) 
+  *
+  *           - If SYSCLK source is PLL, SystemCoreClock will contain the HSE_VALUE(**)
   *             or HSI_VALUE(*) multiplied/divided by the PLL factors.
-  *         
+  *
   *         (*) HSI_VALUE is a constant defined in stm32f4xx_hal_conf.h file (default value
   *             16 MHz) but the real value may vary depending on the variations
-  *             in voltage and temperature.   
-  *    
+  *             in voltage and temperature.
+  *
   *         (**) HSE_VALUE is a constant defined in stm32f4xx_hal_conf.h file (its value
   *              depends on the application requirements), user has to ensure that HSE_VALUE
   *              is same as the real frequency of the crystal used. Otherwise, this function
   *              may have wrong result.
-  *                
+  *
   *         - The result of this function could be not correct when using fractional
   *           value for HSE crystal.
-  *     
+  *
   * @param  None
   * @retval None
   */
@@ -270,7 +267,7 @@ void SystemCoreClockUpdate(void)
 
       /* PLL_VCO = (HSE_VALUE or HSI_VALUE / PLL_M) * PLL_N
          SYSCLK = PLL_VCO / PLL_P
-         */    
+         */
       pllsource = (RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC) >> 22;
       pllm = RCC->PLLCFGR & RCC_PLLCFGR_PLLM;
       
@@ -302,43 +299,43 @@ void SystemCoreClockUpdate(void)
 /**
   * @brief  Configures the System clock source, PLL Multiplier and Divider factors,
   *               AHB/APBx prescalers and Flash settings
-  * @note   This function should be called only once the RCC clock configuration  
-  *         is reset to the default reset state (done in SystemInit() function).             
+  * @note   This function should be called only once the RCC clock configuration
+  *         is reset to the default reset state (done in SystemInit() function).
   * @param  None
   * @retval None
   */
 void SetSysClock(void)
 {
   
-  /* The voltage scaling allows optimizing the power consumption when the device is 
-     clocked below the maximum system frequency, to update the voltage scaling value 
+  /* The voltage scaling allows optimizing the power consumption when the device is
+     clocked below the maximum system frequency, to update the voltage scaling value
      regarding system frequency refer to product datasheet. */
   RCC->APB1ENR |= RCC_APB1ENR_PWREN;
 
   MODIFY_REG(PWR->CR, PWR_CR_VOS, PWR_CR_VOS_1);
   
   /* Enable HSE oscillator and activate PLL with HSE as source */
-  /*------------------------------- HSE Configuration ------------------------*/ 
+  /*------------------------------- HSE Configuration ------------------------*/
 
   /* Reset HSEON and HSEBYP bits before configuring the HSE --------------*/
   RCC->CR &= ~(RCC_CR_HSEON);
   //__HAL_RCC_HSE_CONFIG(RCC_HSE_OFF);
 
-  /* Wait till HSE is disabled */  
+  /* Wait till HSE is disabled */
   while(RCC->CR & RCC_CR_HSERDY);
   
   /* Set the new HSE configuration ---------------------------------------*/
   RCC->CR |= RCC_CR_HSEON;
   
-  /* Wait till HSE is ready */  
+  /* Wait till HSE is ready */
   while(!(RCC->CR & RCC_CR_HSERDY));
 
   /*-------------------------------- PLL Configuration -----------------------*/
   /* Disable the main PLL. */
   RCC->CR &= ~(RCC_CR_PLLON);
   
-  /* Wait till PLL is ready */  
-  while(RCC->CR & RCC_CR_PLLRDY);      
+  /* Wait till PLL is ready */
+  while(RCC->CR & RCC_CR_PLLRDY);
 
   /* Configure the main PLL clock source, multiplication and division factors. */
   // PLLM_2:      VCO input clock = 2 MHz (8 MHz / 4)
@@ -353,21 +350,21 @@ void SetSysClock(void)
   /* Enable the main PLL. */
   RCC->CR |= RCC_CR_PLLON;
   
-  /* Wait till PLL is ready */  
+  /* Wait till PLL is ready */
   while(!(RCC->CR & RCC_CR_PLLRDY));
 
-  /* To correctly read data from FLASH memory, the number of wait states (LATENCY) 
-    must be correctly programmed according to the frequency of the CPU clock 
+  /* To correctly read data from FLASH memory, the number of wait states (LATENCY)
+    must be correctly programmed according to the frequency of the CPU clock
     (HCLK) and the supply voltage of the device. */
 
   /* Increasing the CPU frequency */
   if(FLASH_ACR_LATENCY_3WS > (FLASH->ACR & FLASH_ACR_LATENCY))
-  {    
+  {
     /* Program the new number of wait states to the LATENCY bits in the FLASH_ACR register */
     MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, FLASH_ACR_LATENCY_3WS);
     /*-------------------------- HCLK Configuration --------------------------*/
     MODIFY_REG(RCC->CFGR, RCC_CFGR_HPRE, RCC_CFGR_HPRE_DIV1);
-    /*------------------------- SYSCLK Configuration ---------------------------*/ 
+    /*------------------------- SYSCLK Configuration ---------------------------*/
     MODIFY_REG(RCC->CFGR, RCC_CFGR_SW, RCC_CFGR_SW_PLL);
   }
   /* Decreasing the CPU frequency */
@@ -381,9 +378,9 @@ void SetSysClock(void)
     MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, FLASH_ACR_LATENCY_3WS);
   }
 
-  /*-------------------------- PCLK1 Configuration ---------------------------*/ 
+  /*-------------------------- PCLK1 Configuration ---------------------------*/
   MODIFY_REG(RCC->CFGR, RCC_CFGR_PPRE1, RCC_CFGR_PPRE1_DIV2);
-  /*-------------------------- PCLK2 Configuration ---------------------------*/ 
+  /*-------------------------- PCLK2 Configuration ---------------------------*/
   MODIFY_REG(RCC->CFGR, RCC_CFGR_PPRE2, RCC_CFGR_PPRE2_DIV1);
 }
 
@@ -397,6 +394,6 @@ void SetSysClock(void)
   
 /**
   * @}
-  */    
+  */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 #endif
