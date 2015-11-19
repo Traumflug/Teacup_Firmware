@@ -38,11 +38,7 @@
 
   Copied from $(MBED)/libraries/mbed/targets/cmsis/mbed-core_cm4_simd.h.
 
-  Used only to get things running quickly. Without serial it's almost
-  impossible to see wether code changes work. Should go away soon, because
-  all this MBED stuff is too bloated for Teacup's purposes.
-
-  - Prefixed names of #include files with mbed- to match the names of the
+  - Prefixed names of #include files with cmsis- to match the names of the
     copies in the Teacup repo.
 */
 
