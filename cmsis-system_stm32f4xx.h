@@ -62,6 +62,7 @@
  extern "C" {
 #endif
 
+#define __SYSTEM_CLOCK 96000000
 /** @addtogroup STM32F4xx_System_Includes
   * @{
   */
