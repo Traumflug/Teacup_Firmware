@@ -11,7 +11,7 @@
   always compares against Vdd. This is the equivalent of REFERENCE_AVCC on AVR.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARMEL__
+#if defined TEACUP_C_INCLUDE && defined __ARM_LPC1114__
 
 #include "cmsis-lpc11xx.h"
 #include "arduino.h"
