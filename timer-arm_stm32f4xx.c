@@ -12,8 +12,43 @@
 
   Initialise timer and enable system clock interrupt. Step interrupt is
   enabled later, when we start using it.
+
+  For the system clock, we use SysTickTimer. This timer is made for exactly
+  such purposes.
 */
 void timer_init() {
+
+/**
+  Initialise the system tick timer
+
+  We enable the system tick timer with interrupts. A similar function is
+  SysTick_Config(uint32_t ticks) in cmsis-core_cm4.h
+
+  Register name mapping from STM32F4xx
+
+*/
+  NVIC_SetPriority(SysTick_IRQn, 0);              // Highest priority.
+
+  // SysTick defined in cmsis-core_cm4.h.
+  SysTick->LOAD = TICK_TIME - 1;                  // set reload register
+  SysTick->VAL  = 0;                              // Load the SysTick Counter Value
+
+  SysTick->CTRL = SysTick_CTRL_ENABLE_Msk        // Enable the ticker.
+                 | SysTick_CTRL_TICKINT_Msk       // Enable interrupt.
+                 | SysTick_CTRL_CLKSOURCE_Msk;    // Run at full CPU clock.
+}
+
+/** System clock interrupt.
+
+  Happens every TICK_TIME. Must have the same name as in
+  cmsis-startup_lpc11xx.s
+*/
+void SysTick_Handler(void) {
+
+  #ifndef __ARMEL_NOTYET__
+  clock_tick();
+  dda_clock();
+  #endif /* __ARMEL_NOTYET__ */
 }
 
 /** Specify how long until the step timer should fire.
@@ -58,6 +93,7 @@ uint8_t timer_set(int32_t delay, uint8_t check_short) {
   This means to be an emergency stop.
 */
 void timer_stop() {
+  SysTick->CTRL = 0;
 }
 
 #endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
