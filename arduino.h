@@ -73,10 +73,14 @@
     #include "arduino_lpc1114.h"
   #endif
 
+  #if defined (__ARM_STM32F411__)
+    #include "arduino_stm32f411.h"
+  #endif
+
 #endif /* __AVR__, __ARMEL__, SIMULATOR */
 
 #ifndef SIMULATOR
-  #if ! defined DIO0_PIN && ! defined PIO0_1_PIN
+  #if ! defined DIO0_PIN && ! defined PIO0_1_PIN && ! defined PA_1_PIN
     #error Pins for this chip not defined in arduino.h! If you write an \
            appropriate pin definition and have this firmware work on your chip, \
            please tell us via Github or the forum thread.
