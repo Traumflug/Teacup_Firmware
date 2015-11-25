@@ -63,7 +63,7 @@
   /// Disable pullup resistor.
   #define _PULL_OFF(IO)    _WRITE(IO, 0)
 
-#elif defined __ARMEL__
+#elif defined __ARM_LPC1114__
 
   /**
     The LPC1114 supports bit-banding by mapping the bit mask to the address.
@@ -114,6 +114,32 @@
       LPC_IOCON->IO ## _CMSIS = (IO ## _OUTPUT | IO_MODEMASK_INACTIVE); \
     } while (0)
 
+#elif defined __ARM_STM32F411__
+  /**
+  */
+  /// Write to a pin.
+  #define _WRITE(IO, v) \
+    do { \
+      if (v) \
+      	IO ## _PORT->BSRR = MASK(IO ## _PIN); \
+      else \
+      	IO ## _PORT->BSRR = MASK((IO ## _PIN + 16)); \
+    } while (0)
+
+  /** Set pin as output.
+      - reset Pullup
+      - reset direction mode
+      - set output
+      - set speed
+  */
+  #define _SET_OUTPUT(IO) \
+    do { \
+      IO ## _PORT->PUPDR &= ~(3 << ((IO ## _PIN) << 1)); \
+      IO ## _PORT->MODER &= ~(3 << ((IO ## _PIN) << 1)); \
+      IO ## _PORT->MODER |= (1 << ((IO ## _PIN) << 1)); \
+      IO ## _PORT->OSPEEDR |= (3 << ((IO ## _PIN) << 1)); \
+    } while (0)
+
 #elif defined SIMULATOR
 
   #include "simulator.h"
@@ -125,7 +151,7 @@
   #define _PULLUP_ON(IO)   _WRITE(IO, 1)
   #define _PULL_OFF(IO)    _WRITE(IO, 0)
 
-#endif /* __AVR__, __ARMEL__, SIMULATOR */
+#endif /* __AVR__, __ARM_LPC1114__, __ARM_STM32F411__, SIMULATOR */
 
 /**
   Why double up on these macros?
