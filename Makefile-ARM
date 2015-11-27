@@ -41,13 +41,6 @@
 ##############################################################################
 
 MCU ?= lpc1114
-# MCU ?= atmega328p
-# MCU ?= atmega644
-# MCU ?= atmega1284p
-# MCU ?= atmega1280
-# MCU ?= atmega2560
-# MCU ?= at90usb1286
-# MCU ?= atmega32u4
 
 # CPU clock rate not defined here, but in the CMSIS headers.
 
@@ -74,11 +67,12 @@ TOOLCHAIN = arm-none-eabi-
 # in the rules for the 'program' target.
 
 # Frequency of the on-chip R/C oscillator or the on-board quartz crystal.
+# Not to confuse with the CPU's clock frequency, which is usually much higher.
 F_CRYSTAL ?= 12000000
 
 # Serial port the electronics is connected to.
-UPLOADER_PORT ?= /dev/ttyUSB0
-#UPLOADER_PORT ?= /dev/ttyACM0
+#UPLOADER_PORT ?= /dev/ttyUSB0
+UPLOADER_PORT ?= /dev/ttyACM0
 #UPLOADER_PORT ?= com1
 
 ##############################################################################

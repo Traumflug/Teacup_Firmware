@@ -75,15 +75,15 @@
 //#define Z_INVERT_MAX
 //#define Z_INVERT_ENABLE
 
-#define E_STEP_PIN               PIO0_4
+#define E_STEP_PIN               PIO0_3
 #define E_DIR_PIN                PIO0_7
 //#define E_ENABLE_PIN             xxxx
 //#define E_INVERT_DIR
 //#define E_INVERT_ENABLE
 
-#define PS_ON_PIN                PIO0_3
+#define PS_ON_PIN                PIO0_4
 //#define PS_MOSFET_PIN            xxxx
-#define STEPPER_ENABLE_PIN       PIO0_3
+#define STEPPER_ENABLE_PIN       PIO0_4
 #define STEPPER_INVERT_ENABLE
 
 /** \def DEBUG_LED_PIN
@@ -96,7 +96,7 @@
   a LED in hardware), see
   http://reprap.org/wiki/Teacup_Firmware#Doing_precision_profiling
 */
-#define DEBUG_LED_PIN            PIO1_9
+//#define DEBUG_LED_PIN            PIO1_9
 
 /** \def SD_CARD_SELECT_PIN
 
@@ -163,12 +163,12 @@
 */
 //DEFINE_TEMP_SENSORS_START
 //                 name      type           pin    additional
-DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PIO1_0,THERMISTOR_EXTRUDER)
-DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, PIO1_1,THERMISTOR_BED)
+DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PIO1_1,THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, PIO1_0,THERMISTOR_BED)
 
 // Beta algorithm      r0      beta  r2    vadc
 // Steinhart-Hart      rp      t0    r0      t1    r1      t2    r2
-//TEMP_TABLE EXTRUDER (100000, 4092, 4700, 5.0)
+//TEMP_TABLE EXTRUDER (100000, 4092, 1000, 5.0)
 //TEMP_TABLE BED      (100000, 4092, 4700, 5.0)
 //DEFINE_TEMP_SENSORS_END
 
@@ -188,7 +188,7 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, PIO1_1,THERMISTOR_BED)
   commented out.
 */
 //#define HEATER_PIN PIO0_10
-//#define HEATER_PIN PIO0_11
+//#define HEATER_PIN PIO1_9
 
 /** \def DEFINE_HEATER
   Define your heaters and devices here.
@@ -233,7 +233,7 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, PIO1_1,THERMISTOR_BED)
 //DEFINE_HEATERS_START
 //            name      pin      invert  pwm
 DEFINE_HEATER(extruder, PIO0_10, 0,      20000)
-DEFINE_HEATER(bed,      PIO0_11, 1,      10)
+DEFINE_HEATER(bed,      PIO1_9,  1,      10)
 
 #define HEATER_EXTRUDER HEATER_extruder
 #define HEATER_BED HEATER_bed
