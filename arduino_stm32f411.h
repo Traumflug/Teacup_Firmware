@@ -11,7 +11,7 @@
   functions, spread over various files, slow execution (pin toggling about
   15 times slower than what we have here).
 
-  FASTIO by setting the BSRR (bit set/reset register), 
+  FASTIO by setting the BSRR (bit set/reset register),
   - Bit0-15 to set
   - Bit16-31 to reset.
 
@@ -24,10 +24,10 @@
 
 /** Pins for UART, the serial port.
 */
-#define RXD_PORT        PIOA_3_PORT
-#define RXD_PIN         PIOA_3_PIN
-#define TXD_PORT        PIOA_2_PORT
-#define TXD_PIN         PIOA_2_PIN
+#define RXD_PORT        PA_3_PORT
+#define RXD_PIN         PA_3_PIN
+#define TXD_PORT        PA_2_PORT
+#define TXD_PIN         PA_2_PIN
 
 /**
   We define only pins available on the Nucleo F411RE here.
@@ -36,27 +36,35 @@
 
 #define PA_0_PIN      0
 #define PA_0_PORT     GPIOA
+#define PA_0_ADC      0
 
 #define PA_1_PIN      1
 #define PA_1_PORT     GPIOA
+#define PA_1_ADC      1
 
 #define PA_2_PIN      2
 #define PA_2_PORT     GPIOA
+#define PA_2_ADC      2
 
 #define PA_3_PIN      3
 #define PA_3_PORT     GPIOA
+#define PA_3_ADC      3
 
 #define PA_4_PIN      4
 #define PA_4_PORT     GPIOA
+#define PA_4_ADC      4
 
 #define PA_5_PIN      5
 #define PA_5_PORT     GPIOA
+#define PA_5_ADC      5
 
 #define PA_6_PIN      6
 #define PA_6_PORT     GPIOA
+#define PA_6_ADC      6
 
 #define PA_7_PIN      7
 #define PA_7_PORT     GPIOA
+#define PA_7_ADC      7
 
 #define PA_8_PIN      8
 #define PA_8_PORT     GPIOA
@@ -84,9 +92,11 @@
 
 #define PB_0_PIN      0
 #define PB_0_PORT     GPIOB
+#define PB_0_ADC      8
 
 #define PB_1_PIN      1
 #define PB_1_PORT     GPIOB
+#define PB_1_ADC      9
 
 #define PB_2_PIN      2
 #define PB_2_PORT     GPIOB
@@ -129,21 +139,27 @@
 
 #define PC_0_PIN      0
 #define PC_0_PORT     GPIOC
+#define PC_0_ADC      10
 
 #define PC_1_PIN      1
 #define PC_1_PORT     GPIOC
+#define PC_1_ADC      11
 
 #define PC_2_PIN      2
 #define PC_2_PORT     GPIOC
+#define PC_2_ADC      12
 
 #define PC_3_PIN      3
 #define PC_3_PORT     GPIOC
+#define PC_3_ADC      13
 
 #define PC_4_PIN      4
 #define PC_4_PORT     GPIOC
+#define PC_4_ADC      14
 
 #define PC_5_PIN      5
 #define PC_5_PORT     GPIOC
+#define PC_5_ADC      15
 
 #define PC_6_PIN      6
 #define PC_6_PORT     GPIOC
