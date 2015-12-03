@@ -53,12 +53,13 @@
 
   Whether the board needs and implements start_adc(), i.e. analog reads
   on-demand (as opposed to free-running ADC conversions).
-
-  Currently only implemented on AVR.
 */
 #define NEEDS_START_ADC
 
-#endif /* __AVR__ */
+/* #endif __AVR__ */
+#elif __ARM_STM32F411__
+  #define NEEDS_START_ADC
+#endif /* __ARM_STM32F411__ */
 
 void 			analog_init(void);
 
