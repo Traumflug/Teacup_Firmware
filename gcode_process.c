@@ -438,6 +438,16 @@ void process_gcode_command() {
         next_target.option_e_relative = 0;
         break;
 
+      case 80:
+        //? --- M80 - Turn on a Power Supply ---
+        power_on();
+        break;
+
+      case 81:
+        //? --- M81 - Turn off a Power Supply ---
+        power_off();
+        break;
+
       case 83:
         //? --- M83 - Set E codes relative ---
         //?
