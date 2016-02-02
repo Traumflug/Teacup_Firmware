@@ -16,11 +16,11 @@ void pinio_init(void) {
   SET_OUTPUT(X_DIR_PIN); WRITE(X_DIR_PIN, 0);
   #ifdef X_MIN_PIN
     SET_INPUT(X_MIN_PIN);
-    PULLUP_OFF(X_MIN_PIN);
+    PULL_OFF(X_MIN_PIN);
   #endif
   #ifdef X_MAX_PIN
     SET_INPUT(X_MAX_PIN);
-    PULLUP_OFF(X_MAX_PIN);
+    PULL_OFF(X_MAX_PIN);
   #endif
 
   /// Y Stepper.
@@ -28,11 +28,11 @@ void pinio_init(void) {
   SET_OUTPUT(Y_DIR_PIN); WRITE(Y_DIR_PIN, 0);
   #ifdef Y_MIN_PIN
     SET_INPUT(Y_MIN_PIN);
-    PULLUP_OFF(Y_MIN_PIN);
+    PULL_OFF(Y_MIN_PIN);
   #endif
   #ifdef Y_MAX_PIN
     SET_INPUT(Y_MAX_PIN);
-    PULLUP_OFF(Y_MAX_PIN);
+    PULL_OFF(Y_MAX_PIN);
   #endif
 
   /// Z Stepper.
@@ -42,11 +42,11 @@ void pinio_init(void) {
   #endif
   #ifdef Z_MIN_PIN
     SET_INPUT(Z_MIN_PIN);
-    PULLUP_OFF(Z_MIN_PIN);
+    PULL_OFF(Z_MIN_PIN);
   #endif
   #ifdef Z_MAX_PIN
     SET_INPUT(Z_MAX_PIN);
-    PULLUP_OFF(Z_MAX_PIN);
+    PULL_OFF(Z_MAX_PIN);
   #endif
 
   #if defined E_STEP_PIN && defined E_DIR_PIN
@@ -146,7 +146,7 @@ void power_off() {
 
 	#ifdef	PS_ON_PIN
 		SET_INPUT(PS_ON_PIN);
-    PULLUP_OFF(PS_ON_PIN);
+    PULL_OFF(PS_ON_PIN);
 	#endif
 
   #ifdef PS_MOSFET_PIN

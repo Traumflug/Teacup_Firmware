@@ -52,7 +52,7 @@
   /// Enable pullup resistor.
   #define _PULLUP_ON(IO)   _WRITE(IO, 1)
   /// Disable pullup resistor.
-  #define _PULLUP_OFF(IO)  _WRITE(IO, 0)
+  #define _PULL_OFF(IO)    _WRITE(IO, 0)
 
 #elif defined __ARMEL__
 
@@ -94,8 +94,8 @@
     do { \
       LPC_IOCON->IO ## _CMSIS = (IO ## _OUTPUT | IO_MODEMASK_PULLUP); \
     } while (0)
-  /// Disable pullup resistor.
-  #define _PULLUP_OFF(IO) \
+  /// Disable pull resistor.
+  #define _PULL_OFF(IO) \
     do { \
       LPC_IOCON->IO ## _CMSIS = (IO ## _OUTPUT | IO_MODEMASK_INACTIVE); \
     } while (0)
@@ -109,7 +109,7 @@
   void _SET_OUTPUT(pin_t pin);
   void _SET_INPUT(pin_t pin);
   #define _PULLUP_ON(IO)   _WRITE(IO, 1)
-  #define _PULLUP_OFF(IO)  _WRITE(IO, 0)
+  #define _PULL_OFF(IO)    _WRITE(IO, 0)
 
 #endif /* __AVR__, __ARMEL__, SIMULATOR */
 
@@ -129,8 +129,8 @@
 
 /// Enable pullup resistor.
 #define PULLUP_ON(IO)   _PULLUP_ON(IO)
-/// Disable pullup resistor.
-#define PULLUP_OFF(IO)  _PULLUP_OFF(IO)
+/// Disable pull resistor.
+#define PULL_OFF(IO)    _PULL_OFF(IO)
 
 /*
 Power
@@ -377,22 +377,22 @@ static void endstops_off(void) __attribute__ ((always_inline));
 inline void endstops_off(void) {
 	#ifdef USE_INTERNAL_PULLUPS
 		#ifdef X_MIN_PIN
-      PULLUP_OFF(X_MIN_PIN);
+      PULL_OFF(X_MIN_PIN);
 		#endif
 		#ifdef X_MAX_PIN
-      PULLUP_OFF(X_MAX_PIN);
+      PULL_OFF(X_MAX_PIN);
 		#endif
 		#ifdef Y_MIN_PIN
-      PULLUP_OFF(Y_MIN_PIN);
+      PULL_OFF(Y_MIN_PIN);
 		#endif
 		#ifdef Y_MAX_PIN
-      PULLUP_OFF(Y_MAX_PIN);
+      PULL_OFF(Y_MAX_PIN);
 		#endif
 		#ifdef Z_MIN_PIN
-      PULLUP_OFF(Z_MIN_PIN);
+      PULL_OFF(Z_MIN_PIN);
 		#endif
 		#ifdef Z_MAX_PIN
-      PULLUP_OFF(Z_MAX_PIN);
+      PULL_OFF(Z_MAX_PIN);
 		#endif
 	#endif
 }
