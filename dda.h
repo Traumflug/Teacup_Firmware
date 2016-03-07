@@ -22,7 +22,7 @@ extern const int32_t delta_tower1_x,delta_tower1_y;
 extern const int32_t delta_tower2_x,delta_tower2_y;
 extern const int32_t delta_tower3_x,delta_tower3_y;
 extern const uint32_t DELTA_DIAGONAL_ROD_2;
-extern int32_t endstop_adj_x,endstop_adj_y,endstop_adj_z;
+extern int32_t endstop_adj_x,endstop_adj_y,endstop_adj_z,delta_radius;
 extern int32_t delta_height;
 extern uint8_t bypass_delta;
 #endif
@@ -202,6 +202,22 @@ extern TARGET current_position;
 /*
 	methods
 */
+
+#ifdef DELTA_PRINTER
+#ifdef EECONFIG
+//Write x tower endstop adjustment  to EEPROM from current endstop adjustment value
+void dda_save_x_adj (void);
+
+//Write y tower endstop adjustment  to EEPROM from current endstop adjustment value
+void dda_save_y_adj (void);
+
+//Write z tower endstop adjustment  to EEPROM from current endstop adjustment value
+void dda_save_z_adj (void);
+
+//Write tower height  to EEPROM from current tower height value
+void dda_save_h_adj (void);
+#endif //EECONFIG
+#endif //DELTA_PRINTER
 
 // initialize dda structures
 void dda_init(void);

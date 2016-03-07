@@ -35,8 +35,8 @@ typedef struct {
 		uint8_t					seen_P	:1;
 		uint8_t					seen_T	:1;
 		uint8_t					seen_N	:1;
-    uint8_t         seen_L  :1;             ///show M666 values
-    uint8_t         seen_H  :1;             ///for setting M666 H
+		uint8_t					seen_L	:1;             ///show M666 values
+		uint8_t					seen_H	:1;             ///for setting M666 H
 		uint8_t					seen_checksum				:1; ///< seen a checksum?
 		uint8_t					seen_semi_comment		:1; ///< seen a semicolon?
 		uint8_t					seen_parens_comment	:1; ///< seen an open parenthesis

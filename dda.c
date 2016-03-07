@@ -6,6 +6,8 @@
 
 #include	<string.h>
 #include	<stdlib.h>
+#include	<avr/eeprom.h>
+#include	<avr/pgmspace.h>
 #include	<math.h>
 #ifndef SIMULATOR
 #include	<avr/interrupt.h>
@@ -102,6 +104,45 @@ static const axes_uint32_t PROGMEM c0_P = {
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_E * ACCELERATION / 2000.))
 };
 
+#ifdef DELTA_PRINTER
+#ifdef EECONFIG
+/// EEPROM storage for endstop adjustment and height calibration
+int32_t EEMEM EE_x_endstop_adj;
+int32_t EEMEM EE_y_endstop_adj;
+int32_t EEMEM EE_z_endstop_adj;
+int32_t EEMEM EE_height_adj;
+
+// Write functions
+/*! Write x tower endstop adjustment to EEPROM from current endstop adjustment value
+*/
+void dda_save_x_adj (void)
+{
+	eeprom_write_dword ((uint32_t *) &EE_x_endstop_adj, endstop_adj_x);
+}
+
+/*! Write y tower endstop adjustment  to EEPROM from current endstop adjustment value
+*/
+void dda_save_y_adj (void)
+{
+	eeprom_write_dword ((uint32_t *) &EE_y_endstop_adj, endstop_adj_y);
+}
+
+/*! Write z tower endstop adjustment  to EEPROM from current endstop adjustment value
+*/
+void dda_save_z_adj (void)
+{
+	eeprom_write_dword ((uint32_t *) &EE_z_endstop_adj, endstop_adj_z);
+}
+
+/*! Write tower height  to EEPROM from current tower height value
+*/
+void dda_save_h_adj (void)
+{
+	eeprom_write_dword ((uint32_t *) &EE_height_adj, delta_height);
+}
+#endif //EECONFIG
+#endif //DELTA_PRINTER
+
 /*! Set the direction of the 'n' axis
 */
 static void set_direction(DDA *dda, enum axis_e n, int32_t delta) {
@@ -150,6 +191,14 @@ void dda_init(void) {
 void dda_new_startpoint(void) {
   enum axis_e i;
   #ifdef DELTA_PRINTER
+     
+     #ifdef EECONFIG
+     //load endstop and Z-height config from EEPROM (if defined)
+	 endstop_adj_x = eeprom_read_dword ((uint32_t *) &EE_x_endstop_adj);
+	 endstop_adj_y = eeprom_read_dword ((uint32_t *) &EE_y_endstop_adj);
+	 endstop_adj_z = eeprom_read_dword ((uint32_t *) &EE_z_endstop_adj);
+	 delta_height = eeprom_read_dword ((uint32_t *) &EE_height_adj);
+	 #endif //EECONFIG
      if (bypass_delta == 0)
      {
         TARGET temp;
@@ -169,7 +218,7 @@ void dda_new_startpoint(void) {
   #else
   for (i = X; i < AXIS_COUNT; i++)
     startpoint_steps.axis[i] = um_to_steps(startpoint.axis[i], i);
-  #endif
+  #endif //DELTA_PRINTER
 }
 
 /*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue

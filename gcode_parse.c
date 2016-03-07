@@ -5,7 +5,9 @@
 */
 
 #include	<string.h>
-
+#include	<stdlib.h>
+#include	<avr/eeprom.h>
+#include	<avr/pgmspace.h>
 #include	"serial.h"
 #include	"sermsg.h"
 #include	"dda_queue.h"
@@ -122,61 +124,73 @@ void gcode_parse_char(uint8_t c) {
 					break;
 				#ifdef DELTA_PRINTER
 				case 'H':
-          delta_height = decfloat_to_int(&read_digit, 1000);
-          break;
-        #endif
+					delta_height = decfloat_to_int(&read_digit, 1000);
+					#ifdef EECONFIG
+					dda_save_h_adj();
+					#endif //EECONFIG
+					break;
+				#endif //DELTA_PRINTER
 				case 'X':
-          if (next_target.M == 666) {
-             #ifdef DELTA_PRINTER
-             endstop_adj_x = decfloat_to_int(&read_digit, 1000);
-             #endif
-          }
-          else {
-					if (next_target.option_inches)
-            next_target.target.axis[X] = decfloat_to_int(&read_digit, 25400);
-					else
-            next_target.target.axis[X] = decfloat_to_int(&read_digit, 1000);
-          }
+					if (next_target.M == 666) {
+						#ifdef DELTA_PRINTER
+						endstop_adj_x = decfloat_to_int(&read_digit, 1000);
+						#ifdef EECONFIG
+						dda_save_x_adj();
+						#endif //EECONFIG
+						#endif //DELTA_PRINTER
+					}
+					else {
+						if (next_target.option_inches)
+							next_target.target.axis[X] = decfloat_to_int(&read_digit, 25400);
+						else
+							next_target.target.axis[X] = decfloat_to_int(&read_digit, 1000);
+					}
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_int32(next_target.target.axis[X]);
+						serwrite_int32(next_target.target.axis[X]);
 					break;
 				case 'Y':
-          if (next_target.M == 666){
-             #ifdef DELTA_PRINTER
-             endstop_adj_y = decfloat_to_int(&read_digit, 1000);
-             #endif
-          }
-          else {
-					if (next_target.option_inches)
-            next_target.target.axis[Y] = decfloat_to_int(&read_digit, 25400);
-					else
-            next_target.target.axis[Y] = decfloat_to_int(&read_digit, 1000);
-          }
+					if (next_target.M == 666){
+						#ifdef DELTA_PRINTER
+						endstop_adj_y = decfloat_to_int(&read_digit, 1000);
+						#ifdef EECONFIG
+						dda_save_y_adj();
+						#endif //EECONFIG
+						#endif //DELTA_PRINTER
+					}
+					else {
+						if (next_target.option_inches)
+							next_target.target.axis[Y] = decfloat_to_int(&read_digit, 25400);
+						else
+							next_target.target.axis[Y] = decfloat_to_int(&read_digit, 1000);
+					}
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_int32(next_target.target.axis[Y]);
+						serwrite_int32(next_target.target.axis[Y]);
 					break;
 				case 'Z':
-          if (next_target.M == 666){
-             #ifdef DELTA_PRINTER
-             endstop_adj_z = decfloat_to_int(&read_digit, 1000);
-             #endif
-          }
-          else {
-					if (next_target.option_inches)
-            next_target.target.axis[Z] = decfloat_to_int(&read_digit, 25400);
-					else
-            next_target.target.axis[Z] = decfloat_to_int(&read_digit, 1000);
-          }
+					if (next_target.M == 666){
+						#ifdef DELTA_PRINTER
+						endstop_adj_z = decfloat_to_int(&read_digit, 1000);
+						#ifdef EECONFIG
+						dda_save_z_adj();
+						#endif //EECONFIG
+						#endif //DELTA_PRINTER
+					}
+					else {
+						if (next_target.option_inches)
+							next_target.target.axis[Z] = decfloat_to_int(&read_digit, 25400);
+						else
+							next_target.target.axis[Z] = decfloat_to_int(&read_digit, 1000);
+					}
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_int32(next_target.target.axis[Z]);
+						serwrite_int32(next_target.target.axis[Z]);
 					break;
 				case 'E':
 					if (next_target.option_inches)
-            next_target.target.axis[E] = decfloat_to_int(&read_digit, 25400);
+						next_target.target.axis[E] = decfloat_to_int(&read_digit, 25400);
 					else
-            next_target.target.axis[E] = decfloat_to_int(&read_digit, 1000);
+						next_target.target.axis[E] = decfloat_to_int(&read_digit, 1000);
 					if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
-            serwrite_int32(next_target.target.axis[E]);
+						serwrite_int32(next_target.target.axis[E]);
 					break;
 				case 'F':
 					// just use raw integer, we need move distance and n_steps to convert it to a useful value, so wait until we have those to convert it
