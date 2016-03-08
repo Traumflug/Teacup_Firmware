@@ -60,8 +60,8 @@ reHeater = re.compile(".*\\(\s*(\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*\\)")
 reTempTable4 = re.compile(".*\\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d*.?\d*)\s*\\)")
 reTempTable7 = re.compile(".*\\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\\)")
 
-reInteger = re.compile("^\d+U?L?$")
-reFloat = re.compile("^\d+(\.\d*)?$")
+reInteger = re.compile("^[+-]?\d+U?L?$")
+reFloat = re.compile("^[+-]?\d+(\.\d*)?$")
 
 defineValueFormat =      "#define %-24s %s\n"
 defineBoolFormat =       "#define %s\n"
