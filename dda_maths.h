@@ -2,7 +2,7 @@
 #define	_DDA_MATHS_H
 
 #include	<stdint.h>
-
+#include	<math.h>
 #include	"config_wrapper.h"
 #include "dda.h"
 
@@ -59,4 +59,43 @@ uint32_t acc_ramp_len(uint32_t feedrate, uint32_t steps_per_m);
 // For X axis only, should become obsolete:
 #define ACCELERATE_RAMP_LEN(speed) (((speed)*(speed)) / (uint32_t)((7200000.0f * ACCELERATION) / (float)STEPS_PER_M_X))
 
+// Compile-time trigonometric functions. See Taylor series.
+// Converts degrees to radians.
+#define DegToRad(angleDegrees) ((angleDegrees) * M_PI / 180.0)
+//Make an angle (in radian) coterminal (0 >= x > 2pi).
+//#define COTERMINAL(x) (fmod((x), M_PI*2)) //This causes error since fmod() implementation is different from i386 compiler.
+//TODO: Solve coterminality
+#define COTERMINAL(x) (x)
+// Get quadrant of an angle in radian.
+#define QUADRANT(x) ((uint8_t)((COTERMINAL((x))) / M_PI_2) + 1)
+//Calculate sine of an angle in radians.
+//Formula will be adjusted accordingly to the angle's quadrant.
+//Don't worry about pow() function here as it will be optimized by the compiler.
+#define SIN0(x) (x)
+#define SIN1(x) (SIN0(x) - (pow ((x), 3) / 6))
+#define SIN2(x) (SIN1(x) + (pow ((x), 5) /  120))
+#define SIN3(x) (SIN2(x) - (pow ((x), 7) /  5040))
+#define SIN4(x) (SIN3(x) + (pow ((x), 9) /  362880))
+//*
+#define SIN(x) (QUADRANT((x)) == 1 ? (SIN4(COTERMINAL((x)))) : \
+               (QUADRANT((x)) == 2 ? (SIN4(M_PI - COTERMINAL((x)))) : \
+               (QUADRANT((x)) == 3 ? -(SIN4(COTERMINAL((x)) - M_PI)) : \
+               -(SIN4(M_PI*2 - COTERMINAL((x)))))))
+//               */
+//#define SIN(x) (SIN4(x))
+//Calculate cosine of an angle in radians.
+//Formula will be adjusted accordingly to the angle's quadrant.
+//Don't worry about pow() function here as it will be optimized by the compiler.
+#define COS0(x) 1
+#define COS1(x) (COS0(x) - (pow ((x), 2) /  2))
+#define COS2(x) (COS1(x) + (pow ((x), 4) /  24))
+#define COS3(x) (COS2(x) - (pow ((x), 6) /  720))
+#define COS4(x) (COS3(x) + (pow ((x), 8) /  40320))
+//*
+#define COS(x) (QUADRANT((x)) == 1 ? (COS4(COTERMINAL((x)))) : \
+               (QUADRANT((x)) == 2 ? -(COS4(M_PI - COTERMINAL((x)))) : \
+               (QUADRANT((x)) == 3 ? -(COS4(COTERMINAL((x)) - M_PI)) : \
+               (COS4(M_PI*2 - COTERMINAL((x)))))))
+//               */
+//#define COS(x) COS4((x))
 #endif	/* _DDA_MATHS_H */

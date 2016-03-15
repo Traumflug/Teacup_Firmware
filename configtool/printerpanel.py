@@ -12,6 +12,7 @@ from configtool.data import (defineValueFormat, defineBoolFormat, reCommDefBL,
 from configtool.mechanicalpage import MechanicalPage
 from configtool.accelerationpage import AccelerationPage
 from configtool.miscellaneouspage import MiscellaneousPage
+from configtool.deltapage import DeltaPage
 from configtool.protectedfiles import protectedFiles
 
 
@@ -67,6 +68,15 @@ class PrinterPanel(wx.Panel):
     text = "Miscellaneous"
     self.nb.AddPage(self.pgMiscellaneous, text)
     self.pages.append(self.pgMiscellaneous)
+    self.titles.append(text)
+    self.pageModified.append(False)
+    self.pageValid.append(True)
+    
+    self.pgDelta = DeltaPage(self, self.nb, len(self.pages),
+                                             self.settings.font)
+    text = "Delta Geometry"
+    self.nb.AddPage(self.pgDelta, text)
+    self.pages.append(self.pgDelta)
     self.titles.append(text)
     self.pageModified.append(False)
     self.pageValid.append(True)

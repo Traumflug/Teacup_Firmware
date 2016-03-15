@@ -28,7 +28,7 @@ class MechanicalPage(wx.Panel, Page):
 
     self.minmaxKeys = ['X_MIN', 'X_MAX', 'Y_MIN', 'Y_MAX', 'Z_MIN', 'Z_MAX']
 
-    self.kinematicsKeys = ['KINEMATICS_STRAIGHT', 'KINEMATICS_COREXY']
+    self.kinematicsKeys = ['KINEMATICS_STRAIGHT', 'KINEMATICS_COREXY', 'KINEMATICS_DELTA']
 
     self.labels = {'STEPS_PER_M_X': "X:", 'STEPS_PER_M_Y': "Y:",
                    'STEPS_PER_M_Z': "Z:", 'STEPS_PER_M_E' : "E:",
@@ -42,7 +42,8 @@ class MechanicalPage(wx.Panel, Page):
                    'Y_MAX': "Max Y:", 'Z_MIN': "Min Z:", 'Z_MAX': "Max Z:",
                    'E_ABSOLUTE': "Absolute E Coordinates",
                    'KINEMATICS_STRAIGHT': "Straight",
-                   'KINEMATICS_COREXY': "CoreXY"}
+                   'KINEMATICS_COREXY': "CoreXY",
+				   'KINEMATICS_DELTA': "Delta"}
 
     labelWidth = 40;
 

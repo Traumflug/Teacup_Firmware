@@ -40,12 +40,12 @@
 const uint32_t delta_diagonal_rod   = (DEFAULT_DELTA_DIAGONAL_ROD >> 4);
 const uint32_t DELTA_DIAGONAL_ROD_2 = (DEFAULT_DELTA_DIAGONAL_ROD >> 4) * (DEFAULT_DELTA_DIAGONAL_ROD >> 4);
 
-const int32_t delta_tower1_x       = (int32_t)(-0.86602540378443864676372317075294 * DEFAULT_DELTA_RADIUS) >> 4;
-const int32_t delta_tower1_y       = (int32_t)(-0.5 * DEFAULT_DELTA_RADIUS) >> 4;
-const int32_t delta_tower2_x       = (int32_t)( 0.86602540378443864676372317075294 * DEFAULT_DELTA_RADIUS) >> 4;
-const int32_t delta_tower2_y       = (int32_t)(-0.5 * DEFAULT_DELTA_RADIUS) >> 4;
-const int32_t delta_tower3_x       = (int32_t)( 0.0 * DEFAULT_DELTA_RADIUS) >> 4;
-const int32_t delta_tower3_y       = (DEFAULT_DELTA_RADIUS >> 4);
+const int32_t delta_tower1_x       = (int32_t)(COS(DegToRad(TOWER_X_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
+const int32_t delta_tower1_y       = (int32_t)(SIN(DegToRad(TOWER_X_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
+const int32_t delta_tower2_x       = (int32_t)(COS(DegToRad(TOWER_Y_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
+const int32_t delta_tower2_y       = (int32_t)(SIN(DegToRad(TOWER_Y_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
+const int32_t delta_tower3_x       = (int32_t)(COS(DegToRad(TOWER_Z_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
+const int32_t delta_tower3_y       = (int32_t)(SIN(DegToRad(TOWER_Z_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
 int32_t delta_radius         = (DEFAULT_DELTA_RADIUS >> 4);
 int32_t delta_height = Z_MAX * 1000;
 int32_t endstop_adj_x;
@@ -395,7 +395,11 @@ void dda_create(DDA *dda, TARGET *target) {
 		stepper_enable();
 		x_enable();
 		y_enable();
-		// Z is enabled in dda_start()
+		// for cartesian/CoreXY printer, Z is enabled in dda_start().
+		//for delta, it's enabled here.
+		#ifdef DELTA_PRINTER
+		z_enable();
+		#endif //DELTA_PRINTER
 		e_enable();
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
@@ -609,8 +613,11 @@ void dda_start(DDA *dda) {
 	if ( ! dda->nullmove) {
 		// get ready to go
 		psu_timeout = 0;
-    if (dda->delta[Z])
+		//In case of delta printer, the Z motor is enabled in dda_create. 
+		#ifndef DELTA_PRINTER
+		if (dda->delta[Z])
 			z_enable();
+		#endif //DELTA_PRINTER
 		if (dda->endstop_check)
 			endstops_on();
 
