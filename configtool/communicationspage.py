@@ -11,7 +11,7 @@ class CommunicationsPage(wx.Panel, Page):
     self.id = idPg
     self.defaultBaud = '115200'
 
-    self.bauds = ['19200', '38400', '57600', self.defaultBaud]
+    self.bauds = ['19200', '38400', '57600', self.defaultBaud,'250000']
 
     self.labels = {'XONXOFF': "XON/XOFF Flow Control", 'BAUD': "Baud Rate:",
                    'USB_SERIAL': "USB Serial"}

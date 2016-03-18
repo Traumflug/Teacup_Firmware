@@ -14,11 +14,12 @@ OBJCOPYFLAGS= 3
 PROGRAMMER = 4
 PORT = 5
 UPLOADSPEED = 6
-NUMTEMPS = 7
-MINADC = 8
-MAXADC = 9
-T0 = 10
-R1 = 11
+UPLOADFLAGS = 7
+NUMTEMPS = 8
+MINADC = 9
+MAXADC = 10
+T0 = 11
+R1 = 12
 
 
 class Settings:
@@ -35,6 +36,7 @@ class Settings:
     self.programmer = "wiring"
     self.port = "/dev/ttyACM0"
     self.uploadspeed = 38400
+    self.uploadflags = "-D"
 
     self.t0 = 25;
     self.r1 = 0;
@@ -78,6 +80,8 @@ class Settings:
           self.minAdc = value
         elif opt == "uploadspeed":
           self.uploadspeed = value
+        elif opt == "uploadflags":
+          self.uploadflags = value
         else:
           print "Unknown %s option: %s - ignoring." % (self.section, opt)
     else:
@@ -102,6 +106,7 @@ class Settings:
     self.cfg.set(self.section, "maxadc", str(self.maxAdc))
     self.cfg.set(self.section, "minadc", str(self.minAdc))
     self.cfg.set(self.section, "uploadspeed", str(self.uploadspeed))
+    self.cfg.set(self.section, "uploadflags", str(self.uploadflags))
 
     try:
       cfp = open(self.inifile, 'wb')
@@ -138,6 +143,7 @@ class SettingsDlg(wx.Dialog):
                "omit the flag entirely, or simply ignore the related warnings."
     htLDFlags = "Flags passed to avr-gcc to be passed on to the linker."
     htObjCopy = "Flags passed to avr-objcopy."
+    htUlFlags = "Additional flags passed to avrdude."
     htProgrammer = "The programmer type - passed to avrdude."
     htPort = "The port to which the controller is connected. Typically a " \
              "path starting with /dev/... on Linux or Mac OS X, or some " \
@@ -161,6 +167,7 @@ class SettingsDlg(wx.Dialog):
                    ["AVR Programmer", settings.programmer, htProgrammer],
                    ["Port", settings.port, htPort],
                    ["Upload Speed", settings.uploadspeed, htSpeed],
+                   ["Upload Flags", settings.uploadflags,htUlFlags],
                    ["Number of Temps", settings.numTemps, htNumTemps],
                    ["Minimum ADC value", settings.minAdc, htMinAdc],
                    ["Maximum ADC value", settings.maxAdc, htMaxAdc],
@@ -246,6 +253,7 @@ class SettingsDlg(wx.Dialog):
     self.settings.programmer = self.teList[PROGRAMMER].GetValue()
     self.settings.port = self.teList[PORT].GetValue()
     self.settings.uploadspeed = self.teList[UPLOADSPEED].GetValue()
+    self.settings.uploadflags = self.teList[UPLOADFLAGS].GetValue()
     self.settings.numTemps = self.teList[NUMTEMPS].GetValue()
     self.settings.minAdc = self.teList[MINADC].GetValue()
     self.settings.maxAdc = self.teList[MAXADC].GetValue()

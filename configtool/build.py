@@ -416,9 +416,9 @@ class Upload(wx.Dialog):
     cmdpath = ScriptTools(self.settings).figureCommandPath("avrdude")
     hexpath = "\"" + join(self.root, "teacup.hex") + "\""
 
-    cmd = cmdpath + " -c %s -b %s -p %s -P %s -U flash:w:%s:i" % \
-          (self.settings.programmer, self.baud, self.cpu, self.settings.port,
-           hexpath)
+    cmd = cmdpath + " -c %s -b %s %s -p %s -P %s -U flash:w:%s:i" % \
+          (self.settings.programmer, self.baud, self.settings.uploadflags,
+           self.cpu, self.settings.port, hexpath)
     self.script.append(cmd)
 
   def uploadUpdate(self, evt):
