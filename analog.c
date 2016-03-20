@@ -6,6 +6,7 @@
 #include "analog.h"
 #include "temp.h"
 
+#ifndef __ARM_STM32F411__
 /**
   OR-combined mask of all channels. Auto-magically generated from
   DEFINE_TEMP_SENSOR() entries in config_wrapper.h
@@ -32,6 +33,7 @@ static uint8_t adc_channel[NUM_TEMP_SENSORS] = {
   #include "config_wrapper.h"
 };
 #undef DEFINE_TEMP_SENSOR
+#endif
 
 #define TEACUP_C_INCLUDE
 #include "analog-avr.c"
