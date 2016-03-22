@@ -5,7 +5,7 @@
   For test cases see the intro comment in heater.c.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARMEL__
+#if defined TEACUP_C_INCLUDE && defined __ARM_LPC1114__
 
 #include "cmsis-lpc11xx.h"
 #include <stddef.h>
