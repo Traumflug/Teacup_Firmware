@@ -26,6 +26,7 @@
 #define TEACUP_C_INCLUDE
 #include "heater-avr.c"
 #include "heater-lpc.c"
+#include "heater-stm32.c"
 #undef TEACUP_C_INCLUDE
 
 #include	<stdlib.h>
