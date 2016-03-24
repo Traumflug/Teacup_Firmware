@@ -142,6 +142,7 @@ void heater_init() {
       
   */
   if (NUM_HEATERS) {                            // At least one channel in use.
+    uint32_t freq;
     uint8_t macro_mask;
 
     // Auto-generate pin setup.
@@ -173,7 +174,12 @@ void heater_init() {
     pin ## _TIMER->ARR = PWM_SCALE - 1;             /* reset on auto reload at 254  */ \
                       /* PWM_SCALE - 1, so CCR = 255 is full off.                   */ \
     pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,) = 0;               /* start off */ \
-    pin ## _TIMER->PSC = F_CPU / PWM_SCALE / 1000 - 1;      /* 1kHz                 */ \
+    freq = F_CPU / PWM_SCALE / pwm;                             /* Figure PWM freq. */ \
+    if (freq > 65535)                                                                  \
+      freq = 65535;                                                                    \
+    if (freq < 1)                                                                      \
+      freq = 1;                                                                        \
+    pin ## _TIMER->PSC = freq - 1;      /* 1kHz                 */ \
     macro_mask = pin ## _CHANNEL > 2 ? 2 : 1;                                          \
     if (macro_mask == 1) {                                                             \
       pin ## _TIMER->CCMR1 |= 0x0D << (3 + (8 * (pin ## _CHANNEL / macro_mask - 1)));  \
