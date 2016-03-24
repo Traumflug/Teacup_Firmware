@@ -61,13 +61,25 @@
   #include "config_wrapper.h" trick.
 */
 typedef struct {
-  /// Pointer to the capture compare register which changes PWM duty.
-  __IO uint32_t* ccr;
+  union {
+    /// Pointer to the capture compare register which changes PWM duty.
+    __IO uint32_t* ccr;
+    /// Pointer to the port for non-PWM pins.
+    __IO uint32_t* bsrr;
+  };
+  uint16_t masked_pin;
+  uint8_t uses_pwm;
 } heater_definition_t;
 
 #undef DEFINE_HEATER
 #define DEFINE_HEATER(name, pin, pwm) \
-  { &(pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,)) },
+  { \
+    { pwm && pin ## _TIMER ? \
+      &(pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,)) : \
+      &(pin ## _PORT->BSRR) }, \
+    MASK(pin ## _PIN), \
+    pwm && pin ## _TIMER \
+  },
 static const heater_definition_t heaters[NUM_HEATERS] = {
   #include "config_wrapper.h"
 };
@@ -141,69 +153,71 @@ void heater_init() {
       - PIOC_9   PWM3/4             02                SDA3
       
   */
-  if (NUM_HEATERS) {                            // At least one channel in use.
-    uint32_t freq;
-    uint8_t macro_mask;
-
-    // Auto-generate pin setup.
-    #undef DEFINE_HEATER 
-    #define DEFINE_HEATER(name, pin, pwm) \
-    if (pin ## _TIMER == TIM1) {                                                       \
-      RCC->APB2ENR |= RCC_APB2ENR_TIM1EN; }                     /* turn on TIM1     */ \
-    else if (pin ## _TIMER == TIM2) {                                                  \
-      RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; }                     /* turn on TIM2     */ \
-    else if (pin ## _TIMER == TIM3) {                                                  \
-      RCC->APB1ENR |= RCC_APB1ENR_TIM3EN; }                     /* turn on TIM3     */ \
-    else if (pin ## _TIMER == TIM4) {                                                  \
-      RCC->APB1ENR |= RCC_APB1ENR_TIM4EN; }                     /* turn on TIM4     */ \
-    /* TIM5 is for stepper, TIM9, TIM10 and TIM11 are not used                      */ \
-    pin ## _PORT->MODER &= ~(3 << (pin ## _PIN << 1));      /*  reset pin mode      */ \
-    pin ## _PORT->MODER |= (2 << (pin ## _PIN << 1));       /*  pin mode to AF      */ \
-    pin ## _PORT->OSPEEDR |= (3 << (pin ## _PIN << 1));     /*  high speed          */ \
-    pin ## _PORT->PUPDR &= ~(3 << ((pin ## _PIN) << 1));    /*  no pullup-pulldown  */ \
-    macro_mask = pin ## _PIN < 8 ? (pin ## _PIN) : (pin ## _PIN - 8);                  \
-    /* we have to registers for AFR. ARF[0] for the first 8, ARF[1] for the second 8*/ \
-    /* also we use this to keep the compiler happy and don't shift > 32             */ \
-    if (pin ## _PIN < 8) {                                                             \
-      pin ## _PORT->AFR[0] |= pin ## _AF << (macro_mask * 4);                          \
-    } else {                                                                           \
-      pin ## _PORT->AFR[1] |= pin ## _AF << (macro_mask * 4);                          \
-    }                                                                                  \
-    /* AFR is a 64bit register, first half are for pin 0-7, second half 8-15        */ \
-    pin ## _TIMER->CR1 |= TIM_CR1_ARPE;                     /* auto-reload preload  */ \
-    pin ## _TIMER->ARR = PWM_SCALE - 1;             /* reset on auto reload at 254  */ \
-                      /* PWM_SCALE - 1, so CCR = 255 is full off.                   */ \
-    pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,) = 0;               /* start off */ \
-    freq = F_CPU / PWM_SCALE / pwm;                             /* Figure PWM freq. */ \
-    if (freq > 65535)                                                                  \
-      freq = 65535;                                                                    \
-    if (freq < 1)                                                                      \
-      freq = 1;                                                                        \
-    pin ## _TIMER->PSC = freq - 1;      /* 1kHz                 */ \
-    macro_mask = pin ## _CHANNEL > 2 ? 2 : 1;                                          \
-    if (macro_mask == 1) {                                                             \
-      pin ## _TIMER->CCMR1 |= 0x0D << (3 + (8 * (pin ## _CHANNEL / macro_mask - 1)));  \
-      /* ch 2 / mm 1 - 1 = 1, ch 1 / mm 1 - 1 = 0*/                                    \
-    } else {                                                                           \
-      pin ## _TIMER->CCMR2 |= 0x0D << (3 + (8 * (pin ## _CHANNEL / macro_mask - 1)));  \
-      /* ch 4 / mm 2 - 1 = 1, ch 3 / mm 2 - 1 = 0*/                                    \
-    }                                                                                  \
-    pin ## _TIMER->CCER |= EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, E);                  \
-    /* output enable */                                                                \
-    if (pin ## _INVERT) {                                                              \
-      pin ## _TIMER->CCER |= EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, P);                \
-    } else {                                                                           \
-    pin ## _TIMER->CCER &= ~(EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, P));               \
-    }                                                                                  \
-    /* invert the signal for negated timers*/                                          \
-    /* TODO: use this also with a XOR for inverted heaters later                    */ \
-    pin ## _TIMER->EGR |= TIM_EGR_UG;                   /* update generation        */ \
-    pin ## _TIMER->CR1 |= TIM_CR1_CEN;                  /* enable counters          */
+  // Auto-generate pin setup.
+  #undef DEFINE_HEATER 
+  #define DEFINE_HEATER(name, pin, pwm) \
+    if (pwm && pin ## _TIMER) {                                                          \
+      uint32_t freq;                                                                     \
+      uint8_t macro_mask;                                                                \
+      if (pin ## _TIMER == TIM1) {                                                       \
+        RCC->APB2ENR |= RCC_APB2ENR_TIM1EN; }                     /* turn on TIM1     */ \
+      else if (pin ## _TIMER == TIM2) {                                                  \
+        RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; }                     /* turn on TIM2     */ \
+      else if (pin ## _TIMER == TIM3) {                                                  \
+        RCC->APB1ENR |= RCC_APB1ENR_TIM3EN; }                     /* turn on TIM3     */ \
+      else if (pin ## _TIMER == TIM4) {                                                  \
+        RCC->APB1ENR |= RCC_APB1ENR_TIM4EN; }                     /* turn on TIM4     */ \
+      /* TIM5 is for stepper, TIM9, TIM10 and TIM11 are not used                      */ \
+      pin ## _PORT->MODER &= ~(3 << (pin ## _PIN << 1));      /*  reset pin mode      */ \
+      pin ## _PORT->MODER |= (2 << (pin ## _PIN << 1));       /*  pin mode to AF      */ \
+      pin ## _PORT->OSPEEDR |= (3 << (pin ## _PIN << 1));     /*  high speed          */ \
+      pin ## _PORT->PUPDR &= ~(3 << ((pin ## _PIN) << 1));    /*  no pullup-pulldown  */ \
+      macro_mask = pin ## _PIN < 8 ? (pin ## _PIN) : (pin ## _PIN - 8);                  \
+      /* we have to registers for AFR. ARF[0] for the first 8, ARF[1] for the second 8*/ \
+      /* also we use this to keep the compiler happy and don't shift > 32             */ \
+      if (pin ## _PIN < 8) {                                                             \
+        pin ## _PORT->AFR[0] |= pin ## _AF << (macro_mask * 4);                          \
+      } else {                                                                           \
+        pin ## _PORT->AFR[1] |= pin ## _AF << (macro_mask * 4);                          \
+      }                                                                                  \
+      /* AFR is a 64bit register, first half are for pin 0-7, second half 8-15        */ \
+      pin ## _TIMER->CR1 |= TIM_CR1_ARPE;                     /* auto-reload preload  */ \
+      pin ## _TIMER->ARR = PWM_SCALE - 1;             /* reset on auto reload at 254  */ \
+                        /* PWM_SCALE - 1, so CCR = 255 is full off.                   */ \
+      pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,) = 0;               /* start off */ \
+      freq = F_CPU / PWM_SCALE / (pwm ? pwm : 1);                 /* Figure PWM freq. */ \
+      if (freq > 65535)                                                                  \
+        freq = 65535;                                                                    \
+      if (freq < 1)                                                                      \
+        freq = 1;                                                                        \
+      pin ## _TIMER->PSC = freq - 1;                          /* 1kHz                 */ \
+      macro_mask = pin ## _CHANNEL > 2 ? 2 : 1;                                          \
+      if (macro_mask == 1) {                                                             \
+        pin ## _TIMER->CCMR1 |= 0x0D << (3 + (8 * (pin ## _CHANNEL / macro_mask - 1)));  \
+        /* ch 2 / mm 1 - 1 = 1, ch 1 / mm 1 - 1 = 0*/                                    \
+      } else {                                                                           \
+        pin ## _TIMER->CCMR2 |= 0x0D << (3 + (8 * (pin ## _CHANNEL / macro_mask - 1)));  \
+        /* ch 4 / mm 2 - 1 = 1, ch 3 / mm 2 - 1 = 0*/                                    \
+      }                                                                                  \
+      pin ## _TIMER->CCER |= EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, E);                  \
+      /* output enable */                                                                \
+      if (pin ## _INVERT) {                                                              \
+        pin ## _TIMER->CCER |= EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, P);                \
+      } else {                                                                           \
+      pin ## _TIMER->CCER &= ~(EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, P));               \
+      }                                                                                  \
+      /* invert the signal for negated timers*/                                          \
+      /* TODO: use this also with a XOR for inverted heaters later                    */ \
+      pin ## _TIMER->EGR |= TIM_EGR_UG;                   /* update generation        */ \
+      pin ## _TIMER->CR1 |= TIM_CR1_CEN;                  /* enable counters          */ \
+    }                                                                                    \
+    else {                                                                               \
+      SET_OUTPUT(pin);                                                                   \
+      WRITE(pin, 0);                                                                     \
+    }
 
     #include "config_wrapper.h"
     #undef DEFINE_HEATER
-
-  } /* NUM_HEATERS */
 
 #if 0
   pid_init(i);
@@ -226,12 +240,17 @@ void heater_set(heater_t index, uint8_t value) {
 
     heaters_runtime[index].heater_output = value;
 
-    // Remember, we scale, and duty cycle is inverted.
-    *heaters[index].ccr = (uint32_t)value * (PWM_SCALE / 255);
+    if (heaters[index].uses_pwm) {
+      // Remember, we scale, and duty cycle is inverted.
+      *heaters[index].ccr = (uint32_t)value * (PWM_SCALE / 255);
 
-    if (DEBUG_PID && (debug_flags & DEBUG_PID))
-      sersendf_P(PSTR("PWM %su = %lu\n"), index, *heaters[index].ccr);
-
+      if (DEBUG_PID && (debug_flags & DEBUG_PID))
+        sersendf_P(PSTR("PWM %su = %lu\n"), index, *heaters[index].ccr);
+    }
+    else {
+      *(heaters[index].bsrr) =
+        heaters[index].masked_pin << ((value >= HEATER_THRESHOLD) ? 0 : 16);
+    }
     if (value)
       power_on();
   }
