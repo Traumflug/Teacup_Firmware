@@ -142,23 +142,20 @@ void heater_init() {
       
   */
   if (NUM_HEATERS) {                            // At least one channel in use.
-
-    // For simplicity, turn on all timers, not only the used ones.
-    // TODO: turn on only the used ones. we know pin ## TIMER.
-    RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-    RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
-    RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
-    RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;
-    RCC->APB2ENR |= RCC_APB2ENR_TIM9EN;
-    RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
-    RCC->APB2ENR |= RCC_APB2ENR_TIM11EN;
+    uint8_t macro_mask;
 
     // Auto-generate pin setup.
-
-    #undef DEFINE_HEATER
-    uint8_t macro_mask; 
+    #undef DEFINE_HEATER 
     #define DEFINE_HEATER(name, pin, pwm) \
+    if (pin ## _TIMER == TIM1) {                                                       \
+      RCC->APB2ENR |= RCC_APB2ENR_TIM1EN; }                     /* turn on TIM1     */ \
+    else if (pin ## _TIMER == TIM2) {                                                  \
+      RCC->APB1ENR |= RCC_APB1ENR_TIM2EN; }                     /* turn on TIM2     */ \
+    else if (pin ## _TIMER == TIM3) {                                                  \
+      RCC->APB1ENR |= RCC_APB1ENR_TIM3EN; }                     /* turn on TIM3     */ \
+    else if (pin ## _TIMER == TIM4) {                                                  \
+      RCC->APB1ENR |= RCC_APB1ENR_TIM4EN; }                     /* turn on TIM4     */ \
+    /* TIM5 is for stepper, TIM9, TIM10 and TIM11 are not used                      */ \
     pin ## _PORT->MODER &= ~(3 << (pin ## _PIN << 1));      /*  reset pin mode      */ \
     pin ## _PORT->MODER |= (2 << (pin ## _PIN << 1));       /*  pin mode to AF      */ \
     pin ## _PORT->OSPEEDR |= (3 << (pin ## _PIN << 1));     /*  high speed          */ \
