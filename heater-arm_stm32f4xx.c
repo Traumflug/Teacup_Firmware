@@ -5,6 +5,11 @@
 
 #if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
 
+#include "cmsis-stm32f4xx.h"
+#include "pinio.h"
+#include "sersendf.h"
+#include "debug.h"
+
 /**
   Test configuration.
 */
@@ -45,6 +50,28 @@
 */
 #define PWM_SCALE 255
 
+// some helper macros
+#define _EXPANDER(pre, val, post) pre ## val ## post
+#define EXPANDER(pre, val, post) _EXPANDER(pre, val, post)
+
+/** \struct heater_definition_t
+
+  Holds pinout data to allow changing PWM output after initialisation. Port,
+  pin, PWM channel if used. After inititalisation we can no longer do the
+  #include "config_wrapper.h" trick.
+*/
+typedef struct {
+  /// Pointer to the capture compare register which changes PWM duty.
+  __IO uint32_t* ccr;
+} heater_definition_t;
+
+#undef DEFINE_HEATER
+#define DEFINE_HEATER(name, pin, pwm) \
+  { &(pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,)) },
+static const heater_definition_t heaters[NUM_HEATERS] = {
+  #include "config_wrapper.h"
+};
+#undef DEFINE_HEATER
 
 /** Initialise heater subsystem.
 
@@ -129,10 +156,6 @@ void heater_init() {
 
     // Auto-generate pin setup.
 
-    // some helper macros
-    #define _EXPANDER(pre, val, post) pre ## val ## post
-    #define EXPANDER(pre, val, post) _EXPANDER(pre, val, post)
-
     #undef DEFINE_HEATER
     uint8_t macro_mask; 
     #define DEFINE_HEATER(name, pin, pwm) \
@@ -152,7 +175,7 @@ void heater_init() {
     pin ## _TIMER->CR1 |= TIM_CR1_ARPE;                     /* auto-reload preload  */ \
     pin ## _TIMER->ARR = PWM_SCALE - 1;             /* reset on auto reload at 254  */ \
                       /* PWM_SCALE - 1, so CCR = 255 is full off.                   */ \
-    pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,) = PWM_SCALE * 0.1;    /* testing*/ \
+    pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,) = 0;               /* start off */ \
     pin ## _TIMER->PSC = F_CPU / PWM_SCALE / 1000 - 1;      /* 1kHz                 */ \
     macro_mask = pin ## _CHANNEL > 2 ? 2 : 1;                                          \
     if (macro_mask == 1) {                                                             \
@@ -182,6 +205,33 @@ void heater_init() {
 #if 0
   pid_init(i);
 #endif /* 0 */
+}
+
+/** Set PWM output.
+
+  \param index The heater we're setting the output for.
+
+  \param value The PWM value to write, range 0 (off) to 255 (full on).
+
+  This function is called by M106 or, if a temp sensor is connected to the
+  heater, every few milliseconds by its PID handler. Using M106 on an output
+  with a sensor changes its setting only for a short moment.
+*/
+void heater_set(heater_t index, uint8_t value) {
+
+  if (index < NUM_HEATERS) {
+
+    heaters_runtime[index].heater_output = value;
+
+    // Remember, we scale, and duty cycle is inverted.
+    *heaters[index].ccr = (uint32_t)value * (PWM_SCALE / 255);
+
+    if (DEBUG_PID && (debug_flags & DEBUG_PID))
+      sersendf_P(PSTR("PWM %su = %lu\n"), index, *heaters[index].ccr);
+
+    if (value)
+      power_on();
+  }
 }
 
 #endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
