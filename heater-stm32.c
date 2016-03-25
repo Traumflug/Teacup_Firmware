@@ -72,7 +72,7 @@ typedef struct {
 } heater_definition_t;
 
 #undef DEFINE_HEATER
-#define DEFINE_HEATER(name, pin, pwm) \
+#define DEFINE_HEATER(name, pin, invert, pwm) \
   { \
     { pwm && pin ## _TIMER ? \
       &(pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,)) : \
@@ -155,7 +155,7 @@ void heater_init() {
   */
   // Auto-generate pin setup.
   #undef DEFINE_HEATER 
-  #define DEFINE_HEATER(name, pin, pwm) \
+  #define DEFINE_HEATER(name, pin, invert, pwm) \
     if (pwm && pin ## _TIMER) {                                                          \
       uint32_t freq;                                                                     \
       uint8_t macro_mask;                                                                \
@@ -201,19 +201,19 @@ void heater_init() {
       }                                                                                  \
       pin ## _TIMER->CCER |= EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, E);                  \
       /* output enable */                                                                \
-      if (pin ## _INVERT) {                                                              \
+      if (pin ## _INVERT ^ invert) {                                                     \
         pin ## _TIMER->CCER |= EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, P);                \
       } else {                                                                           \
       pin ## _TIMER->CCER &= ~(EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, P));               \
       }                                                                                  \
       /* invert the signal for negated timers*/                                          \
-      /* TODO: use this also with a XOR for inverted heaters later                    */ \
+      /* also with a XOR for inverted heaters                                         */ \
       pin ## _TIMER->EGR |= TIM_EGR_UG;                   /* update generation        */ \
       pin ## _TIMER->CR1 |= TIM_CR1_CEN;                  /* enable counters          */ \
     }                                                                                    \
     else {                                                                               \
       SET_OUTPUT(pin);                                                                   \
-      WRITE(pin, 0);                                                                     \
+      WRITE(pin, invert ? 1 : 0);                                                        \
     }
 
     #include "config_wrapper.h"
