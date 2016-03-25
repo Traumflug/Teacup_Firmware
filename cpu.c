@@ -9,7 +9,7 @@
 
 #define TEACUP_C_INCLUDE
 #include "cpu-avr.c"
-#include "cpu-arm.c"
+#include "cpu-lpc.c"
 #undef TEACUP_C_INCLUDE
 
 /* No common code so far. */
