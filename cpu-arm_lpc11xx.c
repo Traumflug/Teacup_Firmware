@@ -5,8 +5,8 @@
   To be included from cpu.c, for details see there.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARMEL__
-
+#if defined TEACUP_C_INCLUDE && defined __ARM_LPC1114__
+  
 #include "config_wrapper.h"
 
 void cpu_init() {
