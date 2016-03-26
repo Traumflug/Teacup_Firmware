@@ -176,6 +176,13 @@
 */
 #define USE_INTERNAL_PULLUPS
 
+/** \def Z_LATE_ENABLE
+  Some printers have a heavy z-axis, some a not self locking spindle. In that case
+  you should not activate this. This will deactivate the stepper after a finished move,
+  and will only activate it, when z will move.
+*/
+#define Z_LATE_ENABLE
+
 /** \def TEMP_HYSTERESIS
   Actual temperature must be target +/- this hysteresis before target
   temperature is considered to be achieved. Also, BANG_BANG tries to stay

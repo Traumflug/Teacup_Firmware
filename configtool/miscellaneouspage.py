@@ -13,6 +13,7 @@ class MiscellaneousPage(wx.Panel, Page):
     self.font = font
 
     self.labels = {'USE_INTERNAL_PULLUPS': "Use Internal Pullups",
+                   'Z_LATE_ENABLE': "Z Late Enable",
                    'EECONFIG': "Enable EEPROM Storage",
                    'BANG_BANG': "Enable",
                    'BANG_BANG_ON': "On PWM Level:",
@@ -73,6 +74,10 @@ class MiscellaneousPage(wx.Panel, Page):
     k = 'REPORT_TARGET_TEMPS'
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (6, 1))
+
+    k = 'Z_LATE_ENABLE'
+    cb = self.addCheckBox(k, self.onCheckBox)
+    sz.Add(cb, pos = (7, 1))
 
     b = wx.StaticBox(self, wx.ID_ANY, "BANG BANG Bed Control")
     b.SetFont(font)
