@@ -176,6 +176,17 @@
 */
 //#define USE_INTERNAL_PULLUPS
 
+/** \def Z_AUTODISABLE
+  Automatically disable Z axis when not in use. This is useful for printers
+  with a self-locking Z axis, e.g. the various Mendel derivates.
+
+  Other printers have a heavy Z axis or a not self-locking spindle. In that
+  case you should not activate this.
+
+  This option has no effect on controllers with a common stepper enable pin.
+*/
+#define Z_AUTODISABLE
+
 /** \def TEMP_HYSTERESIS
   Actual temperature must be target +/- this hysteresis before target
   temperature is considered to be achieved. Also, BANG_BANG tries to stay

@@ -13,7 +13,7 @@ class MiscellaneousPage(wx.Panel, Page):
     self.font = font
 
     self.labels = {'USE_INTERNAL_PULLUPS': "Use Internal Pullups",
-                   'Z_LATE_ENABLE': "Z Late Enable",
+                   'Z_AUTODISABLE': "Z Autodisable",
                    'EECONFIG': "Enable EEPROM Storage",
                    'BANG_BANG': "Enable",
                    'BANG_BANG_ON': "On PWM Level:",
@@ -75,7 +75,7 @@ class MiscellaneousPage(wx.Panel, Page):
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (6, 1))
 
-    k = 'Z_LATE_ENABLE'
+    k = 'Z_AUTODISABLE'
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (7, 1))
 

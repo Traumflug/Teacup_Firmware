@@ -279,7 +279,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		stepper_enable();
 		x_enable();
 		y_enable();
-    #ifndef Z_LATE_ENABLE
+    #ifndef Z_AUTODISABLE
       z_enable();
     // #else Z is enabled in dda_start().
     #endif
@@ -495,7 +495,7 @@ void dda_start(DDA *dda) {
 	if ( ! dda->nullmove) {
 		// get ready to go
 		psu_timeout = 0;
-    #ifdef Z_LATE_ENABLE
+    #ifdef Z_AUTODISABLE
       if (dda->delta[Z])
         z_enable();
     #endif
@@ -720,7 +720,7 @@ void dda_step(DDA *dda) {
 		#ifdef	DC_EXTRUDER
 			heater_set(DC_EXTRUDER, 0);
 		#endif
-    #ifdef Z_LATE_ENABLE
+    #ifdef Z_AUTODISABLE
       // Z stepper is only enabled while moving.
       z_disable();
     #endif

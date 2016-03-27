@@ -176,12 +176,16 @@
 */
 //#define USE_INTERNAL_PULLUPS
 
-/** \def Z_LATE_ENABLE
-  Some printers have a heavy z-axis, some a not self locking spindle. In that case
-  you should not activate this. This will deactivate the stepper after a finished move,
-  and will only activate it, when z will move.
+/** \def Z_AUTODISABLE
+  Automatically disable Z axis when not in use. This is useful for printers
+  with a self-locking Z axis, e.g. the various Mendel derivates.
+
+  Other printers have a heavy Z axis or a not self-locking spindle. In that
+  case you should not activate this.
+
+  This option has no effect on controllers with a common stepper enable pin.
 */
-//#define Z_LATE_ENABLE
+//#define Z_AUTODISABLE
 
 /** \def TEMP_HYSTERESIS
   Actual temperature must be target +/- this hysteresis before target
