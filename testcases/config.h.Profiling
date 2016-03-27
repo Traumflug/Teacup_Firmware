@@ -39,6 +39,18 @@
   #endif
 #endif
 
+/** \def CPU_TYPE
+  CPU types a user should be able to choose from in configtool. All
+  commented out.
+*/
+//#define CPU_TYPE xxxx
+
+/** \def F_CPU_OPT
+  CPU clock frequencies a user should be able to choose from in configtool.
+  All commented out.
+*/
+//#define F_CPU_OPT xxxx
+
 /** \def F_CPU
 	CPU clock rate
 */
@@ -285,6 +297,9 @@
 	or adjust your electronics to suit this
 */
 
+//#define TX_ENABLE_PIN            xxxx
+//#define RX_ENABLE_PIN            xxxx
+
 #define	X_STEP_PIN						DIO29
 #define	X_DIR_PIN							DIO28
 #define	X_MIN_PIN							DIO0
@@ -397,6 +412,12 @@
 // #define	TEMP_PT100
 // #define	TEMP_INTERCOM
 
+/** \def TEMP_SENSOR_PIN
+  Temperature sensor pins a user should be able to choose from in configtool.
+  All commented out.
+*/
+//#define TEMP_SENSOR_PIN xxxx
+
 /***************************************************************************\
 *                                                                           *
 * Define your temperature sensors here. One line for each sensor, only      *
@@ -430,6 +451,14 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO0,      THERMISTOR_EXTRUDER)
 * 5. HEATERS                                                                *
 *                                                                           *
 \***************************************************************************/
+
+/** \def REPORT_TARGET_TEMPS
+  With this enabled, M105 commands will return the current temperatures along
+  with the target temps, separated by a slash: ok T:xxx.x/xxx.x B:xxx.x/xxx.x
+  With this disabled, only temps will be returned: ok T:xxx.x B:xxx.x
+  Enabling adds 78 bytes to the image.
+*/
+#define REPORT_TARGET_TEMPS
 
 /** \def HEATER_SANITY_CHECK
 	check if heater responds to changes in target temperature, disable and spit errors if not
@@ -473,6 +502,12 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO0,      THERMISTOR_EXTRUDER)
 #ifndef DEFINE_HEATER
 	#define DEFINE_HEATER(...)
 #endif
+
+/** \def HEATER_PIN
+  Heater pins a user should be able to choose from in configtool. All
+  commented out.
+*/
+//#define HEATER_PIN xxxx
 
 //            name      pin      invert  pwm
 DEFINE_HEATER(extruder, DIO4,    0,      1)

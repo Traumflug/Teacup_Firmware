@@ -183,6 +183,7 @@ DEFINE_TEMP_SENSOR(noheater, TT_INTERCOM,   AIO0,  0)
   Heater pins a user should be able to choose from in configtool. All
   commented out.
 */
+//#define HEATER_PIN xxxx
 
 /** \def DEFINE_HEATER
   Define your heaters and devices here.

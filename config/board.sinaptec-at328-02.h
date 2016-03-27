@@ -84,6 +84,10 @@
 //#define E_INVERT_DIR
 #define E_INVERT_ENABLE
 
+//#define PS_ON_PIN                xxxx
+//#define PS_MOSFET_PIN            xxxx
+//#define STEPPER_ENABLE_PIN       xxxx
+//#define STEPPER_INVERT_ENABLE
 
 /** \def DEBUG_LED_PIN
 
