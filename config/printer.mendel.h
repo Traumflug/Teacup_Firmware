@@ -248,15 +248,36 @@
 */
 //#define BANG_BANG
 
+/** \def DEAD_TIME_CONTROL
+  Simple temp prediction. Saves ~130 bytes. Much less than BANG_BANG.
+
+  Control the sytem with BANG_BANG_ON and BANG_BANG_OFF. 
+  BB_OFF should be low. Zero is a very good start value for BB_OFF!
+  BB_ON should be high enough to achieve your target value.
+*/
+// #define DEAD_TIME_CONTROL
+
+/** \def SENS_FACTOR
+  This is approx. the dead time of the heater system. Normal values are between 1 and 5 seconds.
+  2 decimals are allowed.
+*/
+// #define SENS_FACTOR              2
+
+/** \def MAX_HEATING
+  This is used in DEAD_TIME_CONTROL.
+  It is used if the distance of target temperature more than TEMP_HYSTERESIS 
+*/
+// #define MAX_HEATING 150
+
 /** \def BANG_BANG_ON
   PWM value for Bang Bang 'on'.
 */
-//#define BANG_BANG_ON             200
+// #define BANG_BANG_ON             200
 
 /** \def BANG_BANG_OFF
   PWM value for Bang Bang 'off'.
 */
-//#define BANG_BANG_OFF            45
+// #define BANG_BANG_OFF            45
 
 /** \def MOVEBUFFER_SIZE
   Move buffer size, in number of moves.
