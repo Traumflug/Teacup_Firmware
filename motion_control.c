@@ -35,6 +35,23 @@
 #include	"sermsg.h"			//for debugging
 #include	"debug.h"			//for debugging
 
+
+// Arc interpretation settings:
+#ifndef MM_PER_ARC_SEGMENT
+  #define MM_PER_ARC_SEGMENT 1
+  #warning MM_PER_ARC_SEGMENT not user defined, defaulting to 1.
+#endif
+// Number of arc generation iterations by small angle approximation before exact arc trajectory
+// correction. This parameter maybe decreased if there are issues with the accuracy of the arc
+// generations. In general, the default value is more than enough for the intended CNC applications
+// of grbl, and should be on the order or greater than the size of the buffer to help with the
+// computational efficiency of generating arcs.
+#ifndef N_ARC_CORRECTION
+  #define N_ARC_CORRECTION 25 // Integer (1-255)
+  #warning N_ARC_CORRECTION not user defined, defaulting to 25.
+#endif
+
+
 void prt_int(int32_t number)
 {
 	if (number/1000==0 && number<0) serial_writestr_P(PSTR("-"));
