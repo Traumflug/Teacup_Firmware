@@ -157,6 +157,20 @@ void power_on(void);
 void power_off(void);
 
 /*
+Resume pin
+*/
+
+#ifdef	RESUME_PIN
+	#ifndef RESUME_INVERT
+		#define e_min()						(READ(RESUME_PIN)?1:0)
+	#else
+		#define e_min()						(READ(RESUME_PIN)?0:1)
+	#endif
+#else
+	#define	e_min()							(0)
+#endif
+
+/*
 X Stepper
 */
 

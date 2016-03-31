@@ -5,12 +5,14 @@
 */
 
 #include	<string.h>
+#include <stdlib.h>  // For ARC hypot function.
 
 #include	"gcode_parse.h"
 
 #include "cpu.h"
 #include	"dda.h"
 #include	"dda_queue.h"
+#include "dda_maths.h"
 #include	"watchdog.h"
 #include	"delay.h"
 #include	"serial.h"
@@ -24,6 +26,7 @@
 #include	"clock.h"
 #include	"config_wrapper.h"
 #include	"home.h"
+#include "motion_control.h"
 #include "sd.h"
 
 
@@ -130,7 +133,51 @@ void process_gcode_command() {
 
 				//	G3 - Arc Counter-clockwise
 				// unimplemented
+			case 2:
+			case 3:
+				//? --- G2: Arc Clockwise ---
+				//? --- G3: Arc Counter-clockwise ---
+				//?
+				//? Example: G02 X47.4 Y13.3 I-21.6 J12.4
+				//?
+				//? Go in an Arc with center (X-21.6, Y+12.4)  from the current (X, Y) point to the point (47.4, 13.3)
+				//?;
+				{
+					uint8_t clockwise = 0;
+					// if we didn't see an I or J word, set it to zero. This is for Incremental Arc Distance Mode (G91.1 the default and currently only supported mode)
+					if (next_target.seen_I == 0){	//ARC support
+						next_target.I = 0;
+						if (next_target.seen_J == 0){
+							//both are 0, this is an error for G2/3 because radius is 0.
+							//we generate an error message and just do a linear motion to the target point
+							sersendf_P(PSTR("E: missing offsets in G-code %d"), next_target.G);
+							enqueue(&next_target.target);
+							break;
+						}
+					}
+					if (next_target.seen_J == 0)
+						next_target.J = 0;
+					if (next_target.G==2) clockwise=1;
+					//for radius_mode implementation see file gcode.c in gbrl sourcecode
+					//for now only offset implementation
 
+					//calculate radius
+					//the integer variant will be off by 8% or so for a radius of 250mm but the radius is
+					//only used to calculate the number of segments the arc is to be drawn in so this
+					//good enough for our use.
+
+					uint32_t r = approx_distance(labs(next_target.I),labs(next_target.J));
+//					float r = hypot(next_target.I/1000.0,next_target.J/1000.0);
+
+//					serial_writestr_P(PSTR("\n\rArc Radius: (float,int) "));
+//					serwrite_uint32(hypot(next_target.I/1000.0,next_target.J/1000.0)*1000.0);
+//					serial_writestr_P(PSTR(", "));
+//					serwrite_uint32(r);
+
+					// Trace the arc
+					mc_arc(r, clockwise);	//motion_control.h
+				}
+				break;
 			case 4:
 				//? --- G4: Dwell ---
 				//?
@@ -370,7 +417,27 @@ void process_gcode_command() {
 				//? --- M6: tool change ---
 				//?
 				//? Undocumented.
-				tool = next_tool;
+				tool = next_tool; //tom: seems the var tool is never used
+				sersendf_P(PSTR("next tool: T%u"),tool);
+				//tom 04-08-2014: after a tool change we need to wait until the user presses
+				//the resume button:
+				//? --- M6: Pause machine until RESUME button pressed ---
+				// Fake Home E command to pause machine until RESUME_PIN=low
+				// This can for example be used to change tools manually
+				// in PCB_Gcode there is an option "Do toolchange with zero step" which calls m6 2 times:
+				// - go to X0, Y0, Z 35 (X,Y & Z options in PCB-Gcode)
+				// - M6 Tx (x is the next tool) then we wait until the resume switch is pressed (user has time to change the tool)
+				// - G01 Z0.0000 F75.00 this moves the head back to Z0, make sure the tool is high up in the spindle and
+				//     make sure that if you have tools of different length the longest one is not lower then the one that started our drilling
+				//	   Todo: use other switches to manualy adjust the Z height (or maybe other software commands)
+				// -M6 second time, we are at Z0 and the user can lower the tool onto the surface so it is at the actual Z0 again.
+				//     Press the resume button to resume drilling after this.
+//				queue_wait();
+				#if defined	RESUME_PIN	//the resume pin is in config.h and could be the same as Z-Min since the tool should be in High (Z++) now
+					home_e_negative();
+				#endif
+
+
 				break;
 
       #ifdef SD
@@ -562,12 +629,13 @@ void process_gcode_command() {
 				//?
 				//? Example: M111 S6
 				//?
-				//? Set the level of debugging information transmitted back to the host to level 6.  The level is the OR of three bits:
+				//? Set the level of debugging information transmitted back to the host to level 6.  The level is the OR of four bits:
 				//?
 				//? <Pre>
 				//? #define         DEBUG_PID       1
 				//? #define         DEBUG_DDA       2
 				//? #define         DEBUG_POSITION  4
+				//? #define         DEBUG_ARC		8
 				//? </pre>
 				//?
 				//? This command is only available in DEBUG builds of Teacup.

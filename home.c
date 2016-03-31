@@ -67,6 +67,18 @@ void home() {
   home_z_positive();
 }
 
+/// find E MIN endstop (Fake, just waits for RESUME_PIN to get low)
+void home_e_negative() {
+	#if defined RESUME_PIN
+		TARGET t = startpoint;
+
+//		t.X = -1000000;				//no change in t.x, we stay in same position as we wait for RESUME_PIN
+		enqueue_home(&t, 0x8, 1);
+
+//		queue_wait(); // we have to wait here, see G92
+	#endif
+}
+
 /// find X MIN endstop
 void home_x_negative() {
 	#if defined X_MIN_PIN

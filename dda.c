@@ -830,6 +830,17 @@ void dda_clock() {
     }
     #endif
 
+    #if defined RESUME_PIN
+    if (dda->endstop_check & 0x8) {
+      if (e_min() == dda->endstop_stop_cond)
+        move_state.debounce_count_e++;
+      else
+        move_state.debounce_count_e = 0;
+
+      endstop_stop = move_state.debounce_count_e >= ENDSTOP_STEPS;
+    }
+    #endif
+
     // If an endstop is definitely triggered, stop the movement.
     if (endstop_trigger) {
       #ifdef ACCELERATION_RAMPING

@@ -31,6 +31,8 @@ typedef struct {
 		uint8_t					seen_Y	:1;
 		uint8_t					seen_Z	:1;
 		uint8_t					seen_E	:1;
+    uint8_t         seen_I :1; ///< ARC center X at startpoint +I.
+    uint8_t         seen_J :1; ///< ARC center Y at startpoint +I.
 		uint8_t					seen_F	:1;
 		uint8_t					seen_S	:1;
 		uint8_t					seen_P	:1;
@@ -54,6 +56,8 @@ typedef struct {
 	uint8_t						G;				///< G command number
 	uint8_t						M;				///< M command number
 	TARGET						target;		///< target position: X, Y, Z, E and F
+  int32_t           I;          ///< In micrometers unless explicitely stated.
+  int32_t           J;          ///< In micrometers unless explicitely stated.
 
 	uint8_t						T;				///< T word (tool index)
 

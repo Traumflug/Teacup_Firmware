@@ -69,6 +69,7 @@ typedef struct {
 	/// Endstop handling.
   uint8_t endstop_stop; ///< Stop due to endstop trigger
   uint8_t debounce_count_x, debounce_count_y, debounce_count_z;
+  uint8_t debounce_count_e;
 } MOVE_STATE;
 
 /**
@@ -160,7 +161,7 @@ typedef struct {
   uint8_t           fast_axis;       ///< number of the fast axis
 
 	/// Endstop homing
-	uint8_t endstop_check; ///< Do we need to check endstops? 0x1=Check X, 0x2=Check Y, 0x4=Check Z
+	uint8_t endstop_check; ///< Do we need to check endstops? 0x1=Check X, 0x2=Check Y, 0x4=Check Z, 0x8=Check E
 	uint8_t endstop_stop_cond; ///< Endstop condition on which to stop motion: 0=Stop on detrigger, 1=Stop on trigger
 } DDA;
 
@@ -201,5 +202,8 @@ void dda_clock(void);
 
 // update current_position
 void update_current_position(void);
+
+//integer square root algorithm
+uint16_t int_sqrt(uint32_t a);
 
 #endif	/* _DDA_H */
