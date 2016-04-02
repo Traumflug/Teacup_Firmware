@@ -207,16 +207,14 @@
 
 /** \def TEMP_EWMA
   Smooth noisy temperature sensors. Good hardware shouldn't be noisy. Set to
-  1.0 for unfiltered data (and a 140 bytes smaller binary).
+  1 for unfiltered data (and a 140 bytes smaller binary).
 
-  Instrument Engineer's Handbook, 4th ed, Vol 2 p126 says values of
-  0.05 to 0.1 are typical. Smaller is smoother but slower adjusting, larger is
-  quicker but rougher. If you need to use this, set the PID parameter to zero
-  (M132 S0) to make the PID loop insensitive to noise.
+    Valid range: 1 to 40
+    Practical range: 1 to 8
 
-    Valid range: 0.001 to 1.0
+  This will slow down the reaction of the heater.
 */
-#define TEMP_EWMA                1.0
+#define TEMP_EWMA                1
 
 /** \def REPORT_TARGET_TEMPS
   With this enabled, M105 commands will return the current temperatures along
