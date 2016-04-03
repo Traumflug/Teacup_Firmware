@@ -26,6 +26,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/twi.h>
 
 
 #if defined I2C_MASTER_MODE && defined I2C_SLAVE_MODE
@@ -158,14 +159,14 @@ void i2c_do_nothing(void) {
 */
 ISR(TWI_vect) {
 
-  switch (TWSR & 0xF8) {  // Cut the prescaler bits out.
-    case I2C_STATE_BUS_FAIL:
+  switch (TWSR & TW_STATUS_MASK) {
+    case TW_BUS_ERROR:
       // A hardware error was detected.
       i2c_state |= I2C_ERROR_BUS_FAIL;
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       MACRO_I2C_ERROR;
       break;
-    case I2C_STATE_START:
+    case TW_START:
       // Start happens, send a target address.
       if ((i2c_state & I2C_MODE_MASK) == I2C_MODE_SARP) {
         i2c_address |= 0x01;
@@ -175,7 +176,7 @@ ISR(TWI_vect) {
       TWDR = i2c_address;
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       break;
-    case I2C_STATE_RESTART:
+    case TW_REP_START:
       // Start happens, send a target address.
       if ((i2c_state & I2C_MODE_MASK) == I2C_MODE_ENHA) {
         i2c_address |= 0x01;
@@ -185,7 +186,7 @@ ISR(TWI_vect) {
       TWDR = i2c_address;
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       break;
-    case I2C_STATE_SLAWACK:
+    case TW_MT_SLA_ACK:
       // SLA+W was sent, then ACK received.
       if ((i2c_state & I2C_MODE_MASK) == I2C_MODE_SAWP) {
         TWDR = i2c_buffer[i2c_index++];
@@ -198,13 +199,13 @@ ISR(TWI_vect) {
         }
       #endif
       break;
-    case I2C_STATE_SLAWNACK:
+    case TW_MT_SLA_NACK:
       // SLA+W was sent, got NACK, so slave is busy or out of bus.
       i2c_state |= I2C_ERROR_NO_ANSWER;
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       MACRO_I2C_ERROR;
       break;
-    case I2C_STATE_BYTEACK:
+    case TW_MT_DATA_ACK:
       // A byte was sent, got ACK.
       if ((i2c_state & I2C_MODE_MASK) == I2C_MODE_SAWP) {
         if (i2c_index == i2c_byte_count) {
@@ -230,7 +231,7 @@ ISR(TWI_vect) {
         }
       #endif
       break;
-    case I2C_STATE_BYTENACK:
+    case TW_MT_DATA_NACK:
       // Byte was sent but got NACK, there are two possible reasons:
       //  - a slave stops transmission and it is ok, or
       //  - a slave became crazy.
@@ -238,7 +239,7 @@ ISR(TWI_vect) {
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       MACRO_I2C_MASTER; // process exit state
       break;
-    case I2C_STATE_COLLISION:
+    case TW_MT_ARB_LOST:  // Collision, identical to TW_MR_ARB_LOST.
       // It looks like there is another master on the bus.
       i2c_state |= I2C_ERROR_LOW_PRIO;
       // Setup all again.
@@ -249,7 +250,7 @@ ISR(TWI_vect) {
       // Try to resend when the bus became free.
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       break;
-    case I2C_STATE_SLARACK:
+    case TW_MR_SLA_ACK:
       // SLA+R was sent, got АСК, then received a byte.
       if (i2c_index + 1 == i2c_byte_count) {
         // Last byte fitting into the buffer. Request a byte, then send NACK
@@ -260,13 +261,13 @@ ISR(TWI_vect) {
         TWCR = (1<<TWINT)|(1<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       }
       break;
-    case I2C_STATE_SLARNACK:
+    case TW_MR_SLA_NACK:
       // SLA+R was sent, got NАСК, it seems the slave is busy.
       i2c_state |= I2C_ERROR_NO_ANSWER;
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       MACRO_I2C_ERROR;
       break;
-    case I2C_STATE_GOT_BYTE:
+    case TW_MR_DATA_ACK:
       i2c_buffer[i2c_index++] = TWDR;
       // TODO: Add BUFFER OVERFLOW check.
       if (i2c_index + 1 == i2c_byte_count) {
@@ -277,14 +278,14 @@ ISR(TWI_vect) {
         TWCR = (1<<TWINT)|(0<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       }
       break;
-    case I2C_STATE_GOT_BYTE_NACK:
+    case TW_MR_DATA_NACK:
       // Last byte received, send NACK to make the slave to release the bus.
       i2c_buffer[i2c_index] = TWDR;
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       MACRO_I2C_MASTER;
       break;
-    case I2C_STATE_SLAW_LP:
-    case I2C_STATE_SLAW_LP_ANY:
+    case TW_SR_ARB_LOST_SLA_ACK:
+    case TW_SR_ARB_LOST_GCALL_ACK:
       // Another master on the bus sent some bytes, receive them.
       i2c_state |= I2C_ERROR_LOW_PRIO;
       // Restore the transfer.
@@ -295,8 +296,8 @@ ISR(TWI_vect) {
 
     #ifdef I2C_SLAVE_MODE
 
-    case I2C_STATE_SLAW:
-    case I2C_STATE_SLAW_ANY:
+    case TW_SR_SLA_ACK:
+    case TW_SR_GCALL_ACK:
       i2c_state |= I2C_MODE_BUSY; // Lock bus.
       i2c_index = 0;
       if (I2C_SLAVE_RX_BUFFER_SIZE == 1) {
@@ -307,8 +308,8 @@ ISR(TWI_vect) {
         TWCR = (1<<TWINT)|(1<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       }
       break;
-    case I2C_STATE_RCV_BYTE:
-    case I2C_STATE_RCV_BYTE_ANY:
+    case TW_SR_DATA_ACK:
+    case TW_SR_GCALL_DATA_ACK:
       i2c_in_buffer[i2c_index++] = TWDR;
       if (i2c_index == I2C_SLAVE_RX_BUFFER_SIZE - 1) {
         // Room for only one byte left, send NACK.
@@ -318,8 +319,8 @@ ISR(TWI_vect) {
         TWCR = (1<<TWINT)|(1<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       }
       break;
-    case I2C_STATE_RCV_LAST_BYTE:
-    case I2C_STATE_RCV_LAST_BYTE_ANY:
+    case TW_SR_DATA_NACK:
+    case TW_SR_GCALL_DATA_NACK:
       i2c_in_buffer[i2c_index] = TWDR;
       if (i2c_state & I2C_INTERRUPTED) {
         // Если у нас был прерываный сеанс от имени мастера
@@ -331,13 +332,13 @@ ISR(TWI_vect) {
       }
       MACRO_I2C_SLAVE;
       break;
-    case I2C_STATE_RCV_RESTART:
+    case TW_SR_STOP:
       // We got a Restart. What we will do?
       // Here we can do additional logic but we don't need it at this time.
       // Just ignore it now.
       TWCR = (1<<TWINT)|(1<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       break;
-    case I2C_STATE_RCV_SLAR_LP:
+    case TW_ST_ARB_LOST_SLA_ACK:
       // Got own address on read from another master.
       i2c_state |= I2C_ERROR_LOW_PRIO | I2C_INTERRUPTED;
 
@@ -346,7 +347,7 @@ ISR(TWI_vect) {
       #ifdef I2C_EEPROM_SUPPORT
         i2c_page_index = 0;
       #endif
-    case I2C_STATE_RCV_SLAR:
+    case TW_ST_SLA_ACK:
       // We have got own address on read.
       i2c_index = 0;
       TWDR = i2c_out_buffer[i2c_index];
@@ -358,7 +359,7 @@ ISR(TWI_vect) {
         TWCR = (1<<TWINT)|(1<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       }
       break;
-    case I2C_STATE_SND_BYTE_ACK:
+    case TW_ST_DATA_ACK:
       // Send byte and got ACK, then send next byte to master.
       TWDR = i2c_out_buffer[++i2c_index];
       if (I2C_SLAVE_TX_BUFFER_SIZE - 1 == i2c_index) {
@@ -369,8 +370,7 @@ ISR(TWI_vect) {
         TWCR = (1<<TWINT)|(1<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(0<<TWEN)|(1<<TWIE);
       }
       break;
-    case I2C_STATE_SND_LAST_BYTE_NACK:
-    case I2C_STATE_SND_LAST_BYTE_ACK:
+    case TW_ST_DATA_NACK:
       // We sent the last byte and received NACK or ACK (doesn't matter here).
       if (i2c_state & I2C_INTERRUPTED) {
         // There was interrupted master transfer.

@@ -54,36 +54,6 @@
 #define I2C_ERROR_NO_ANSWER             0b00010000
 #define I2C_ERROR_LOW_PRIO              0b00100000
 
-#define I2C_STATE_BUS_FAIL              0x00
-#define I2C_STATE_START                 0x08
-#define I2C_STATE_RESTART               0x10
-#define I2C_STATE_SLAWACK               0x18
-#define I2C_STATE_SLAWNACK              0x20
-#define I2C_STATE_BYTEACK               0x28
-#define I2C_STATE_BYTENACK              0x30
-#define I2C_STATE_COLLISION             0x38
-#define I2C_STATE_SLARACK               0x40
-#define I2C_STATE_SLARNACK              0x48
-#define I2C_STATE_GOT_BYTE              0x50
-#define I2C_STATE_GOT_BYTE_NACK         0x58
-#define I2C_STATE_SLAW_LP               0x68
-#define I2C_STATE_SLAW_LP_ANY           0x78
-
-#ifdef I2C_SLAVE_MODE
-  #define I2C_STATE_SLAW                0x60
-  #define I2C_STATE_SLAW_ANY            0x70
-  #define I2C_STATE_RCV_BYTE            0x80
-  #define I2C_STATE_RCV_BYTE_ANY        0x90
-  #define I2C_STATE_RCV_LAST_BYTE       0x88
-  #define I2C_STATE_RCV_LAST_BYTE_ANY   0x98
-  #define I2C_STATE_RCV_RESTART         0xA0
-  #define I2C_STATE_RCV_SLAR            0xA8
-  #define I2C_STATE_RCV_SLAR_LP         0xB0
-  #define I2C_STATE_SND_BYTE_ACK        0xB8
-  #define I2C_STATE_SND_LAST_BYTE_NACK  0xC0
-  #define I2C_STATE_SND_LAST_BYTE_ACK   0xC0
-#endif /* I2C_SLAVE_MODE */
-
 #define MACRO_I2C_ERROR         (i2c_error_func)()
 #ifdef I2C_SLAVE_MODE
   #define MACRO_I2C_SLAVE         (i2c_slave_func)()
