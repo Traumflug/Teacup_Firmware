@@ -27,6 +27,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/twi.h>
+#include "pinio.h"
 
 
 #if defined I2C_MASTER_MODE && defined I2C_SLAVE_MODE
@@ -94,8 +95,10 @@ void i2c_init(uint8_t address) {
 
   #ifdef I2C_MASTER_MODE
     #ifdef I2C_ENABLE_PULLUPS
-      I2C_DDR &= ~((1 << I2C_SCL_PIN) | (1 << I2C_SDA_PIN));
-      I2C_PORT |= (1 << I2C_SCL_PIN) | (1 << I2C_SDA_PIN);
+      SET_INPUT(SCL);
+      PULLUP_ON(SCL);
+      SET_INPUT(SDA);
+      PULLUP_ON(SDA);
     #endif /* I2C_ENABLE_PULLUPS */
 
     /**
