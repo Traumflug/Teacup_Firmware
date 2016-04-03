@@ -284,6 +284,9 @@ ISR(TWI_vect) {
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       MACRO_I2C_MASTER;
       break;
+
+    #ifdef I2C_SLAVE_MODE
+
     case TW_SR_ARB_LOST_SLA_ACK:
     case TW_SR_ARB_LOST_GCALL_ACK:
       // Another master on the bus sent some bytes, receive them.
@@ -293,9 +296,6 @@ ISR(TWI_vect) {
       #ifdef I2C_EEPROM_SUPPORT
         i2c_page_index = 0;
       #endif
-
-    #ifdef I2C_SLAVE_MODE
-
     case TW_SR_SLA_ACK:
     case TW_SR_GCALL_ACK:
       i2c_state |= I2C_MODE_BUSY; // Lock bus.
