@@ -59,12 +59,8 @@ uint8_t i2c_byte_count;
   uint8_t *i2c_buffer;
 #endif /* I2C_SLAVE_MODE */
 
-I2C_HANDLER i2c_master_func = &i2c_do_nothing;
-I2C_HANDLER i2c_slave_func = &i2c_do_nothing;
-I2C_HANDLER i2c_error_func = &i2c_do_nothing;
 
-
-void i2c_init(uint8_t address, I2C_HANDLER func) {
+void i2c_init(uint8_t address) {
 
   i2c_address = address;
 
@@ -73,8 +69,6 @@ void i2c_init(uint8_t address, I2C_HANDLER func) {
       I2C_DDR &= ~((1 << I2C_SCL_PIN) | (1 << I2C_SDA_PIN));
       I2C_PORT |= (1 << I2C_SCL_PIN) | (1 << I2C_SDA_PIN);
     #endif /* I2C_ENABLE_PULLUPS */
-
-    i2c_master_func = func;
 
     /**
       TWI Bit Rate register
@@ -92,7 +86,6 @@ void i2c_init(uint8_t address, I2C_HANDLER func) {
   #endif /* I2C_MASTER_MODE */
 
   #ifdef I2C_SLAVE_MODE
-    i2c_slave_func = func;
     TWAR = i2c_address; // We listen to broadcasts if lowest bit is set.
     TWCR = (0<<TWINT)|(0<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
   #endif
@@ -101,8 +94,6 @@ void i2c_init(uint8_t address, I2C_HANDLER func) {
 static void i2c_send_handler(void) {
 
   i2c_state = I2C_MODE_SAWP; // Just send.
-  i2c_master_func = &i2c_send_handler;
-  i2c_error_func = &i2c_send_handler;
 
   // Start transmission.
   TWCR = (1<<TWINT)|(0<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
@@ -120,12 +111,6 @@ void i2c_send(uint8_t address, uint8_t* block, uint8_t tx_len) {
   i2c_byte_count = tx_len;
 
   i2c_send_handler();
-}
-
-/**
-  Empty handler.
-*/
-void i2c_do_nothing(void) {
 }
 
 /**
@@ -163,8 +148,8 @@ ISR(TWI_vect) {
     case TW_BUS_ERROR:
       // A hardware error was detected.
       i2c_state |= I2C_ERROR_BUS_FAIL;
-      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(1<<TWIE);
-      MACRO_I2C_ERROR;
+      // Send stop condition.
+      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
     case TW_START:
       // Start happens, send a target address.
@@ -202,8 +187,8 @@ ISR(TWI_vect) {
     case TW_MT_SLA_NACK:
       // SLA+W was sent, got NACK, so slave is busy or out of bus.
       i2c_state |= I2C_ERROR_NO_ANSWER;
-      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(1<<TWIE);
-      MACRO_I2C_ERROR;
+      // Send stop condition.
+      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
     case TW_MT_DATA_ACK:
       // A byte was sent, got ACK.
@@ -236,8 +221,8 @@ ISR(TWI_vect) {
       //  - a slave stops transmission and it is ok, or
       //  - a slave became crazy.
       i2c_state |= I2C_ERROR_NACK;
-      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(1<<TWIE);
-      MACRO_I2C_MASTER; // process exit state
+      // Send stop condition.
+      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
     case TW_MT_ARB_LOST:  // Collision, identical to TW_MR_ARB_LOST.
       // It looks like there is another master on the bus.
@@ -264,8 +249,8 @@ ISR(TWI_vect) {
     case TW_MR_SLA_NACK:
       // SLA+R was sent, got NАСК, it seems the slave is busy.
       i2c_state |= I2C_ERROR_NO_ANSWER;
-      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(1<<TWIE);
-      MACRO_I2C_ERROR;
+      // Send stop condition.
+      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
     case TW_MR_DATA_ACK:
       i2c_buffer[i2c_index++] = TWDR;
@@ -281,8 +266,8 @@ ISR(TWI_vect) {
     case TW_MR_DATA_NACK:
       // Last byte received, send NACK to make the slave to release the bus.
       i2c_buffer[i2c_index] = TWDR;
-      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(1<<TWIE);
-      MACRO_I2C_MASTER;
+      // Send stop condition.
+      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
 
     #ifdef I2C_SLAVE_MODE
@@ -322,15 +307,8 @@ ISR(TWI_vect) {
     case TW_SR_DATA_NACK:
     case TW_SR_GCALL_DATA_NACK:
       i2c_in_buffer[i2c_index] = TWDR;
-      if (i2c_state & I2C_INTERRUPTED) {
-        // Если у нас был прерываный сеанс от имени мастера
-        // Влепим в шину свой Start поскорей и сделаем еще одну попытку
-        TWCR = (1<<TWINT)|(1<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
-      } else {
-        // Если не было такого факта, то просто отвалимся и будем ждать
-        TWCR = (1<<TWINT)|(1<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
-      }
-      MACRO_I2C_SLAVE;
+      // Send stop condition.
+      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
     case TW_SR_STOP:
       // We got a Restart. What we will do?
@@ -378,10 +356,9 @@ ISR(TWI_vect) {
         // Generate start as the bus became free.
         TWCR = (1<<TWINT)|(1<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       } else {
-        // If we alone then just release the bus.
-        TWCR = (1<<TWINT)|(1<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
+        // Send stop condition.
+        TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       }
-      MACRO_I2C_SLAVE;
       break;
 
     #endif /* I2C_SLAVE_MODE */

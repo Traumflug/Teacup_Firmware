@@ -96,7 +96,7 @@ void init(void) {
   #endif
 
   #ifdef I2C
-    i2c_init(DISPLAY_I2C_ADDRESS, i2c_do_nothing);
+    i2c_init(DISPLAY_I2C_ADDRESS);
   #endif
 
 	// set up timers

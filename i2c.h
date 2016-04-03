@@ -54,26 +54,9 @@
 #define I2C_ERROR_NO_ANSWER             0b00010000
 #define I2C_ERROR_LOW_PRIO              0b00100000
 
-#define MACRO_I2C_ERROR         (i2c_error_func)()
-#ifdef I2C_SLAVE_MODE
-  #define MACRO_I2C_SLAVE         (i2c_slave_func)()
-#else
-  #define MACRO_I2C_MASTER        (i2c_master_func)()
-#endif /* I2C_SLAVE_MODE */
 
-
-typedef void (*I2C_HANDLER)(void);
-
-extern I2C_HANDLER i2c_error_func;
-#ifdef I2C_SLAVE_MODE
-  extern I2C_HANDLER i2c_slave_func;
-#else
-  extern I2C_HANDLER i2c_master_func;
-#endif /* I2C_SLAVE_MODE */
-
-void i2c_init(uint8_t address, I2C_HANDLER func);
+void i2c_init(uint8_t address);
 void i2c_send(uint8_t address, uint8_t* block, uint8_t tx_len);
-void i2c_do_nothing(void);
 
 #endif /* I2C */
 
