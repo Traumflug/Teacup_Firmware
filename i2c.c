@@ -89,9 +89,14 @@ uint8_t i2c_byte_count;
 #endif /* I2C_SLAVE_MODE */
 
 
-void i2c_init(uint8_t address) {
+/**
+  Inititalise the I2C/TWI subsystem.
 
-  i2c_address = address;
+  \param address Address the system should listen to in slave mode, unused
+                 when configured for master mode. In master mode, receiver
+                 address is given to the send command.
+*/
+void i2c_init(uint8_t address) {
 
   #ifdef I2C_MASTER_MODE
     #ifdef I2C_ENABLE_PULLUPS
@@ -117,6 +122,7 @@ void i2c_init(uint8_t address) {
   #endif /* I2C_MASTER_MODE */
 
   #ifdef I2C_SLAVE_MODE
+    i2c_address = address;
     TWAR = i2c_address; // We listen to broadcasts if lowest bit is set.
     TWCR = (0<<TWINT)|(0<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
   #endif
