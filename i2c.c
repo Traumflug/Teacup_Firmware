@@ -33,6 +33,34 @@
   #error Cant be I2C master and slave at the same time.
 #endif
 
+#ifdef I2C_SLAVE_MODE
+  #define I2C_MODE 1
+#else
+  #define I2C_MODE 0
+#endif
+
+#define I2C_MODE_MASK         0b00001100
+// Start-Addr_R-Read-Stop: just read mode.
+#define I2C_MODE_SARP         0b00000000
+// Start-Addr_W-Write-Stop: just write mode.
+#define I2C_MODE_SAWP         0b00000100
+// Start-Addr_W-WrPageAdr-rStart-Addr_R-Read-Stop.
+#define I2C_MODE_ENHA         0b00001000
+// Transponder is busy.
+#define I2C_MODE_BUSY         0b01000000
+// Transponder is free.
+#define I2C_MODE_FREE         0b10111111
+
+// Transmission interrupted.
+#define I2C_INTERRUPTED       0b10000000
+// Transmission not interrupted.
+#define I2C_NOINTERRUPTED     0b01111111
+
+#define I2C_ERROR_BUS_FAIL    0b00000001
+#define I2C_ERROR_NACK        0b00000010
+#define I2C_ERROR_NO_ANSWER   0b00010000
+#define I2C_ERROR_LOW_PRIO    0b00100000
+
 
 // Address of the device that is communicated with.
 uint8_t i2c_address;
