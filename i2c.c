@@ -128,17 +128,8 @@ void i2c_init(uint8_t address) {
   #endif
 }
 
-static void i2c_send_handler(void) {
-
-  i2c_state = I2C_MODE_SAWP; // Just send.
-
-  // Start transmission.
-  TWCR = (1<<TWINT)|(0<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
-  i2c_state |= I2C_MODE_BUSY;
-}
-
 /**
-  Function sends a data block to slave device.
+  Send a data block to a slave device.
 */
 void i2c_send(uint8_t address, uint8_t* block, uint8_t tx_len) {
 
@@ -147,7 +138,12 @@ void i2c_send(uint8_t address, uint8_t* block, uint8_t tx_len) {
   i2c_index = 0;
   i2c_byte_count = tx_len;
 
-  i2c_send_handler();
+  // Just send.
+  i2c_state = I2C_MODE_SAWP;
+
+  // Start transmission.
+  TWCR = (1<<TWINT)|(0<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
+  i2c_state |= I2C_MODE_BUSY;
 }
 
 /**
