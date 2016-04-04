@@ -27,7 +27,9 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/twi.h>
+#include "delay.h"
 #include "pinio.h"
+#include "memory_barrier.h"
 
 
 #if defined I2C_MASTER_MODE && defined I2C_SLAVE_MODE
@@ -66,11 +68,7 @@
 // Address of the device that is communicated with.
 uint8_t i2c_address;
 // State of TWI component of MCU.
-volatile uint8_t i2c_state;
-// Index into the send/receive buffer.
-uint8_t i2c_index;
-// Count of bytes to be sent.
-uint8_t i2c_byte_count;
+volatile uint8_t i2c_state = I2C_MODE_FREE;
 
 #ifdef I2C_EEPROM_SUPPORT
   // For SAWSARP mode (see ENHA in i2c.h).
@@ -84,9 +82,16 @@ uint8_t i2c_byte_count;
 #ifdef I2C_SLAVE_MODE
   uint8_t i2c_in_buffer[I2C_SLAVE_RX_BUFFER_SIZE];
   uint8_t i2c_out_buffer[I2C_SLAVE_TX_BUFFER_SIZE];
-#else
-  uint8_t *i2c_buffer;
 #endif /* I2C_SLAVE_MODE */
+
+// Ringbuffer logic for buffer 'send'.
+#define BUFSIZE I2C_BUFFER_SIZE
+
+volatile uint8_t sendhead = 0;
+volatile uint8_t sendtail = 0;
+volatile uint8_t sendbuf[BUFSIZE];
+
+#include "ringbuffer.h"
 
 
 /**
@@ -129,21 +134,46 @@ void i2c_init(uint8_t address) {
 }
 
 /**
-  Send a data block to a slave device.
+  Send a byte to the I2C partner.
+
+  \param address    I2C address of the communications partner.
+
+  \param data       The byte to be buffered/sent.
+
+  \param last_byte  Wether this is the last byte of a transaction.
+
+  Unlike many other protocols (serial, SPI), I2C has an explicite transmission
+  start and transmission end. Transmission start is detected automatically,
+  but end of the transmission has to be told by the invoking code.
+
+  Data is buffered, so this returns quickly for small amounts of data. Large
+  amounts don't get lost, but this function has to wait until sufficient
+  previous data was sent.
+
+  TODO: for now this function assumes that the buffer drains between distinct
+        transmissions. This means, last_byte is ignored and transmission is
+        ended as soon as the buffer drains.
 */
-void i2c_send(uint8_t address, uint8_t* block, uint8_t tx_len) {
+void i2c_write(uint8_t address, uint8_t data, uint8_t last_byte) {
 
-  i2c_address = address;
-  i2c_buffer = block;
-  i2c_index = 0;
-  i2c_byte_count = tx_len;
+  if ( ! (i2c_state & I2C_MODE_BUSY)) {
+    // No transmission ongoing, start one.
+    i2c_address = address;
 
-  // Just send.
-  i2c_state = I2C_MODE_SAWP;
+    // Just send.
+    i2c_state = I2C_MODE_SAWP;
 
-  // Start transmission.
-  TWCR = (1<<TWINT)|(0<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
-  i2c_state |= I2C_MODE_BUSY;
+    // Start transmission.
+    TWCR = (1<<TWINT)|(0<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
+    i2c_state |= I2C_MODE_BUSY;
+  }
+
+  while ( ! buf_canwrite(send))
+    delay_us(10);
+
+  ATOMIC_START
+    buf_push(send, data);
+  ATOMIC_END
 }
 
 /**
@@ -206,8 +236,8 @@ ISR(TWI_vect) {
       break;
     case TW_MT_SLA_ACK:
       // SLA+W was sent, then ACK received.
-      if ((i2c_state & I2C_MODE_MASK) == I2C_MODE_SAWP) {
-        TWDR = i2c_buffer[i2c_index++];
+      if ((i2c_state & I2C_MODE_MASK) == I2C_MODE_SAWP && buf_canread(send)) {
+        buf_pop(send, TWDR);
         TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       }
       #ifdef I2C_EEPROM_SUPPORT
@@ -226,13 +256,14 @@ ISR(TWI_vect) {
     case TW_MT_DATA_ACK:
       // A byte was sent, got ACK.
       if ((i2c_state & I2C_MODE_MASK) == I2C_MODE_SAWP) {
-        if (i2c_index == i2c_byte_count) {
-          // Last byte, send stop condition.
-          TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
-        } else {
+        if (buf_canread(send)) {
           // Send the next byte.
-          TWDR = i2c_buffer[i2c_index++];
+          buf_pop(send, TWDR);
           TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
+        } else {
+          // Last byte, send stop condition.
+          i2c_state = I2C_MODE_FREE;
+          TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
         }
       }
       #ifdef I2C_EEPROM_SUPPORT
@@ -261,13 +292,15 @@ ISR(TWI_vect) {
       // It looks like there is another master on the bus.
       i2c_state |= I2C_ERROR_LOW_PRIO;
       // Setup all again.
-      i2c_index = 0;
+      sendtail = sendhead;
       #ifdef I2C_EEPROM_SUPPORT
         i2c_page_index = 0;
       #endif
       // Try to resend when the bus became free.
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       break;
+#if 0
+// Note: we currently have no receive buffer, so we can't receive anything.
     case TW_MR_SLA_ACK:
       // SLA+R was sent, got АСК, then received a byte.
       if (i2c_index + 1 == i2c_byte_count) {
@@ -302,6 +335,7 @@ ISR(TWI_vect) {
       // Send stop condition.
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
+#endif
 
     #ifdef I2C_SLAVE_MODE
 

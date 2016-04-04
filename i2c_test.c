@@ -28,6 +28,8 @@ static uint8_t display_init[] = {
   0xA8, 0x1F,       // 1/32 duty.
   0x40 | 0x00,      // Start line (reset).
   0x20, 0x02,       // Page addressing mode (reset).
+  0x22, 0x00, 0x03, // Start and end page in horiz./vert. addressing mode[1].
+  0x21, 0x00, 0x7F, // Start and end column in horiz./vert. addressing mode.
   0xA0 | 0x00,      // No segment remap (reset).
   0xC0 | 0x00,      // Normal com pins mapping (reset).
   0xDA, 0x02,       // Sequental without remap com pins.
@@ -39,6 +41,10 @@ static uint8_t display_init[] = {
   0xA4,             // Resume display.
   0xAF              // Display on.
 };
+// [1] Do not set this to 0x00..0x07 on a 32 pixel high display, or vertical
+//     addressing mode will mess up. 32 pixel high displays have only 4 pages
+//     (0..3), still addressing logic accepts, but can't deal with the 0..7
+//     meant for 64 pixel high displays.
 
 typedef struct {
   uint8_t columns;
@@ -153,12 +159,37 @@ SYMBOL font_8x4[] = {
 
 
 static void i2c_test(void) {
-  static char* message = "Welcome to Teacup";
-  static uint8_t block[128];
-  uint8_t* pointer = block + 1;
+  uint16_t i;
+  const char* message = "Welcome to Teacup";
 
-  i2c_send(DISPLAY_I2C_ADDRESS, display_init, sizeof(display_init));
-  delay_ms(250);
+  for (i = 0; i < sizeof(display_init); i++) {
+    i2c_write(DISPLAY_I2C_ADDRESS, display_init[i], 0);
+  }
+  delay_ms(500);
+
+  /**
+    Clear the screen. As this display supports many sophisticated commands,
+    but not a simple 'clear', we have to overwrite the entire memory with
+    zeros, byte by byte.
+  */
+  // Set horizontal adressing mode.
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x20, 0);
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
+  delay_ms(100);
+
+  // Write 512 zeros.
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x40, 0);
+  for (i = 0; i < 512; i++) {
+    i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
+  }
+  delay_ms(2000);
+
+  // Return to page adressing mode.
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x20, 0);
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x02, 0);
+  delay_ms(100);
 
   /**
     Setup cursor on display.
@@ -166,24 +197,30 @@ static void i2c_test(void) {
     "Welcome to Teacup" is 64 pixel columns wide, entire display is
     128 columns, so we offset by 32 columns to get it to the center.
   */
-  block[0] = 0x00;
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
   // Line 1.
-  block[1] = 0xB0 | 1;
+  i2c_write(DISPLAY_I2C_ADDRESS, 0xB0 | 1, 0);
   // Column 32.
-  block[2] = 0x00 | (32 & 0x0F);
-  block[3] = 0x10 | ((32 >> 4) & 0x0F);
-  i2c_send(DISPLAY_I2C_ADDRESS, block, 4);
-  delay_ms(50);
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x00 | (32 & 0x0F), 0);
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x10 | ((32 >> 4) & 0x0F), 0);
+  delay_ms(100);
 
-  // Render text to bitmap.
+  // Render text to bitmap to display.
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x40, 0);
   while (*message) {
     SYMBOL symbol = font_8x4[(uint8_t)*message - 0x20];
-    memcpy(pointer, symbol.data, symbol.columns);
-    pointer += symbol.columns + FONT_SYMBOLS_SPACE;
+
+    // Send the character bitmap.
+    for (i = 0; i < symbol.columns; i++) {
+      i2c_write(DISPLAY_I2C_ADDRESS, symbol.data[i], 0);
+    }
+    // Send space between characters.
+    for (i = 0; i < FONT_SYMBOLS_SPACE; i++) {
+      i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
+    }
+
     message++;
   }
-  block[0] = 0x40; // Data marker.
-  i2c_send(DISPLAY_I2C_ADDRESS, block, pointer - block);
 }
 
 #endif /* I2C_TEST */

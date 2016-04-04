@@ -17,7 +17,15 @@
 // Comment out if there are external pullups.
 #define I2C_ENABLE_PULLUPS
 
-#define I2C_BUFFER_SIZE             4
+/** \def I2C_BUFFER_SIZE
+
+  Size of send buffer. MUST be a \f$2^n\f$ value, maximum is 512.
+
+  A larger buffer allows to store more display data immediately, so it can
+  speed operations up. An exhaused buffer doesn't mean data gets lost, writing
+  to the buffer then waits until sufficient previous data is sent.
+*/
+#define I2C_BUFFER_SIZE             128
 
 #ifdef I2C_SLAVE_MODE
   #define I2C_SLAVE_RX_BUFFER_SIZE  1
@@ -31,7 +39,7 @@
 
 
 void i2c_init(uint8_t address);
-void i2c_send(uint8_t address, uint8_t* block, uint8_t tx_len);
+void i2c_write(uint8_t address, uint8_t data, uint8_t last_byte);
 
 #endif /* I2C */
 
