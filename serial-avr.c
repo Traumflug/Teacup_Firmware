@@ -55,60 +55,7 @@ volatile uint8_t txhead = 0;
 volatile uint8_t txtail = 0;
 volatile uint8_t txbuf[BUFSIZE];
 
-/** Ringbuffer logic.
-
-  head = written data pointer.
-  tail = read data pointer.
-
-  When head == tail, buffer is empty.
-  When head + 1 == tail, buffer is full.
-  Thus, number of available spaces in buffer is (tail - head) & bufsize.
-
-  Can write:
-  (tail - head - 1) & (BUFSIZE - 1)
-
-  Write to buffer:
-  buf[head++] = data; head &= (BUFSIZE - 1);
-
-  Can read:
-  (head - tail) & (BUFSIZE - 1)
-
-  Read from buffer:
-  data = buf[tail++]; tail &= (BUFSIZE - 1);
-*/
-/** \def buf_canread()
-
-  Check if we can read from this buffer.
-*/
-#define buf_canread(buffer)     ((buffer ## head - buffer ## tail ) & \
-                                 (BUFSIZE - 1))
-
-/** \def buf_pop()
-
-  Actually read from this buffer.
-*/
-#define buf_pop(buffer, data)   do { \
-                                  data = buffer ## buf[buffer ## tail]; \
-                                  buffer ## tail = (buffer ## tail + 1) & \
-                                    (BUFSIZE - 1); \
-                                } while (0)
-
-/** \def buf_canwrite()
-
-  Check if we can write to this buffer.
-*/
-#define buf_canwrite(buffer)    ((buffer ## tail - buffer ## head - 1) & \
-                                 (BUFSIZE - 1))
-
-/** \def buf_push()
-
-  Actually write to this buffer.
-*/
-#define buf_push(buffer, data)  do { \
-                                  buffer ## buf[buffer ## head] = data; \
-                                  buffer ## head = (buffer ## head + 1) & \
-                                    (BUFSIZE - 1); \
-                                } while (0)
+#include "ringbuffer.h"
 
 #ifdef XONXOFF
 #define FLOWFLAG_STATE_XOFF 0
