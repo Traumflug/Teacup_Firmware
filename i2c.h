@@ -22,6 +22,19 @@
 */
 //#define I2C_SLAVE_MODE
 
+/** \def I2C_READ_SUPPORT
+
+  Currently, reading from the I2C bus is implemented only partially. The
+  already existing parts are wrapped with this #define.
+
+  If reading from I2C is needed, at least a read buffer has to be added. This
+  buffer used to be 'i2c_buffer[]', a pointer 'i2c_index' into this buffer and
+  a variable 'i2c_byte_count' to track on how many bytes should be read.
+  Further requirements are adjustments to the wrapped code to use this buffer
+  and a function to make the read data available to calling code.
+*/
+//#define I2C_READ_SUPPORT
+
 /** \def I2C_EEPROM_SUPPORT
 
   It's currently unclear what this enables exactly, apparently something to

@@ -345,8 +345,9 @@ ISR(TWI_vect) {
       // Try to resend when the bus became free.
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       break;
-#if 0
-// Note: we currently have no receive buffer, so we can't receive anything.
+
+    #ifdef I2C_READ_SUPPORT
+
     case TW_MR_SLA_ACK:
       // SLA+R was sent, got АСК, then received a byte.
       if (i2c_index + 1 == i2c_byte_count) {
@@ -381,7 +382,8 @@ ISR(TWI_vect) {
       // Send stop condition.
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
-#endif
+
+    #endif /* I2C_READ_SUPPORT */
 
     #ifdef I2C_SLAVE_MODE
 
