@@ -5,16 +5,47 @@
 
 #ifdef I2C
 
-// Uncomment if we act as master device.
+/** \def I2C_MASTER_MODE
+
+  Wether we act as I2C master. Masters initiate transmissions and can talk to
+  multiple clients. Multiple masters can exist on a single bus.
+
+  This implementation can act either as master or as slave. Uncomment this
+  #define to act as master.
+*/
 #define I2C_MASTER_MODE
-// Uncomment if we act as slave device.
+
+/** \def I2C_SLAVE_MODE
+
+  Uncomment this #define to make this implementation act as slave. Note that
+  this part of the implementation is untested and might not even compile.
+*/
 //#define I2C_SLAVE_MODE
-// Uncomment if we use EEPROM chips.
+
+/** \def I2C_EEPROM_SUPPORT
+
+  It's currently unclear what this enables exactly, apparently something to
+  deal easier with EEPROM chips. Uncomment this #define in addition to
+  I2C_MASTER_MODE or I2C_SLAVE_MODE to enable it.
+
+  Note that this part of the implementation is untested, it might not even
+  compile.
+*/
 //#define I2C_EEPROM_SUPPORT
 
-// Bus speed. Maximum is said to be 400000.
+/** \def I2C_BITRATE
+
+  Define the I2C bus speed here if acting as master. Maximum supported by
+  AVRs is said to be 400000.
+
+  Unit: bits/second.
+*/
 #define I2C_BITRATE                 100000
-// Comment out if there are external pullups.
+
+/** \def I2C_ENABLE_PULLUPS
+
+  Comment this out if there are external pullups in the hardware.
+*/
 #define I2C_ENABLE_PULLUPS
 
 /** \def I2C_BUFFER_SIZE
