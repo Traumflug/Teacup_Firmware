@@ -20,7 +20,7 @@
 
 #define DISPLAY_I2C_ADDRESS        (0x3C << 1)
 
-static uint8_t display_init[] = {
+const uint8_t PROGMEM display_init[] = {
   0x00,             // Command marker.
   0xAE,             // Display off.
   0xD5, 0x80,       // Display clock divider (reset).
@@ -50,7 +50,7 @@ typedef struct {
   uint8_t data[4];
 } SYMBOL;
 
-SYMBOL font_8x4[] = {
+const SYMBOL PROGMEM font_8x4[] = {
   {2, {0x00, 0x00, 0x00, 0x00}},  /* space */
   {3, {0x0C, 0x5E, 0x0C, 0x00}},  /* excl_mark */
   {3, {0x03, 0x00, 0x03, 0x00}},  /* quot_mark */
@@ -162,7 +162,7 @@ static void i2c_test(void) {
 
   for (i = 0; i < sizeof(display_init); i++) {
     // Send last byte with 'last_byte' set.
-    i2c_write(DISPLAY_I2C_ADDRESS, display_init[i],
+    i2c_write(DISPLAY_I2C_ADDRESS, pgm_read_byte(&display_init[i]),
               (i == sizeof(display_init) - 1));
   }
 
@@ -203,11 +203,12 @@ static void i2c_test(void) {
   // Render text to bitmap to display.
   i2c_write(DISPLAY_I2C_ADDRESS, 0x40, 0);
   while (*message) {
-    SYMBOL symbol = font_8x4[(uint8_t)*message - 0x20];
+    uint8_t index = (uint8_t)*message - 0x20;
 
     // Send the character bitmap.
-    for (i = 0; i < symbol.columns; i++) {
-      i2c_write(DISPLAY_I2C_ADDRESS, symbol.data[i], 0);
+    for (i = 0; i < pgm_read_byte(&font_8x4[index].columns); i++) {
+      i2c_write(DISPLAY_I2C_ADDRESS,
+                pgm_read_byte(&font_8x4[index].data[i]), 0);
     }
     // Send space between characters.
     for (i = 0; i < FONT_SYMBOLS_SPACE; i++) {
