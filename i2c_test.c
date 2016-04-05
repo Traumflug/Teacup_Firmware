@@ -15,7 +15,6 @@
 
 #include <string.h>
 #include "config_wrapper.h"
-#include "delay.h"
 #include "i2c.h"
 
 
@@ -157,15 +156,15 @@ SYMBOL font_8x4[] = {
 
 #define FONT_SYMBOLS_SPACE 1
 
-
 static void i2c_test(void) {
   uint16_t i;
   const char* message = "Welcome to Teacup";
 
   for (i = 0; i < sizeof(display_init); i++) {
-    i2c_write(DISPLAY_I2C_ADDRESS, display_init[i], 0);
+    // Send last byte with 'last_byte' set.
+    i2c_write(DISPLAY_I2C_ADDRESS, display_init[i],
+              (i == sizeof(display_init) - 1));
   }
-  delay_ms(500);
 
   /**
     Clear the screen. As this display supports many sophisticated commands,
@@ -175,21 +174,18 @@ static void i2c_test(void) {
   // Set horizontal adressing mode.
   i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
   i2c_write(DISPLAY_I2C_ADDRESS, 0x20, 0);
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
-  delay_ms(100);
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 1);
 
   // Write 512 zeros.
   i2c_write(DISPLAY_I2C_ADDRESS, 0x40, 0);
   for (i = 0; i < 512; i++) {
-    i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
+    i2c_write(DISPLAY_I2C_ADDRESS, 0x00, (i == 511));
   }
-  delay_ms(2000);
 
   // Return to page adressing mode.
   i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
   i2c_write(DISPLAY_I2C_ADDRESS, 0x20, 0);
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x02, 0);
-  delay_ms(100);
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x02, 1);
 
   /**
     Setup cursor on display.
@@ -202,8 +198,7 @@ static void i2c_test(void) {
   i2c_write(DISPLAY_I2C_ADDRESS, 0xB0 | 1, 0);
   // Column 32.
   i2c_write(DISPLAY_I2C_ADDRESS, 0x00 | (32 & 0x0F), 0);
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x10 | ((32 >> 4) & 0x0F), 0);
-  delay_ms(100);
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x10 | ((32 >> 4) & 0x0F), 1);
 
   // Render text to bitmap to display.
   i2c_write(DISPLAY_I2C_ADDRESS, 0x40, 0);
@@ -221,6 +216,8 @@ static void i2c_test(void) {
 
     message++;
   }
+  // Send another space for transmission end.
+  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 1);
 }
 
 #endif /* I2C_TEST */

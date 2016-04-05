@@ -67,8 +67,16 @@
 
 // Address of the device that is communicated with.
 uint8_t i2c_address;
+
 // State of TWI component of MCU.
 volatile uint8_t i2c_state = I2C_MODE_FREE;
+
+/**
+  Wether transmission should be terminated on buffer drain. This also means
+  no new bytes get stuffed into the buffer until this drain happened. It's
+  used to allow distinct transmissions.
+*/
+volatile uint8_t i2c_should_end = 0;
 
 #ifdef I2C_EEPROM_SUPPORT
   // For SAWSARP mode (see ENHA in i2c.h).
@@ -140,23 +148,35 @@ void i2c_init(uint8_t address) {
 
   \param data       The byte to be buffered/sent.
 
-  \param last_byte  Wether this is the last byte of a transaction.
+  \param last_byte  Wether this is the last byte of a transmission.
 
   Unlike many other protocols (serial, SPI), I2C has an explicite transmission
-  start and transmission end. Transmission start is detected automatically,
-  but end of the transmission has to be told by the invoking code.
+  start and transmission end. Invoking code has to tell wether the given byte
+  is the last byte of a transmission, so sending code can properly end it.
+
+  This function has been tested to properly distinguish between individual
+  transmissions separated by last_byte. Other than setting this flag, invoking
+  code doesn't have to care about distinction, but may experience substantial
+  delays (up to several milliseconds) if the bus is already busy with a
+  distinct previous transmission.
 
   Data is buffered, so this returns quickly for small amounts of data. Large
   amounts don't get lost, but this function has to wait until sufficient
   previous data was sent.
 
-  TODO: for now this function assumes that the buffer drains between distinct
-        transmissions. This means, last_byte is ignored and transmission is
-        ended as soon as the buffer drains.
+  Note that calling code has to send bytes quickly enough to not drain the
+  buffer. It looks like the I2C protocol doesn't, unlike e.g. SPI, allow
+  to pause sending without dropping the transmission. Positive of this
+  limitation is, one can end a transmisson by simply not writing for a while,
+  until it's sure the buffer became empty.
 */
 void i2c_write(uint8_t address, uint8_t data, uint8_t last_byte) {
 
-  if ( ! (i2c_state & I2C_MODE_BUSY)) {
+  while (i2c_should_end || ! buf_canwrite(send)) {
+    delay_us(10);
+  }
+
+  if (i2c_state & I2C_MODE_FREE) {
     // No transmission ongoing, start one.
     i2c_address = address;
 
@@ -168,11 +188,9 @@ void i2c_write(uint8_t address, uint8_t data, uint8_t last_byte) {
     i2c_state |= I2C_MODE_BUSY;
   }
 
-  while ( ! buf_canwrite(send))
-    delay_us(10);
-
   ATOMIC_START
     buf_push(send, data);
+    i2c_should_end = last_byte;
   ATOMIC_END
 }
 
@@ -261,8 +279,10 @@ ISR(TWI_vect) {
           buf_pop(send, TWDR);
           TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
         } else {
-          // Last byte, send stop condition.
+          // Buffer drained because transmission is completed.
           i2c_state = I2C_MODE_FREE;
+          i2c_should_end = 0;
+          // Send stop condition.
           TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
         }
       }
