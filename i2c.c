@@ -108,8 +108,22 @@ volatile uint8_t sendbuf[BUFSIZE];
   \param address Address the system should listen to in slave mode, unused
                  when configured for master mode. In master mode, receiver
                  address is given to the send command.
+
+  This also sets the I2C address. In slave mode it's the address we listen on.
+
+  In master mode it's the communication target address. As master one can talk
+  to different devices. Call again i2c_init() for changing the target address,
+  then. Doing so won't interrupt ongoing transmissions and overhead is small.
 */
 void i2c_init(uint8_t address) {
+
+  // In case this is a re-inititalisation,
+  // don't interrupt an ongoing transmission.
+  while (i2c_state & I2C_MODE_BUSY) {
+    delay_us(10);
+  }
+
+  i2c_address = address;
 
   #ifdef I2C_MASTER_MODE
     #ifdef I2C_ENABLE_PULLUPS
@@ -135,7 +149,6 @@ void i2c_init(uint8_t address) {
   #endif /* I2C_MASTER_MODE */
 
   #ifdef I2C_SLAVE_MODE
-    i2c_address = address;
     TWAR = i2c_address; // We listen to broadcasts if lowest bit is set.
     TWCR = (0<<TWINT)|(0<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
   #endif
@@ -158,11 +171,12 @@ uint8_t i2c_busy(void) {
 /**
   Send a byte to the I2C partner.
 
-  \param address    I2C address of the communications partner.
-
   \param data       The byte to be buffered/sent.
 
   \param last_byte  Wether this is the last byte of a transmission.
+
+  This implementation assumes to talk to mostly one communications client. To
+  set the target, or to change it between transmissions, call i2c_init().
 
   Unlike many other protocols (serial, SPI), I2C has an explicite transmission
   start and transmission end. Invoking code has to tell wether the given byte
@@ -187,7 +201,7 @@ uint8_t i2c_busy(void) {
   limitation is, one can end a transmisson by simply not writing for a while,
   until it's sure the buffer became empty.
 */
-void i2c_write(uint8_t address, uint8_t data, uint8_t last_byte) {
+void i2c_write(uint8_t data, uint8_t last_byte) {
 
   while (i2c_should_end || ! buf_canwrite(send)) {
     delay_us(10);
@@ -195,12 +209,7 @@ void i2c_write(uint8_t address, uint8_t data, uint8_t last_byte) {
 
   if (i2c_state & I2C_MODE_FREE) {
     // No transmission ongoing, start one.
-    i2c_address = address;
-
-    // Just send.
     i2c_state = I2C_MODE_SAWP;
-
-    // Start transmission.
     TWCR = (1<<TWINT)|(0<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
     i2c_state |= I2C_MODE_BUSY;
   }

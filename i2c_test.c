@@ -162,8 +162,7 @@ static void i2c_test(void) {
 
   for (i = 0; i < sizeof(display_init); i++) {
     // Send last byte with 'last_byte' set.
-    i2c_write(DISPLAY_I2C_ADDRESS, pgm_read_byte(&display_init[i]),
-              (i == sizeof(display_init) - 1));
+    i2c_write(pgm_read_byte(&display_init[i]), (i == sizeof(display_init) - 1));
   }
 
   /**
@@ -172,20 +171,20 @@ static void i2c_test(void) {
     zeros, byte by byte.
   */
   // Set horizontal adressing mode.
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x20, 0);
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 1);
+  i2c_write(0x00, 0);
+  i2c_write(0x20, 0);
+  i2c_write(0x00, 1);
 
   // Write 512 zeros.
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x40, 0);
+  i2c_write(0x40, 0);
   for (i = 0; i < 512; i++) {
-    i2c_write(DISPLAY_I2C_ADDRESS, 0x00, (i == 511));
+    i2c_write(0x00, (i == 511));
   }
 
   // Return to page adressing mode.
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x20, 0);
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x02, 1);
+  i2c_write(0x00, 0);
+  i2c_write(0x20, 0);
+  i2c_write(0x02, 1);
 
   /**
     Setup cursor on display.
@@ -193,32 +192,31 @@ static void i2c_test(void) {
     "Welcome to Teacup" is 64 pixel columns wide, entire display is
     128 columns, so we offset by 32 columns to get it to the center.
   */
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
+  i2c_write(0x00, 0);
   // Line 1.
-  i2c_write(DISPLAY_I2C_ADDRESS, 0xB0 | 1, 0);
+  i2c_write(0xB0 | 1, 0);
   // Column 32.
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x00 | (32 & 0x0F), 0);
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x10 | ((32 >> 4) & 0x0F), 1);
+  i2c_write(0x00 | (32 & 0x0F), 0);
+  i2c_write(0x10 | ((32 >> 4) & 0x0F), 1);
 
   // Render text to bitmap to display.
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x40, 0);
+  i2c_write(0x40, 0);
   while (*message) {
     uint8_t index = (uint8_t)*message - 0x20;
 
     // Send the character bitmap.
     for (i = 0; i < pgm_read_byte(&font_8x4[index].columns); i++) {
-      i2c_write(DISPLAY_I2C_ADDRESS,
-                pgm_read_byte(&font_8x4[index].data[i]), 0);
+      i2c_write(pgm_read_byte(&font_8x4[index].data[i]), 0);
     }
     // Send space between characters.
     for (i = 0; i < FONT_SYMBOLS_SPACE; i++) {
-      i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 0);
+      i2c_write(0x00, 0);
     }
 
     message++;
   }
   // Send another space for transmission end.
-  i2c_write(DISPLAY_I2C_ADDRESS, 0x00, 1);
+  i2c_write(0x00, 1);
 }
 
 #endif /* I2C_TEST */
