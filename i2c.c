@@ -36,6 +36,12 @@
   #error Cant be I2C master and slave at the same time.
 #endif
 
+#if defined I2C_SLAVE_MODE || defined I2C_READ_SUPPORT || \
+    defined I2C_EEPROM_SUPPORT
+  #warning These portions of the code are untested and need work.
+#endif
+
+
 #ifdef I2C_SLAVE_MODE
   #define I2C_MODE 1
 #else
