@@ -142,6 +142,20 @@ void i2c_init(uint8_t address) {
 }
 
 /**
+  Report wether I2C is busy.
+
+  \return Wether I2C is currently busy, which means that eventual new
+          transactions would have to wait.
+
+  Idea is that non-crucial display writes check the bus before actually
+  writing, so they avoid long waits. If i2c_busy() returns zero, the bus
+  is free and writes won't cause a delay.
+*/
+uint8_t i2c_busy(void) {
+  return (i2c_state & I2C_MODE_BUSY);
+}
+
+/**
   Send a byte to the I2C partner.
 
   \param address    I2C address of the communications partner.
@@ -163,6 +177,9 @@ void i2c_init(uint8_t address) {
   Data is buffered, so this returns quickly for small amounts of data. Large
   amounts don't get lost, but this function has to wait until sufficient
   previous data was sent.
+
+  To avoid unexpected delays, invoking code can check for bus availability
+  with i2c_busy().
 
   Note that calling code has to send bytes quickly enough to not drain the
   buffer. It looks like the I2C protocol doesn't, unlike e.g. SPI, allow
