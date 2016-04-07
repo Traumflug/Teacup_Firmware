@@ -367,6 +367,17 @@
 */
 //#define SD_CARD_SELECT_PIN       xxxx
 
+/** \def MCP3008_SELECT_PIN
+
+  Chip Select pin of the MCP3008 ADC.
+
+  MCP3008/4 analog-digital converter works over SPI and has a Chip Select pin.
+  Choose this pin according to where the MCP3008 is connected. Setting this
+  pin is required only if at least one temperature sensor of type MCP3008 is
+  configured. Else it's ignored.
+*/
+//#define MCP3008_SELECT_PIN       xxxx
+
 
 
 /***************************************************************************\
@@ -405,12 +416,19 @@
 */
 #define TEMP_EWMA             1.0
 
-/// which temperature sensors are you using? List every type of sensor you use here once, to enable the appropriate code. Intercom is the gen3-style separate extruder board.
-// #define	TEMP_MAX6675
-#define	TEMP_THERMISTOR
-// #define	TEMP_AD595
-// #define	TEMP_PT100
-// #define	TEMP_INTERCOM
+/** \def TEMP_MAX6675 TEMP_THERMISTOR TEMP_AD595 TEMP_PT100 TEMP_INTERCOM
+    \def TEMP_MCP3008
+
+  Which temperature sensor types are you using? Leave all used ones
+  uncommented, comment out all others to save binary size and enhance
+  performance.
+*/
+//#define TEMP_MAX6675
+#define TEMP_THERMISTOR
+//#define TEMP_AD595
+//#define TEMP_PT100
+//#define TEMP_INTERCOM
+//#define TEMP_MCP3008
 
 /** \def TEMP_SENSOR_PIN
   Temperature sensor pins a user should be able to choose from in configtool.

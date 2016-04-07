@@ -37,7 +37,8 @@
 /**
   Check wether we need SPI.
 */
-#if (defined SD_CARD_SELECT_PIN || defined TEMP_MAX6675) && ! defined SIMULATOR
+#if (defined SD_CARD_SELECT_PIN || defined TEMP_MAX6675 || \
+     defined TEMP_MC3008) && ! defined SIMULATOR
   #define SPI
 #endif
 

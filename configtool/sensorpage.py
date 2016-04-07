@@ -18,12 +18,16 @@ class SensorsPage(wx.Panel, Page):
     self.sensorTypeKeys = {'TT_MAX6675': 'TEMP_MAX6675',
                            'TT_THERMISTOR': 'TEMP_THERMISTOR',
                            'TT_AD595': 'TEMP_AD595', 'TT_PT100': 'TEMP_PT100',
-                           'TT_INTERCOM': 'TEMP_INTERCOM'}
+                           'TT_INTERCOM': 'TEMP_INTERCOM',
+                           'TT_MCP3008': 'TEMP_MCP3008'}
     self.labels = {'TEMP_MAX6675': "MAX6675", 'TEMP_THERMISTOR': "Thermistor",
                    'TEMP_AD595': "AD595", 'TEMP_PT100': "PT100",
-                   'TEMP_INTERCOM': "Intercom"}
+                   'TEMP_INTERCOM': "Intercom",
+                   'TEMP_MCP3008': 'MCP3008',
+                   'MCP3008_SELECT_PIN': "MCP3008 CS Pin:"}
 
     self.validPins = pinNames
+    labelWidth = 120
 
     sz = wx.GridBagSizer()
     sz.AddSpacer((10, 10), pos = (0, 0))
@@ -64,6 +68,10 @@ class SensorsPage(wx.Panel, Page):
                                   "from the configuration.")
 
     sz.Add(bsz, pos = (1, 3))
+
+    k = "MCP3008_SELECT_PIN"
+    tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
+    sz.Add(tc, pos = (2, 1))
 
     self.SetSizer(sz)
     self.enableAll(False)
@@ -143,6 +151,13 @@ class SensorsPage(wx.Panel, Page):
   def insertValues(self, cfgValues):
     Page.insertValues(self, cfgValues)
 
+    for k in self.choices.keys():
+      if k in cfgValues.keys():
+        self.choicesOriginal[k] = cfgValues[k]
+        self.setChoice(k, cfgValues, "-")
+      else:
+        print "Key " + k + " not found in config data."
+
     self.bAdd.Enable(True)
 
   def setSensors(self, sensors):
@@ -185,5 +200,12 @@ class SensorsPage(wx.Panel, Page):
 
     for v in values.keys():
       result[v] = values[v]
+
+    for k in self.choices.keys():
+      if result[k][0] == "-":
+        if k in self.choicesOriginal.keys():
+          result[k] = self.choicesOriginal[k][0], False
+        else:
+          result[k] = "", False
 
     return result

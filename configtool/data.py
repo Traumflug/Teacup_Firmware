@@ -12,7 +12,7 @@ pinNamesWithBlank = ["-"] + pinNames
 
 sensorTypes = {'MAX6675': "TT_MAX6675", 'Thermistor': "TT_THERMISTOR",
                'AD595': "TT_AD595", 'PT100': "TT_PT100",
-               'Intercom': "TT_INTERCOM"}
+               'Intercom': "TT_INTERCOM", 'MCP3008': "TT_MCP3008"}
 
 BSIZE = (100, 60)
 BSIZESMALL = (90, 30)

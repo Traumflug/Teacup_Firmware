@@ -116,6 +116,17 @@
 */
 #define SD_CARD_SELECT_PIN       DIO10
 
+/** \def MCP3008_SELECT_PIN
+
+  Chip Select pin of the MCP3008 ADC.
+
+  MCP3008/4 analog-digital converter works over SPI and has a Chip Select pin.
+  Choose this pin according to where the MCP3008 is connected. Setting this
+  pin is required only if at least one temperature sensor of type MCP3008 is
+  configured. Else it's ignored.
+*/
+//#define MCP3008_SELECT_PIN       xxxx
+
 
 /***************************************************************************\
 *                                                                           *
@@ -128,6 +139,8 @@
 #endif
 
 /** \def TEMP_MAX6675 TEMP_THERMISTOR TEMP_AD595 TEMP_PT100 TEMP_INTERCOM
+    \def TEMP_MCP3008
+
   Which temperature sensor types are you using? Leave all used ones
   uncommented, comment out all others to save binary size and enhance
   performance.
@@ -137,6 +150,7 @@
 //#define TEMP_AD595
 //#define TEMP_PT100
 //#define TEMP_INTERCOM
+//#define TEMP_MCP3008
 
 /** \def TEMP_SENSOR_PIN
   Temperature sensor pins a user should be able to choose from in configtool.
@@ -155,12 +169,12 @@
   "noheater".
 
   Types are same as TEMP_ list above - TT_MAX6675, TT_THERMISTOR, TT_AD595,
-  TT_PT100, TT_INTERCOM. See list in temp.c.
+  TT_PT100, TT_INTERCOM, TT_MCP3008. See list in temp.c.
 
-  The "additional" field is used for TT_THERMISTOR only. It defines the
-  name of the table(s) in thermistortable.h to use. This name is arbitrary,
-  often used names include THERMISTOR_EXTRUDER and THERMISTOR_BED. Also,
-  several sensors can share the same table, which saves binary size.
+  The "additional" field is used for TT_THERMISTOR and TT_MCP3008 only. It
+  defines the name of the table(s) in thermistortable.h to use. This name is
+  arbitrary, often used names include THERMISTOR_EXTRUDER and THERMISTOR_BED.
+  Also, several sensors can share the same table, which saves binary size.
 
   For a GEN3 set temp_type to TT_INTERCOM and temp_pin to AIO0. The pin
   won't be used in this case.

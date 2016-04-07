@@ -11,7 +11,7 @@
   Test configuration.
 */
 #ifdef __ARMEL__
-  #error SPI (SD_CARD_SELECT_PIN, TEMP_MAX6675) not yet supported on ARM.
+  #error SPI (SD_CARD_SELECT_PIN, TEMP_MAX6675, TEMP_MCP3008) not yet supported on ARM.
 #endif
 
 // Uncomment this to double SPI frequency from (F_CPU / 4) to (F_CPU / 2).
@@ -54,6 +54,18 @@ inline void spi_deselect_max6675(void) {
   WRITE(SS, 1);
 }
 #endif /* TEMP_MAX6675 */
+
+#ifdef TEMP_MCP3008
+static void spi_select_mcp3008(void) __attribute__ ((always_inline));
+inline void spi_select_mcp3008(void) {
+  WRITE(MCP3008_SELECT_PIN, 0);
+}
+
+static void spi_deselect_mcp3008(void) __attribute__ ((always_inline));
+inline void spi_deselect_mcp3008(void) {
+  WRITE(MCP3008_SELECT_PIN, 1);
+}
+#endif /* TEMP_MCP3008 */
 
 /** Set SPI clock speed to something between 100 and 400 kHz.
 

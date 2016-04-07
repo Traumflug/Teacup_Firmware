@@ -34,6 +34,14 @@
   #include "spi.h"
 #endif
 
+#ifdef TEMP_MCP3008
+  #ifdef __ARMEL__
+    #error MCP3008 sensors (TEMP_MCP3008) not yet supported on ARM.
+  #endif
+  #include "spi.h"
+  #include "thermistortable.h"
+#endif
+
 #ifdef	TEMP_THERMISTOR
 #include	"analog.h"
 #include	"thermistortable.h"
@@ -94,6 +102,13 @@ void temp_init() {
           // Intentionally no break, we might have more than one sensor type.
       #endif
 
+      #ifdef TEMP_MCP3008
+        case TT_MCP3008:
+          SET_OUTPUT(MCP3008_SELECT_PIN);
+          spi_deselect_mcp3008();
+          // Intentionally no break, we might have more than one sensor type.
+      #endif
+
 		#ifdef	TEMP_THERMISTOR
 			// handled by analog_init()
 /*			case TT_THERMISTOR:
@@ -124,6 +139,104 @@ void temp_init() {
 		}
 	}
 }
+
+/**
+  Read a measurement from the MCP3008 analog-digital-converter (ADC).
+
+  \param channel The ADC channel to read.
+
+  \return The raw ADC reading.
+
+  Documentation for this ADC see
+
+    https://www.adafruit.com/datasheets/MCP3008.pdf.
+*/
+#ifdef TEMP_MCP3008
+static uint16_t mcp3008_read(uint8_t channel) {
+  uint8_t temp_h, temp_l;
+
+  spi_select_mcp3008();
+
+  // Start bit.
+  spi_rw(0x01);
+
+  // Send read address and get MSB, then LSB byte.
+  temp_h = spi_rw((0b1000 | channel) << 4) & 0b11;
+  temp_l = spi_rw(0);
+
+  spi_deselect_mcp3008();
+
+  return temp_h << 8 | temp_l;
+}
+#endif /* TEMP_MCP3008 */
+
+/**
+  Look up a degree Celsius value from a raw ADC reading.
+
+  \param temp   The raw ADC reading to look up.
+
+  \param sensor The sensor to look up. Each sensor can have its own table.
+
+  \return Degree Celsius reading in 14.2 fixed decimal format.
+
+  The table(s) looked up here are in thermistortable.h and are created on the
+  fly by Configtool when saving config.h. They contain value pairs mapping
+  raw ADC readings to 14.2 values already, so all we have to do here is to
+  inter-/extrapolate.
+*/
+#if defined TEMP_THERMISTOR || defined TEMP_MCP3008
+static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
+  uint8_t j;
+  uint8_t table_num = temp_sensors[sensor].additional;
+
+  for (j = 1; j < NUMTEMPS; j++) {
+    if (pgm_read_word(&(temptable[table_num][j][0])) > temp) {
+
+      if (DEBUG_PID && (debug_flags & DEBUG_PID))
+        sersendf_P(PSTR("pin:%d Raw ADC:%d table entry: %d"),
+                   temp_sensors[sensor].temp_pin, temp, j);
+
+      // Wikipedia's example linear interpolation formula.
+      // y = ((x - x₀)y₁ + (x₁-x)y₀) / (x₁ - x₀)
+      // y = temp
+      // x = ADC reading
+      // x₀= temptable[j-1][0]
+      // x₁= temptable[j][0]
+      // y₀= temptable[j-1][1]
+      // y₁= temptable[j][1]
+      temp = (
+      // ((x - x₀)y₁
+        ((uint32_t)temp - pgm_read_word(&(temptable[table_num][j-1][0]))) *
+                          pgm_read_word(&(temptable[table_num][j][1]))
+      //             +
+        +
+      //               (x₁-x)y₀)
+        (pgm_read_word(&(temptable[table_num][j][0])) - (uint32_t)temp) *
+          pgm_read_word(&(temptable[table_num][j - 1][1])))
+      //                        /
+        /
+      //                          (x₁ - x₀)
+        (pgm_read_word(&(temptable[table_num][j][0])) -
+         pgm_read_word(&(temptable[table_num][j - 1][0])));
+
+      if (DEBUG_PID && (debug_flags & DEBUG_PID))
+        sersendf_P(PSTR(" temp:%d.%d"), temp / 4, (temp % 4) * 25);
+
+      // Value found, no need to read the table further.
+      break;
+    }
+  }
+
+  if (DEBUG_PID && (debug_flags & DEBUG_PID))
+    sersendf_P(PSTR(" Sensor:%d\n"), sensor);
+
+  // Clamp for overflows.
+  if (j == NUMTEMPS)
+    temp = temptable[table_num][NUMTEMPS - 1][1];
+
+  return temp;
+}
+#endif /* TEMP_THERMISTOR || TEMP_MCP3008 */
 
 /// called every 10ms from clock.c - check all temp sensors that are ready for checking
 void temp_sensor_tick() {
@@ -172,66 +285,24 @@ void temp_sensor_tick() {
 				#endif	/* TEMP_MAX6675	*/
 
 				#ifdef	TEMP_THERMISTOR
-				case TT_THERMISTOR:
-					do {
-						uint8_t j, table_num;
-						//Read current temperature
-						temp = analog_read(i);
-						// for thermistors the thermistor table number is in the additional field
-						table_num = temp_sensors[i].additional;
+          case TT_THERMISTOR:
+            // Read current temperature.
+            temp = temp_table_lookup(analog_read(i), i);
 
-						//Calculate real temperature based on lookup table
-						for (j = 1; j < NUMTEMPS; j++) {
-							if (pgm_read_word(&(temptable[table_num][j][0])) > temp) {
-								// Thermistor table is already in 14.2 fixed point
-								#ifndef	EXTRUDER
-								if (DEBUG_PID && (debug_flags & DEBUG_PID))
-									sersendf_P(PSTR("pin:%d Raw ADC:%d table entry: %d"),temp_sensors[i].temp_pin,temp,j);
-								#endif
-								// Linear interpolating temperature value
-								// y = ((x - x₀)y₁ + (x₁-x)y₀ ) / (x₁ - x₀)
-								// y = temp
-								// x = ADC reading
-								// x₀= temptable[j-1][0]
-								// x₁= temptable[j][0]
-								// y₀= temptable[j-1][1]
-								// y₁= temptable[j][1]
-								// y =
-								// Wikipedia's example linear interpolation formula.
-								temp = (
-								//     ((x - x₀)y₁
-									((uint32_t)temp - pgm_read_word(&(temptable[table_num][j-1][0]))) * pgm_read_word(&(temptable[table_num][j][1]))
-								//                 +
-									+
-								//                   (x₁-x)
-									(pgm_read_word(&(temptable[table_num][j][0])) - (uint32_t)temp)
-								//                         y₀ )
-									* pgm_read_word(&(temptable[table_num][j-1][1])))
-								//                              /
-									/
-								//                                (x₁ - x₀)
-									(pgm_read_word(&(temptable[table_num][j][0])) - pgm_read_word(&(temptable[table_num][j-1][0])));
-								#ifndef	EXTRUDER
-								if (DEBUG_PID && (debug_flags & DEBUG_PID))
-									sersendf_P(PSTR(" temp:%d.%d"),temp/4,(temp%4)*25);
-								#endif
-								break;
-							}
-						}
-						#ifndef	EXTRUDER
-						if (DEBUG_PID && (debug_flags & DEBUG_PID))
-							sersendf_P(PSTR(" Sensor:%d\n"),i);
-						#endif
-
-
-						//Clamp for overflows
-						if (j == NUMTEMPS)
-							temp = temptable[table_num][NUMTEMPS-1][1];
-
-						temp_sensors_runtime[i].next_read_time = 0;
-					} while (0);
-					break;
+            temp_sensors_runtime[i].next_read_time = 0;
+            break;
 				#endif	/* TEMP_THERMISTOR */
+
+        #ifdef TEMP_MCP3008
+          case TT_MCP3008:
+            // Read current temperature.
+            temp = temp_table_lookup(mcp3008_read(temp_sensors[i].temp_pin), i);
+
+            // This is an SPI read so it is not as fast as on-chip ADC. A read
+            // every 100ms should be sufficient.
+            temp_sensors_runtime[i].next_read_time = 10;
+            break;
+        #endif /* TEMP_MCP3008 */
 
 				#ifdef	TEMP_AD595
 				case TT_AD595:
