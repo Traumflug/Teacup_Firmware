@@ -87,7 +87,7 @@ void pid_init() {
       heaters_runtime[i].sane_temperature = 0;
     #endif
 
-    #ifndef BANG_BANG
+    #ifdef PID
       #ifdef EECONFIG
         // Read factors from EEPROM.
         heaters_pid[i].p_factor =
@@ -108,7 +108,7 @@ void pid_init() {
         heaters_pid[i].d_factor = DEFAULT_D;
         heaters_pid[i].i_limit = DEFAULT_I_LIMIT;
       }
-    #endif /* BANG_BANG */
+    #endif /* PID */
   }
 }
 
@@ -122,21 +122,24 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
   // Static, so it's not mandatory to calculate a new value, see BANG_BANG.
   static uint8_t pid_output;
 
-	#ifndef	BANG_BANG
+	#ifdef	PID
 		int16_t		heater_p;
 		int16_t		heater_d;
 		int16_t		t_error = target_temp - current_temp;
-	#endif	/* BANG_BANG */
+	#endif	/* PID */
 
 	if (h >= NUM_HEATERS)
 		return;
 
 	if (target_temp == 0) {
 		heater_set(h, 0);
+    #ifdef PID_AUTOTUNE
+      heaters_runtime[h].autotune_stop = 0;
+    #endif
 		return;
 	}
 
-	#ifndef	BANG_BANG
+	#ifdef	PID
 		heaters_runtime[h].temp_history[heaters_runtime[h].temp_history_pointer++] = current_temp;
 		heaters_runtime[h].temp_history_pointer &= (TH_COUNT - 1);
 
@@ -181,12 +184,18 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 
 		if (DEBUG_PID && (debug_flags & DEBUG_PID))
 			sersendf_P(PSTR("T{E:%d, P:%d * %ld = %ld / I:%d * %ld = %ld / D:%d * %ld = %ld # O: %ld = %u}\n"), t_error, heater_p, heaters_pid[h].p_factor, (int32_t) heater_p * heaters_pid[h].p_factor / PID_SCALE, heaters_runtime[h].heater_i, heaters_pid[h].i_factor, (int32_t) heaters_runtime[h].heater_i * heaters_pid[h].i_factor / PID_SCALE, heater_d, heaters_pid[h].d_factor, (int32_t) heater_d * heaters_pid[h].d_factor / PID_SCALE, pid_output_intermed, pid_output);
-	#else
+	#elif defined(BANG_BANG)
     if (current_temp >= target_temp + (TEMP_HYSTERESIS))
 			pid_output = BANG_BANG_OFF;
     else if (current_temp <= target_temp - (TEMP_HYSTERESIS))
 			pid_output = BANG_BANG_ON;
     // else keep pid_output
+  #elif defined(PID_AUTOTUNE)
+    int16_t pid_output_tune = pid_autotune(h, current_temp, target_temp);
+    if (pid_output_tune >= 0)
+      pid_output = (uint8_t)pid_output_tune;
+  #else
+    // there is no else
 	#endif
 
 	#ifdef	HEATER_SANITY_CHECK
@@ -266,12 +275,12 @@ uint8_t heaters_all_zero() {
 	\param p scaled P factor
 */
 void pid_set_p(heater_t index, int32_t p) {
-	#ifndef	BANG_BANG
+	#ifdef PID
 		if (index >= NUM_HEATERS)
 			return;
 
 		heaters_pid[index].p_factor = p;
-	#endif /* BANG_BANG */
+	#endif /* PID */
 }
 
 /** \brief set heater I factor
@@ -279,12 +288,12 @@ void pid_set_p(heater_t index, int32_t p) {
 	\param i scaled I factor
 */
 void pid_set_i(heater_t index, int32_t i) {
-	#ifndef	BANG_BANG
+	#ifdef PID
 		if (index >= NUM_HEATERS)
 			return;
 
 		heaters_pid[index].i_factor = i;
-	#endif /* BANG_BANG */
+	#endif /* PID */
 }
 
 /** \brief set heater D factor
@@ -292,12 +301,12 @@ void pid_set_i(heater_t index, int32_t i) {
 	\param d scaled D factor
 */
 void pid_set_d(heater_t index, int32_t d) {
-	#ifndef	BANG_BANG
+	#ifdef PID
 		if (index >= NUM_HEATERS)
 			return;
 
 		heaters_pid[index].d_factor = d;
-	#endif /* BANG_BANG */
+	#endif /* PID */
 }
 
 /** \brief set heater I limit
@@ -305,17 +314,17 @@ void pid_set_d(heater_t index, int32_t d) {
 	\param i_limit scaled I limit
 */
 void pid_set_i_limit(heater_t index, int32_t i_limit) {
-	#ifndef	BANG_BANG
+	#ifdef PID
 		if (index >= NUM_HEATERS)
 			return;
 
 		heaters_pid[index].i_limit = i_limit;
-	#endif /* BANG_BANG */
+	#endif /* PID */
 }
 
 /// \brief Write PID factors to eeprom
 void heater_save_settings() {
-  #ifndef BANG_BANG
+  #ifdef PID
     heater_t i;
     for (i = 0; i < NUM_HEATERS; i++) {
       eeprom_write_dword((uint32_t *) &EE_factors[i].EE_p_factor, heaters_pid[i].p_factor);
@@ -324,7 +333,7 @@ void heater_save_settings() {
       eeprom_write_word((uint16_t *) &EE_factors[i].EE_i_limit, heaters_pid[i].i_limit);
       eeprom_write_word((uint16_t *) &EE_factors[i].crc, crc_block(&heaters_pid[i].p_factor, 14));
     }
-  #endif /* BANG_BANG */
+  #endif /* PID */
 }
 #endif /* EECONFIG */
 
@@ -334,5 +343,121 @@ void heater_save_settings() {
 */
 void heater_print(uint16_t i) {
 	sersendf_P(PSTR("P:%ld I:%ld D:%ld Ilim:%u crc:%u\n"), heaters_pid[i].p_factor, heaters_pid[i].i_factor, heaters_pid[i].d_factor, heaters_pid[i].i_limit, crc_block(&heaters_pid[i].p_factor, 14));
+}
+#endif
+
+#ifdef PID_AUTOTUNE
+
+#ifndef MAX
+  #define MAX(a,b)  (((a)>(b))?(a):(b))
+  #define MIN(a,b)  (((a)<(b))?(a):(b))
+#endif
+
+#define CONSTRAIN(amt,low,high) ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
+
+int16_t pid_autotune(heater_t h, uint16_t current_temp, uint16_t target_temp) {
+  int16_t pid_output = -1;  // -1 is used as no update of pid_output
+  
+  /** This is our time
+    We count this up any time we go in here. While this runs in
+    heater_tick this is +10ms.
+  */
+  heaters_runtime[h].tune_counter_10ms++;
+  if (!heaters_runtime[h].autotune_stop) {
+    // Init all values when starting
+    if (!heaters_runtime[h].autotune_active) {
+      // sersendf_P(PSTR("start autotune\n"));
+      heaters_runtime[h].tune_counter_10ms = 0;
+
+      heaters_runtime[h].autotune_active = 1;
+      heaters_runtime[h].cycles = 0;
+      heaters_runtime[h].heating = 1;
+
+      heaters_runtime[h].temp_10ms = 0;
+      heaters_runtime[h].t1 = 0;
+      heaters_runtime[h].t2 = 0;
+      heaters_runtime[h].t_high = 0;
+
+      #ifndef PID_MAX
+        #define PID_MAX 80
+      #endif
+      heaters_runtime[h].bias = PID_MAX >> 1;
+      heaters_runtime[h].d = PID_MAX >> 1;
+
+      heaters_runtime[h].max_temp = 80;  // 20°C
+      heaters_runtime[h].min_temp = 80;  // 20°C
+
+      pid_output = PID_MAX;
+    } 
+    else {
+      heaters_runtime[h].max_temp = MAX(heaters_runtime[h].max_temp, current_temp);
+      heaters_runtime[h].min_temp = MIN(heaters_runtime[h].min_temp, current_temp);
+
+      if (heaters_runtime[h].heating && current_temp > target_temp) {
+        if (heaters_runtime[h].tune_counter_10ms - heaters_runtime[h].t2 > 150) {
+          heaters_runtime[h].heating = 0;
+          pid_output = (heaters_runtime[h].bias - heaters_runtime[h].d);
+          heaters_runtime[h].t1 = heaters_runtime[h].tune_counter_10ms;
+          heaters_runtime[h].t_high = heaters_runtime[h].t1 - heaters_runtime[h].t2;
+          heaters_runtime[h].max_temp = target_temp;
+        }
+      }
+
+      if (!heaters_runtime[h].heating && current_temp < target_temp) {
+        if (heaters_runtime[h].tune_counter_10ms - heaters_runtime[h].t1 > 300) {
+          heaters_runtime[h].heating = 1;
+          heaters_runtime[h].t2 = heaters_runtime[h].tune_counter_10ms;
+          int32_t t_low = heaters_runtime[h].t2 - heaters_runtime[h].t1;
+          if (heaters_runtime[h].cycles > 0) {
+            heaters_runtime[h].bias += (heaters_runtime[h].d * (heaters_runtime[h].t_high - t_low))/(t_low + heaters_runtime[h].t_high);
+            heaters_runtime[h].bias = CONSTRAIN(heaters_runtime[h].bias, 20, PID_MAX - 20);
+            if (heaters_runtime[h].bias > PID_MAX/2) heaters_runtime[h].d = PID_MAX - 1 - heaters_runtime[h].bias;
+            else heaters_runtime[h].d = heaters_runtime[h].bias;
+
+            if (DEBUG_AUTOTUNE && (debug_flags & DEBUG_AUTOTUNE)) {
+              sersendf_P(PSTR("Bias: %ld\n"), heaters_runtime[h].bias);
+              sersendf_P(PSTR("d: %ld\n"), heaters_runtime[h].d);
+              sersendf_P(PSTR("min_temp: %u.%u\n"), heaters_runtime[h].min_temp >> 2, (heaters_runtime[h].min_temp & 0x3) * 25);
+              sersendf_P(PSTR("max_temp: %u.%u\n"), heaters_runtime[h].max_temp >> 2, (heaters_runtime[h].max_temp & 0x3) * 25);
+            }
+            if (heaters_runtime[h].cycles > 2) {
+              uint16_t Ku = (heaters_runtime[h].d << 17) / (201 * ((heaters_runtime[h].max_temp - heaters_runtime[h].min_temp)));
+              /** Ku is 9.7 fixpoint
+                Ku = (4 * d) / ( pi *(max_temp - min_temp))
+                4 = 1 << 2
+                pi ~ 201 / 1 << 6
+                max and min_temp are .2 fixpoint ( 1 << 2)
+                2 + 6 + 2 = 10
+                17 - 10 = .7 fixpoint
+              */
+              uint16_t Tu = ((t_low + heaters_runtime[h].t_high) * 41) >> 5;
+              /** Tu is 9.7 fixpoint.
+                Tu = t_low + t_high (in seconds)
+                t_low and t_high are in 10ms-ticks
+                t_x * 10 = 1ms-ticks
+                t_x * 10 / 1000 = 1s-ticks
+                10 / 1000 ~ 41 / 2^12
+                with >> 5 we have now 9.7 fixpoint
+              */
+              sersendf_P(PSTR("Ku: %u, Tu: %u\n"), Ku, Tu);
+            }
+          }
+        }
+        pid_output = (heaters_runtime[h].bias + heaters_runtime[h].d);
+        heaters_runtime[h].cycles++;
+        heaters_runtime[h].min_temp = target_temp;
+      }
+
+      #ifndef PID_CYCLES
+        #define PID_CYCLES 5
+      #endif
+      if (heaters_runtime[h].cycles > PID_CYCLES) {
+        heaters_runtime[h].autotune_active = 0;
+        heaters_runtime[h].autotune_stop = 1;
+        return 0;
+      }
+    }
+  }
+  return pid_output;
 }
 #endif

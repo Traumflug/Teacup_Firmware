@@ -28,6 +28,13 @@
   #define HEATER_THRESHOLD 8
 #endif
 
+/**
+  When nothing is definded PID is active.
+  Instead of #ifndef BANG_BANG on many places we use now #ifdef PID.
+*/
+#if ! defined(BANG_BANG) && ! defined(PID_AUTOTUNE)
+  #define PID
+#endif
 
 #undef DEFINE_HEATER
 #define DEFINE_HEATER(name, pin, invert, pwm) HEATER_ ## name,
@@ -58,6 +65,28 @@ typedef struct {
     uint16_t sanity_counter;
     /// A temperature we consider sane given the heater settings.
     uint16_t sane_temperature;
+  #endif
+
+  #ifdef PID_AUTOTUNE
+    // Which cycle we are
+    uint8_t cycles;
+    // Like the sanity counter
+    uint32_t tune_counter_10ms;
+    
+    uint32_t temp_10ms;
+    uint32_t t1;
+    uint32_t t2;
+    int32_t t_high;
+
+    int16_t bias;
+    int16_t d;
+
+    uint16_t max_temp;
+    uint16_t min_temp;
+
+    uint8_t autotune_active: 1;
+    uint8_t autotune_stop:   1;
+    uint8_t heating:         1;
   #endif
 
   /// This is the PID value we eventually send to the heater.
