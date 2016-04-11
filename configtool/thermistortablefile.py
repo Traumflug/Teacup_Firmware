@@ -100,10 +100,6 @@ def BetaTable(ofp, params, names, settings, finalTable):
   hiadc = thrm.setting(0)[0]
   N = int(settings.numTemps)
   step = int(hiadc / (N - 1))
-  idx = range(1, int(hiadc), step)
-
-  while len(idx) > N:
-    del idx[0]
 
   for i in range(1, int(hiadc), step):
     t = int(thrm.temp(i))
@@ -146,10 +142,6 @@ def SteinhartHartTable(ofp, params, names, settings, finalTable):
   hiadc = thrm.setting(0)[0]
   N = int(settings.numTemps)
   step = int(hiadc / (N - 1))
-  idx = range(1, int(hiadc), step)
-
-  while len(idx) > N:
-    del idx[0]
 
   for i in range(1, int(hiadc), step):
     t = int(thrm.temp(i))
