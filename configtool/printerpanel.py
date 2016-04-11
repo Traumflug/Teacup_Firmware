@@ -183,7 +183,6 @@ class PrinterPanel(wx.Panel):
 
     self.configFile = fn
 
-    self.processors = []
     gatheringHelpText = False
     helpTextString = ""
     helpKey = None
@@ -256,6 +255,12 @@ class PrinterPanel(wx.Panel):
 
       if self.parseDefineValue(ln):
         continue
+
+    # Parsing done. All parsed stuff is now in these arrays and dicts.
+    # Uncomment for debugging.
+    #print self.cfgValues  # #defines with a value and enabled booleans.
+    #print self.cfgNames   # Names only, but also of disabled booleans.
+    #print self.helpText
 
     if os.path.basename(fn) in protectedFiles:
       self.parent.enableSavePrinter(False, True)

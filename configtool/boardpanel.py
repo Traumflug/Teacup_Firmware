@@ -327,6 +327,22 @@ class BoardPanel(wx.Panel):
               self.heaters.append(s)
               continue
 
+    # Parsing done. All parsed stuff is now in these arrays and dicts.
+    # Uncomment for debugging.
+    #print self.processors
+    #print self.sensors
+    #print self.heaters
+    #print self.candHeatPins
+    #print self.candThermPins
+    #print self.candProcessors
+    #print self.candClocks
+    #print self.candDisplayBuses
+    #print self.candDisplayTypes
+    #print self.tempTables
+    #print self.cfgValues  # #defines with a value and enabled booleans.
+    #print self.cfgNames   # Names only, but also of disabled booleans.
+    #print self.helpText
+
     for k in range(len(self.sensors)):
       tn = self.sensors[k][0].upper()
       if tn in self.tempTables.keys():
@@ -340,6 +356,7 @@ class BoardPanel(wx.Panel):
     else:
       self.protFileLoaded = False
       self.parent.enableSaveBoard(True, True)
+
     self.parent.setBoardTabFile(os.path.basename(fn))
     self.pgHeaters.setCandidatePins(self.candHeatPins)
     self.pgSensors.setCandidatePins(self.candThermPins)
