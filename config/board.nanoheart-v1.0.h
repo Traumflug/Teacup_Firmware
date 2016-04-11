@@ -251,7 +251,36 @@ DEFINE_HEATER(bed,      DIO3,    0,      1)
 
 /***************************************************************************\
 *                                                                           *
-* 5. COMMUNICATION OPTIONS                                                  *
+* 5. PID VALUES                                                             *
+*                                                                           *
+\***************************************************************************/
+
+#ifndef DEFINE_PID_VALUE
+  #define DEFINE_PID_VALUE(...)
+#endif
+/** DEFINE_PID_VALUE
+  Define the PID values for your heaters here.
+
+  'name' must be the same in DEFINE_HEATER
+
+  P factor of 8192, equivalent to 8.0 counts/qC or 32 counts/C.
+  I factor of 512, equivalent to 0.5 counts/(qC*qs) or 8 counts/C*s.
+  D factor of 24576, equivalent to 24 counts/(qc/(TH_COUNT*qs)) or
+  192 counts/(C/s).
+  I limit of 384, equivalent to 384 qC*qs, or 24 C*s.
+
+  P, I and D-value is a multiple of 1024.
+*/
+//DEFINE_PID_VALUE_START
+//               name      P      I     D       I-Limit
+DEFINE_PID_VALUE(extruder, 8192,  512,  24576,  384)
+DEFINE_PID_VALUE(bed,      8192,  512,  24576,  384)
+//DEFINE_PID_VALUE_END
+
+
+/***************************************************************************\
+*                                                                           *
+* 6. COMMUNICATION OPTIONS                                                  *
 *                                                                           *
 \***************************************************************************/
 

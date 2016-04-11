@@ -599,6 +599,27 @@ DEFINE_HEATER(bed,      DIO3,    0,      1)
 */
 #define EECONFIG
 
+/** \def PID_AUTOTUNE
+  This replaces any controlling of your heaters. Instead you can use M104 now 
+  to get your PID-values. M104 S200 when you need a good PID-value at 200°C.
+  You can stop it like any heater with M104 S0.
+  You can also tune your hotend and your bed parallel.
+*/
+// #define PID_AUTOTUNE
+
+/** \def PID_CYCLES
+  Autotune cycles. 5 is a good value. More than 8 is not really necessary.
+*/
+// #define PID_CYCLES 5
+
+/** \def PID_MAX
+  When your hotend has to much power, you can restrict it with this value.
+  For example your hotend is 12V 30W and you want to use it with 24V. In that
+  case 70 is a good value. 255 is almost on.
+  Currently used only in PID_AUTOTUNE!
+*/
+// #define PID_MAX 200
+
 /** \def BANG_BANG
 BANG_BANG
 drops PID loop from heater control, reduces code size significantly (1300 bytes!)

@@ -110,6 +110,14 @@ void pid_init() {
       }
     #endif /* PID */
   }
+  #undef DEFINE_PID_VALUE
+  #define DEFINE_PID_VALUE(name, kp, ki, kd, ilimit)  \
+    heaters_pid[HEATER_ ## name].p_factor = kp; \
+    heaters_pid[HEATER_ ## name].i_factor = ki; \
+    heaters_pid[HEATER_ ## name].d_factor = kd; \
+    heaters_pid[HEATER_ ## name].i_limit = ilimit;
+  #include "config_wrapper.h"
+  #undef DEFINE_PID_VALU
 }
 
 /** \brief run heater PID algorithm
