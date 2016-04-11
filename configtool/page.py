@@ -271,9 +271,18 @@ class Page:
       # Add items found in this configuration.
       for cfg in cfgValues.keys():
         if cfg.startswith(k):
-          choice.Append(cfg)
+          if cfg in self.labels.keys():
+            choice.Append(self.labels[cfg])
+          else:
+            choice.Append(cfg)
+
+          # As we want to write the configuration name later, not the user
+          # friendly string, we store the configuration name as client data.
+          n = choice.GetCount() - 1
+          choice.SetClientData(n, cfg)
+
           if cfgValues[cfg]:
-            choice.SetSelection(choice.GetCount() - 1)
+            choice.SetSelection(n)
 
     self.assertModified(False)
 
@@ -305,8 +314,8 @@ class Page:
     for k in self.boolChoices.keys():
       choice = self.boolChoices[k]
       for i in range(choice.GetCount()):
-        s = choice.GetString(i)
-        if not s.startswith('('):
+        s = choice.GetClientData(i)
+        if s:
           result[s] = (i == choice.GetSelection())
 
     return result
