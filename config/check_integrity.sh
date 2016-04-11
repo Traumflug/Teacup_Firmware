@@ -33,7 +33,7 @@ for T in "board" "printer"; do
       print $2;
     }
   ' < ../configtool/${T}.generic.h | while read W; do
-    for F in ${T}.*.h ../testcases/config.h.Profiling; do
+    for F in $(git ls-files ${T}.\*.h ../testcases/config.h.Profiling); do
       if ! grep "#define" ${F} | grep -q ${W}; then
         echo "Missing #define ${W} in ${F}."
         echo 1 > ${EXITFILE}
