@@ -1,15 +1,5 @@
 
 /**
-  Display bus stuff. This likely goes away soon or gets at least moved
-  elsewhere.
-*/
-#define disabled 0
-#define direct_4bit 1
-#define direct_8bit 2
-#define i2c_twi 3
-#define spi 4
-
-/**
   Some stuff common to all config.h files. Put it here to allow files like
   board.*.config.h or printer.*.h to be moved to about everywhere in the
   file system. Else we'd have to enforce the Configtool user to put these
@@ -55,7 +45,7 @@
 /**
   Check wether we need I2C.
 */
-#if DISPLAY_BUS == i2c_twi
+#ifdef DISPLAY_BUS_I2C
   #define I2C
 #endif
 

@@ -274,25 +274,20 @@ DEFINE_HEATER(extruder, DIO6,    0,      1)
 *                                                                           *
 \***************************************************************************/
 
-/** \def DISPLAY_BUS_OPT
+/** \def DISPLAY_BUS_4BIT DISPLAY_BUS_8BIT DISPLAY_BUS_I2C DISPLAY_BUS_SPI
 
-  Display buses a user should be able to choose from in Configtool. All
-  commented out.
+  The bus used to connect the display to the controller. This is a property
+  of the display. With most displays there can be only one correct choice.
+
+  Comment in the one in use, comment out all others. If there is no display,
+  comment out all of them to remove display code for better performance.
 */
-//#define DISPLAY_BUS_OPT disabled
-//#define DISPLAY_BUS_OPT direct_4bit
-//#define DISPLAY_BUS_OPT direct_8bit
-//#define DISPLAY_BUS_OPT i2c_twi
-//#define DISPLAY_BUS_OPT spi
+//#define DISPLAY_BUS_4BIT
+//#define DISPLAY_BUS_8BIT
+//#define DISPLAY_BUS_I2C
+//#define DISPLAY_BUS_SPI
 
-/** \def DISPLAY_BUS
-
-  The display bus in use. 'disabled' if there is no display.
-*/
-#define DISPLAY_BUS              disabled
-
-/** \def DISPLAY_TYPE_OPT
-
+/**
   Display types a user should be able to choose from in Configtool. All
   commented out.
 */
