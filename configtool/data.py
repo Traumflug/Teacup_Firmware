@@ -51,7 +51,6 @@ reCandHeatPins = re.compile("^\s*//\s*#define\s+HEATER_PIN\s+(\w+)")
 reCandThermPins = re.compile("^\s*//\s*#define\s+TEMP_SENSOR_PIN\s+(\w+)")
 reCandProcessors = re.compile("^\s*//\s*#define\s+CPU_TYPE\s+(\w+)")
 reCandCPUClocks = re.compile("^\s*//\s*#define\s+F_CPU_OPT\s+(\w+)")
-reCandDisplayTypes = re.compile("^\s*//\s*#define\s+DISPLAY_TYPE_OPT\s+(\w+)")
 
 reHelpTextStart = re.compile("^\s*/\*\*\s+\\\\def\s+(.*)")
 reHelpTextEnd = re.compile("^\s*\*/")

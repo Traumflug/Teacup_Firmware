@@ -300,15 +300,13 @@ DEFINE_HEATER(fan,      DIO8,    0,      1)
 //#define DISPLAY_BUS_I2C
 //#define DISPLAY_BUS_SPI
 
-/**
-  Display types a user should be able to choose from in Configtool. All
-  commented out.
-*/
-//#define DISPLAY_TYPE_OPT ssd1306
-//#define DISPLAY_TYPE_OPT lcd1602
+/** \def DISPLAY_TYPE_SSD1306 DISPLAY_TYPE_LCD1302
 
-/** \def DISPLAY_TYPE
+  The type of display in use. There can be only one choice. Taken into account
+  only if one of DISPLAY_BUS_xxx is defined.
 
-  The type of display in use.
+  Comment in the display in use, comment out all others. If there is no
+  display, comment out all of DISPLAY_BUS_xxx.
 */
-#define DISPLAY_TYPE             ssd1306
+//#define DISPLAY_TYPE_SSD1306
+//#define DISPLAY_TYPE_LCD1302
