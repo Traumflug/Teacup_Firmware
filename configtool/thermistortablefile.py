@@ -99,9 +99,41 @@ def BetaTable(ofp, params, names, settings, finalTable):
 
   hiadc = thrm.setting(0)[0]
   N = int(settings.numTemps)
-  step = int(hiadc / (N - 1))
 
-  for i in range(1, int(hiadc), step):
+  # This is a variation of the Ramer-Douglas-Peucker algorithm, see
+  # https://en.wikipedia.org/wiki/Ramer%E2%80%93Douglas%E2%80%93Peucker_algorithm
+  #
+  # It works like this:
+  #
+  #   - Calculate all (1024) ideal values.
+  #   - Insert the two extremes into our sample list.
+  #   - Calculate the linear approximation of the remaining values.
+  #   - Insert the correct value for the "most-wrong" estimation into our
+  #     sample list.
+  #   - Repeat until "N" values are chosen as requested.
+
+  # Calculate actual temps for all ADC values.
+  actual = dict([(x, thrm.temp(1.0 * x)) for x in range(1, int(hiadc + 1))])
+
+  # Build a lookup table starting with the extremes.
+  lookup = dict([(x, actual[x]) for x in [1, int(hiadc)]])
+
+  A = 1
+  B = int(hiadc)
+  error = dict({})
+  while len(lookup) < N:
+    error.update(dict([(x, abs(actual[x] - LinearTableEstimate(lookup, x)))
+                       for x in range(A + 1, B)]))
+
+    # Correct the most-wrong lookup value.
+    next = max(error, key = error.get)
+    lookup[next] = actual[next]
+
+    # Prepare to update the error range.
+    A = before(lookup, next)
+    B = after(lookup, next)
+
+  for i in sorted(lookup.keys()):
     t = int(thrm.temp(i))
     if t is None:
       ofp.output("// ERROR CALCULATING THERMISTOR VALUES AT ADC %d" % i)
@@ -112,7 +144,7 @@ def BetaTable(ofp, params, names, settings, finalTable):
 
     vTherm = i * vadc / 1024
     ptherm = vTherm * vTherm / r
-    if i + step >= int(hiadc):
+    if i == max(lookup):
       c = " "
     else:
       c = ","
@@ -162,3 +194,20 @@ def SteinhartHartTable(ofp, params, names, settings, finalTable):
     ofp.output("  }")
   else:
     ofp.output("  },")
+
+def after(lookup, value):
+  return min([x for x in lookup.keys() if x > value])
+
+def before(lookup, value):
+  return max([x for x in lookup.keys() if x < value])
+
+def LinearTableEstimate(lookup, value):
+  if value in lookup:
+    return lookup[value]
+
+  # Estimate result with linear estimation algorithm.
+  x0 = before(lookup, value)
+  x1 = after(lookup, value)
+  y0 = lookup[x0]
+  y1 = lookup[x1]
+  return ((value - x0) * y1 + (x1 - value) * y0) / (x1 - x0)
