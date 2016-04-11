@@ -142,7 +142,7 @@ regressiontests:
 	$(MAKE) -f Makefile-SIM USER_CONFIG=testcases/config.regtest-gen7-avr.h \
 	  EXTRA_CFLAGS=-Werror all
 	# Check config files for integrity.
-	config/check_integrity.sh
+	testcases/check_integrity.sh
 	@# Nonstandard builds go into a subdirectory of build/, see definition of
 	@# $(BUILDDIR) above. Let's clean that up on success.
 	rm -rf $(BUILDDIR)/testcases/ $(BUILDDIR)/sim/
