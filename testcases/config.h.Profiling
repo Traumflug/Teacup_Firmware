@@ -78,7 +78,8 @@
                         long and crossing toothed belts and a print head moving
                         on the X-Y-plane.
 */
-#define KINEMATICS KINEMATICS_STRAIGHT
+#define KINEMATICS_STRAIGHT
+//#define KINEMATICS_COREXY
 
 
 /** \def STEPS_PER_M

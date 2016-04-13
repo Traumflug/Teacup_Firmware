@@ -35,23 +35,6 @@ acceleration there are three different and mutually exclusive variable names:
 All of these names MUST appear in the header file (with at most one of them
 un-commented out).
 
-However, the variable KINEMATICS only has a finite set of values and would
-seem to be a similar field, but there is only one variable name: KINEMATICS
-- so it should only appear once.
-
-This is ok:
-
-//#define KINEMATICS KINEMATICS_STRAIGHT
-
-as is this:
-
-#define KINEMATICS KINEMATICS_STRAIGHT
-
-but this is not:
-
-#define KINEMATICS KINEMATICS_STRAIGHT
-//#define KINEMATICS KINEMATICS_COREXY
-
 
 Help Text - both board and printer files
 ----------------------------------------

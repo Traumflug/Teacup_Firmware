@@ -184,23 +184,14 @@ class MechanicalPage(wx.Panel, Page):
   def insertValues(self, cfgValues):
     Page.insertValues(self, cfgValues)
 
-    k = 'KINEMATICS'
-    if k in cfgValues.keys():
-      k = cfgValues[k]
-      if k in self.kinematicsKeys:
-        self.radioButtons[k].SetValue(True)
-      else:
-        self.radioButtons[self.kinematicsKeys[0]].SetValue(True)
-    else:
-      self.radioButtons[self.kinematicsKeys[0]].SetValue(True)
+    for tag in self.kinematicsKeys:
+      if tag in cfgValues.keys() and cfgValues[tag]:
+        self.radioButtons[tag].SetValue(True)
 
   def getValues(self):
     result = Page.getValues(self)
 
     for tag in self.kinematicsKeys:
-      rb = self.radioButtons[tag]
-      if rb.GetValue():
-        result['KINEMATICS'] = tag, True
-        break
+      result[tag] = self.radioButtons[tag].GetValue()
 
     return result

@@ -6,6 +6,7 @@
 \***************************************************************************/
 
 /** \def KINEMATICS_STRAIGHT KINEMATICS_COREXY
+
   This defines the type of kinematics your printer uses. That's essential!
 
   Valid values (see dda_kinematics.h):
@@ -20,7 +21,8 @@
     are long and crossing toothed belts and a print head
     moving on the X-Y-plane.
 */
-#define KINEMATICS               KINEMATICS_STRAIGHT
+#define KINEMATICS_STRAIGHT
+#define KINEMATICS_COREXY
 
 /** \def STEPS_PER_M_X STEPS_PER_M_Y STEPS_PER_M_Z STEPS_PER_M_E
   Steps per meter ( = steps per mm * 1000 ), calculate these values
