@@ -15,6 +15,7 @@
 #include	<avr/wdt.h>
 #include	<avr/interrupt.h>
 #include	"memory_barrier.h"
+#include "pinio.h"
 
 #include	"arduino.h"
 #ifndef	EXTRUDER
