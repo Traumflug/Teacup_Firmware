@@ -106,6 +106,7 @@ def BetaTable(ofp, params, names, settings, finalTable):
   # It works like this:
   #
   #   - Calculate all (1024) ideal values.
+  #   - Keep only the ones in the interesting range (0..500C).
   #   - Insert the two extremes into our sample list.
   #   - Calculate the linear approximation of the remaining values.
   #   - Insert the correct value for the "most-wrong" estimation into our
@@ -115,11 +116,16 @@ def BetaTable(ofp, params, names, settings, finalTable):
   # Calculate actual temps for all ADC values.
   actual = dict([(x, thrm.temp(1.0 * x)) for x in range(1, int(hiadc + 1))])
 
-  # Build a lookup table starting with the extremes.
-  lookup = dict([(x, actual[x]) for x in [1, int(hiadc)]])
+  # Limit ADC range to 0C to 500C.
+  MIN_TEMP = 0
+  MAX_TEMP = 500
+  actual = dict([(adc, actual[adc]) for adc in actual
+                if actual[adc] <= MAX_TEMP and actual[adc] >= MIN_TEMP])
 
-  A = 1
-  B = int(hiadc)
+  # Build a lookup table starting with the extremes.
+  A = min(actual)
+  B = max(actual)
+  lookup = dict([(x, actual[x]) for x in [A,B]])
   error = dict({})
   while len(lookup) < N:
     error.update(dict([(x, abs(actual[x] - LinearTableEstimate(lookup, x)))
