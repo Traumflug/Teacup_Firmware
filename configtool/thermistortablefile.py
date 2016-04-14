@@ -54,6 +54,7 @@ def generateTempTables(sensors, settings):
 
   ofp.output("#define NUMTABLES %d" % len(tl))
   ofp.output("#define NUMTEMPS %d" % N)
+  ofp.output("#define TEMPTABLE_FORMAT 1")
   ofp.output("");
 
   for i in range(len(tl)):
@@ -65,7 +66,7 @@ def generateTempTables(sensors, settings):
     ofp.close();
     return True
 
-  ofp.output("const uint16_t PROGMEM temptable[NUMTABLES][NUMTEMPS][2] = {")
+  ofp.output("const uint16_t PROGMEM temptable[NUMTABLES][NUMTEMPS][3] = {")
 
   tcount = 0
   for tn in tl:
@@ -102,6 +103,7 @@ def BetaTable(ofp, params, names, settings, finalTable):
 
   samples = optimizeTempTable(thrm, N, hiadc)
 
+  prev = samples[0]
   for i in samples:
     t = thrm.temp(i)
     if t is None:
@@ -117,10 +119,12 @@ def BetaTable(ofp, params, names, settings, finalTable):
       c = " "
     else:
       c = ","
-    ostr = ("    {%4s, %5s}%s // %4d C, %6.0f ohms, %0.3f V,"
-            " %0.2f mW") % (i, int(t * 4), c, int(t), int(round(r)),
-            vTherm, ptherm * 1000)
+    delta = (t-thrm.temp(prev))/(prev-i) if i!=prev else 0
+    ostr = ("    {%4s, %5s, %5s}%s // %4d C, %6.0f ohms, %0.3f V,"
+            " %0.2f mW, m=%0.4f") % (i, int(t * 4), int(delta*4*256), c,
+            int(t), int(round(r)), vTherm, ptherm * 1000, delta)
     ofp.output(ostr)
+    prev = i
 
   if finalTable:
     ofp.output("  }")
@@ -145,6 +149,7 @@ def SteinhartHartTable(ofp, params, names, settings, finalTable):
 
   samples = optimizeTempTable(thrm, N, hiadc)
 
+  prev = samples[0]
   for i in samples:
     t = thrm.temp(i)
     if t is None:
@@ -157,8 +162,10 @@ def SteinhartHartTable(ofp, params, names, settings, finalTable):
       c = " "
     else:
       c = ","
-    ofp.output("    {%4d, %5d}%s // %4d C, %6d ohms" %
-               (i, int(t * 4), c, int(t), int(round(r))))
+    delta = (t-thrm.temp(prev))/(prev-i) if i!=prev else 0
+    ofp.output("    {%4d, %5d, %5d}%s // %4d C, %6d ohms, m=%0.4f" %
+               (i, int(t * 4), int(delta*4*256), c, int(t), int(round(r))), delta)
+    prev = i
 
   if finalTable:
     ofp.output("  }")
