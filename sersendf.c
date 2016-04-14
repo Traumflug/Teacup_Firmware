@@ -73,7 +73,7 @@ void sersendf_P(PGM_P format_P, ...) {
           if (j == 1)
             serwrite_int8((int8_t)GET_ARG(int16_t));
           else if (j == 2)
-            serwrite_int16((uint16_t)GET_ARG(int16_t));
+            serwrite_int16((int16_t)GET_ARG(int16_t));
 					else
             serwrite_int32(GET_ARG(int32_t));
 					j = 0;
