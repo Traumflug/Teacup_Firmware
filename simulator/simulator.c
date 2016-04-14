@@ -45,7 +45,7 @@ int verbose = 1;                ///< 0=quiet, 1=normal, 2=noisy, 3=debug, etc.
 int trace_gcode = 0;            ///< show gcode on the console
 int trace_pos = 0;              ///< show print head position on the console
 
-const char * shortopts = "qgpvt:o::";
+const char * shortopts = "qgpvt:o::T::";
 struct option opts[] = {
   { "quiet", no_argument, &verbose , 0 },
   { "verbose", no_argument, NULL, 'v' },
@@ -53,6 +53,7 @@ struct option opts[] = {
   { "pos", no_argument, NULL, 'p' },
   { "time-scale", required_argument, NULL, 't' },
   { "tracefile", optional_argument, NULL, 'o' },
+  { "report-temptable", optional_argument, NULL, 'T' },
   { 0, 0, 0, 0 }
 };
 
@@ -65,6 +66,7 @@ static void usage(const char *name) {
   printf("   -p || --pos                   show head position on console\n");
   printf("   -t || --time-scale=n          set time-scale; 0=warp-speed, 1=real-time, 2=half-time, etc.\n");
   printf("   -o || --tracefile[=filename]  write simulator pin trace to 'outfile' (default filename=datalog.out)\n");
+  printf("   -T || --report-temptable=n    Report calculated temperatures for all ADC values and exit\n");
   printf("\n");
   exit(1);
 }
@@ -96,6 +98,9 @@ void sim_start(int argc, char** argv) {
     case 'o':
       recorder_init(optarg ? optarg : "datalog.out");
       break;
+    case 'T':
+      sim_report_temptables(optarg ? atoi(optarg) : -1);
+      exit(0);
     default:
       exit(1);
     }

@@ -142,6 +142,7 @@ void sim_error(const char msg[]);
 void sim_assert(bool cond, const char msg[]);
 void sim_gcode_ch(char ch);
 void sim_gcode(const char msg[]);
+void sim_report_temptables(int sensor) ;
 
 /**
  * Initialize simulator timer and set time scale.
