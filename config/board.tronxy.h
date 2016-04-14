@@ -27,7 +27,7 @@
   Actual CPU clock rate. #ifndef required for Arduino compatibility.
 */
 #ifndef F_CPU
-#define F_CPU                    16000000UL
+#define F_CPU                    20000000UL
 #endif
 
 /** \def MOTHERBOARD
@@ -124,6 +124,16 @@
 */
 //#define MCP3008_SELECT_PIN       xxxx
 
+/** \def ADC_OVERSAMPLE_BITS
+
+  Increase ADC precision by oversampling.
+
+  Oversampling means taking a number of samples and basically averaging them
+  into a single sample. This has the effect of both increasing ADC precision
+  and reducing ADC noise. However, it also introduces a bit of delay, since
+  it involves taking taking a number of samples to produce an output value.
+*/
+#define ADC_OVERSAMPLE_BITS      2
 
 /***************************************************************************\
 *                                                                           *
@@ -183,8 +193,8 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO6,  THERMISTOR_BED)
 
 // Beta algorithm      r0      beta  r2    vadc
 // Steinhart-Hart      rp      t0    r0      t1    r1      t2    r2
-//TEMP_TABLE EXTRUDER (100000, 4738, 4700, 5.0)
-//TEMP_TABLE BED      (100000, 4738, 4700, 5.0)
+//TEMP_TABLE EXTRUDER (100000, 4738, 4690, 5.0)
+//TEMP_TABLE BED      (100000, 4738, 4690, 5.0)
 //DEFINE_TEMP_SENSORS_END
 
 
