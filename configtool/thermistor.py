@@ -4,8 +4,9 @@ import sys
 
 
 class SHThermistor:
-  def __init__(self, rp, t0, r0, t1, r1, t2, r2):
+  def __init__(self, rp, t0, r0, t1, r1, t2, r2, **kwargs):
     self.rp = rp
+    self.maxAdc = float(kwargs.get('maxAdc', 1023))
 
     self.paramsOK = True
     try:
@@ -43,14 +44,15 @@ class SHThermistor:
     return t
 
   def adc(self, r):
-    return 1023.0 * r / (r + self.rp)
+    return self.maxAdc * r / (r + self.rp)
 
   def adcInv(self, adc):
-    return (self.rp * adc)/(1023.0 - adc)
+    return (self.rp * adc)/(self.maxAdc - adc)
 
 class BetaThermistor:
-  def __init__(self, r0, t0, beta, r1, r2, vadc):
+  def __init__(self, r0, t0, beta, r1, r2, vadc, **kwargs):
     self.paramsOK = True
+    self.limitAdc = 1.0 + float(kwargs.get('maxAdc', 1023))
 
     try:
       self.r0 = r0
@@ -69,7 +71,7 @@ class BetaThermistor:
       self.paramsOK = False
 
   def temp(self, adc):
-    v = adc * self.vadc / 1024
+    v = adc * self.vadc / self.limitAdc
     if (self.vs - v):
       r = self.rs * v / (self.vs - v)
     else:
@@ -90,9 +92,9 @@ class BetaThermistor:
     try:
       r = self.r0 * exp(self.beta * (1 / (t + 273.15) - 1 / self.t0))
       v = self.vs * r / (self.rs + r)
-      return round(v / self.vadc * 1024), r
+      return round(v / self.vadc * self.limitAdc), r
     except:
       return None, None
 
   def adcInv(self, adc):
-    return (adc * self.vadc)/1024.0
+    return (adc * self.vadc)/self.limitAdc

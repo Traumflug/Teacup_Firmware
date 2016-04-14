@@ -87,15 +87,16 @@ def BetaTable(ofp, params, names, settings, finalTable):
   beta = params[1]
   r2 = params[2]
   vadc = float(params[3])
+  maxAdc = int(settings.maxAdc)
   ofp.output("  // %s temp table using Beta algorithm with parameters:" %
              (", ".join(names)))
   ofp.output(("  // R0 = %s, T0 = %s, R1 = %s, R2 = %s, beta = %s, "
               "maxadc = %s") % (r0, settings.t0, settings.r1, r2,
-              beta, settings.maxAdc))
+              beta, maxAdc))
   ofp.output("  {")
 
   thrm = BetaThermistor(int(r0), int(settings.t0), int(beta), int(settings.r1),
-                        int(r2), vadc)
+                        int(r2), vadc, maxAdc=maxAdc)
 
   hiadc = thrm.setting(0)[0]
   N = int(settings.numTemps)
@@ -111,7 +112,7 @@ def BetaTable(ofp, params, names, settings, finalTable):
     v = thrm.adcInv(i)
     r = thrm.resistance(t)
 
-    vTherm = i * vadc / 1024
+    vTherm = i * vadc / (maxAdc + 1)
     ptherm = vTherm * vTherm / r
     if i == max(samples):
       c = " "
@@ -128,17 +129,18 @@ def BetaTable(ofp, params, names, settings, finalTable):
     ofp.output("  },")
 
 def SteinhartHartTable(ofp, params, names, settings, finalTable):
+  maxAdc = int(settings.maxAdc)
   ofp.output(("  // %s temp table using Steinhart-Hart algorithm with "
               "parameters:") % (", ".join(names)))
   ofp.output(("  // Rp = %s, T0 = %s, R0 = %s, T1 = %s, R1 = %s, "
-              "T2 = %s, R2 = %s") %
+              "T2 = %s, R2 = %s, maxadc = %s") %
              (params[0], params[1], params[2], params[3], params[4], params[5],
-              params[6]))
+              params[6], maxAdc))
   ofp.output("  {")
 
   thrm = SHThermistor(int(params[0]), float(params[1]), int(params[2]),
                       float(params[3]), int(params[4]), float(params[5]),
-                      int(params[6]))
+                      int(params[6]), maxAdc=maxAdc)
 
   hiadc = thrm.setting(0)[0]
   N = int(settings.numTemps)
