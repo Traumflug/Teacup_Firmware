@@ -186,65 +186,64 @@ static uint16_t mcp3008_read(uint8_t channel) {
 */
 #if defined TEMP_THERMISTOR || defined TEMP_MCP3008
 static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
-  uint8_t j;
+  uint8_t lo, hi;
   uint8_t table_num = temp_sensors[sensor].additional;
 
-  for (j = 1; j < NUMTEMPS; j++) {
-    if (pgm_read_word(&(temptable[table_num][j][0])) > temp) {
-
-      if (DEBUG_PID && (debug_flags & DEBUG_PID))
-        sersendf_P(PSTR("pin:%d Raw ADC:%d table entry: %d"),
-                   temp_sensors[sensor].temp_pin, temp, j);
-
-      #if (TEMPTABLE_FORMAT == 0)
-        // Wikipedia's example linear interpolation formula.
-        // y = ((x - x₀)y₁ + (x₁-x)y₀) / (x₁ - x₀)
-        // y = temp
-        // x = ADC reading
-        // x₀= temptable[j-1][0]
-        // x₁= temptable[j][0]
-        // y₀= temptable[j-1][1]
-        // y₁= temptable[j][1]
-        temp = (
-        // ((x - x₀)y₁
-          ((uint32_t)temp - pgm_read_word(&(temptable[table_num][j-1][0]))) *
-                            pgm_read_word(&(temptable[table_num][j][1]))
-        //             +
-          +
-        //               (x₁-x)y₀)
-          (pgm_read_word(&(temptable[table_num][j][0])) - (uint32_t)temp) *
-            pgm_read_word(&(temptable[table_num][j - 1][1])))
-        //                        /
-          /
-        //                          (x₁ - x₀)
-          (pgm_read_word(&(temptable[table_num][j][0])) -
-           pgm_read_word(&(temptable[table_num][j - 1][0])));
-        #elif (TEMPTABLE_FORMAT == 1)
-          // Linear interpolation using pre-computed slope
-          // y = y₁ - (x-x₁)*d₁
-          #define X1 pgm_read_word(&(temptable[table_num][j][0]))
-          #define Y1 pgm_read_word(&(temptable[table_num][j][1]))
-          #define D1 pgm_read_word(&(temptable[table_num][j][2]))
-
-          temp = Y1 - ((((int32_t)temp - X1) * D1 + (1<<7)) >> 8);
-        #else
-          #error "temptable format unrecognized"
-        #endif
-
-      if (DEBUG_PID && (debug_flags & DEBUG_PID))
-        sersendf_P(PSTR(" temp:%d.%d"), temp / 4, (temp % 4) * 25);
-
-      // Value found, no need to read the table further.
-      break;
-    }
+  // Binary search for table value bigger than our target
+  for (lo = 0, hi=NUMTEMPS-1 ; hi-lo > 1 ; ) {
+    uint8_t j = lo + (hi - lo) / 2 ;
+    if (pgm_read_word(&(temptable[table_num][j][0])) >= temp)
+      hi = j ;
+    else
+      lo = j ;
   }
+  //   lo = index of highest entry less than target
+  //   hi = index of lowest entry greater than or equal to target
+
+  if (DEBUG_PID && (debug_flags & DEBUG_PID))
+    sersendf_P(PSTR("pin:%d Raw ADC:%d table entry: %d"),
+               temp_sensors[sensor].temp_pin, temp, hi);
+
+  #if (TEMPTABLE_FORMAT == 0)
+    // Wikipedia's example linear interpolation formula.
+    // y = ((x - x₀)y₁ + (x₁-x)y₀) / (x₁ - x₀)
+    // y = temp
+    // x = ADC reading
+    // x₀= temptable[lo][0]
+    // x₁= temptable[hi][0]
+    // y₀= temptable[lo][1]
+    // y₁= temptable[hi][1]
+    temp = (
+    // ((x - x₀)y₁
+      ((uint32_t)temp - pgm_read_word(&(temptable[table_num][lo][0]))) *
+                        pgm_read_word(&(temptable[table_num][hi][1]))
+    //             +
+      +
+    //               (x₁-x)y₀)
+      (pgm_read_word(&(temptable[table_num][hi][0])) - (uint32_t)temp) *
+        pgm_read_word(&(temptable[table_num][lo][1])))
+    //                        /
+      /
+    //                          (x₁ - x₀)
+      (pgm_read_word(&(temptable[table_num][hi][0])) -
+       pgm_read_word(&(temptable[table_num][lo][0])));
+    #elif (TEMPTABLE_FORMAT == 1)
+      // Linear interpolation using pre-computed slope
+      // y = y₁ - (x-x₁)*d₁
+      #define X1 pgm_read_word(&(temptable[table_num][hi][0]))
+      #define Y1 pgm_read_word(&(temptable[table_num][hi][1]))
+      #define D1 pgm_read_word(&(temptable[table_num][hi][2]))
+
+      temp = Y1 - ((((int32_t)temp - X1) * D1 + (1<<7)) >> 8);
+    #else
+      #error "temptable format unrecognized"
+    #endif
+
+  if (DEBUG_PID && (debug_flags & DEBUG_PID))
+    sersendf_P(PSTR(" temp:%d.%d"), temp / 4, (temp % 4) * 25);
 
   if (DEBUG_PID && (debug_flags & DEBUG_PID))
     sersendf_P(PSTR(" Sensor:%d\n"), sensor);
-
-  // Clamp for overflows.
-  if (j == NUMTEMPS)
-    temp = temptable[table_num][NUMTEMPS - 1][1];
 
   return temp;
 }
