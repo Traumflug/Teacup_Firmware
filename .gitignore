@@ -1,5 +1,6 @@
 *.pyc
 *.hex
+*.elf
 build
 *~
 
@@ -13,3 +14,10 @@ sim
 doc
 datalog.out
 configtool.ini
+
+# Atmel Studio project files.
+.vs/
+*.atsln
+*.atsuo
+*.componentinfo.xml
+*.cproj
