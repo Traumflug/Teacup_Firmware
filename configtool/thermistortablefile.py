@@ -103,7 +103,7 @@ def BetaTable(ofp, params, names, settings, finalTable):
   samples = optimizeTempTable(thrm, N, hiadc)
 
   for i in samples:
-    t = int(thrm.temp(i))
+    t = thrm.temp(i)
     if t is None:
       ofp.output("// ERROR CALCULATING THERMISTOR VALUES AT ADC %d" % i)
       continue
@@ -118,7 +118,7 @@ def BetaTable(ofp, params, names, settings, finalTable):
     else:
       c = ","
     ostr = ("    {%4s, %5s}%s // %4d C, %6.0f ohms, %0.3f V,"
-            " %0.2f mW") % (i, t * 4, c, t, int(round(r)),
+            " %0.2f mW") % (i, int(t * 4), c, int(t), int(round(r)),
             vTherm, ptherm * 1000)
     ofp.output(ostr)
 
@@ -146,7 +146,7 @@ def SteinhartHartTable(ofp, params, names, settings, finalTable):
   samples = optimizeTempTable(thrm, N, hiadc)
 
   for i in samples:
-    t = int(thrm.temp(i))
+    t = thrm.temp(i)
     if t is None:
       ofp.output("// ERROR CALCULATING THERMISTOR VALUES AT ADC %d" % i)
       continue
@@ -158,7 +158,7 @@ def SteinhartHartTable(ofp, params, names, settings, finalTable):
     else:
       c = ","
     ofp.output("    {%4d, %5d}%s // %4d C, %6d ohms" %
-               (i, t * 4, c, t, int(round(r))))
+               (i, int(t * 4), c, int(t), int(round(r))))
 
   if finalTable:
     ofp.output("  }")
