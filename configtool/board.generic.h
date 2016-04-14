@@ -124,6 +124,17 @@
 */
 #define MCP3008_SELECT_PIN       xxxx
 
+/** \def ADC_OVERSAMPLE_BITS
+
+  Increase ADC precision by oversampling.
+
+  Oversampling means taking a number of samples and basically averaging them
+  into a single sample. This has the effect of both increasing ADC precision
+  and reducing ADC noise. However, it also introduces a bit of delay, since
+  it involves taking taking a number of samples to produce an output value.
+*/
+#define ADC_OVERSAMPLE_BITS     0
+
 
 /***************************************************************************\
 *                                                                           *

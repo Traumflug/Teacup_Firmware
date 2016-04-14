@@ -24,7 +24,15 @@ class SensorsPage(wx.Panel, Page):
                    'TEMP_AD595': "AD595", 'TEMP_PT100': "PT100",
                    'TEMP_INTERCOM': "Intercom",
                    'TEMP_MCP3008': 'MCP3008',
-                   'MCP3008_SELECT_PIN': "MCP3008 CS Pin:"}
+                   'MCP3008_SELECT_PIN': "MCP3008 CS Pin:",
+                   'ADC_OVERSAMPLE_BITS': "ADC oversampling:"}
+    self.oversamplingLevels = [
+        'No oversampling',
+        '4x (+1 bit)',
+        '16x (+2 bits)',
+        '64x (+3 bits)',
+        '256x (+4 bits)'
+    ]
 
     self.validPins = pinNames
     labelWidth = 120
@@ -69,9 +77,16 @@ class SensorsPage(wx.Panel, Page):
 
     sz.Add(bsz, pos = (1, 3))
 
+    bsz = wx.BoxSizer(wx.HORIZONTAL)
     k = "MCP3008_SELECT_PIN"
     tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
-    sz.Add(tc, pos = (2, 1))
+    bsz.Add(tc)
+
+    k = "ADC_OVERSAMPLE_BITS"
+    tc = self.addChoice(k, self.oversamplingLevels, 0, 150, self.onChoice)
+    bsz.Add(tc)
+
+    sz.Add(bsz, pos = (2, 1))
 
     self.SetSizer(sz)
     self.enableAll(False)
@@ -158,6 +173,10 @@ class SensorsPage(wx.Panel, Page):
       else:
         print "Key " + k + " not found in config data."
 
+    k = 'ADC_OVERSAMPLE_BITS'
+    if k in cfgValues.keys():
+        self.choices[k].SetSelection(int(cfgValues[k][0]))
+
     self.bAdd.Enable(True)
 
   def setSensors(self, sensors):
@@ -207,5 +226,9 @@ class SensorsPage(wx.Panel, Page):
           result[k] = self.choicesOriginal[k][0], False
         else:
           result[k] = "", False
+
+    k = 'ADC_OVERSAMPLE_BITS'
+    s = self.choices[k].GetSelection()
+    result[k] = s, True
 
     return result

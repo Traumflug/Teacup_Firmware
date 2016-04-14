@@ -310,7 +310,7 @@ void temp_sensor_tick() {
 
 					// convert
 					// >>8 instead of >>10 because internal temp is stored as 14.2 fixed point
-					temp = (temp * 500L) >> 8;
+					temp = (temp * 500L) >> (8 + ADC_OVERSAMPLE_BITS);
 
 					temp_sensors_runtime[i].next_read_time = 0;
 

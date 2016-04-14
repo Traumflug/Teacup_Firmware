@@ -79,3 +79,10 @@
 #if defined __ARMEL__ && defined BANG_BANG
   #undef BANG_BANG
 #endif
+
+/**
+  Make sure ADC_OVERSAMPLE_BITS is defined.
+*/
+#if ! defined(ADC_OVERSAMPLE_BITS)
+  #define ADC_OVERSAMPLE_BITS   0
+#endif

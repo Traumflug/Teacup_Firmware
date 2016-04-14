@@ -12,6 +12,22 @@
 static uint8_t adc_counter;
 static volatile uint16_t BSS adc_result[NUM_TEMP_SENSORS];
 
+#if ADC_OVERSAMPLE_BITS > 0
+  // AVR121: Enhancing ADC resolution by oversampling
+  // http://www.atmel.com/images/doc8003.pdf
+
+/** \def ADC_OVERSAMPLE_SAMPLES
+  Number of samples which needs to be taken to produce an oversampled
+  ADC result. For each additional bit of precision, 4 times the number of
+  samples needs to be taken i.e. 4 samples for 1 bit extra, 16 samples for
+  2 bits extra, 64 samples for 3 bits extra, etc.
+*/
+#define ADC_OVERSAMPLE_SAMPLES (1 << (ADC_OVERSAMPLE_BITS << 1))
+
+static uint8_t adc_oversample_counter;
+static volatile uint16_t adc_oversample_accum;
+#endif /* ADC_OVERSAMPLE_BITS */
+
 //! Configure all registers, start interrupt loop
 void analog_init() {
 
@@ -32,6 +48,10 @@ void analog_init() {
 			ADCSRB = 0;
 		#endif
 
+#if ADC_OVERSAMPLE_BITS > 0
+		adc_oversample_counter = 0;
+		adc_oversample_accum = 0;
+#endif
 		adc_counter = 0;
 
 		// clear analog inputs in the data direction register(s)
@@ -58,8 +78,26 @@ void analog_init() {
 ISR(ADC_vect, ISR_NOBLOCK) {
 	// emulate free-running mode but be more deterministic about exactly which result we have, since this project has long-running interrupts
   if (analog_mask) {
+#if ADC_OVERSAMPLE_BITS > 0
+		// update oversample accumulator
+		adc_oversample_accum += ADC;
+		adc_oversample_counter++;
+		if (adc_oversample_counter < ADC_OVERSAMPLE_SAMPLES) {
+			// Start a new conversion
+			ADCSRA |= MASK(ADSC);
+			return;
+		}
+
+		// oversampling complete - store the result
+		adc_result[adc_counter] = adc_oversample_accum >> ADC_OVERSAMPLE_BITS;
+
+		// prepare for next acquisition
+		adc_oversample_counter = 0;
+		adc_oversample_accum = 0;
+#else
 		// store next result
 		adc_result[adc_counter] = ADC;
+#endif /* ADC_OVERSAMPLE_BITS */
 
 		// next channel
 		do {
