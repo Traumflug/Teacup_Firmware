@@ -59,15 +59,24 @@ struct option opts[] = {
 
 static void usage(const char *name) {
   printf("Usage:  %s [options] [gcode_file || uart_device_name]\n", name);
-  printf("\n\n");
+  printf("\n");
   printf("   -q || --quiet                 show less output\n");
   printf("   -v || --verbose               show more output\n");
   printf("   -g || --gcode                 show gcode on console as it is processed\n");
   printf("   -p || --pos                   show head position on console\n");
   printf("   -t || --time-scale=n          set time-scale; 0=warp-speed, 1=real-time, 2=half-time, etc.\n");
   printf("   -o || --tracefile[=filename]  write simulator pin trace to 'outfile' (default filename=datalog.out)\n");
-  printf("   -T || --report-temptable=n    Report calculated temperatures for all ADC values and exit\n");
-  printf("\n");
+  printf("\n"
+         "   -T || --report-temptable=n    Report calculated temperatures and exit.\n"
+         "\n"
+         "       In Detail, this calculates temperatures for all possible ADC values using\n"
+         "       the compiled-in temperature tables and reports the resulting conversion.\n"
+         "       Does no other run-time simulation; exits after reporting the conversion\n"
+         "       results. Output is suitable for gnuplot, for example like this:\n"
+         "\n"
+         "         gnuplot --persist -e \"plot '< ./sim -T0' u 1:2 with lines,\n"
+         "                                    '< ./sim -T1' u 1:2 with lines\"\n"
+         "\n");
   exit(1);
 }
 
