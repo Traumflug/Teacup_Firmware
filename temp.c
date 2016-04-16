@@ -87,6 +87,7 @@ struct {
 	uint16_t					temp_residency; ///< how long have we been close to target temperature in temp ticks?
 
 	uint16_t					next_read_time; ///< how long until we can read this sensor again?
+	uint16_t					next_heat_time; ///< how long until we can update the sensor's heater?
 } temp_sensors_runtime[NUM_TEMP_SENSORS];
 
 /// Set up temp sensors.
@@ -375,7 +376,12 @@ void temp_sensor_tick() {
 		}
 
 		if (temp_sensors[i].heater < NUM_HEATERS) {
-			heater_tick(temp_sensors[i].heater, temp_sensors[i].temp_type, temp_sensors_runtime[i].last_read_temp, temp_sensors_runtime[i].target_temp);
+			if (temp_sensors_runtime[i].next_heat_time) {
+				temp_sensors_runtime[i].next_heat_time--;
+			} else {
+				heater_tick(temp_sensors[i].heater, temp_sensors[i].temp_type, temp_sensors_runtime[i].last_read_temp, temp_sensors_runtime[i].target_temp);
+				temp_sensors_runtime[i].next_heat_time = 25; // every 250ms
+			}
 		}
 
     if (DEBUG_PID && (debug_flags & DEBUG_PID))
