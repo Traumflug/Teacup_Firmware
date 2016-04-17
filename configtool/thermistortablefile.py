@@ -54,7 +54,6 @@ def generateTempTables(sensors, settings):
 
   ofp.output("#define NUMTABLES %d" % len(tl))
   ofp.output("#define NUMTEMPS %d" % N)
-  ofp.output("#define TEMPTABLE_FORMAT 1")
   ofp.output("");
 
   for i in range(len(tl)):

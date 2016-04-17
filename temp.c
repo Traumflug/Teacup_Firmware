@@ -196,7 +196,15 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
         sersendf_P(PSTR("pin:%d Raw ADC:%d table entry: %d"),
                    temp_sensors[sensor].temp_pin, temp, j);
 
-      #if (TEMPTABLE_FORMAT == 0)
+      if (sizeof(temptable[0][0]) == 2 * sizeof(uint16_t)) {
+        /**
+          This code handles temptables with value pairs and is deprecated.
+          It's kept for compatibility with legacy, handcrafted tables, only.
+
+          The new code expects tables with triples, nevertheless it's smaller
+          and also faster. Configtool was already changed to create tables
+          with triples, only.
+        */
         // Wikipedia's example linear interpolation formula.
         // y = ((x - x₀)y₁ + (x₁-x)y₀) / (x₁ - x₀)
         // y = temp
@@ -219,17 +227,16 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
         //                          (x₁ - x₀)
           (pgm_read_word(&(temptable[table_num][j][0])) -
            pgm_read_word(&(temptable[table_num][j - 1][0])));
-        #elif (TEMPTABLE_FORMAT == 1)
-          // Linear interpolation using pre-computed slope.
-          // y = y₁ - (x - x₁) * d₁
-          #define X1 pgm_read_word(&(temptable[table_num][j][0]))
-          #define Y1 pgm_read_word(&(temptable[table_num][j][1]))
-          #define D1 pgm_read_word(&(temptable[table_num][j][2]))
+      } else
+      if (sizeof(temptable[0][0]) == 3 * sizeof(uint16_t)) {
+        // Linear interpolation using pre-computed slope.
+        // y = y₁ - (x - x₁) * d₁
+        #define X1 pgm_read_word(&(temptable[table_num][j][0]))
+        #define Y1 pgm_read_word(&(temptable[table_num][j][1]))
+        #define D1 pgm_read_word(&(temptable[table_num][j][2]))
 
-          temp = Y1 - ((((int32_t)temp - X1) * D1 + (1<<7)) >> 8);
-        #else
-          #error "temptable format unrecognized"
-        #endif
+        temp = Y1 - ((((int32_t)temp - X1) * D1 + (1 << 7)) >> 8);
+      }
 
       if (DEBUG_PID && (debug_flags & DEBUG_PID))
         sersendf_P(PSTR(" temp:%d.%d"), temp / 4, (temp % 4) * 25);
