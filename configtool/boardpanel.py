@@ -6,8 +6,8 @@ import re
 from sys import platform
 from configtool.decoration import Decoration
 from configtool.data import (defineValueFormat,
-                             defineBoolFormat, defineHeaterFormat, reCommDefBL,
-                             reCommDefBoolBL, reHelpTextStart, reHelpTextEnd,
+                             defineBoolFormat, defineHeaterFormat,
+                             reHelpTextStart, reHelpTextEnd,
                              reStartSensors, reEndSensors, reStartHeaters,
                              reEndHeaters, reCandHeatPins, reCandThermPins,
                              reCandProcessors, reCandCPUClocks, reFloatAttr,

@@ -5,8 +5,8 @@ import re
 
 from sys import platform
 from configtool.decoration import Decoration
-from configtool.data import (defineValueFormat, defineBoolFormat, reCommDefBL,
-                             reCommDefBoolBL, reHelpTextStart, reHelpTextEnd,
+from configtool.data import (defineValueFormat, defineBoolFormat,
+                             reHelpTextStart, reHelpTextEnd,
                              reDefine, reDefineBL, reDefQS, reDefQSm,
                              reDefQSm2, reDefBool, reDefBoolBL)
 from configtool.mechanicalpage import MechanicalPage
