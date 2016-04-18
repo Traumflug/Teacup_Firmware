@@ -84,6 +84,8 @@ static void clock_250ms(void) {
 		}
 	}
 
+  temp_heater_tick();
+
 	ifclock(clock_flag_1s) {
     #ifdef DISPLAY
       display_clock();

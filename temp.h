@@ -36,6 +36,8 @@ void temp_init(void);
 
 void temp_sensor_tick(void);
 
+void temp_heater_tick(void);
+
 uint8_t	temp_achieved(void);
 
 void temp_set(temp_sensor_t index, uint16_t temperature);
