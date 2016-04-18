@@ -682,10 +682,10 @@ PWM value for 'off'
   Comment in the one in use, comment out all others. If there is no display,
   comment out all of them to remove display code for better performance.
 */
-#define DISPLAY_BUS_4BIT
-#define DISPLAY_BUS_8BIT
-#define DISPLAY_BUS_I2C
-#define DISPLAY_BUS_SPI
+//#define DISPLAY_BUS_4BIT
+//#define DISPLAY_BUS_8BIT
+//#define DISPLAY_BUS_I2C
+//#define DISPLAY_BUS_SPI
 
 /** \def DISPLAY_TYPE_SSD1306 DISPLAY_TYPE_LCD1302
 

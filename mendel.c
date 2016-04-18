@@ -51,7 +51,7 @@
 #include	"clock.h"
 #include	"intercom.h"
 #include "spi.h"
-#include "i2c.h"
+#include "displaybus.h"
 #include "sd.h"
 #include "simulator.h"
 
@@ -95,8 +95,8 @@ void init(void) {
     spi_init();
   #endif
 
-  #ifdef I2C
-    i2c_init(DISPLAY_I2C_ADDRESS);
+  #ifdef DISPLAY_BUS
+    displaybus_init(DISPLAY_I2C_ADDRESS);
   #endif
 
 	// set up timers
@@ -147,7 +147,7 @@ int main (void)
 
 	init();
 
-  #ifdef I2C
+  #ifdef DISPLAY_BUS
     // This is temporary, until display code is completed.
     i2c_test();
   #endif
