@@ -8,9 +8,12 @@
   removed from font.
 */
 
-#include "font_8x4.h"
+// So far we have no #define DISPLAY_FONT_... in Configtool.
+#if defined TEACUP_C_INCLUDE /* && defined DISPLAY_FONT_8x4 */
 
-const symbol_t PROGMEM font_8x4[] = {
+#include "font.h"
+
+const symbol_t PROGMEM font[] = {
   {2, {0x00, 0x00, 0x00, 0x00}},  /* space */
   {3, {0x0C, 0x5E, 0x0C, 0x00}},  /* excl_mark */
   {3, {0x03, 0x00, 0x03, 0x00}},  /* quot_mark */
@@ -113,3 +116,5 @@ const symbol_t PROGMEM font_8x4[] = {
   {4, {0x02, 0x01, 0x02, 0x01}},  /* tilde */
   {4, {0x00, 0x00, 0x00, 0x00}}   /* del */
 };
+
+#endif /* TEACUP_C_INCLUDE && DISPLAY_FONT_8x4 */

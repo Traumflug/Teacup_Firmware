@@ -16,7 +16,7 @@
 #include <string.h>
 #include "config_wrapper.h"
 #include "displaybus.h"
-#include "font_8x4.h"
+#include "font.h"
 
 
 #define DISPLAY_I2C_ADDRESS        (0x3C << 1)
@@ -96,8 +96,8 @@ static void i2c_test(void) {
     uint8_t index = (uint8_t)*message - 0x20;
 
     // Send the character bitmap.
-    for (i = 0; i < pgm_read_byte(&font_8x4[index].columns); i++) {
-      displaybus_write(pgm_read_byte(&font_8x4[index].data[i]), 0);
+    for (i = 0; i < pgm_read_byte(&font[index].columns); i++) {
+      displaybus_write(pgm_read_byte(&font[index].data[i]), 0);
     }
     // Send space between characters.
     for (i = 0; i < FONT_SYMBOL_SPACE; i++) {
