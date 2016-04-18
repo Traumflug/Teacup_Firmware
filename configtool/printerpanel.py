@@ -258,8 +258,8 @@ class PrinterPanel(wx.Panel):
 
     # Parsing done. All parsed stuff is now in these arrays and dicts.
     # Uncomment for debugging.
-    #print self.cfgValues  # #defines with a value and enabled booleans.
-    #print self.cfgNames   # Names only, but also of disabled booleans.
+    #print self.cfgValues  # #defines with a value and booleans.
+    #print self.cfgNames   # Names found in the generic file.
     #print self.helpText
 
     if os.path.basename(fn) in protectedFiles:
@@ -318,11 +318,14 @@ class PrinterPanel(wx.Panel):
           self.cfgValues[t[0]] = t[1], False
         return True
 
-    m = reDefBoolBL.search(ln)
+    m = reDefBool.search(ln)
     if m:
       t = m.groups()
       if len(t) == 1 and (t[0] in self.cfgNames):
-        self.cfgValues[t[0]] = True
+        if reDefBoolBL.search(ln):
+          self.cfgValues[t[0]] = True
+        else:
+          self.cfgValues[t[0]] = False
         return True
 
     return False
