@@ -17,6 +17,7 @@ class Page:
     self.radioButtonBoxes = {}
     self.choices = {}
     self.choicesOriginal = {}
+    self.boolChoices = {}
     self.deco = Decoration()
     self.font = font
 
@@ -113,6 +114,30 @@ class Page:
       sv = 0
     ch.SetSelection(sv)
     lsz.Add(ch)
+
+    return lsz
+
+  # addChoice handles #defines with value, this handles choices for
+  # sets of boolean #defines.
+  def addBoolChoice(self, name, allowBlank, labelWidth, validator,
+                    size = (-1, -1)):
+    lsz = wx.BoxSizer(wx.HORIZONTAL)
+    st = wx.StaticText(self, wx.ID_ANY, self.labels[name],
+                       size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
+    st.SetFont(self.font)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
+
+    ch = wx.Choice(self, wx.ID_ANY, size = size, name = name)
+    ch.SetBackgroundColour(self.deco.getBackgroundColour())
+    ch.SetFont(self.font)
+    ch.Bind(wx.EVT_CHOICE, validator)
+
+    if allowBlank:
+      ch.Append("(none)")
+      ch.SetSelection(0)
+
+    lsz.Add(ch)
+    self.boolChoices[name] = ch
 
     return lsz
 
@@ -235,6 +260,21 @@ class Page:
       else:
         print "Key " + k + " not found in config data."
 
+    for k in self.boolChoices.keys():
+      choice = self.boolChoices[k]
+
+      # Remove items left behind from the previous configuration.
+      while (choice.GetCount() and
+             not choice.GetString(choice.GetCount() - 1).startswith('(')):
+        choice.Delete(choice.GetCount() - 1)
+
+      # Add items found in this configuration.
+      for cfg in cfgValues.keys():
+        if cfg.startswith(k):
+          choice.Append(cfg)
+          if cfgValues[cfg]:
+            choice.SetSelection(choice.GetCount() - 1)
+
     self.assertModified(False)
 
   def getValues(self):
@@ -261,6 +301,13 @@ class Page:
     for k in self.choices.keys():
       v = self.choices[k].GetSelection()
       result[k] = self.choices[k].GetString(v), True
+
+    for k in self.boolChoices.keys():
+      choice = self.boolChoices[k]
+      for i in range(choice.GetCount()):
+        s = choice.GetString(i)
+        if not s.startswith('('):
+          result[s] = (i == choice.GetSelection())
 
     return result
 
