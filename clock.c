@@ -91,6 +91,8 @@ static void clock_250ms(void) {
       display_clock();
     #endif
 
+    temp_residency_tick();
+
 		if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
 			// current position
 			update_current_position();

@@ -380,27 +380,7 @@ void temp_sensor_tick() {
 			  (EWMA_SCALE-EWMA_ALPHA) * temp_sensors_runtime[i].last_read_temp
 			                                         ) / EWMA_SCALE);
 		}
-		if (labs((int16_t)(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp)) < (TEMP_HYSTERESIS*4)) {
-			if (temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*120))
-				temp_sensors_runtime[i].temp_residency++;
-		}
-		else {
-			// Deal with flakey sensors which occasionally report a wrong value
-			// by setting residency back, but not entirely to zero.
-			if (temp_sensors_runtime[i].temp_residency > 10)
-				temp_sensors_runtime[i].temp_residency -= 10;
-			else
-				temp_sensors_runtime[i].temp_residency = 0;
-		}
-
-    if (DEBUG_PID && (debug_flags & DEBUG_PID))
-      sersendf_P(PSTR("DU temp: {%d %d %d.%d}"), i,
-                 temp_sensors_runtime[i].last_read_temp,
-                 temp_sensors_runtime[i].last_read_temp / 4,
-                 (temp_sensors_runtime[i].last_read_temp & 0x03) * 25);
-	}
-  if (DEBUG_PID && (debug_flags & DEBUG_PID))
-    sersendf_P(PSTR("\n"));
+  }
 }
 
 /**
@@ -416,6 +396,36 @@ void temp_heater_tick() {
                   temp_sensors_runtime[i].target_temp);
     }
   }
+}
+
+/**
+  Called every 1s from clock.c. Update temperature residency info.
+*/
+void temp_residency_tick() {
+  temp_sensor_t i;
+
+  for (i = 0; i < NUM_TEMP_SENSORS; i++) {
+		if (labs((int16_t)(temp_sensors_runtime[i].last_read_temp - temp_sensors_runtime[i].target_temp)) < (TEMP_HYSTERESIS*4)) {
+			if (temp_sensors_runtime[i].temp_residency < (TEMP_RESIDENCY_TIME*120))
+        temp_sensors_runtime[i].temp_residency += 100;
+		}
+		else {
+			// Deal with flakey sensors which occasionally report a wrong value
+			// by setting residency back, but not entirely to zero.
+      if (temp_sensors_runtime[i].temp_residency > 100)
+        temp_sensors_runtime[i].temp_residency -= 100;
+			else
+				temp_sensors_runtime[i].temp_residency = 0;
+		}
+
+    if (DEBUG_PID && (debug_flags & DEBUG_PID))
+      sersendf_P(PSTR("DU temp: {%d %d %d.%d}"), i,
+                 temp_sensors_runtime[i].last_read_temp,
+                 temp_sensors_runtime[i].last_read_temp / 4,
+                 (temp_sensors_runtime[i].last_read_temp & 0x03) * 25);
+	}
+  if (DEBUG_PID && (debug_flags & DEBUG_PID))
+    sersendf_P(PSTR("\n"));
 }
 
 /**
