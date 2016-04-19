@@ -333,6 +333,9 @@ class Board:
     return None
 
   def saveConfigFile(self, path, values):
+    if not values:
+      values = self.cfgValues
+
     if self.settings.verbose >= 1:
       print("Saving board: %s." % path)
     if self.settings.verbose >= 2:

@@ -183,6 +183,9 @@ class Printer:
     return False
 
   def saveConfigFile(self, path, values):
+    if not values:
+      values = self.cfgValues
+
     if self.settings.verbose >= 1:
       print("Saving printer: %s." % path)
     if self.settings.verbose >= 2:

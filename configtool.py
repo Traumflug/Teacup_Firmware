@@ -78,6 +78,34 @@ def cmdLoad(arg):
   print("Expected one of *.ini, board.*.h or printer.*.h.")
   sys.exit(2)
 
+def cmdSave(arg):
+  xx, ext = os.path.splitext(arg)
+  fn = os.path.basename(arg)
+
+  if ext == ".ini":
+    if not getSettings(arg).save(arg):
+      print("Failed to save settings file: %s." % arg)
+      sys.exit(2)
+    return
+
+  if ext == ".h":
+    if fn.startswith("board."):
+      global board
+      if not board.saveConfigFile(arg, None):
+        print("Failed trying to save board file: %s." % arg)
+        sys.exit(2)
+      return
+    elif fn.startswith("printer."):
+      global printer
+      if not printer.saveConfigFile(arg, None):
+        print("Failed trying to save printer file: %s." % arg)
+        sys.exit(2)
+      return
+
+  print("Unrecognized file: %s." % arg)
+  print("Expected one of *.ini, board.*.h or printer.*.h.")
+  sys.exit(2)
+
 def cmdShowAll():
   names = {"configtool": getSettings(), "board": board, "printer": printer}
   for namespace in names:
@@ -105,7 +133,11 @@ Following options are available for command line automation:
                               loads, only. GUI will overwrite them with the
                               files found in config.h.
 
+  -s <file>, --save=<file>    Save the config, printer or board file.
+
   -a, --show-all              Show all loaded variables and values.
+
+  -q, --quit                  Quit processing without launching the GUI.
 """ % sys.argv[0])
 
 def CommandLine(argv):
@@ -116,8 +148,8 @@ def CommandLine(argv):
   global settings, verbose
 
   try:
-    opts, args = getopt.getopt(argv, "hvl:a", ["help", "verbose", "load=",
-                               "show-all"])
+    opts, args = getopt.getopt(argv, "hvl:as:q", ["help", "verbose", "load=",
+                               "show-all", "save=", "quit"])
   except getopt.GetoptError as err:
     print(err)
     print("Use '%s --help' to get help with command line options." %
@@ -139,8 +171,14 @@ def CommandLine(argv):
     elif opt in ("-l", "--load"):
       cmdLoad(arg)
 
+    elif opt in ("-s", "--save"):
+      cmdSave(arg)
+
     elif opt in ("-a", "--show-all"):
       cmdShowAll()
+
+    elif opt in ("-q", "--quit"):
+      sys.exit()
 
 if __name__ == '__main__':
   CommandLine(sys.argv[1:])
