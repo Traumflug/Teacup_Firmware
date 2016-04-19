@@ -26,6 +26,12 @@ class Board:
     self.candHeatPins = []
     self.candThermPins = []
 
+  def getValues(self):
+    vars = [("sensor." + x[0], x[1:]) for x in self.sensors]
+    vars += [("heater." + x[0], x[1:]) for x in self.heaters]
+    vars += [(x, self.cfgValues[x]) for x in self.cfgValues]
+    return dict(vars)
+
   def getCPUInfo(self):
     vF_CPU = None
     if 'F_CPU' in self.cfgValues.keys():

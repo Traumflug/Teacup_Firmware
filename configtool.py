@@ -78,6 +78,14 @@ def cmdLoad(arg):
   print("Expected one of *.ini, board.*.h or printer.*.h.")
   sys.exit(2)
 
+def cmdShowAll():
+  names = {"configtool": getSettings(), "board": board, "printer": printer}
+  for namespace in names:
+    if names[namespace]:
+      values = names[namespace].getValues()
+      for k in sorted(values):
+        print("%s.%s: %s" % (namespace, k, str(values[k])))
+
 def cmdHelp():
   print("""Usage: %s [options]
 
@@ -96,6 +104,8 @@ Following options are available for command line automation:
                               Content of this file is valid before the GUI
                               loads, only. GUI will overwrite them with the
                               files found in config.h.
+
+  -a, --show-all              Show all loaded variables and values.
 """ % sys.argv[0])
 
 def CommandLine(argv):
@@ -106,7 +116,8 @@ def CommandLine(argv):
   global settings, verbose
 
   try:
-    opts, args = getopt.getopt(argv, "hvl:", ["help", "verbose", "load="])
+    opts, args = getopt.getopt(argv, "hvl:a", ["help", "verbose", "load=",
+                               "show-all"])
   except getopt.GetoptError as err:
     print(err)
     print("Use '%s --help' to get help with command line options." %
@@ -127,6 +138,9 @@ def CommandLine(argv):
 
     elif opt in ("-l", "--load"):
       cmdLoad(arg)
+
+    elif opt in ("-a", "--show-all"):
+      cmdShowAll()
 
 if __name__ == '__main__':
   CommandLine(sys.argv[1:])

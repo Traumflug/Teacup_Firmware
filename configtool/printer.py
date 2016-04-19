@@ -16,6 +16,10 @@ class Printer:
     self.settings = settings
     self.cfgDir = os.path.join(self.settings.folder, "configtool")
 
+  def getValues(self):
+    vars = [(x, self.cfgValues[x]) for x in self.cfgValues]
+    return dict(vars)
+
   def hasData(self):
     return (self.configFile != None)
 
