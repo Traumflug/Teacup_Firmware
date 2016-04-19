@@ -26,6 +26,8 @@ import inspect
 
 from configtool.settings import Settings
 from configtool.gui import StartGui
+from configtool.board import Board
+from configtool.printer import Printer
 
 
 cmdFolder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(
@@ -33,6 +35,8 @@ cmdFolder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(
 
 verbose = 0
 settings = None
+board = None
+printer = None
 
 def getSettings(arg = None):
   global settings
@@ -42,7 +46,37 @@ def getSettings(arg = None):
   return settings
 
 def cmdLoad(arg):
-  print("Want to load %s, but don't know how.\n" % arg)
+  xx, ext = os.path.splitext(arg)
+  fn = os.path.basename(arg)
+
+  if ext == ".ini":
+    settings = getSettings(arg)
+    if not settings.loaded:
+      print("Failed to load settings file: %s." % arg)
+      sys.exit(2)
+    return
+
+  if ext == ".h":
+    if fn.startswith("board."):
+      global board
+      board = Board(getSettings())
+      ok, fn = board.loadConfigFile(arg)
+      if not ok:
+        print("Failed trying to load board file: %s." % fn)
+        sys.exit(2)
+      return
+    elif fn.startswith("printer."):
+      global printer
+      printer = Printer(getSettings())
+      ok, fn = printer.loadConfigFile(arg)
+      if not ok:
+        print("Failed trying to load printer file: %s" % fn)
+        sys.exit(2)
+      return
+
+  print("Unrecognized file: %s." % arg)
+  print("Expected one of *.ini, board.*.h or printer.*.h.")
+  sys.exit(2)
 
 def cmdHelp():
   print("""Usage: %s [options]
@@ -56,7 +90,12 @@ Following options are available for command line automation:
                               to get even more output.
 
   -l <file>, --load=<file>    Load a specific printer config, board config
-                              or .ini file.
+                              or .ini file. Can be applied multiple times to
+                              load multiple files.
+
+                              Content of this file is valid before the GUI
+                              loads, only. GUI will overwrite them with the
+                              files found in config.h.
 """ % sys.argv[0])
 
 def CommandLine(argv):
