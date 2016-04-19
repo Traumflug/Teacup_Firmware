@@ -347,10 +347,13 @@ class Board:
 
     skipToSensorEnd = False
     skipToHeaterEnd = False
-    candThermPinsWritten = False
-    candHeatPinsWritten = False
-    candProcessorsWritten = False
-    candCPUClocksWritten = False
+
+    candidates = [
+      (reCandThermPins,  self.candThermPins,  "TEMP_SENSOR_PIN"),
+      (reCandHeatPins,   self.candHeatPins,   "HEATER_PIN"),
+      (reCandProcessors, self.candProcessors, "CPU_TYPE"),
+      (reCandCPUClocks,  self.candClocks,     "F_CPU_OPT")
+    ]
 
     for ln in self.cfgBuffer:
       m = reStartSensors.match(ln)
@@ -411,32 +414,14 @@ class Board:
           skipToHeaterEnd = False
         continue
 
-      if reCandThermPins.match(ln):
-        if not candThermPinsWritten:
-          for pin in self.candThermPins:
-            fp.write("//#define TEMP_SENSOR_PIN " + pin + "\n")
-          candThermPinsWritten = True
-        continue
-
-      if reCandHeatPins.match(ln):
-        if not candHeatPinsWritten:
-          for pin in self.candHeatPins:
-            fp.write("//#define HEATER_PIN " + pin + "\n")
-          candHeatPinsWritten = True
-        continue
-
-      if reCandProcessors.match(ln):
-        if not candProcessorsWritten:
-          for pin in self.candProcessors:
-            fp.write("//#define CPU_TYPE " + pin + "\n")
-          candProcessorsWritten = True
-        continue
-
-      if reCandCPUClocks.match(ln):
-        if not candCPUClocksWritten:
-          for pin in self.candClocks:
-            fp.write("//#define F_CPU_OPT " + pin + "\n")
-          candCPUClocksWritten = True
+      # Write candidate values.
+      match = [x for x in candidates if x[0].match(ln)]
+      if len(match) == 1:
+        re, cand, name = match[0]
+        for pin in cand:
+          fp.write("//#define %s %s\n" % (name, pin))
+        candidates.remove(match[0])
+        candidates.append((re, [], name))
         continue
 
       m = reDefine.match(ln)
