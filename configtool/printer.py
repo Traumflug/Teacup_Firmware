@@ -191,6 +191,7 @@ class Printer:
     if self.settings.verbose >= 2:
       print values
 
+    source = "GUI" if values else self.configFile
     fp = file(path, 'w')
     self.configFile = path
 
@@ -223,7 +224,7 @@ class Printer:
             #       done, this will lead to duplicates.
             fp.write(ln)
           else:
-            print "Value key " + t[0] + " not found in GUI."
+            print("Value key " + t[0] + " not found in " + source + ".")
 
         continue
 
@@ -237,7 +238,7 @@ class Printer:
             fp.write("//")
           fp.write(defineBoolFormat % t[0])
         else:
-          print "Boolean key " + t[0] + " not found in GUI."
+          print("Boolean key " + t[0] + " not found in " + source + ".")
 
         continue
 
