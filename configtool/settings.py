@@ -112,33 +112,27 @@ class Settings:
       "uploadspeed": str(self.uploadspeed)
     }
 
-  def saveSettings(self):
+  def saveSettings(self, inifile=None):
+    if not inifile: inifile = self.inifile
+
     self.section = "configtool"
     try:
       self.cfg.add_section(self.section)
     except ConfigParser.DuplicateSectionError:
       pass
 
-    self.cfg.set(self.section, "arduinodir", str(self.arduinodir))
-    self.cfg.set(self.section, "cflags", str(self.cflags))
-    self.cfg.set(self.section, "ldflags", str(self.ldflags))
-    self.cfg.set(self.section, "objcopyflags", str(self.objcopyflags))
-    self.cfg.set(self.section, "programmer", str(self.programmer))
-    self.cfg.set(self.section, "port", str(self.port))
-    self.cfg.set(self.section, "t0", str(self.t0))
-    self.cfg.set(self.section, "r1", str(self.r1))
-    self.cfg.set(self.section, "numtemps", str(self.numTemps))
-    self.cfg.set(self.section, "maxadc", str(self.maxAdc))
-    self.cfg.set(self.section, "minadc", str(self.minAdc))
-    self.cfg.set(self.section, "uploadspeed", str(self.uploadspeed))
+    values = self.getValues()
+    for k in values.keys():
+      self.cfg.set(self.section, k, values[k])
 
     try:
-      cfp = open(self.inifile, 'wb')
+      cfp = open(inifile, 'wb')
     except:
-      print "Unable to open settings file %s for writing." % self.inifile
-      return
+      print "Unable to open settings file %s for writing." % inifile
+      return False
     self.cfg.write(cfp)
     cfp.close()
+    return True
 
 
 class SettingsDlg(wx.Dialog):
