@@ -13,11 +13,14 @@ class Printer:
     self.configFile = None
 
     self.cfgValues = {}
+    self.cfgBools = {}
     self.settings = settings
     self.cfgDir = os.path.join(self.settings.folder, "configtool")
 
   def getValues(self):
-    vars = [(x, self.cfgValues[x]) for x in self.cfgValues]
+    vars = [(x, self.cfgValues[x][0]) \
+              for x in self.cfgValues if self.cfgValues[x][1]]
+    vars += [(x, self.cfgBools[x]) for x in self.cfgBools if self.cfgBools[x]]
     return dict(vars)
 
   def hasData(self):
@@ -45,6 +48,7 @@ class Printer:
     helpKey = None
 
     self.cfgValues = {}
+    self.cfgBools = {}
     self.cfgNames = []
     self.helpText = {}
 
@@ -123,6 +127,7 @@ class Printer:
     # Parsing done. All parsed stuff is now in these array and dicts.
     if self.settings.verbose >= 2:
       print self.cfgValues  # #defines with a value.
+      print self.cfgBools   # #defined booleans.
       print self.cfgNames   # Names found in the generic file.
     if self.settings.verbose >= 3:
       print self.helpText
@@ -175,9 +180,9 @@ class Printer:
                      and not (t[0] in self.cfgValues \
                               and isinstance(self.cfgValues[t[0]], tuple)):
         if reDefBoolBL.search(ln):
-          self.cfgValues[t[0]] = True
+          self.cfgBools[t[0]] = True
         else:
-          self.cfgValues[t[0]] = False
+          self.cfgBools[t[0]] = False
         return True
 
     return False
@@ -199,9 +204,14 @@ class Printer:
       m = reDefine.match(ln)
       if m:
         t = m.groups()
-        if len(t) == 2 and t[0] in values.keys():
+        v = None
+        if not values:
+          if t[0] in self.cfgValues.keys():
+            v = self.cfgValues[t[0]]
+        elif len(t) == 2 and t[0] in values.keys():
           v = values[t[0]]
           self.cfgValues[t[0]] = v
+        if v is not None:
           if v[1] == False:
             fp.write("//")
           fp.write(defineValueFormat % (t[0], v[0]))
@@ -231,9 +241,14 @@ class Printer:
       m = reDefBoolBL.match(ln)
       if m:
         t = m.groups()
-        if len(t) == 1 and t[0] in values.keys():
+        v = None
+        if not values:
+          if t[0] in self.cfgBools.keys():
+            v = self.cfgBools[t[0]]
+        elif len(t) == 1 and t[0] in values.keys():
           v = values[t[0]]
-          self.cfgValues[t[0]] = v
+          self.cfgBools[t[0]] = v
+        if v is not None:
           if v == "" or v == False:
             fp.write("//")
           fp.write(defineBoolFormat % t[0])
