@@ -66,39 +66,45 @@ class Settings:
     if self.cfg.has_section(self.section):
       for opt, value in self.cfg.items(self.section):
         value = value.replace('\n', ' ')
-        if opt == "arduinodir":
-          self.arduinodir = value
-        elif opt == "cflags":
-          self.cflags = value
-        elif opt == "ldflags":
-          self.ldflags = value
-        elif opt == "programmer":
-          self.programmer = value
-        elif opt == "port":
-          self.port = value
-        elif opt == "objcopyflags":
-          self.objcopyflags = value
-        elif opt == "programflags":
-          self.programflags = value
-        elif opt == "t0":
-          self.t0 = value
-        elif opt == "r1":
-          self.r1 = value
-        elif opt == "numtemps":
-          self.numTemps = value
-        elif opt == "maxadc":
-          self.maxAdc = value
-        elif opt == "minadc":
-          self.minAdc = value
-        elif opt == "uploadspeed":
-          self.uploadspeed = value
-        else:
-          print "Unknown %s option: %s - ignoring." % (self.section, opt)
+        self.setValue(opt, value)
     else:
       print "Missing %s section - assuming defaults." % self.section
       return False
 
     return True
+
+  def setValue(self, opt, value, source = None):
+    if not source:
+      source = self.section
+
+    if opt == "arduinodir":
+      self.arduinodir = value
+    elif opt == "cflags":
+      self.cflags = value
+    elif opt == "ldflags":
+      self.ldflags = value
+    elif opt == "programmer":
+      self.programmer = value
+    elif opt == "port":
+      self.port = value
+    elif opt == "objcopyflags":
+      self.objcopyflags = value
+    elif opt == "programflags":
+      self.programflags = value
+    elif opt == "t0":
+      self.t0 = value
+    elif opt == "r1":
+      self.r1 = value
+    elif opt == "numtemps":
+      self.numTemps = value
+    elif opt == "maxadc":
+      self.maxAdc = value
+    elif opt == "minadc":
+      self.minAdc = value
+    elif opt == "uploadspeed":
+      self.uploadspeed = value
+    else:
+      print("Unknown %s option: %s - ignoring." % (source, opt))
 
   def getValues(self):
     return {
