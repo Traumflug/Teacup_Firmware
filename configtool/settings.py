@@ -96,6 +96,22 @@ class Settings:
 
     return True
 
+  def getValues(self):
+    return {
+      "arduinodir": str(self.arduinodir),
+      "cflags": str(self.cflags),
+      "ldflags": str(self.ldflags),
+      "objcopyflags": str(self.objcopyflags),
+      "programmer": str(self.programmer),
+      "port": str(self.port),
+      "t0": str(self.t0),
+      "r1": str(self.r1),
+      "numtemps": str(self.numTemps),
+      "maxadc": str(self.maxAdc),
+      "minadc": str(self.minAdc),
+      "uploadspeed": str(self.uploadspeed)
+    }
+
   def saveSettings(self):
     self.section = "configtool"
     try:

@@ -21,10 +21,18 @@ class Board:
     self.cfgDir = os.path.join(self.settings.folder, "configtool")
 
     self.cfgValues = {}
+    self.cfgBools = {}
     self.heaters = []
     self.sensors = []
     self.candHeatPins = []
     self.candThermPins = []
+
+  def getValues(self):
+    vars = [("sensor."+x[0],x[1:]) for x in self.sensors]
+    vars += [("heater."+x[0],x[1:]) for x in self.heaters]
+    vars += [(x,self.cfgValues[x][0]) for x in self.cfgValues if self.cfgValues[x][1]]
+    vars += [(x,self.cfgBools[x]) for x in self.cfgBools if self.cfgBools[x]]
+    return dict(vars)
 
   def getCPUInfo(self):
     vF_CPU = None
@@ -69,6 +77,7 @@ class Board:
     helpKey = None
 
     self.cfgValues = {}
+    self.cfgBools = {}
     self.cfgNames = []
     self.helpText = {}
 
@@ -178,6 +187,7 @@ class Board:
       print self.candClocks
       print self.tempTables
       print self.cfgValues  # #defines with a value.
+      print self.cfgBools   # #defined booleans.
       print self.cfgNames   # Names found in the generic file.
     if self.settings.verbose >= 3:
       print self.helpText
@@ -232,9 +242,9 @@ class Board:
       t = m.groups()
       if len(t) == 1 and (t[0] in self.cfgNames):
         if reDefBoolBL.search(ln):
-          self.cfgValues[t[0]] = True
+          self.cfgBools[t[0]] = True
         else:
-          self.cfgValues[t[0]] = False
+          self.cfgBools[t[0]] = False
         return True
 
     return False
@@ -439,7 +449,7 @@ class Board:
         t = m.groups()
         if len(t) == 1 and t[0] in values.keys():
           v = values[t[0]]
-          self.cfgValues[t[0]] = v
+          self.cfgBools[t[0]] = v
           if v == "" or v == False:
             fp.write("//")
           fp.write(defineBoolFormat % t[0])
