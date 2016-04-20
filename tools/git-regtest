@@ -60,8 +60,12 @@ while [ ${PARENTS} -ge 0 ]; do
 
   # Check wether target 'regressiontest' or 'check' or whatever exists, then
   # run the test.
-  make -n regressiontests >/dev/null 2>&1 && (make regressiontests || exit 1)
-  make -n check >/dev/null 2>&1 && ((make && make check) || exit 1)
+  if make -n regressiontests >/dev/null 2>&1; then
+    make regressiontests || exit 1
+  fi
+  if make -n check >/dev/null 2>&1; then
+    (make && make check) || exit 1
+  fi
 
   let PARENTS=${PARENTS}-1
 done
