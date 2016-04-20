@@ -99,14 +99,14 @@ void temp_init() {
           // Note that MAX6675's Chip Select pin is currently hardcoded to SS.
           // This isn't neccessary. See also spi.h.
           spi_deselect_max6675();
-          // Intentionally no break, we might have more than one sensor type.
+          break;
       #endif
 
       #ifdef TEMP_MCP3008
         case TT_MCP3008:
           SET_OUTPUT(MCP3008_SELECT_PIN);
           spi_deselect_mcp3008();
-          // Intentionally no break, we might have more than one sensor type.
+          break;
       #endif
 
 		#ifdef	TEMP_THERMISTOR
@@ -131,7 +131,7 @@ void temp_init() {
 
           intercom_init();
           send_temperature(0, 0);
-          // Intentionally no break.
+          break;
       #endif
 
 			default: /* prevent compiler warning */
