@@ -47,6 +47,7 @@ CFLAGS += -save-temps=obj -DUSER_CONFIG='"$(USER_CONFIG)"'
 CC = $(TOOLCHAIN)gcc
 OBJDUMP = $(TOOLCHAIN)objdump
 OBJCOPY = $(TOOLCHAIN)objcopy
+SIZE    = $(TOOLCHAIN)size
 
 
 OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES))
