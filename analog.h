@@ -65,10 +65,7 @@ void 			analog_init(void);
 uint16_t	analog_read(uint8_t index);
 
 #ifdef NEEDS_START_ADC
-  #define DO_START_ADC() do { start_adc(); } while (0)
   void start_adc(void);
-#else
-  #define DO_START_ADC()
 #endif
 
 #endif	/* _ANALOG_H */

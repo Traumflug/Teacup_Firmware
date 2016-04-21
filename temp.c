@@ -89,6 +89,35 @@ struct {
 	uint16_t					next_read_time; ///< how long until we can read this sensor again?
 } temp_sensors_runtime[NUM_TEMP_SENSORS];
 
+#ifdef NEEDS_START_ADC
+  /**
+    Timer/counter for initiating ADC reads via start_adc(). Runs on the same
+    interval as analog_read(), but is shifted in time, which is why this
+    additional counter is needed.
+  */
+  uint16_t next_start_adc_time;
+#endif
+
+/** \def TEMP_EWMA
+
+  Default alpha constant for the Exponentially Weighted Moving Average (EWMA)
+  for smoothing noisy sensors. Instrument Engineer's Handbook, 4th ed,
+  Vol 2 p126 says values of 0.05 to 0.1 are typical.
+
+  Setting it to 1.0 turns EWMA off.
+*/
+#ifndef TEMP_EWMA
+  #define TEMP_EWMA 1.0
+#endif
+
+/**
+  Interval between analog_read() calls. 10ms if EWMA is enabled, because EWMA
+  needs frequent updates, otherwise 250ms so that we don't waste time on
+  unnecessary reads.
+*/
+#define ANALOG_READ_INTERVAL ((TEMP_EWMA == 1.0) ? 25 : 0)
+
+
 /// Set up temp sensors.
 void temp_init() {
 	temp_sensor_t i;
@@ -112,16 +141,16 @@ void temp_init() {
 		#ifdef	TEMP_THERMISTOR
       // Mostly handled by analog_init().
       case TT_THERMISTOR:
-        // Start a conversion so it's ready for the first temp_sensor_tick().
-        DO_START_ADC();
+        // Schedule first read.
+        temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
         break;
 		#endif
 
 		#ifdef	TEMP_AD595
       // Mostly handled by analog_init().
       case TT_AD595:
-        // Start a conversion so it's ready for the first temp_sensor_tick().
-        DO_START_ADC();
+        // Schedule first read.
+        temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
         break;
 		#endif
 
@@ -142,6 +171,16 @@ void temp_init() {
 				break;
 		}
 	}
+
+  #ifdef NEEDS_START_ADC
+    /**
+      Schedule the first ADC conversion so that it starts one 10ms cycle
+      before the sensors are actually read. This way analog_read() returns a
+      value that's only 10ms old.
+    */
+    next_start_adc_time = (ANALOG_READ_INTERVAL > 0) ?
+                          (ANALOG_READ_INTERVAL - 1) : 0;
+  #endif
 }
 
 /**
@@ -312,8 +351,7 @@ void temp_sensor_tick() {
             // Read current temperature.
             temp = temp_table_lookup(analog_read(i), i);
 
-            temp_sensors_runtime[i].next_read_time = 0;
-            DO_START_ADC();
+            temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
 
             break;
 				#endif	/* TEMP_THERMISTOR */
@@ -337,8 +375,7 @@ void temp_sensor_tick() {
 					// >>8 instead of >>10 because internal temp is stored as 14.2 fixed point
 					temp = (temp * 500L) >> 8;
 
-					temp_sensors_runtime[i].next_read_time = 0;
-          DO_START_ADC();
+          temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
 
 					break;
 				#endif	/* TEMP_AD595 */
@@ -378,9 +415,6 @@ void temp_sensor_tick() {
 			/* Exponentially Weighted Moving Average alpha constant for smoothing
 			   noisy sensors. Instrument Engineer's Handbook, 4th ed, Vol 2 p126
 			   says values of 0.05 to 0.1 for TEMP_EWMA are typical. */
-			#ifndef TEMP_EWMA
-				#define TEMP_EWMA 1.0
-			#endif
 			#define EWMA_SCALE  1024L
 			#define EWMA_ALPHA  ((long) (TEMP_EWMA * EWMA_SCALE))
 			temp_sensors_runtime[i].last_read_temp = (uint16_t) ((EWMA_ALPHA * temp +
@@ -388,6 +422,21 @@ void temp_sensor_tick() {
 			                                         ) / EWMA_SCALE);
 		}
   }
+
+  #ifdef NEEDS_START_ADC
+    // Start ADC conversion when the time comes.
+    if (next_start_adc_time > 1) {
+      next_start_adc_time--;
+    } else {
+      start_adc();
+      /**
+        start_adc() runs on the same interval as analog_read(), but it's
+        shifted in time so that it happens 10ms earlier. This way the ADC
+        conversion can finish before its results are read.
+      */
+      next_start_adc_time = ANALOG_READ_INTERVAL;
+    }
+  #endif
 }
 
 /**
