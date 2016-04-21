@@ -24,8 +24,22 @@ import getopt
 import os.path
 import inspect
 
+from configtool.settings import Settings
 from configtool.gui import StartGui
 
+
+cmdFolder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(
+                             inspect.currentframe()))[0]))
+
+verbose = 0
+settings = None
+
+def getSettings(arg = None):
+  global settings
+  if arg or not settings:
+    settings = Settings(None, cmdFolder, arg)
+  settings.verbose = verbose
+  return settings
 
 def cmdLoad(arg):
   print("Want to load %s, but don't know how.\n" % arg)
@@ -38,6 +52,9 @@ Following options are available for command line automation:
 
   -h, --help                  Show this help text.
 
+  -v, --verbose               Be more verbose. Can be applied multiple times
+                              to get even more output.
+
   -l <file>, --load=<file>    Load a specific printer config, board config
                               or .ini file.
 """ % sys.argv[0])
@@ -47,8 +64,10 @@ def CommandLine(argv):
       result in sys.exit() (i.e. they do not return from this function).  Other
       options like --debug will return to allow the gui to launch.
   """
+  global settings, verbose
+
   try:
-    opts, args = getopt.getopt(argv, "hl:", ["help", "load="])
+    opts, args = getopt.getopt(argv, "hvl:", ["help", "verbose", "load="])
   except getopt.GetoptError as err:
     print(err)
     print("Use '%s --help' to get help with command line options." %
@@ -63,12 +82,13 @@ def CommandLine(argv):
 
   # Now parse other options.
   for opt, arg in opts:
-    if opt in ("-l", "--load"):
+    if opt in ("-v", "--verbose"):
+      verbose += 1
+      getSettings()
+
+    elif opt in ("-l", "--load"):
       cmdLoad(arg)
 
 if __name__ == '__main__':
   CommandLine(sys.argv[1:])
-
-  cmdFolder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(
-                               inspect.currentframe()))[0]))
-  StartGui(cmdFolder)
+  StartGui(getSettings())

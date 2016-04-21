@@ -36,10 +36,8 @@ ID_REPORT = 1051
 ID_ABOUT = 1052
 
 
-cmdFolder = "placeholder"
-
 class ConfigFrame(wx.Frame):
-  def __init__(self):
+  def __init__(self, settings):
     wx.Frame.__init__(self, None, -1, "Teacup Configtool", size = (880, 550))
     self.Bind(wx.EVT_CLOSE, self.onClose)
     self.Bind(wx.EVT_SIZE, self.onResize)
@@ -50,10 +48,10 @@ class ConfigFrame(wx.Frame):
     panel.SetBackgroundColour(self.deco.getBackgroundColour())
     panel.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
 
-    self.settings = Settings(self, cmdFolder)
+    self.settings = settings
+    self.settings.app = self
     self.settings.font = wx.Font(8, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL,
                                  wx.FONTWEIGHT_BOLD)
-    self.settings.folder = cmdFolder
 
     self.heaters = []
     self.savePrtEna = False
@@ -257,7 +255,7 @@ class ConfigFrame(wx.Frame):
     return rc
 
   def checkEnableLoadConfig(self):
-    fn = os.path.join(cmdFolder, "config.h")
+    fn = os.path.join(self.settings.folder, "config.h")
     if os.path.isfile(fn):
       self.fileMenu.Enable(ID_LOAD_CONFIG, True)
       self.buildMenu.Enable(ID_BUILD, True)
@@ -268,7 +266,7 @@ class ConfigFrame(wx.Frame):
       return False
 
   def checkEnableUpload(self):
-    fn = os.path.join(cmdFolder, "teacup.hex")
+    fn = os.path.join(self.settings.folder, "teacup.hex")
     if os.path.isfile(fn):
       self.buildMenu.Enable(ID_UPLOAD, True)
     else:
@@ -334,7 +332,7 @@ class ConfigFrame(wx.Frame):
   def getConfigFileNames(self, fn):
     pfile = None
     bfile = None
-    path = os.path.join(cmdFolder, fn)
+    path = os.path.join(self.settings.folder, fn)
     try:
       cfgBuffer = list(open(path))
     except:
@@ -355,14 +353,14 @@ class ConfigFrame(wx.Frame):
                            "Ignoring %s." % ln, "Config error",
                            wx.OK + wx.ICON_WARNING)
             else:
-              pfile = os.path.join(cmdFolder, t[0])
+              pfile = os.path.join(self.settings.folder, t[0])
           elif "board." in t[0]:
             if bfile:
               self.message("Multiple board file include statements.\n"
                            "Ignoring %s." % ln, "Config error",
                            wx.OK + wx.ICON_WARNING)
             else:
-              bfile = os.path.join(cmdFolder, t[0])
+              bfile = os.path.join(self.settings.folder, t[0])
           else:
             self.message("Unable to parse include statement:\n%s" % ln,
                          "Config error")
@@ -370,7 +368,7 @@ class ConfigFrame(wx.Frame):
     return pfile, bfile
 
   def onSaveConfig(self, evt):
-    fn = os.path.join(cmdFolder, "config.h")
+    fn = os.path.join(self.settings.folder, "config.h")
     try:
       fp = open(fn, 'w')
     except:
@@ -389,7 +387,7 @@ class ConfigFrame(wx.Frame):
       if not self.pgPrinter.saveConfigFile(pfn):
         return False
 
-    prefix = cmdFolder + os.path.sep
+    prefix = self.settings.folder + os.path.sep
     lpfx = len(prefix)
 
     if bfn.startswith(prefix):
@@ -612,11 +610,8 @@ class ConfigFrame(wx.Frame):
     dlg.Destroy()
 
 
-def StartGui(teacupFolder):
-  global cmdFolder
-
-  cmdFolder = teacupFolder
+def StartGui(settings):
   app = wx.App(False)
-  frame = ConfigFrame()
+  frame = ConfigFrame(settings)
   frame.Show(True)
   app.MainLoop()

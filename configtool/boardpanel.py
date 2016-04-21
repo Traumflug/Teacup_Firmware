@@ -36,10 +36,9 @@ class BoardPanel(wx.Panel):
 
     self.settings = settings
 
-    self.board = Board()
+    self.board = Board(self.settings)
 
     self.dir = os.path.join(self.settings.folder, "config")
-    self.cfgDir = os.path.join(self.settings.folder, "configtool")
 
     self.SetBackgroundColour(self.deco.getBackgroundColour())
     self.Bind(wx.EVT_PAINT, self.deco.onPaintBackground)
@@ -187,7 +186,7 @@ class BoardPanel(wx.Panel):
       return
 
   def loadConfigFile(self, fn):
-    ok, file = self.board.loadConfigFile(self.cfgDir, fn)
+    ok, file = self.board.loadConfigFile(fn)
     if not ok:
       return ok, file
 
