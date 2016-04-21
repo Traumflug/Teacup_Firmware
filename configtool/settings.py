@@ -22,9 +22,9 @@ R1 = 11
 
 
 class Settings:
-  def __init__(self, app, folder):
+  def __init__(self, app, folder, ini=None):
     self.app = app
-    self.cmdfolder = folder
+    self.folder = folder
     self.inifile = os.path.join(folder, INIFILE)
     self.section = "configtool"
 
@@ -42,14 +42,24 @@ class Settings:
     self.maxAdc = 1023
     self.minAdc = 1
 
+    # Runtime settings
+    self.verbose = 0
+
     self.cfg = ConfigParser.ConfigParser()
     self.cfg.optionxform = str
 
-    if not self.cfg.read(self.inifile):
-      if not self.cfg.read(os.path.join(folder, DEFAULT_INIFILE)):
-        print ("Neither of settings files %s or %s exist. Using default values."
-               % (INIFILE, DEFAULT_INIFILE))
-        return
+    self.loaded = self.readConfig(ini)
+
+  def readConfig(self, ini):
+    if ini:
+      if not self.cfg.read(ini):
+        return False
+    else:
+      if not self.cfg.read(self.inifile):
+        if not self.cfg.read(os.path.join(self.folder, DEFAULT_INIFILE)):
+          print ("Neither of settings files %s or %s exist. Using default values."
+                 % (INIFILE, DEFAULT_INIFILE))
+          return False
 
     if self.cfg.has_section(self.section):
       for opt, value in self.cfg.items(self.section):
@@ -82,6 +92,9 @@ class Settings:
           print "Unknown %s option: %s - ignoring." % (self.section, opt)
     else:
       print "Missing %s section - assuming defaults." % self.section
+      return False
+
+    return True
 
   def saveSettings(self):
     self.section = "configtool"

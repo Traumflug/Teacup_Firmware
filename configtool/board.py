@@ -15,8 +15,10 @@ from configtool.data import (defineValueFormat,
                              reTempTable4, reTempTable7)
 
 class Board:
-  def __init__(self):
+  def __init__(self, settings):
+    self.settings = settings
     self.configFile = None
+    self.cfgDir = os.path.join(self.settings.folder, "configtool")
 
     self.cfgValues = {}
     self.heaters = []
@@ -41,8 +43,8 @@ class Board:
   def getFileName(self):
     return self.configFile
 
-  def loadConfigFile(self, cfgDir, fn):
-    cfgFn = os.path.join(cfgDir, "board.generic.h")
+  def loadConfigFile(self, fn):
+    cfgFn = os.path.join(self.cfgDir, "board.generic.h")
     try:
       self.cfgBuffer = list(open(cfgFn))
     except:
@@ -167,17 +169,18 @@ class Board:
               continue
 
     # Parsing done. All parsed stuff is now in these arrays and dicts.
-    # Uncomment for debugging.
-    #print self.sensors
-    #print self.heaters
-    #print self.candHeatPins
-    #print self.candThermPins
-    #print self.candProcessors
-    #print self.candClocks
-    #print self.tempTables
-    #print self.cfgValues  # #defines with a value and booleans.
-    #print self.cfgNames   # Names found in the generic file.
-    #print self.helpText
+    if self.settings.verbose >= 2:
+      print self.sensors
+      print self.heaters
+      print self.candHeatPins
+      print self.candThermPins
+      print self.candProcessors
+      print self.candClocks
+      print self.tempTables
+      print self.cfgValues  # #defines with a value.
+      print self.cfgNames   # Names found in the generic file.
+    if self.settings.verbose >= 3:
+      print self.helpText
 
     for k in range(len(self.sensors)):
       tn = self.sensors[k][0].upper()
@@ -315,6 +318,11 @@ class Board:
     return None
 
   def saveConfigFile(self, path, values):
+    if self.settings.verbose >= 1:
+      print("Saving board: %s" % path)
+    if self.settings.verbose >= 2:
+      print values
+
     fp = file(path, 'w')
     self.configFile = path
 

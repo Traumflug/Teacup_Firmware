@@ -9,10 +9,12 @@ from configtool.data import (defineValueFormat, defineBoolFormat,
                              reDefQSm2, reDefBool, reDefBoolBL)
 
 class Printer:
-  def __init__(self):
+  def __init__(self, settings):
     self.configFile = None
 
     self.cfgValues = {}
+    self.settings = settings
+    self.cfgDir = os.path.join(self.settings.folder, "configtool")
 
   def hasData(self):
     return (self.configFile != None)
@@ -20,8 +22,8 @@ class Printer:
   def getFileName(self):
     return self.configFile
 
-  def loadConfigFile(self, cfgDir, fn):
-    cfgFn = os.path.join(cfgDir, "printer.generic.h")
+  def loadConfigFile(self, fn):
+    cfgFn = os.path.join(self.cfgDir, "printer.generic.h")
     try:
       self.cfgBuffer = list(open(cfgFn))
     except:
@@ -108,10 +110,11 @@ class Printer:
         continue
 
     # Parsing done. All parsed stuff is now in these array and dicts.
-    # Uncomment for debugging.
-    #print self.cfgValues  # #defines with a value and booleans.
-    #print self.cfgNames   # Names found in the generic file.
-    #print self.helpText
+    if self.settings.verbose >= 2:
+      print self.cfgValues  # #defines with a value.
+      print self.cfgNames   # Names found in the generic file.
+    if self.settings.verbose >= 3:
+      print self.helpText
 
     return True, None
 
@@ -165,6 +168,11 @@ class Printer:
 
 
   def saveConfigFile(self, path, values):
+    if self.settings.verbose >= 1:
+      print("Saving printer: %s" % path)
+    if self.settings.verbose >= 2:
+      print values
+
     fp = file(path, 'w')
     self.configFile = path
 
