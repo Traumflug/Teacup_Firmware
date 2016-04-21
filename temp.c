@@ -266,7 +266,7 @@ void temp_sensor_tick() {
 	temp_sensor_t i = 0;
 
 	for (; i < NUM_TEMP_SENSORS; i++) {
-		if (temp_sensors_runtime[i].next_read_time) {
+    if (temp_sensors_runtime[i].next_read_time > 1) {
 			temp_sensors_runtime[i].next_read_time--;
 		}
 		else {
