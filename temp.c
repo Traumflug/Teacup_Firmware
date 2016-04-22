@@ -89,15 +89,6 @@ struct {
 	uint16_t					next_read_time; ///< how long until we can read this sensor again?
 } temp_sensors_runtime[NUM_TEMP_SENSORS];
 
-#ifdef NEEDS_START_ADC
-  /**
-    Timer/counter for initiating ADC reads via start_adc(). Runs on the same
-    interval as analog_read(), but is shifted in time, which is why this
-    additional counter is needed.
-  */
-  uint16_t next_start_adc_time;
-#endif
-
 /** \def TEMP_EWMA
 
   Default alpha constant for the Exponentially Weighted Moving Average (EWMA)
@@ -141,16 +132,18 @@ void temp_init() {
 		#ifdef	TEMP_THERMISTOR
       // Mostly handled by analog_init().
       case TT_THERMISTOR:
-        // Schedule first read.
-        temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
+        // Schedule first read. Decrement by 1, because clock_counter_250ms
+        // is 1 tick ahead.
+        temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL - 1;
         break;
 		#endif
 
 		#ifdef	TEMP_AD595
       // Mostly handled by analog_init().
       case TT_AD595:
-        // Schedule first read.
-        temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
+        // Schedule first read. Decrement by 1, because clock_counter_250ms
+        // is 1 tick ahead.
+        temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL - 1;
         break;
 		#endif
 
@@ -171,16 +164,6 @@ void temp_init() {
 				break;
 		}
 	}
-
-  #ifdef NEEDS_START_ADC
-    /**
-      Schedule the first ADC conversion so that it starts one 10ms cycle
-      before the sensors are actually read. This way analog_read() returns a
-      value that's only 10ms old.
-    */
-    next_start_adc_time = (ANALOG_READ_INTERVAL > 0) ?
-                          (ANALOG_READ_INTERVAL - 1) : 0;
-  #endif
 }
 
 /**
@@ -419,6 +402,39 @@ void temp_sensor_tick() {
 			                                         ) / EWMA_SCALE);
 		}
 
+    #ifdef NEEDS_START_ADC
+      /**
+        Sensors that use analog_read() need an start_adc() a 10ms cycle before
+        they actually do the reading so that ADC conversion can start and
+        finish in time.
+      */
+      if (temp_sensors_runtime[i].next_read_time == 1) {
+        uint8_t needs_start_adc = 0;
+
+        // Determine if the sensor uses analog_read().
+        switch(temp_sensors[i].temp_type) {
+          #ifdef TEMP_THERMISTOR
+            case TT_THERMISTOR:
+              needs_start_adc = 1;
+              break;
+          #endif
+
+          #ifdef TEMP_AD595
+            case TT_AD595:
+              needs_start_adc = 1;
+              break;
+          #endif
+
+          default: /* Prevent compiler warning. */
+            break;
+        }
+
+        if (needs_start_adc) {
+          start_adc();
+        }
+      }
+    #endif
+
     /**
       Decrement the counter here so that we avoid a off-by-one error. It's
       assumed that sensor update code in the switch statement above has set a
@@ -426,21 +442,6 @@ void temp_sensor_tick() {
     */
     temp_sensors_runtime[i].next_read_time--;
   }
-
-  #ifdef NEEDS_START_ADC
-    // Start ADC conversion when the time comes.
-    if (next_start_adc_time > 1) {
-      next_start_adc_time--;
-    } else {
-      start_adc();
-      /**
-        start_adc() runs on the same interval as analog_read(), but it's
-        shifted in time so that it happens 10ms earlier. This way the ADC
-        conversion can finish before its results are read.
-      */
-      next_start_adc_time = ANALOG_READ_INTERVAL;
-    }
-  #endif
 }
 
 /**
