@@ -99,36 +99,32 @@ void display_set_cursor(uint8_t line, uint8_t column) {
 }
 
 /**
-  Prints the text at the current cursor position.
+  Prints a character at the current cursor position.
 
-  \param message Zero terminated string of the text to be displayed, stored
-                 in program memory.
+  \param data The character to be displayed.
 */
-void display_text_P(PGM_P message) {
-  uint8_t i, index;
+void display_writechar(uint8_t data) {
+  uint8_t i, index = data - 0x20;
 
-  // Render text to bitmap to display.
+  // Write pixels command.
   displaybus_write(0x40, 0);
-  while ((index = pgm_read_byte(message))) {
-    index -= 0x20;
 
-    // Send the character bitmap.
-    #ifdef FONT_IS_PROPORTIONAL
-      for (i = 0; i < pgm_read_byte(&font[index].columns); i++) {
-    #else
-      for (i = 0; i < FONT_COLUMNS; i++) {
-    #endif
-        displaybus_write(pgm_read_byte(&font[index].data[i]), 0);
-    }
-    // Send space between characters.
-    for (i = 0; i < FONT_SYMBOL_SPACE; i++) {
-      displaybus_write(0x00, 0);
-    }
-
-    message++;
+  // Send the character bitmap.
+  #ifdef FONT_IS_PROPORTIONAL
+    for (i = 0; i < pgm_read_byte(&font[index].columns); i++) {
+  #else
+    for (i = 0; i < FONT_COLUMNS; i++) {
+  #endif
+      displaybus_write(pgm_read_byte(&font[index].data[i]), 0);
   }
-  // Send another space for transmission end.
-  displaybus_write(0x00, 1);
+  // Send space between characters.
+  for (i = 0; i < FONT_SYMBOL_SPACE; i++) {
+    // TODO: we finalise a I2C (or other) bus message after each character
+    //       here because we have no idea on how many more are following. This
+    //       is highly inefficient and makes the displaybus buffer almost
+    //       pointless.
+    displaybus_write(0x00, (i == FONT_SYMBOL_SPACE - 1));
+  }
 }
 
 #endif /* TEACUP_C_INCLUDE && DISPLAY_TYPE_SSD1306 */

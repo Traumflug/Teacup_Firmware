@@ -36,6 +36,8 @@ void display_init(void);
 void display_clear(void);
 
 void display_set_cursor(uint8_t line, uint8_t column);
-void display_text_P(PGM_P message_P);
+void display_writechar(uint8_t data);
+
+void display_writestr_P(PGM_P data_P);
 
 #endif /* _DISPLAY_H */

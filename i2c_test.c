@@ -25,7 +25,7 @@ static void i2c_test(void) {
     128 columns, so we offset by 32 columns to get it to the center.
   */
   display_set_cursor(1, 32);
-  display_text_P(PSTR("Welcome to Teacup"));
+  display_writestr_P(PSTR("Welcome to Teacup"));
 }
 
 #endif /* I2C_TEST */
