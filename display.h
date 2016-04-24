@@ -34,6 +34,8 @@
 
 void display_init(void);
 void display_clear(void);
-void display_text_P(uint8_t line, uint8_t column, PGM_P message_P);
+
+void display_set_cursor(uint8_t line, uint8_t column);
+void display_text_P(PGM_P message_P);
 
 #endif /* _DISPLAY_H */

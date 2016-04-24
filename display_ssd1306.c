@@ -78,10 +78,16 @@ void display_clear(void) {
 }
 
 /**
-  Prints the text at a given position.
+  Sets the cursor to the given position.
+
+  \param line   The vertical cursor position to set, in lines. First line is
+                zero. Line height is character height, which is currently
+                fixed to 8 pixels.
+
+  \param column The horizontal cursor position to set, in pixels. First
+                column is zero.
 */
-void display_text_P(uint8_t line, uint8_t column, PGM_P message) {
-  uint8_t i, index;
+void display_set_cursor(uint8_t line, uint8_t column) {
 
   // Enter command mode.
   displaybus_write(0x00, 0);
@@ -90,6 +96,16 @@ void display_text_P(uint8_t line, uint8_t column, PGM_P message) {
   // Set column.
   displaybus_write(0x00 | (column & 0x0F), 0);
   displaybus_write(0x10 | ((column >> 4) & 0x0F), 1);
+}
+
+/**
+  Prints the text at the current cursor position.
+
+  \param message Zero terminated string of the text to be displayed, stored
+                 in program memory.
+*/
+void display_text_P(PGM_P message) {
+  uint8_t i, index;
 
   // Render text to bitmap to display.
   displaybus_write(0x40, 0);

@@ -24,7 +24,8 @@ static void i2c_test(void) {
     "Welcome to Teacup" is 64 pixel columns wide, entire display is
     128 columns, so we offset by 32 columns to get it to the center.
   */
-  display_text_P(1, 32, PSTR("Welcome to Teacup"));
+  display_set_cursor(1, 32);
+  display_text_P(PSTR("Welcome to Teacup"));
 }
 
 #endif /* I2C_TEST */
