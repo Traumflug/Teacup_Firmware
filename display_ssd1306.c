@@ -97,8 +97,12 @@ void display_text_P(uint8_t line, uint8_t column, PGM_P message) {
     index -= 0x20;
 
     // Send the character bitmap.
-    for (i = 0; i < pgm_read_byte(&font[index].columns); i++) {
-      displaybus_write(pgm_read_byte(&font[index].data[i]), 0);
+    #ifdef FONT_IS_PROPORTIONAL
+      for (i = 0; i < pgm_read_byte(&font[index].columns); i++) {
+    #else
+      for (i = 0; i < FONT_COLUMNS; i++) {
+    #endif
+        displaybus_write(pgm_read_byte(&font[index].data[i]), 0);
     }
     // Send space between characters.
     for (i = 0; i < FONT_SYMBOL_SPACE; i++) {
