@@ -81,7 +81,7 @@ void display_clear(void) {
   Prints the text at a given position.
 */
 void display_text_P(uint8_t line, uint8_t column, PGM_P message) {
-  uint8_t i;
+  uint8_t i, index;
 
   // Enter command mode.
   displaybus_write(0x00, 0);
@@ -93,8 +93,8 @@ void display_text_P(uint8_t line, uint8_t column, PGM_P message) {
 
   // Render text to bitmap to display.
   displaybus_write(0x40, 0);
-  while (pgm_read_byte(message)) {
-    uint8_t index = pgm_read_byte(message) - 0x20;
+  while ((index = pgm_read_byte(message))) {
+    index -= 0x20;
 
     // Send the character bitmap.
     for (i = 0; i < pgm_read_byte(&font[index].columns); i++) {
