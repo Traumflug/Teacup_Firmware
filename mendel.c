@@ -52,7 +52,7 @@
 #include	"intercom.h"
 #include "spi.h"
 #include "sd.h"
-#include "display_ssd1306.h"
+#include "display.h"
 #include "simulator.h"
 
 #ifdef SIMINFO

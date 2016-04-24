@@ -15,7 +15,7 @@
 
 #include <string.h>
 #include "config_wrapper.h"
-#include "display_ssd1306.h"
+#include "display.h"
 #include "font.h"
 
 

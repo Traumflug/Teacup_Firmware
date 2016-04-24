@@ -4,9 +4,9 @@
   \brief Code specific to the SSD1306 display.
 */
 
-#include "display_ssd1306.h"
+#include "display.h"
 
-#ifdef DISPLAY_TYPE_SSD1306
+#if defined TEACUP_C_INCLUDE && defined DISPLAY_TYPE_SSD1306
 
 #include "displaybus.h"
 #include "font.h"
@@ -115,4 +115,4 @@ void display_text_P(uint8_t line, uint8_t column, PGM_P message) {
   displaybus_write(0x00, 1);
 }
 
-#endif /* DISPLAY_TYPE_SSD1306 */
+#endif /* TEACUP_C_INCLUDE && DISPLAY_TYPE_SSD1306 */
