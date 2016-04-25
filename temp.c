@@ -79,7 +79,7 @@ static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
 
 /// this struct holds the runtime sensor data- read temperatures, targets, etc
 struct {
-	temp_flags_enum		temp_flags;     ///< flags
+  //temp_flags_enum   temp_flags;     ///< flags
 
 	uint16_t					last_read_temp; ///< last received reading
 	uint16_t					target_temp;		///< manipulate attached heater to attempt to achieve this value
@@ -283,6 +283,90 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
 }
 #endif /* TEMP_THERMISTOR || TEMP_MCP3008 */
 
+#ifdef TEMP_MAX6675
+static uint16_t temp_read_max6675(temp_sensor_t i) {
+  // Note: value reading in this section was rewritten without
+  //       testing when spi.c/.h was introduced. --Traumflug
+  spi_select_max6675();
+  // No delay required, see
+  // https://github.com/Traumflug/Teacup_Firmware/issues/22
+
+  // Read MSB.
+  temp = spi_rw(0) << 8;
+  // Read LSB.
+  temp |= spi_rw(0);
+
+  spi_deselect_max6675();
+
+  // FIXME: No one ever reads temp_flags.  It should be removed.
+  //temp_sensors_runtime[i].temp_flags = 0;
+  if ((temp & 0x8002) == 0) {
+    // Got "device id".
+    //temp_sensors_runtime[i].temp_flags |= PRESENT;
+    if (temp & 4) {
+      // Thermocouple open.
+      //temp_sensors_runtime[i].temp_flags |= TCOPEN;
+    }
+    else {
+      temp = temp >> 3;
+    }
+  }
+  // MAX6675 can give a reading every 0.22s, so set this to about 250ms.
+  temp_sensors_runtime[i].next_read_time = 25;
+
+  return temp;
+}
+#endif /* TEMP_MAX6675 */
+
+#ifdef TEMP_THERMISTOR
+static uint16_t temp_read_thermistor(temp_sensor_t i) {
+  temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
+  return temp_table_lookup(analog_read(i), i);
+}
+#endif /* TEMP_THERMISTOR */
+
+#ifdef TEMP_MCP3008
+static uint16_t temp_read_mcp3008(temp_sensor_t i) {
+  // This is an SPI read so it is not as fast as on-chip ADC. A read
+  // every 100ms should be sufficient.
+  temp_sensors_runtime[i].next_read_time = 10;
+
+  return temp_table_lookup(mcp3008_read(temp_sensors[i].temp_pin), i);
+}
+#endif /* TEMP_MCP3008 */
+
+#ifdef TEMP_AD595
+static uint16_t temp_read_ad595(temp_sensor_t i) {
+  temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
+
+  // Convert >> 8 instead of >> 10 because internal temp is stored as
+  // 14.2 fixed point.
+  return (analog_read(i) * 500L) >> 8;
+}
+#endif /* TEMP_AD595 */
+
+#ifdef TEMP_INTERCOM
+static uint16_t temp_read_intercom(temp_sensor_t i) {
+  temp_sensors_runtime[i].next_read_time = 25;
+  return read_temperature(temp_sensors[i].temp_pin);
+}
+#endif /* TEMP_INTERCOM */
+
+#ifdef TEMP_DUMMY
+static uint16_t temp_read_dummy(temp_sensor_t i) {
+  uint16_t temp = temp_sensors_runtime[i].last_read_temp;
+
+  temp_sensors_runtime[i].next_read_time = 1;
+
+  if (temp_sensors_runtime[i].target_temp > temp)
+    temp++;
+  else if (temp_sensors_runtime[i].target_temp < temp)
+    temp--;
+
+  return temp;
+}
+#endif /* TEMP_DUMMY */
+
 /// called every 10ms from clock.c - check all temp sensors that are ready for checking
 void temp_sensor_tick() {
 	temp_sensor_t i = 0;
@@ -295,69 +379,25 @@ void temp_sensor_tick() {
 			switch(temp_sensors[i].temp_type) {
 				#ifdef	TEMP_MAX6675
 				case TT_MAX6675:
-          // Note: value reading in this section was rewritten without
-          //       testing when spi.c/.h was introduced. --Traumflug
-          spi_select_max6675();
-					// No delay required, see
-					// https://github.com/triffid/Teacup_Firmware/issues/22
-
-					// read MSB
-          temp = spi_rw(0) << 8;
-					// read LSB
-          temp |= spi_rw(0);
-
-          spi_deselect_max6675();
-
-					temp_sensors_runtime[i].temp_flags = 0;
-					if ((temp & 0x8002) == 0) {
-						// got "device id"
-						temp_sensors_runtime[i].temp_flags |= PRESENT;
-						if (temp & 4) {
-							// thermocouple open
-							temp_sensors_runtime[i].temp_flags |= TCOPEN;
-						}
-						else {
-							temp = temp >> 3;
-						}
-					}
-
-					// this number depends on how frequently temp_sensor_tick is called. the MAX6675 can give a reading every 0.22s, so set this to about 250ms
-					temp_sensors_runtime[i].next_read_time = 25;
-
+          temp = temp_read_max6675(i);
 					break;
 				#endif	/* TEMP_MAX6675	*/
 
 				#ifdef	TEMP_THERMISTOR
           case TT_THERMISTOR:
-            // Read current temperature.
-            temp = temp_table_lookup(analog_read(i), i);
-
-            temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
-
+            temp = temp_read_thermistor(i);
             break;
 				#endif	/* TEMP_THERMISTOR */
 
         #ifdef TEMP_MCP3008
           case TT_MCP3008:
-            // Read current temperature.
-            temp = temp_table_lookup(mcp3008_read(temp_sensors[i].temp_pin), i);
-
-            // This is an SPI read so it is not as fast as on-chip ADC. A read
-            // every 100ms should be sufficient.
-            temp_sensors_runtime[i].next_read_time = 10;
+            temp = temp_read_mcp3008(i);
             break;
         #endif /* TEMP_MCP3008 */
 
 				#ifdef	TEMP_AD595
 				case TT_AD595:
-					temp = analog_read(i);
-
-					// convert
-					// >>8 instead of >>10 because internal temp is stored as 14.2 fixed point
-					temp = (temp * 500L) >> 8;
-
-          temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
-
+          temp = temp_read_ad595(i);
 					break;
 				#endif	/* TEMP_AD595 */
 
@@ -369,30 +409,20 @@ void temp_sensor_tick() {
 
 				#ifdef	TEMP_INTERCOM
 				case TT_INTERCOM:
-					temp = read_temperature(temp_sensors[i].temp_pin);
-
-					temp_sensors_runtime[i].next_read_time = 25;
-
+          temp = temp_read_intercom(i);
 					break;
 				#endif	/* TEMP_INTERCOM */
 
 				#ifdef	TEMP_DUMMY
 				case TT_DUMMY:
-					temp = temp_sensors_runtime[i].last_read_temp;
-
-					if (temp_sensors_runtime[i].target_temp > temp)
-						temp++;
-					else if (temp_sensors_runtime[i].target_temp < temp)
-						temp--;
-
-          temp_sensors_runtime[i].next_read_time = 1;
-
+          temp = temp_read_dummy(i);
 					break;
 				#endif	/* TEMP_DUMMY */
 
 				default: /* prevent compiler warning */
 					break;
 			}
+
 			/* Exponentially Weighted Moving Average alpha constant for smoothing
 			   noisy sensors. Instrument Engineer's Handbook, 4th ed, Vol 2 p126
 			   says values of 0.05 to 0.1 for TEMP_EWMA are typical. */
