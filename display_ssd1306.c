@@ -10,6 +10,8 @@
 
 #include "displaybus.h"
 #include "font.h"
+#include "sendf.h"
+#include "dda.h"
 
 
 static const uint8_t PROGMEM init_sequence[] = {
@@ -86,6 +88,9 @@ void display_clear(void) {
 
   \param column The horizontal cursor position to set, in pixels. First
                 column is zero.
+
+  Use this for debugging purposes, only. Regular display updates happen in
+  display_clock().
 */
 void display_set_cursor(uint8_t line, uint8_t column) {
 
@@ -96,6 +101,18 @@ void display_set_cursor(uint8_t line, uint8_t column) {
   // Set column.
   displaybus_write(0x00 | (column & 0x0F), 0);
   displaybus_write(0x10 | ((column >> 4) & 0x0F), 1);
+}
+
+/**
+  Regular update of the display. Typically called once a second from clock.c.
+*/
+void display_clock(void) {
+
+  display_set_cursor(0, 2);
+  update_current_position();
+  sendf_P(display_writechar, PSTR("X:%lq Y:%lq Z:%lq  F:%lu  "),
+          current_position.axis[X], current_position.axis[Y],
+          current_position.axis[Z], current_position.F);
 }
 
 /**

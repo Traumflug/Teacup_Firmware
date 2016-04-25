@@ -13,6 +13,7 @@
 #include	"debug.h"
 #include	"heater.h"
 #include	"serial.h"
+#include "display.h"
 #ifdef	TEMP_INTERCOM
 	#include	"intercom.h"
 #endif
@@ -84,6 +85,10 @@ static void clock_250ms(void) {
 	}
 
 	ifclock(clock_flag_1s) {
+    #ifdef DISPLAY
+      display_clock();
+    #endif
+
 		if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
 			// current position
 			update_current_position();
