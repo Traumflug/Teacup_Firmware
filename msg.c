@@ -1,44 +1,44 @@
-#include	"sermsg.h"
 
-/** \file sermsg.c
-	\brief primitives for sending numbers over the serial link
+/** \file msg.c
+
+  \brief Primitives for sending numbers over links.
 */
 
-#include	"serial.h"
+#include "msg.h"
 
 /** write a single hex digit
 	\param v hex digit to write, higher nibble ignored
 */
-void serwrite_hex4(uint8_t v) {
+void write_hex4(void (*writechar)(uint8_t), uint8_t v) {
 	v &= 0xF;
 	if (v < 10)
-		serial_writechar('0' + v);
+    writechar('0' + v);
 	else
-		serial_writechar('A' - 10 + v);
+    writechar('A' - 10 + v);
 }
 
 /** write a pair of hex digits
 	\param v byte to write. One byte gives two hex digits
 */
-void serwrite_hex8(uint8_t v) {
-	serwrite_hex4(v >> 4);
-	serwrite_hex4(v & 0x0F);
+void write_hex8(void (*writechar)(uint8_t), uint8_t v) {
+  write_hex4(writechar, v >> 4);
+  write_hex4(writechar, v & 0x0F);
 }
 
 /** write four hex digits
 	\param v word to write
 */
-void serwrite_hex16(uint16_t v) {
-	serwrite_hex8(v >> 8);
-	serwrite_hex8(v & 0xFF);
+void write_hex16(void (*writechar)(uint8_t), uint16_t v) {
+  write_hex8(writechar, v >> 8);
+  write_hex8(writechar, v & 0xFF);
 }
 
 /** write eight hex digits
 	\param v long word to write
 */
-void serwrite_hex32(uint32_t v) {
-	serwrite_hex16(v >> 16);
-	serwrite_hex16(v & 0xFFFF);
+void write_hex32(void (*writechar)(uint8_t), uint32_t v) {
+  write_hex16(writechar, v >> 16);
+  write_hex16(writechar, v & 0xFFFF);
 }
 
 /// list of powers of ten, used for dividing down decimal numbers for sending, and also for our crude floating point algorithm
@@ -47,7 +47,7 @@ const uint32_t powers[] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 1
 /** write decimal digits from a long unsigned int
 	\param v number to send
 */
-void serwrite_uint32(uint32_t v) {
+void write_uint32(void (*writechar)(uint8_t), uint32_t v) {
 	uint8_t e, t;
 
 	for (e = 9; e > 0; e--) {
@@ -58,7 +58,7 @@ void serwrite_uint32(uint32_t v) {
 	do
 	{
 		for (t = 0; v >= powers[e]; v -= powers[e], t++);
-		serial_writechar(t + '0');
+    writechar(t + '0');
 	}
 	while (e--);
 }
@@ -66,20 +66,20 @@ void serwrite_uint32(uint32_t v) {
 /** write decimal digits from a long signed int
 	\param v number to send
 */
-void serwrite_int32(int32_t v) {
+void write_int32(void (*writechar)(uint8_t), int32_t v) {
 	if (v < 0) {
-		serial_writechar('-');
+    writechar('-');
 		v = -v;
 	}
 
-	serwrite_uint32(v);
+  write_uint32(writechar, v);
 }
 
 /** write decimal digits from a long unsigned int
 \param v number to send
 \param fp number of decimal places to the right of the decimal point
 */
-void serwrite_uint32_vf(uint32_t v, uint8_t fp) {
+void write_uint32_vf(void (*writechar)(uint8_t), uint32_t v, uint8_t fp) {
 	uint8_t e, t;
 
 	for (e = 9; e > 0; e--) {
@@ -93,9 +93,9 @@ void serwrite_uint32_vf(uint32_t v, uint8_t fp) {
 	do
 	{
 		for (t = 0; v >= powers[e]; v -= powers[e], t++);
-		serial_writechar(t + '0');
+    writechar(t + '0');
 		if (e == fp)
-			serial_writechar('.');
+      writechar('.');
 	}
 	while (e--);
 }
@@ -104,11 +104,11 @@ void serwrite_uint32_vf(uint32_t v, uint8_t fp) {
 \param v number to send
 \param fp number of decimal places to the right of the decimal point
 */
-void serwrite_int32_vf(int32_t v, uint8_t fp) {
+void write_int32_vf(void (*writechar)(uint8_t), int32_t v, uint8_t fp) {
 	if (v < 0) {
-		serial_writechar('-');
+    writechar('-');
 		v = -v;
 	}
 
-	serwrite_uint32_vf(v, fp);
+	write_uint32_vf(writechar, v, fp);
 }

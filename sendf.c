@@ -1,4 +1,3 @@
-#include	"sersendf.h"
 
 /** \file sersendf.c
 	\brief Simplified printf implementation
@@ -6,13 +5,18 @@
 
 #include	<stdarg.h>
 
-#include	"serial.h"
-#include	"sermsg.h"
+#include "sendf.h"
+#include "msg.h"
 
 
 /** \brief Simplified printf
-	\param format pointer to output format specifier string stored in FLASH.
-	\param ... output data
+
+  \param writechar  The function to use for writing a character. Typically
+                    serial_writechar() or display_writechar().
+
+  \param format     Pointer to output format specifier string stored in FLASH.
+
+  \param ...        Data according to the placeholders in format.
 
 	Implements only a tiny subset of printf's format specifiers :-
 
@@ -31,7 +35,11 @@
 
 	Example:
 
-	\code sersendf_P(PSTR("X:%ld Y:%ld temp:%u.%d flags:%sx Q%su/%su%c\n"), target.X, target.Y, current_temp >> 2, (current_temp & 3) * 25, dda.allflags, mb_head, mb_tail, (queue_full()?'F':(queue_empty()?'E':' '))) \endcode
+  \code sersendf_P(serial_writechar,
+                   PSTR("X:%ld Y:%ld temp:%u.%d flags:%sx Q%su/%su%c\n"),
+                   target.X, target.Y, current_temp >> 2,
+                   (current_temp & 3) * 25, dda.allflags, mb_head, mb_tail,
+                   (queue_full()?'F':(queue_empty()?'E':' '))) \endcode
 */
 
 /**
@@ -45,7 +53,7 @@
   #define GET_ARG(T) ((T)va_arg(args, int))
 #endif
 
-void sersendf_P(PGM_P format_P, ...) {
+void sendf_P(void (*writechar)(uint8_t), PGM_P format_P, ...) {
 	va_list args;
 	va_start(args, format_P);
 
@@ -62,44 +70,45 @@ void sersendf_P(PGM_P format_P, ...) {
 					break;
 				case 'u':
           if (j == 1)
-            serwrite_uint8((uint8_t)GET_ARG(uint16_t));
+            write_uint8(writechar, (uint8_t)GET_ARG(uint16_t));
           else if (j == 2)
-            serwrite_uint16((uint16_t)GET_ARG(uint16_t));
+            write_uint16(writechar, (uint16_t)GET_ARG(uint16_t));
 					else
-            serwrite_uint32(GET_ARG(uint32_t));
+            write_uint32(writechar, GET_ARG(uint32_t));
 					j = 0;
 					break;
 				case 'd':
           if (j == 1)
-            serwrite_int8((int8_t)GET_ARG(int16_t));
+            write_int8(writechar, (int8_t)GET_ARG(int16_t));
           else if (j == 2)
-            serwrite_int16((int16_t)GET_ARG(int16_t));
+            write_int16(writechar, (int16_t)GET_ARG(int16_t));
 					else
-            serwrite_int32(GET_ARG(int32_t));
+            write_int32(writechar, GET_ARG(int32_t));
 					j = 0;
 					break;
 				case 'c':
-          serial_writechar((uint8_t)GET_ARG(uint16_t));
+          writechar((uint8_t)GET_ARG(uint16_t));
 					j = 0;
 					break;
 				case 'x':
-					serial_writestr_P(PSTR("0x"));
+          writechar('0');
+          writechar('x');
           if (j == 1)
-            serwrite_hex8((uint8_t)GET_ARG(uint16_t));
+            write_hex8(writechar, (uint8_t)GET_ARG(uint16_t));
           else if (j == 2)
-            serwrite_hex16((uint16_t)GET_ARG(uint16_t));
+            write_hex16(writechar, (uint16_t)GET_ARG(uint16_t));
 					else
-            serwrite_hex32(GET_ARG(uint32_t));
+            write_hex32(writechar, GET_ARG(uint32_t));
 					j = 0;
 					break;
 /*				case 'p':
-          serwrite_hex16(GET_ARG(uint16_t));*/
+          serwrite_hex16(writechar, GET_ARG(uint16_t));*/
 				case 'q':
-          serwrite_int32_vf(GET_ARG(uint32_t), 3);
+          write_int32_vf(writechar, GET_ARG(uint32_t), 3);
 					j = 0;
 					break;
 				default:
-					serial_writechar(c);
+          writechar(c);
 					j = 0;
 					break;
 			}
@@ -109,7 +118,7 @@ void sersendf_P(PGM_P format_P, ...) {
 				j = 2;
 			}
 			else {
-				serial_writechar(c);
+        writechar(c);
 			}
 		}
 	}

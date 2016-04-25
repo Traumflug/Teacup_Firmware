@@ -17,6 +17,7 @@
 #include "config_wrapper.h"
 #include "display.h"
 #include "font.h"
+#include "sendf.h"
 
 
 static void i2c_test(void) {
@@ -25,7 +26,7 @@ static void i2c_test(void) {
     128 columns, so we offset by 32 columns to get it to the center.
   */
   display_set_cursor(1, 32);
-  display_writestr_P(PSTR("Welcome to Teacup"));
+  sendf_P(display_writechar, PSTR("Welcome to Teacup"));
 }
 
 #endif /* I2C_TEST */

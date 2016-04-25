@@ -15,7 +15,6 @@
 #include "cpu.h"
 #include	"timer.h"
 #include	"serial.h"
-#include	"sermsg.h"
 #include	"gcode_parse.h"
 #include	"dda_queue.h"
 #include	"debug.h"

@@ -10,7 +10,6 @@
   #define serial_init() usb_init()
   #define serial_rxchars() usb_serial_available()
   #define serial_popchar() usb_serial_getchar()
-  #define serial_writechar(c) usb_serial_putchar(c)
 #else
   // initialise serial subsystem
   void serial_init(void);

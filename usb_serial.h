@@ -20,7 +20,7 @@ uint8_t usb_serial_available(void);	// number of bytes in receive buffer
 void usb_serial_flush_input(void);	// discard any buffered input
 
 // transmitting data
-int8_t usb_serial_putchar(uint8_t c);	// transmit a character
+void serial_writechar(uint8_t c);             // Transmit a character.
 int8_t usb_serial_putchar_nowait(uint8_t c);  // transmit a character, do not wait
 int8_t usb_serial_write(const uint8_t *buffer, uint16_t size); // transmit a buffer
 void usb_serial_flush_output(void);	// immediately transmit any buffered output

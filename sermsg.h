@@ -1,24 +1,22 @@
-#ifndef	_SERMSG_H
-#define	_SERMSG_H
 
-#include	<stdint.h>
+#ifndef _MSG_H
+#define _MSG_H
 
-// functions for sending hexadecimal
-void serwrite_hex4(uint8_t v);
-void serwrite_hex8(uint8_t v);
-void serwrite_hex16(uint16_t v);
-void serwrite_hex32(uint32_t v);
+#include "msg.h"
+#include "serial.h"
 
-// functions for sending decimal
-#define	serwrite_uint8(v)		serwrite_uint32(v)
-#define	serwrite_int8(v)		serwrite_int32(v)
-#define	serwrite_uint16(v)	serwrite_uint32(v)
-#define	serwrite_int16(v)		serwrite_int32(v)
+/**
+  Before we had display support, all messages went to the serial link,
+  so this destination was hardcoded. These macros avoid changing some
+  older code.
 
-void serwrite_uint32(uint32_t v);
-void serwrite_int32(int32_t v);
+  Deprecated macros? Convenience macros? Dunno.
+*/
+#define serwrite_uint8(v)  write_uint8(serial_writechar, v)
+#define serwrite_int8(v)   write_int8(serial_writechar, v)
+#define serwrite_uint16(v) write_uint32(serial_writechar, v)
+#define serwrite_int16(v)  write_int32(serial_writechar, v)
+#define serwrite_uint32(v) write_uint32(serial_writechar, v);
+#define serwrite_int32(v)  write_int32(serial_writechar, v);
 
-void serwrite_uint32_vf(uint32_t v, uint8_t fp);
-void serwrite_int32_vf(int32_t v, uint8_t fp);
-
-#endif	/* _SERMSG_H */
+#endif /* _MSG_H */

@@ -14,7 +14,6 @@
 #include	"watchdog.h"
 #include	"delay.h"
 #include	"serial.h"
-#include	"sermsg.h"
 #include	"temp.h"
 #include	"heater.h"
 #include	"timer.h"
