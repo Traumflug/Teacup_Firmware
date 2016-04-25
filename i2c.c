@@ -213,6 +213,16 @@ void i2c_write(uint8_t data, uint8_t last_byte) {
     delay_us(10);
   }
 
+  // Recover from error conditions by draining the buffer.
+  if ((i2c_state & I2C_ERROR_BUS_FAIL) ||
+      (i2c_state & I2C_ERROR_NO_ANSWER) ||
+      (i2c_state & I2C_ERROR_NACK)) {
+    while (buf_canread(send)) {
+      buf_pop(send, TWDR);
+    }
+    i2c_state = I2C_MODE_FREE;
+  }
+
   if (i2c_state & I2C_MODE_FREE) {
     // No transmission ongoing, start one.
     i2c_state = I2C_MODE_SAWP;
@@ -274,6 +284,8 @@ ISR(TWI_vect) {
         serial_writechar('1');
       #endif
       i2c_state |= I2C_ERROR_BUS_FAIL;
+      // Let i2c_write() continue.
+      i2c_should_end = 0;
       // Send stop condition.
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
@@ -325,6 +337,8 @@ ISR(TWI_vect) {
         serial_writechar('5');
       #endif
       i2c_state |= I2C_ERROR_NO_ANSWER;
+      // Let i2c_write() continue.
+      i2c_should_end = 0;
       // Send stop condition.
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
@@ -368,6 +382,8 @@ ISR(TWI_vect) {
         serial_writechar('7');
       #endif
       i2c_state |= I2C_ERROR_NACK;
+      // Let i2c_write() continue.
+      i2c_should_end = 0;
       // Send stop condition.
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
