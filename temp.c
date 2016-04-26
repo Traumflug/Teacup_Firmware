@@ -51,11 +51,6 @@
 #include	"analog.h"
 #endif
 
-typedef enum {
-	PRESENT,
-	TCOPEN
-} temp_flags_enum;
-
 /// holds metadata for each temperature sensor
 typedef struct {
 	temp_type_t temp_type; ///< type of sensor
@@ -79,8 +74,6 @@ static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
 
 /// this struct holds the runtime sensor data- read temperatures, targets, etc
 static struct {
-  //temp_flags_enum   temp_flags;     ///< flags
-
 	uint16_t					last_read_temp; ///< last received reading
 	uint16_t					target_temp;		///< manipulate attached heater to attempt to achieve this value
 
@@ -273,16 +266,9 @@ static uint16_t temp_read_max6675(temp_sensor_t i) {
 
   spi_deselect_max6675();
 
-  // FIXME: No one ever reads temp_flags.  It should be removed.
-  //temp_sensors_runtime[i].temp_flags = 0;
   if ((temp & 0x8002) == 0) {
     // Got "device id".
-    //temp_sensors_runtime[i].temp_flags |= PRESENT;
-    if (temp & 4) {
-      // Thermocouple open.
-      //temp_sensors_runtime[i].temp_flags |= TCOPEN;
-    }
-    else {
+    if ((temp & 4) == 0) {
       temp = temp >> 3;
     }
   }
