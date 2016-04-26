@@ -16,8 +16,6 @@
 #include "dda.h"
 #include "timer.h"
 #include "delay.h"
-#include "serial.h"
-#include "gcode_parse.h"
 #include "dda_queue.h"
 #include "debug.h"
 #include "sersendf.h"
