@@ -78,7 +78,7 @@ static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
 #undef DEFINE_TEMP_SENSOR
 
 /// this struct holds the runtime sensor data- read temperatures, targets, etc
-struct {
+static struct {
   //temp_flags_enum   temp_flags;     ///< flags
 
 	uint16_t					last_read_temp; ///< last received reading
@@ -86,7 +86,7 @@ struct {
 
 	uint16_t					temp_residency; ///< how long have we been close to target temperature in temp ticks?
 
-	uint16_t					next_read_time; ///< how long until we can read this sensor again?
+  uint8_t  active;          ///< State machine tracker for readers that need it.
 } temp_sensors_runtime[NUM_TEMP_SENSORS];
 
 /** \def TEMP_EWMA
@@ -100,14 +100,6 @@ struct {
 #ifndef TEMP_EWMA
   #define TEMP_EWMA 1.0
 #endif
-
-/**
-  Interval between analog_read() calls. 10ms if EWMA is enabled, because EWMA
-  needs frequent updates, otherwise 250ms so that we don't waste time on
-  unnecessary reads.
-*/
-#define ANALOG_READ_INTERVAL ((TEMP_EWMA == 1.0) ? 25 : 1)
-
 
 /// Set up temp sensors.
 void temp_init() {
@@ -128,24 +120,6 @@ void temp_init() {
           spi_deselect_mcp3008();
           break;
       #endif
-
-		#ifdef	TEMP_THERMISTOR
-      // Mostly handled by analog_init().
-      case TT_THERMISTOR:
-        // Schedule first read. Decrement by 1, because clock_counter_250ms
-        // is 1 tick ahead.
-        temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL - 1;
-        break;
-		#endif
-
-		#ifdef	TEMP_AD595
-      // Mostly handled by analog_init().
-      case TT_AD595:
-        // Schedule first read. Decrement by 1, because clock_counter_250ms
-        // is 1 tick ahead.
-        temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL - 1;
-        break;
-		#endif
 
       #ifdef TEMP_INTERCOM
         case TT_INTERCOM:
@@ -287,6 +261,7 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
 static uint16_t temp_read_max6675(temp_sensor_t i) {
   // Note: value reading in this section was rewritten without
   //       testing when spi.c/.h was introduced. --Traumflug
+  // Note: MAX6675 can give a reading every 0.22s
   spi_select_max6675();
   // No delay required, see
   // https://github.com/Traumflug/Teacup_Firmware/issues/22
@@ -311,8 +286,6 @@ static uint16_t temp_read_max6675(temp_sensor_t i) {
       temp = temp >> 3;
     }
   }
-  // MAX6675 can give a reading every 0.22s, so set this to about 250ms.
-  temp_sensors_runtime[i].next_read_time = 25;
 
   return temp;
 }
@@ -320,34 +293,60 @@ static uint16_t temp_read_max6675(temp_sensor_t i) {
 
 #ifdef TEMP_THERMISTOR
 static uint16_t temp_read_thermistor(temp_sensor_t i) {
-  temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
-  return temp_table_lookup(analog_read(i), i);
+  switch (temp_sensors_runtime[i].active++) {
+    case 1:  // Start ADC conversion.
+      #ifdef NEEDS_START_ADC
+        start_adc();
+        return 0;
+      #endif
+      // else fall through to conversion
+
+    case 2:  // Convert temperature values.
+      temp_sensors_runtime[i].active = 0;
+      return temp_table_lookup(analog_read(i), i);
+
+    case 0:  // IDLE
+    default:
+      temp_sensors_runtime[i].active = 0;
+      return 0;
+  }
 }
 #endif /* TEMP_THERMISTOR */
 
 #ifdef TEMP_MCP3008
 static uint16_t temp_read_mcp3008(temp_sensor_t i) {
-  // This is an SPI read so it is not as fast as on-chip ADC. A read
-  // every 100ms should be sufficient.
-  temp_sensors_runtime[i].next_read_time = 10;
-
+  temp_sensors_runtime[i].active = 0;
   return temp_table_lookup(mcp3008_read(temp_sensors[i].temp_pin), i);
 }
 #endif /* TEMP_MCP3008 */
 
 #ifdef TEMP_AD595
 static uint16_t temp_read_ad595(temp_sensor_t i) {
-  temp_sensors_runtime[i].next_read_time = ANALOG_READ_INTERVAL;
+  switch (temp_sensors_runtime[i].active++) {
+    case 1:  // Start ADC conversion.
+      #ifdef NEEDS_START_ADC
+        start_adc();
+        return 0;
+      #endif
+      // else fall through to conversion
 
-  // Convert >> 8 instead of >> 10 because internal temp is stored as
-  // 14.2 fixed point.
-  return (analog_read(i) * 500L) >> 8;
+    case 2:  // Convert temperature values.
+      temp_sensors_runtime[i].active = 0;
+      // Convert >> 8 instead of >> 10 because internal temp is stored as
+      // 14.2 fixed point.
+      return (analog_read(i) * 500L) >> 8;
+
+    case 0:  // IDLE
+    default:
+      temp_sensors_runtime[i].active = 0;
+      return 0;
+  }
 }
 #endif /* TEMP_AD595 */
 
 #ifdef TEMP_INTERCOM
 static uint16_t temp_read_intercom(temp_sensor_t i) {
-  temp_sensors_runtime[i].next_read_time = 25;
+  temp_sensors_runtime[i].active = 0;
   return read_temperature(temp_sensors[i].temp_pin);
 }
 #endif /* TEMP_INTERCOM */
@@ -356,7 +355,7 @@ static uint16_t temp_read_intercom(temp_sensor_t i) {
 static uint16_t temp_read_dummy(temp_sensor_t i) {
   uint16_t temp = temp_sensors_runtime[i].last_read_temp;
 
-  temp_sensors_runtime[i].next_read_time = 1;
+  temp_sensors_runtime[i].active = 0;
 
   if (temp_sensors_runtime[i].target_temp > temp)
     temp++;
@@ -367,61 +366,63 @@ static uint16_t temp_read_dummy(temp_sensor_t i) {
 }
 #endif /* TEMP_DUMMY */
 
-/// called every 10ms from clock.c - check all temp sensors that are ready for checking
+static uint16_t read_temp_sensor(temp_sensor_t i) {
+  switch (temp_sensors[i].temp_type) {
+    #ifdef TEMP_MAX6675
+      case TT_MAX6675:
+        return temp_read_max6675(i);
+    #endif
+
+    #ifdef TEMP_THERMISTOR
+      case TT_THERMISTOR:
+        return temp_read_thermistor(i);
+    #endif
+
+    #ifdef TEMP_MCP3008
+      case TT_MCP3008:
+        return temp_read_mcp3008(i);
+    #endif
+
+    #ifdef TEMP_AD595
+      case TT_AD595:
+        return temp_read_ad595(i);
+    #endif
+
+    #ifdef TEMP_PT100
+      case TT_PT100:
+        #warning TODO: PT100 code
+        break;
+    #endif
+
+    #ifdef TEMP_INTERCOM
+      case TT_INTERCOM:
+        return temp_read_intercom(i);
+    #endif
+
+    #ifdef TEMP_DUMMY
+      case TT_DUMMY:
+        return temp_read_dummy(i);
+    #endif
+
+    default: /* Prevent compiler warning. */
+      return 0;
+  }
+}
+
+/**
+  Called every 10ms from clock.c. Check all temp sensors that are ready for
+  checking. When complete, update the PID loop for sensors tied to heaters.
+*/
 void temp_sensor_tick() {
 	temp_sensor_t i = 0;
 
 	for (; i < NUM_TEMP_SENSORS; i++) {
-    temp_sensors_runtime[i].next_read_time--;
-    if (temp_sensors_runtime[i].next_read_time == 0) {
-			uint16_t	temp = 0;
-			//time to deal with this temp sensor
-			switch(temp_sensors[i].temp_type) {
-				#ifdef	TEMP_MAX6675
-				case TT_MAX6675:
-          temp = temp_read_max6675(i);
-					break;
-				#endif	/* TEMP_MAX6675	*/
+    if (temp_sensors_runtime[i].active) {
+      uint16_t temp = read_temp_sensor(i);
 
-				#ifdef	TEMP_THERMISTOR
-          case TT_THERMISTOR:
-            temp = temp_read_thermistor(i);
-            break;
-				#endif	/* TEMP_THERMISTOR */
-
-        #ifdef TEMP_MCP3008
-          case TT_MCP3008:
-            temp = temp_read_mcp3008(i);
-            break;
-        #endif /* TEMP_MCP3008 */
-
-				#ifdef	TEMP_AD595
-				case TT_AD595:
-          temp = temp_read_ad595(i);
-					break;
-				#endif	/* TEMP_AD595 */
-
-				#ifdef	TEMP_PT100
-				case TT_PT100:
-					#warning TODO: PT100 code
-					break;
-				#endif	/* TEMP_PT100 */
-
-				#ifdef	TEMP_INTERCOM
-				case TT_INTERCOM:
-          temp = temp_read_intercom(i);
-					break;
-				#endif	/* TEMP_INTERCOM */
-
-				#ifdef	TEMP_DUMMY
-				case TT_DUMMY:
-          temp = temp_read_dummy(i);
-					break;
-				#endif	/* TEMP_DUMMY */
-
-				default: /* prevent compiler warning */
-					break;
-			}
+      // Ignore temperature value if sensor read is still active.
+      if (temp_sensors_runtime[i].active)
+        continue;
 
 			/* Exponentially Weighted Moving Average alpha constant for smoothing
 			   noisy sensors. Instrument Engineer's Handbook, 4th ed, Vol 2 p126
@@ -431,16 +432,16 @@ void temp_sensor_tick() {
 			temp_sensors_runtime[i].last_read_temp = (uint16_t) ((EWMA_ALPHA * temp +
 			  (EWMA_SCALE-EWMA_ALPHA) * temp_sensors_runtime[i].last_read_temp
 			                                         ) / EWMA_SCALE);
-		}
 
-    #ifdef NEEDS_START_ADC
-      // Start the ADC one tick (10ms) before it's needed, if it'll be needed.
-      if (temp_sensors_runtime[i].next_read_time == 1) {
-        if (temp_sensors[i].temp_type == TT_THERMISTOR ||
-            temp_sensors[i].temp_type == TT_AD595)
-            start_adc();
+      // Finished reading this temperature probe. Update heater PID loop.
+      // This must only be done four times per second to keep the PID values
+      // sane.
+      if (temp_sensors[i].heater < NUM_HEATERS) {
+        heater_tick(temp_sensors[i].heater, temp_sensors[i].temp_type,
+                    temp_sensors_runtime[i].last_read_temp,
+                    temp_sensors_runtime[i].target_temp);
       }
-    #endif
+    }
   }
 }
 
@@ -450,13 +451,9 @@ void temp_sensor_tick() {
 void temp_heater_tick() {
   temp_sensor_t i;
 
-  for (i = 0; i < NUM_TEMP_SENSORS; i++) {
-    if (temp_sensors[i].heater < NUM_HEATERS) {
-      heater_tick(temp_sensors[i].heater, temp_sensors[i].temp_type,
-                  temp_sensors_runtime[i].last_read_temp,
-                  temp_sensors_runtime[i].target_temp);
-    }
-  }
+  // Signal all the temperature probes to begin reading.
+  for (i = 0; i < NUM_TEMP_SENSORS; i++)
+    temp_sensors_runtime[i].active = 1;
 }
 
 /**
