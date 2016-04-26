@@ -10,6 +10,25 @@
   #error Direct USB connection (USB_SERIAL) not yet supported on ARM.
 #endif
 
+/**
+  TODO: a whole lot of redundant code here. Probably this was taken from some
+        library and no improvements applied beyond the "works for me" status.
+
+  Some of the more obvious issues:
+
+    - All the serial parameters functions are pointless as such stuff is
+      configurable in Configtool, which means it's hardcoded at runtime.
+
+    - No need for usb_serial_putchar_nowait().
+
+    - No need for usb_serial_flush_input(), usb_serial_flush_output().
+
+    - usb_serial_write() isn't used, to either drop it or change other code
+      to use it.
+
+    - Macros ATOMIC_START, ATOMIC_END not used.
+*/
+
 // setup
 void usb_init(void);			// initialize everything
 uint8_t usb_configured(void);		// is the USB port configured
