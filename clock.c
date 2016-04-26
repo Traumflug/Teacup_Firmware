@@ -127,17 +127,23 @@ static void clock_10ms(void) {
 	}
 }
 
-/*! do reoccuring stuff
+/**
+  Do reoccuring stuff. Call it occasionally in busy loops.
 
-	call it occasionally in busy loops
+  Other than clock_tick() above, which is called at a constant interval, this
+  is called from the main loop. So it can be called very often on an idle
+  printer, but rather rarely on one running full speed.
 */
 void clock() {
 	ifclock(clock_flag_10ms) {
 		clock_10ms();
 	}
+
+  #ifdef DISPLAY
+    display_tick();
+  #endif
+
 #ifdef SIMULATOR
   sim_time_warp();
 #endif
 }
-
-

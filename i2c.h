@@ -65,11 +65,15 @@
 
   Size of send buffer. MUST be a \f$2^n\f$ value, maximum is 512.
 
-  A larger buffer allows to store more display data immediately, so it can
-  speed operations up. An exhaused buffer doesn't mean data gets lost, writing
-  to the buffer then waits until sufficient previous data is sent.
+  This buffer can be rather small, because there is another queue on the
+  display level. Transmissions can be large, e.g. 514 bytes when clearing the
+  display, but typically it's only some 3 to 10 bytes ( = sending one
+  character).
+
+  An exhausted buffer doesn't mean data loss, writing to the buffer then waits
+  until sufficient previous data is sent.
 */
-#define I2C_BUFFER_SIZE             128
+#define I2C_BUFFER_SIZE             16
 
 #ifdef I2C_SLAVE_MODE
   #define I2C_SLAVE_RX_BUFFER_SIZE  1

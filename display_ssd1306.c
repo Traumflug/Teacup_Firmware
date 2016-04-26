@@ -116,31 +116,34 @@ void display_clock(void) {
 }
 
 /**
-  Prints a character at the current cursor position.
-
-  \param data The character to be displayed.
+  Forwards a character from the display queue to the I2C queue.
 */
-void display_writechar(uint8_t data) {
-  uint8_t i, index = data - 0x20;
+void display_tick() {
+  uint8_t i, data, index;
 
-  // Write pixels command.
-  displaybus_write(0x40, 0);
-
-  // Send the character bitmap.
-  #ifdef FONT_IS_PROPORTIONAL
-    for (i = 0; i < pgm_read_byte(&font[index].columns); i++) {
-  #else
-    for (i = 0; i < FONT_COLUMNS; i++) {
-  #endif
-      displaybus_write(pgm_read_byte(&font[index].data[i]), 0);
+  if (displaybus_busy()) {
+    return;
   }
-  // Send space between characters.
-  for (i = 0; i < FONT_SYMBOL_SPACE; i++) {
-    // TODO: we finalise a I2C (or other) bus message after each character
-    //       here because we have no idea on how many more are following. This
-    //       is highly inefficient and makes the displaybus buffer almost
-    //       pointless.
-    displaybus_write(0x00, (i == FONT_SYMBOL_SPACE - 1));
+
+  if (buf_canread(display)) {
+    buf_pop(display, data);
+    index = data - 0x20;
+
+    // Write pixels command.
+    displaybus_write(0x40, 0);
+
+    // Send the character bitmap.
+    #ifdef FONT_IS_PROPORTIONAL
+      for (i = 0; i < pgm_read_byte(&font[index].columns); i++) {
+    #else
+      for (i = 0; i < FONT_COLUMNS; i++) {
+    #endif
+        displaybus_write(pgm_read_byte(&font[index].data[i]), 0);
+    }
+    // Send space between characters.
+    for (i = 0; i < FONT_SYMBOL_SPACE; i++) {
+      displaybus_write(0x00, (i == FONT_SYMBOL_SPACE - 1));
+    }
   }
 }
 

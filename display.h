@@ -32,7 +32,11 @@
 #endif /* DISPLAY_BUS */
 
 
+#define DISPLAY_BUFFER_SIZE 128
+
+
 void display_init(void);
+void display_tick(void);
 void display_clear(void);
 
 void display_clock(void);
