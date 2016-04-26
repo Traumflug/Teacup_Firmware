@@ -65,9 +65,7 @@
 // Transmission not interrupted.
 #define I2C_NOINTERRUPTED     0b01111111
 
-#define I2C_ERROR_BUS_FAIL    0b00000001
-#define I2C_ERROR_NACK        0b00000010
-#define I2C_ERROR_NO_ANSWER   0b00010000
+#define I2C_ERROR             0b00000001
 #define I2C_ERROR_LOW_PRIO    0b00100000
 
 
@@ -214,9 +212,7 @@ void i2c_write(uint8_t data, uint8_t last_byte) {
   }
 
   // Recover from error conditions by draining the buffer.
-  if ((i2c_state & I2C_ERROR_BUS_FAIL) ||
-      (i2c_state & I2C_ERROR_NO_ANSWER) ||
-      (i2c_state & I2C_ERROR_NACK)) {
+  if (i2c_state & I2C_ERROR) {
     while (buf_canread(send)) {
       buf_pop(send, TWDR);
     }
@@ -278,21 +274,10 @@ ISR(TWI_vect) {
   #endif
 
   switch (status) {
-    case TW_BUS_ERROR:
-      // A hardware error was detected.
-      #ifdef TWI_INTERRUPT_DEBUG
-        serial_writechar('1');
-      #endif
-      i2c_state |= I2C_ERROR_BUS_FAIL;
-      // Let i2c_write() continue.
-      i2c_should_end = 0;
-      // Send stop condition.
-      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
-      break;
     case TW_START:
       // Start happens, send a target address.
       #ifdef TWI_INTERRUPT_DEBUG
-        serial_writechar('2');
+        serial_writechar('1');
       #endif
       if ((i2c_state & I2C_MODE_MASK) == I2C_MODE_SARP) {
         i2c_address |= 0x01;
@@ -305,7 +290,7 @@ ISR(TWI_vect) {
     case TW_REP_START:
       // Start happens, send a target address.
       #ifdef TWI_INTERRUPT_DEBUG
-        serial_writechar('3');
+        serial_writechar('2');
       #endif
       if ((i2c_state & I2C_MODE_MASK) == I2C_MODE_ENHA) {
         i2c_address |= 0x01;
@@ -318,7 +303,7 @@ ISR(TWI_vect) {
     case TW_MT_SLA_ACK:
       // SLA+W was sent, then ACK received.
       #ifdef TWI_INTERRUPT_DEBUG
-        serial_writechar('4');
+        serial_writechar('3');
       #endif
       if ((i2c_state & I2C_MODE_MASK) == I2C_MODE_SAWP && buf_canread(send)) {
         buf_pop(send, TWDR);
@@ -331,21 +316,10 @@ ISR(TWI_vect) {
         }
       #endif
       break;
-    case TW_MT_SLA_NACK:
-      // SLA+W was sent, got NACK, so slave is busy or out of bus.
-      #ifdef TWI_INTERRUPT_DEBUG
-        serial_writechar('5');
-      #endif
-      i2c_state |= I2C_ERROR_NO_ANSWER;
-      // Let i2c_write() continue.
-      i2c_should_end = 0;
-      // Send stop condition.
-      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
-      break;
     case TW_MT_DATA_ACK:
       // A byte was sent, got ACK.
       #ifdef TWI_INTERRUPT_DEBUG
-        serial_writechar('6');
+        serial_writechar('4');
       #endif
       if ((i2c_state & I2C_MODE_MASK) == I2C_MODE_SAWP) {
         if (buf_canread(send)) {
@@ -373,33 +347,6 @@ ISR(TWI_vect) {
           }
         }
       #endif
-      break;
-    case TW_MT_DATA_NACK:
-      // Byte was sent but got NACK, there are two possible reasons:
-      //  - a slave stops transmission and it is ok, or
-      //  - a slave became crazy.
-      #ifdef TWI_INTERRUPT_DEBUG
-        serial_writechar('7');
-      #endif
-      i2c_state |= I2C_ERROR_NACK;
-      // Let i2c_write() continue.
-      i2c_should_end = 0;
-      // Send stop condition.
-      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
-      break;
-    case TW_MT_ARB_LOST:  // Collision, identical to TW_MR_ARB_LOST.
-      // It looks like there is another master on the bus.
-      #ifdef TWI_INTERRUPT_DEBUG
-        serial_writechar('8');
-      #endif
-      i2c_state |= I2C_ERROR_LOW_PRIO;
-      // Setup all again.
-      sendtail = sendhead;
-      #ifdef I2C_EEPROM_SUPPORT
-        i2c_page_index = 0;
-      #endif
-      // Try to resend when the bus became free.
-      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       break;
 
     #ifdef I2C_READ_SUPPORT
@@ -533,6 +480,39 @@ ISR(TWI_vect) {
       break;
 
     #endif /* I2C_SLAVE_MODE */
+
+    case TW_BUS_ERROR:
+      // A hardware error was detected.
+      #ifdef TWI_INTERRUPT_DEBUG
+        serial_writechar('5');
+      #endif
+    case TW_MT_SLA_NACK:
+      // SLA+W was sent, got NACK, so slave is busy or out of bus.
+      #ifdef TWI_INTERRUPT_DEBUG
+        serial_writechar('6');
+      #endif
+    case TW_MT_DATA_NACK:
+      // Byte was sent but got NACK, there are two possible reasons:
+      //  - a slave stops transmission and it is ok, or
+      //  - a slave became crazy.
+      #ifdef TWI_INTERRUPT_DEBUG
+        serial_writechar('7');
+      #endif
+    case TW_MT_ARB_LOST:
+      // Collision, identical to TW_MR_ARB_LOST.
+      // It looks like there is another master on the bus. Handle this like
+      // the other error conditions, because an eventual resend is handled in
+      // upper layers (display code).
+      #ifdef TWI_INTERRUPT_DEBUG
+        serial_writechar('8');
+      #endif
+
+      i2c_state |= I2C_ERROR;
+      // Let i2c_write() continue.
+      i2c_should_end = 0;
+      // Send stop condition.
+      TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
+      break;
 
     default:
       #ifdef TWI_INTERRUPT_DEBUG
