@@ -125,6 +125,15 @@ void display_tick() {
     return;
   }
 
+  /**
+    Possible strategy for error recovery: after a failed, aborted I2C
+    transmisson, 'i2c_state & I2C_INTERRUPTED' in i2c.c evaluates to true.
+
+    Having a getter like displaybus_failed() would allow to test this condition
+    here, so we could resend the previous data again, instead of grabbing a
+    new byte from the buffer.
+  */
+
   if (buf_canread(display)) {
     buf_pop(display, data);
     index = data - 0x20;
