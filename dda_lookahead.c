@@ -222,7 +222,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
 
     // Show the proposed crossing speed - this might get adjusted below
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("Initial crossing speed: %lu\r\n"), crossF_in_steps);
+      sersendf_P(PSTR("Initial crossing speed: %lu\n"), crossF_in_steps);
 
     // Compute the maximum speed we can reach for crossing.
     crossF_in_steps = MIN(crossF_in_steps, this_total_steps);
@@ -283,16 +283,16 @@ void dda_join_moves(DDA *prev, DDA *current) {
     this_F_start_in_steps = crossF_in_steps;
 
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
-      sersendf_P(PSTR("prev_F_start: %lu\r\n"), prev_F_start_in_steps);
-      sersendf_P(PSTR("prev_F: %lu\r\n"), prev_F_in_steps);
-      sersendf_P(PSTR("prev_rampup: %lu\r\n"), prev_rampup);
-      sersendf_P(PSTR("prev_rampdown: %lu\r\n"),
+      sersendf_P(PSTR("prev_F_start: %lu\n"), prev_F_start_in_steps);
+      sersendf_P(PSTR("prev_F: %lu\n"), prev_F_in_steps);
+      sersendf_P(PSTR("prev_rampup: %lu\n"), prev_rampup);
+      sersendf_P(PSTR("prev_rampdown: %lu\n"),
                  prev_total_steps - prev_rampdown);
-      sersendf_P(PSTR("crossF: %lu\r\n"), crossF_in_steps);
-      sersendf_P(PSTR("this_rampup: %lu\r\n"), this_rampup);
-      sersendf_P(PSTR("this_rampdown: %lu\r\n"),
+      sersendf_P(PSTR("crossF: %lu\n"), crossF_in_steps);
+      sersendf_P(PSTR("this_rampup: %lu\n"), this_rampup);
+      sersendf_P(PSTR("this_rampdown: %lu\n"),
                  this_total_steps - this_rampdown);
-      sersendf_P(PSTR("this_F: %lu\r\n"), this_F_in_steps);
+      sersendf_P(PSTR("this_F: %lu\n"), this_F_in_steps);
     }
 
     uint8_t timeout = 0;
@@ -319,7 +319,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
 
     // If we were not fast enough, any feedback will happen outside the atomic block:
     if(timeout) {
-      sersendf_P(PSTR("// Notice: look ahead not fast enough\r\n"));
+      sersendf_P(PSTR("// Notice: look ahead not fast enough\n"));
       lookahead_timeout++;
     }
   }
