@@ -27,13 +27,6 @@ extern uint8_t use_lookahead;
 uint32_t lookahead_joined = 0;      // Total number of moves joined together
 uint32_t lookahead_timeout = 0;     // Moves that did not compute in time to be actually joined
 
-// Used for look-ahead debugging
-#ifdef LOOKAHEAD_DEBUG_VERBOSE
-  #define serprintf(...) sersendf_P(__VA_ARGS__)
-#else
-  #define serprintf(...)
-#endif
-
 /// \var maximum_jerk_P
 /// \brief maximum allowed feedrate jerk on each axis
 static const axes_uint32_t PROGMEM maximum_jerk_P = {
@@ -228,7 +221,8 @@ void dda_join_moves(DDA *prev, DDA *current) {
     crossF_in_steps = ACCELERATE_RAMP_LEN(crossF);
 
     // Show the proposed crossing speed - this might get adjusted below
-    serprintf(PSTR("Initial crossing speed: %lu\r\n"), crossF_in_steps);
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+      sersendf_P(PSTR("Initial crossing speed: %lu\r\n"), crossF_in_steps);
 
     // Compute the maximum speed we can reach for crossing.
     crossF_in_steps = MIN(crossF_in_steps, this_total_steps);
@@ -288,14 +282,18 @@ void dda_join_moves(DDA *prev, DDA *current) {
     this_rampdown = this_total_steps - this_rampdown;
     this_F_start_in_steps = crossF_in_steps;
 
-    serprintf(PSTR("prev_F_start: %lu\r\n"), prev_F_start_in_steps);
-    serprintf(PSTR("prev_F: %lu\r\n"), prev_F_in_steps);
-    serprintf(PSTR("prev_rampup: %lu\r\n"), prev_rampup);
-    serprintf(PSTR("prev_rampdown: %lu\r\n"), prev_total_steps - prev_rampdown);
-    serprintf(PSTR("crossF: %lu\r\n"), crossF_in_steps);
-    serprintf(PSTR("this_rampup: %lu\r\n"), this_rampup);
-    serprintf(PSTR("this_rampdown: %lu\r\n"), this_total_steps - this_rampdown);
-    serprintf(PSTR("this_F: %lu\r\n"), this_F_in_steps);
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+      sersendf_P(PSTR("prev_F_start: %lu\r\n"), prev_F_start_in_steps);
+      sersendf_P(PSTR("prev_F: %lu\r\n"), prev_F_in_steps);
+      sersendf_P(PSTR("prev_rampup: %lu\r\n"), prev_rampup);
+      sersendf_P(PSTR("prev_rampdown: %lu\r\n"),
+                 prev_total_steps - prev_rampdown);
+      sersendf_P(PSTR("crossF: %lu\r\n"), crossF_in_steps);
+      sersendf_P(PSTR("this_rampup: %lu\r\n"), this_rampup);
+      sersendf_P(PSTR("this_rampdown: %lu\r\n"),
+                 this_total_steps - this_rampdown);
+      sersendf_P(PSTR("this_F: %lu\r\n"), this_F_in_steps);
+    }
 
     uint8_t timeout = 0;
 
