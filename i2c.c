@@ -57,13 +57,9 @@
 #define I2C_MODE_ENHA         0b00001000
 // Transponder is busy.
 #define I2C_MODE_BUSY         0b01000000
-// Transponder is free.
-#define I2C_MODE_FREE         0b10111111
 
 // Transmission interrupted.
 #define I2C_INTERRUPTED       0b10000000
-// Transmission not interrupted.
-#define I2C_NOINTERRUPTED     0b01111111
 
 #define I2C_ERROR             0b00000001
 #define I2C_ERROR_LOW_PRIO    0b00100000
@@ -73,7 +69,7 @@
 uint8_t i2c_address;
 
 // State of TWI component of MCU.
-volatile uint8_t i2c_state = I2C_MODE_FREE;
+volatile uint8_t i2c_state = 0;
 
 /**
   Wether transmission should be terminated on buffer drain. This also means
@@ -207,19 +203,20 @@ uint8_t i2c_busy(void) {
 */
 void i2c_write(uint8_t data, uint8_t last_byte) {
 
+  // Drop characters until transmission end. Transmissions to the display
+  // start with a command byte, so sending truncated transmissions is harmful.
+  if (i2c_state & I2C_ERROR) {
+    if (last_byte) {
+      i2c_state &= ~I2C_ERROR;
+    }
+    return;
+  }
+
   while (i2c_should_end || ! buf_canwrite(send)) {
     delay_us(10);
   }
 
-  // Recover from error conditions by draining the buffer.
-  if (i2c_state & I2C_ERROR) {
-    while (buf_canread(send)) {
-      buf_pop(send, TWDR);
-    }
-    i2c_state = I2C_MODE_FREE;
-  }
-
-  if (i2c_state & I2C_MODE_FREE) {
+  if ( ! (i2c_state & I2C_MODE_BUSY)) {
     // No transmission ongoing, start one.
     i2c_state = I2C_MODE_SAWP;
     TWCR = (1<<TWINT)|(0<<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
@@ -328,7 +325,7 @@ ISR(TWI_vect) {
           TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
         } else {
           // Buffer drained because transmission is completed.
-          i2c_state = I2C_MODE_FREE;
+          i2c_state = 0;
           i2c_should_end = 0;
           // Send stop condition.
           TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
@@ -470,7 +467,7 @@ ISR(TWI_vect) {
       // We sent the last byte and received NACK or ACK (doesn't matter here).
       if (i2c_state & I2C_INTERRUPTED) {
         // There was interrupted master transfer.
-        i2c_state &= I2C_NOINTERRUPTED;
+        i2c_state &= ~I2C_INTERRUPTED;
         // Generate start as the bus became free.
         TWCR = (1<<TWINT)|(1<TWEA)|(1<<TWSTA)|(0<<TWSTO)|(1<<TWEN)|(1<<TWIE);
       } else {
@@ -507,9 +504,13 @@ ISR(TWI_vect) {
         serial_writechar('8');
       #endif
 
-      i2c_state |= I2C_ERROR;
+      i2c_state |= I2C_ERROR | I2C_INTERRUPTED;
       // Let i2c_write() continue.
       i2c_should_end = 0;
+      // Drain the buffer.
+      while (buf_canread(send)) {
+        buf_pop(send, TWDR);
+      }
       // Send stop condition.
       TWCR = (1<<TWINT)|(I2C_MODE<<TWEA)|(0<<TWSTA)|(1<<TWSTO)|(1<<TWEN)|(0<<TWIE);
       break;
