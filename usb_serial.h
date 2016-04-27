@@ -11,46 +11,18 @@
 #endif
 
 /**
-  TODO: a whole lot of redundant code here. Probably this was taken from some
-        library and no improvements applied beyond the "works for me" status.
-
-  Some of the more obvious issues:
-
-    - All the serial parameters functions are pointless as such stuff is
-      configurable in Configtool, which means it's hardcoded at runtime.
-
-    - No need for usb_serial_putchar_nowait().
-
-    - No need for usb_serial_flush_input(), usb_serial_flush_output().
-
-    - usb_serial_write() isn't used, to either drop it or change other code
-      to use it.
-
-    - Macros ATOMIC_START, ATOMIC_END not used.
+  TODO: Use Macros ATOMIC_START, ATOMIC_END
 */
 
 // setup
 void usb_init(void);			// initialize everything
-uint8_t usb_configured(void);		// is the USB port configured
 
 // receiving data
 int16_t usb_serial_getchar(void);	// receive a character (-1 if timeout/error)
 uint8_t usb_serial_available(void);	// number of bytes in receive buffer
-void usb_serial_flush_input(void);	// discard any buffered input
 
 // transmitting data
 void serial_writechar(uint8_t c);             // Transmit a character.
-int8_t usb_serial_putchar_nowait(uint8_t c);  // transmit a character, do not wait
-int8_t usb_serial_write(const uint8_t *buffer, uint16_t size); // transmit a buffer
-void usb_serial_flush_output(void);	// immediately transmit any buffered output
-
-// serial parameters
-uint32_t usb_serial_get_baud(void);	// get the baud rate
-uint8_t usb_serial_get_stopbits(void);	// get the number of stop bits
-uint8_t usb_serial_get_paritytype(void);// get the parity type
-uint8_t usb_serial_get_numbits(void);	// get the number of data bits
-uint8_t usb_serial_get_control(void);	// get the RTS and DTR signal state
-int8_t usb_serial_set_control(uint8_t signals); // set DSR, DCD, RI, etc
 
 // constants corresponding to the various serial parameters
 #define USB_SERIAL_DTR			0x01
