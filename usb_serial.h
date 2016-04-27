@@ -10,10 +10,6 @@
   #error Direct USB connection (USB_SERIAL) not yet supported on ARM.
 #endif
 
-/**
-  TODO: Use Macros ATOMIC_START, ATOMIC_END
-*/
-
 // setup
 void usb_init(void);			// initialize everything
 

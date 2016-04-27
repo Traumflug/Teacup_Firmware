@@ -34,6 +34,7 @@
 
 #include "config_wrapper.h"
 #include "simulator.h"
+#include "memory_barrier.h"
 
 /* protect this file from Arduino IDE */
 #ifdef USB_SERIAL
@@ -341,17 +342,16 @@ void usb_init(void)
 // get the next character, or -1 if nothing received
 int16_t usb_serial_getchar(void)
 {
-	uint8_t c, intr_state;
+  uint16_t c;
+
+  if (!usb_configuration)
+    return -1;
 
 	// interrupts are disabled so these functions can be
 	// used from the main program or interrupt context,
 	// even both in the same program!
-	intr_state = SREG;
-	cli();
-	if (!usb_configuration) {
-		SREG = intr_state;
-		return -1;
-	}
+  ATOMIC_START;
+
 	UENUM = CDC_RX_ENDPOINT;
 	retry:
 	c = UEINTX;
@@ -361,24 +361,24 @@ int16_t usb_serial_getchar(void)
 			UEINTX = 0x6B;
 			goto retry;
 		}
-		SREG = intr_state;
-		return -1;
+      c = -1;
 	}
-	// take one byte out of the buffer
-	c = UEDATX;
-	// if buffer completely used, release it
-	if (!(UEINTX & (1<<RWAL))) UEINTX = 0x6B;
-	SREG = intr_state;
+  else {
+		// take one byte out of the buffer
+		c = UEDATX;
+		// if buffer completely used, release it
+		if (!(UEINTX & (1<<RWAL))) UEINTX = 0x6B;
+  }
+  ATOMIC_END;
 	return c;
 }
 
 // number of bytes available in the receive buffer
 uint8_t usb_serial_available(void)
 {
-	uint8_t n=0, i, intr_state;
+	uint8_t n=0, i;
 
-	intr_state = SREG;
-	cli();
+  ATOMIC_START;
 	if (usb_configuration) {
 		UENUM = CDC_RX_ENDPOINT;
 		n = UEBCLX;
@@ -387,7 +387,7 @@ uint8_t usb_serial_available(void)
 			if (i & (1<<RXOUTI) && !(i & (1<<RWAL))) UEINTX = 0x6B;
 		}
 	}
-	SREG = intr_state;
+  ATOMIC_END;
 	return n;
 }
 
@@ -395,7 +395,7 @@ uint8_t usb_serial_available(void)
   Transmit a character.
 */
 void serial_writechar(uint8_t c) {
-	uint8_t timeout, intr_state;
+  uint8_t timeout;
 
 	// if we're not online (enumerated and configured), error
   if ( ! usb_configuration) return;
@@ -403,23 +403,36 @@ void serial_writechar(uint8_t c) {
 	// interrupts are disabled so these functions can be
 	// used from the main program or interrupt context,
 	// even both in the same program!
-	intr_state = SREG;
-	cli();
+  ATOMIC_START
 	UENUM = CDC_TX_ENDPOINT;
-	// if we gave up due to timeout before, don't wait again
 	if (transmit_previous_timeout) {
-		if (!(UEINTX & (1<<RWAL))) {
-			SREG = intr_state;
-      return;
-		}
-		transmit_previous_timeout = 0;
+    if ((UEINTX & (1<<RWAL)))
+			transmit_previous_timeout = 0;
 	}
 	// wait for the FIFO to be ready to accept data
 	timeout = UDFNUML + TRANSMIT_TIMEOUT;
+  ATOMIC_END
+
+  // if we gave up due to timeout before, don't wait again
+  if (transmit_previous_timeout)
+    return;
+
 	while (1) {
+    uint8_t done = 0;
+    ATOMIC_START
 		// are we ready to transmit?
-		if (UEINTX & (1<<RWAL)) break;
-		SREG = intr_state;
+		UENUM = CDC_TX_ENDPOINT;
+    if (UEINTX & (1<<RWAL)) {
+			// actually write the byte into the FIFO
+			UEDATX = c;
+      done = 1;
+			// if this completed a packet, transmit it now!
+			if (!(UEINTX & (1<<RWAL))) UEINTX = 0x3A;
+			transmit_flush_timer = TRANSMIT_FLUSH_TIMEOUT;
+    }
+    ATOMIC_END;
+    if (done) return;
+
 		// have we waited too long?  This happens if the user
 		// is not running an application that is listening
 		if (UDFNUML == timeout) {
@@ -429,19 +442,8 @@ void serial_writechar(uint8_t c) {
 		// has the USB gone offline?
     if ( ! usb_configuration)
       return;
-		// get ready to try checking again
-		intr_state = SREG;
-		cli();
-		UENUM = CDC_TX_ENDPOINT;
 	}
-	// actually write the byte into the FIFO
-	UEDATX = c;
-	// if this completed a packet, transmit it now!
-	if (!(UEINTX & (1<<RWAL))) UEINTX = 0x3A;
-	transmit_flush_timer = TRANSMIT_FLUSH_TIMEOUT;
-	SREG = intr_state;
 }
-//   0 returned on success, -1 on buffer full or error 
 
 
 /**************************************************************************
