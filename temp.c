@@ -94,6 +94,13 @@ static struct {
   #define TEMP_EWMA 1.0
 #endif
 
+#define EWMA_SCALE  1024L
+#define EWMA_ALPHA  ((uint32_t)(TEMP_EWMA * EWMA_SCALE))
+
+// If EWMA is used, continuously update analog reading for more data points.
+#define TEMP_READ_CONTINUOUS (EWMA_ALPHA < EWMA_SCALE)
+#define TEMP_NOT_READY       0xffff
+
 /// Set up temp sensors.
 void temp_init() {
 	temp_sensor_t i;
@@ -251,7 +258,7 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
 #endif /* TEMP_THERMISTOR || TEMP_MCP3008 */
 
 #ifdef TEMP_MAX6675
-static uint16_t temp_read_max6675(temp_sensor_t i) {
+static uint16_t temp_max6675_read(temp_sensor_t i) {
   // Note: value reading in this section was rewritten without
   //       testing when spi.c/.h was introduced. --Traumflug
   // Note: MAX6675 can give a reading every 0.22s
@@ -275,6 +282,18 @@ static uint16_t temp_read_max6675(temp_sensor_t i) {
 
   return temp;
 }
+
+static uint16_t temp_read_max6675(temp_sensor_t i) {
+  switch (temp_sensors_runtime[i].active++) {
+    case 1:
+      return temp_max6675_read(i);
+
+    case 22:  // read temperature at most every 220ms
+      temp_sensors_runtime[i].active = 0;
+      break;
+  }
+  return TEMP_NOT_READY;
+}
 #endif /* TEMP_MAX6675 */
 
 #ifdef TEMP_THERMISTOR
@@ -283,26 +302,27 @@ static uint16_t temp_read_thermistor(temp_sensor_t i) {
     case 1:  // Start ADC conversion.
       #ifdef NEEDS_START_ADC
         start_adc();
-        return 0;
+        return TEMP_NOT_READY;
       #endif
       // else fall through to conversion
 
     case 2:  // Convert temperature values.
       temp_sensors_runtime[i].active = 0;
       return temp_table_lookup(analog_read(i), i);
-
-    case 0:  // IDLE
-    default:
-      temp_sensors_runtime[i].active = 0;
-      return 0;
   }
+  return TEMP_NOT_READY;
 }
 #endif /* TEMP_THERMISTOR */
 
 #ifdef TEMP_MCP3008
 static uint16_t temp_read_mcp3008(temp_sensor_t i) {
-  temp_sensors_runtime[i].active = 0;
-  return temp_table_lookup(mcp3008_read(temp_sensors[i].temp_pin), i);
+  switch (temp_sensors_runtime[i].active++) {
+    case 1:
+      return temp_table_lookup(mcp3008_read(temp_sensors[i].temp_pin), i);
+    case 10:  // Idle for 100ms.
+      temp_sensors_runtime[i].active = 0;
+  }
+  return TEMP_NOT_READY;
 }
 #endif /* TEMP_MCP3008 */
 
@@ -312,7 +332,7 @@ static uint16_t temp_read_ad595(temp_sensor_t i) {
     case 1:  // Start ADC conversion.
       #ifdef NEEDS_START_ADC
         start_adc();
-        return 0;
+        return TEMP_NOT_READY;
       #endif
       // else fall through to conversion
 
@@ -321,34 +341,39 @@ static uint16_t temp_read_ad595(temp_sensor_t i) {
       // Convert >> 8 instead of >> 10 because internal temp is stored as
       // 14.2 fixed point.
       return (analog_read(i) * 500L) >> 8;
-
-    case 0:  // IDLE
-    default:
-      temp_sensors_runtime[i].active = 0;
-      return 0;
   }
+  return TEMP_NOT_READY;
 }
 #endif /* TEMP_AD595 */
 
 #ifdef TEMP_INTERCOM
 static uint16_t temp_read_intercom(temp_sensor_t i) {
-  temp_sensors_runtime[i].active = 0;
-  return read_temperature(temp_sensors[i].temp_pin);
+  switch (temp_sensors_runtime[i].active++) {
+    case 1:
+      return read_temperature(temp_sensors[i].temp_pin);
+    case 25:  // Idle for 250ms.
+      temp_sensors_runtime[i].active = 0;
+  }
+  return TEMP_NOT_READY;
 }
 #endif /* TEMP_INTERCOM */
 
 #ifdef TEMP_DUMMY
+static uint16_t dummy_temp[NUM_TEMP_SENSORS];
+
 static uint16_t temp_read_dummy(temp_sensor_t i) {
-  uint16_t temp = temp_sensors_runtime[i].last_read_temp;
+  if (temp_sensors_runtime[i].target_temp > dummy_temp[i])
+    dummy_temp[i]++;
+  else if (temp_sensors_runtime[i].target_temp < dummy_temp[i])
+    dummy_temp[i]--;
 
-  temp_sensors_runtime[i].active = 0;
-
-  if (temp_sensors_runtime[i].target_temp > temp)
-    temp++;
-  else if (temp_sensors_runtime[i].target_temp < temp)
-    temp--;
-
-  return temp;
+  switch (temp_sensors_runtime[i].active++) {
+    case 1:
+      return dummy_temp[i] ;
+    case 5:  // Idle for 50ms.
+      temp_sensors_runtime[i].active = 0;
+  }
+  return TEMP_NOT_READY;
 }
 #endif /* TEMP_DUMMY */
 
@@ -395,6 +420,14 @@ static uint16_t read_temp_sensor(temp_sensor_t i) {
   }
 }
 
+static void run_pid_loop(int i) {
+  if (temp_sensors[i].heater < NUM_HEATERS) {
+    heater_tick(temp_sensors[i].heater, temp_sensors[i].temp_type,
+                temp_sensors_runtime[i].last_read_temp,
+                temp_sensors_runtime[i].target_temp);
+  }
+}
+
 /**
   Called every 10ms from clock.c. Check all temp sensors that are ready for
   checking. When complete, update the PID loop for sensors tied to heaters.
@@ -403,29 +436,30 @@ void temp_sensor_tick() {
 	temp_sensor_t i = 0;
 
 	for (; i < NUM_TEMP_SENSORS; i++) {
+    if (TEMP_READ_CONTINUOUS)
+      if ( ! temp_sensors_runtime[i].active)
+        temp_sensors_runtime[i].active = 1;
+
     if (temp_sensors_runtime[i].active) {
       uint16_t temp = read_temp_sensor(i);
 
-      // Ignore temperature value if sensor read is still active.
-      if (temp_sensors_runtime[i].active)
+      if (temp == TEMP_NOT_READY)
         continue;
 
-			/* Exponentially Weighted Moving Average alpha constant for smoothing
-			   noisy sensors. Instrument Engineer's Handbook, 4th ed, Vol 2 p126
-			   says values of 0.05 to 0.1 for TEMP_EWMA are typical. */
-			#define EWMA_SCALE  1024L
-			#define EWMA_ALPHA  ((long) (TEMP_EWMA * EWMA_SCALE))
-			temp_sensors_runtime[i].last_read_temp = (uint16_t) ((EWMA_ALPHA * temp +
-			  (EWMA_SCALE-EWMA_ALPHA) * temp_sensors_runtime[i].last_read_temp
-			                                         ) / EWMA_SCALE);
+      // Handle moving average.
+      temp_sensors_runtime[i].last_read_temp = (uint16_t)(
+        (EWMA_ALPHA * temp +
+         (EWMA_SCALE - EWMA_ALPHA) * temp_sensors_runtime[i].last_read_temp) /
+        EWMA_SCALE);
 
-      // Finished reading this temperature probe. Update heater PID loop.
-      // This must only be done four times per second to keep the PID values
-      // sane.
-      if (temp_sensors[i].heater < NUM_HEATERS) {
-        heater_tick(temp_sensors[i].heater, temp_sensors[i].temp_type,
-                    temp_sensors_runtime[i].last_read_temp,
-                    temp_sensors_runtime[i].target_temp);
+      if ( ! TEMP_READ_CONTINUOUS) {
+        /**
+          In one-shot mode we only update temps when triggered by the
+          heater_tick for PID loops. So here we run the PID loop through a
+          cycle. This must only be done four times per second to keep the PID
+          values sane.
+        */
+        run_pid_loop(i);
       }
     }
   }
@@ -437,9 +471,14 @@ void temp_sensor_tick() {
 void temp_heater_tick() {
   temp_sensor_t i;
 
-  // Signal all the temperature probes to begin reading.
   for (i = 0; i < NUM_TEMP_SENSORS; i++)
-    temp_sensors_runtime[i].active = 1;
+    if (TEMP_READ_CONTINUOUS)
+      run_pid_loop(i);
+    else {
+      // Signal all the temperature probes to begin reading. Each will run the
+      // pid loop for us when it completes.
+      temp_sensors_runtime[i].active = 1;
+    }
 }
 
 /**
