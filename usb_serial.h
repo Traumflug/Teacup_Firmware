@@ -11,10 +11,16 @@
 #endif
 
 /**
-  TODO: a whole lot of redundant code here. Probably this was taken from some
-        library and no improvements applied beyond the "works for me" status.
+  This file was imported from:
 
-  Some of the more obvious issues:
+    USB Serial Example for Teensy USB Development Board
+    http://www.pjrc.com/teensy/usb_serial.html
+    Copyright (c) 2008,2010,2011 PJRC.COM, LLC
+    Copyright details see usb_serial.c.
+
+  This means a lot of redundant code here, as well as opportunities for
+  performance improvements. If you want to refactor it, here are some of the
+  more obvious issues:
 
     - All the serial parameters functions are pointless as such stuff is
       configurable in Configtool, which means it's hardcoded at runtime.
@@ -23,8 +29,9 @@
 
     - No need for usb_serial_flush_input(), usb_serial_flush_output().
 
-    - usb_serial_write() isn't used, to either drop it or change other code
-      to use it.
+    - usb_serial_write() does about the same as serial_writestr() /
+      serial_writestr_P() but isn't used, so either drop it or, if it's
+      faster / smaller, change other code to use it.
 
     - Macros ATOMIC_START, ATOMIC_END not used.
 */
