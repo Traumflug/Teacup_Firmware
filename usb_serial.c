@@ -400,22 +400,8 @@ void serial_writechar(uint8_t c) {
 	// if we're not online (enumerated and configured), error
   if ( ! usb_configuration) return;
 
-	// interrupts are disabled so these functions can be
-	// used from the main program or interrupt context,
-	// even both in the same program!
-  ATOMIC_START
-	UENUM = CDC_TX_ENDPOINT;
-	if (transmit_previous_timeout) {
-    if ((UEINTX & (1<<RWAL)))
-			transmit_previous_timeout = 0;
-	}
 	// wait for the FIFO to be ready to accept data
 	timeout = UDFNUML + TRANSMIT_TIMEOUT;
-  ATOMIC_END
-
-  // if we gave up due to timeout before, don't wait again
-  if (transmit_previous_timeout)
-    return;
 
 	while (1) {
     uint8_t done = 0;
@@ -423,6 +409,7 @@ void serial_writechar(uint8_t c) {
 		// are we ready to transmit?
 		UENUM = CDC_TX_ENDPOINT;
     if (UEINTX & (1<<RWAL)) {
+			transmit_previous_timeout = 0;
 			// actually write the byte into the FIFO
 			UEDATX = c;
       done = 1;
@@ -432,6 +419,10 @@ void serial_writechar(uint8_t c) {
     }
     ATOMIC_END;
     if (done) return;
+
+    // if we gave up due to timeout before, don't wait again
+    if (transmit_previous_timeout)
+      return;
 
 		// have we waited too long?  This happens if the user
 		// is not running an application that is listening
