@@ -141,36 +141,6 @@ void temp_init() {
 }
 
 /**
-  Read a measurement from the MCP3008 analog-digital-converter (ADC).
-
-  \param channel The ADC channel to read.
-
-  \return The raw ADC reading.
-
-  Documentation for this ADC see
-
-    https://www.adafruit.com/datasheets/MCP3008.pdf.
-*/
-#ifdef TEMP_MCP3008
-static uint16_t mcp3008_read(uint8_t channel) {
-  uint8_t temp_h, temp_l;
-
-  spi_select_mcp3008();
-
-  // Start bit.
-  spi_rw(0x01);
-
-  // Send read address and get MSB, then LSB byte.
-  temp_h = spi_rw((0b1000 | channel) << 4) & 0b11;
-  temp_l = spi_rw(0);
-
-  spi_deselect_mcp3008();
-
-  return temp_h << 8 | temp_l;
-}
-#endif /* TEMP_MCP3008 */
-
-/**
   Look up a degree Celsius value from a raw ADC reading.
 
   \param temp   The raw ADC reading to look up.
@@ -315,10 +285,38 @@ static uint16_t temp_read_thermistor(temp_sensor_t i) {
 #endif /* TEMP_THERMISTOR */
 
 #ifdef TEMP_MCP3008
+/**
+  Read a measurement from the MCP3008 analog-digital-converter (ADC).
+
+  \param channel The ADC channel to read.
+
+  \return The raw ADC reading.
+
+  Documentation for this ADC see
+
+    https://www.adafruit.com/datasheets/MCP3008.pdf.
+*/
+static uint16_t temp_mcp3008_read(uint8_t channel) {
+  uint8_t temp_h, temp_l;
+
+  spi_select_mcp3008();
+
+  // Start bit.
+  spi_rw(0x01);
+
+  // Send read address and get MSB, then LSB byte.
+  temp_h = spi_rw((0b1000 | channel) << 4) & 0b11;
+  temp_l = spi_rw(0);
+
+  spi_deselect_mcp3008();
+
+  return temp_h << 8 | temp_l;
+}
+
 static uint16_t temp_read_mcp3008(temp_sensor_t i) {
   switch (temp_sensors_runtime[i].active++) {
     case 1:
-      return temp_table_lookup(mcp3008_read(temp_sensors[i].temp_pin), i);
+      return temp_table_lookup(temp_mcp3008_read(temp_sensors[i].temp_pin), i);
     case 10:  // Idle for 100ms.
       temp_sensors_runtime[i].active = 0;
   }
