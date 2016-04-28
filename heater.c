@@ -429,7 +429,7 @@ int16_t pid_autotune(heater_t h, uint16_t current_temp, uint16_t target_temp) {
               sersendf_P(PSTR("max_temp: %u.%u\n"), heaters_runtime[h].max_temp >> 2, (heaters_runtime[h].max_temp & 0x3) * 25);
             }
             if (heaters_runtime[h].cycles > 2) {
-              uint16_t Ku = (heaters_runtime[h].d << 17) / (201 * ((heaters_runtime[h].max_temp - heaters_runtime[h].min_temp)));
+              uint16_t Ku = (uint16_t)(((uint32_t)heaters_runtime[h].d << 17) / (201 * ((heaters_runtime[h].max_temp - heaters_runtime[h].min_temp))));
               /** Ku is 9.7 fixpoint
                 Ku = (4 * d) / ( pi *(max_temp - min_temp))
                 4 = 1 << 2
