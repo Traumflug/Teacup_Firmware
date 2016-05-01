@@ -5,6 +5,16 @@
 
   Here we map generic calls to the display bus to calls to the actually used
   bus.
+
+  This is a slightly different #include strategy than the one used for display
+  and fonts. Instead of including a selected .c file and having the same
+  function names in each included .c file, we map functions with simple,
+  generic named inline funtions to get what we want. This allows to re-use
+  functions used elsewhere. For example SPI functions, which are used for SD
+  card reading and some temperature sensors, too.
+
+  The other approach, in turn, needs no mapping and can use variables, too,
+  but allows to use the functions in one place, only.
 */
 
 #ifndef _DISPLAYBUS_H
