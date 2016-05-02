@@ -23,6 +23,7 @@ volatile uint8_t displaybuf[BUFSIZE];
 
 #define TEACUP_C_INCLUDE
   #include "display_ssd1306.c"
+  #include "display_hd44780.c"
 #undef TEACUP_C_INCLUDE
 
 

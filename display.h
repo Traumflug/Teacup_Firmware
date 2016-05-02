@@ -23,6 +23,13 @@
 
     #define DISPLAY
 
+  #elif defined DISPLAY_TYPE_HD44780
+
+    #define DISPLAY_LINES               2
+    #define DISPLAY_SYMBOLS_PER_LINE    16
+
+    #define DISPLAY
+
   #elif defined DISPLAY_TYPE_LCD1302
 
     #error Display type LCD1302 not yet supported.
