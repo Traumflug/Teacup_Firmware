@@ -25,7 +25,7 @@ echo 0 > ${EXITFILE}
 for T in "board" "printer"; do
   # Test #1: are all #defines in the generic config in all the individual
   #          files?
-  awk -c '
+  awk '
     /^#define/ {
       print $2;
     }
@@ -44,7 +44,7 @@ for T in "board" "printer"; do
   # Test #2: the opposite, has the generic config all of the latest three
   #          individual configs?
   for F in $(ls -t ${T}.*.h | head -3); do
-    awk -c '
+    awk '
       /^\/\/DEFINE_HEATERS_START/, /^\/\/DEFINE_HEATERS_END/ {
         # This section is created on the fly, so not in the generic file.
         next;
