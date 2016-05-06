@@ -50,8 +50,8 @@
 
 #define X_STEP_PIN               DIO2
 #define X_DIR_PIN                DIO4
-//#define X_MIN_PIN                AIO2
-#define X_MAX_PIN                AIO2
+#define X_MIN_PIN                AIO2
+//#define X_MAX_PIN                AIO2
 #define X_ENABLE_PIN             AIO0
 //#define X_INVERT_DIR
 //#define X_INVERT_MIN
@@ -60,8 +60,8 @@
 
 #define Y_STEP_PIN               DIO5
 #define Y_DIR_PIN                DIO6
-//#define Y_MIN_PIN                AIO3
-#define Y_MAX_PIN                AIO3
+#define Y_MIN_PIN                AIO3
+//#define Y_MAX_PIN                AIO3
 #define Y_ENABLE_PIN             AIO0
 //#define Y_INVERT_DIR
 //#define Y_INVERT_MIN
