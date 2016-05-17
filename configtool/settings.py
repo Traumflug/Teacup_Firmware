@@ -12,13 +12,14 @@ CFLAGS = 1
 LDFLAGS = 2
 OBJCOPYFLAGS= 3
 PROGRAMMER = 4
-PORT = 5
-UPLOADSPEED = 6
-NUMTEMPS = 7
-MINADC = 8
-MAXADC = 9
-T0 = 10
-R1 = 11
+PROGRAMFLAGS = 5
+PORT = 6
+UPLOADSPEED = 7
+NUMTEMPS = 8
+MINADC = 9
+MAXADC = 10
+T0 = 11
+R1 = 12
 
 
 class Settings:
@@ -33,6 +34,7 @@ class Settings:
     self.ldflags = ""
     self.objcopyflags = ""
     self.programmer = "wiring"
+    self.programflags = ""
     self.port = "/dev/ttyACM0"
     self.uploadspeed = 38400
 
@@ -66,6 +68,8 @@ class Settings:
           self.port = value
         elif opt == "objcopyflags":
           self.objcopyflags = value
+        elif opt == "programflags":
+          self.programflags = value
         elif opt == "t0":
           self.t0 = value
         elif opt == "r1":
@@ -95,6 +99,7 @@ class Settings:
     self.cfg.set(self.section, "ldflags", str(self.ldflags))
     self.cfg.set(self.section, "objcopyflags", str(self.objcopyflags))
     self.cfg.set(self.section, "programmer", str(self.programmer))
+    self.cfg.set(self.section, "programflags", str(self.programflags))
     self.cfg.set(self.section, "port", str(self.port))
     self.cfg.set(self.section, "t0", str(self.t0))
     self.cfg.set(self.section, "r1", str(self.r1))
@@ -139,6 +144,7 @@ class SettingsDlg(wx.Dialog):
     htLDFlags = "Flags passed to avr-gcc to be passed on to the linker."
     htObjCopy = "Flags passed to avr-objcopy."
     htProgrammer = "The programmer type - passed to avrdude."
+    htProgramFlags = "Extra flags passed to avrdude."
     htPort = "The port to which the controller is connected. Typically a " \
              "path starting with /dev/... on Linux or Mac OS X, or some " \
              "COM... on Windows."
@@ -159,6 +165,7 @@ class SettingsDlg(wx.Dialog):
                    ["LD Flags", settings.ldflags, htLDFlags],
                    ["Object Copy Flags", settings.objcopyflags, htObjCopy],
                    ["AVR Programmer", settings.programmer, htProgrammer],
+                   ["AVR Upload Flags", settings.programflags, htProgramFlags],
                    ["Port", settings.port, htPort],
                    ["Upload Speed", settings.uploadspeed, htSpeed],
                    ["Number of Temps", settings.numTemps, htNumTemps],
@@ -244,6 +251,7 @@ class SettingsDlg(wx.Dialog):
     self.settings.ldflags = self.teList[LDFLAGS].GetValue()
     self.settings.objcopyflags = self.teList[OBJCOPYFLAGS].GetValue()
     self.settings.programmer = self.teList[PROGRAMMER].GetValue()
+    self.settings.programflags = self.teList[PROGRAMFLAGS].GetValue()
     self.settings.port = self.teList[PORT].GetValue()
     self.settings.uploadspeed = self.teList[UPLOADSPEED].GetValue()
     self.settings.numTemps = self.teList[NUMTEMPS].GetValue()
