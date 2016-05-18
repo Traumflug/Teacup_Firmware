@@ -73,16 +73,14 @@
     #include "arduino_lpc1114.h"
   #endif
 
-#elif defined SIMULATOR
-
-  #include "simulator.h"
-
 #endif /* __AVR__, __ARMEL__, SIMULATOR */
 
-#if ! defined DIO0_PIN && ! defined PIO0_1_PIN
-  #error Pins for this chip not defined in arduino.h! If you write an \
-         appropriate pin definition and have this firmware work on your chip, \
-         please tell us via Github or the forum thread.
+#ifndef SIMULATOR
+  #if ! defined DIO0_PIN && ! defined PIO0_1_PIN
+    #error Pins for this chip not defined in arduino.h! If you write an \
+           appropriate pin definition and have this firmware work on your chip, \
+           please tell us via Github or the forum thread.
+  #endif
 #endif
 
 #ifndef BSS

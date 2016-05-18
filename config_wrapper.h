@@ -19,6 +19,8 @@
 
 #include USER_CONFIG
 
+#include "simulator.h"
+
 /**
   Give users a hint in case they obviously forgot to read instructions.
 */

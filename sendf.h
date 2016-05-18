@@ -2,7 +2,7 @@
 #ifndef _SENDF_H
 #define _SENDF_H
 
-#include "arduino.h"
+#include "config_wrapper.h"
 
 
 // No __attribute__ ((format (printf, 1, 2)) here because %q isn't supported.

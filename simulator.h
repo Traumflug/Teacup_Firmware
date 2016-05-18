@@ -1,30 +1,5 @@
 #ifdef SIMULATOR
 
-#undef X_STEP_PIN
-#undef X_DIR_PIN
-#undef X_MIN_PIN
-#undef X_ENABLE_PIN
-#undef Y_STEP_PIN
-#undef Y_DIR_PIN
-#undef Y_MIN_PIN
-#undef Y_ENABLE_PIN
-#undef Z_STEP_PIN
-#undef Z_DIR_PIN
-#undef Z_MIN_PIN
-#undef Z_ENABLE_PIN
-#undef E_STEP_PIN
-#undef E_DIR_PIN
-#undef E_ENABLE_PIN
-#undef STEPPER_ENABLE_PIN
-
-#undef PS_MOSFET_PIN
-#undef PS_ON_PIN
-#undef RX_ENABLE_PIN
-#undef TX_ENABLE_PIN
-#undef X_MAX_PIN
-#undef Y_MAX_PIN
-#undef Z_MAX_PIN
-
 // Compiler appeasement
 #undef disable_transmit
 #undef enable_transmit
@@ -56,6 +31,42 @@
 #define eeprom_write_dword(ptr32, i32) (*(ptr32)=i32)
 #define eeprom_write_word(ptr16, i16) (*(ptr16)=i16)
 
+
+/**
+  The following enum gives numeric values to each of the pin names which would
+  normally be defined in the chip-specific include file.  All of the pins
+  Teacup uses are listed here even though not all of them may be defined in the
+  config.
+
+  Let's consider the X_MIN_PIN as an example.  When the following code says
+
+    enum { ... X_MIN_PIN, ...}
+
+  it means one of these two different things:
+
+  1. X_MIN_PIN is defined in the board config file. For example,
+
+       #define    X_MIN_PIN     DIO7
+
+     In this case the C pre-processor will replace X_MIN_PIN below with DIO7,
+     and DIO7 will be enumerated (given a numeric value) as 2.
+
+  2. X_MIN_PIN is not defined in the board config file, which Teacup interprets
+     as the printer not having an X-min endstop. In this case X_MIN_PIN will
+     be enumerated (given a numeric value) as 2.
+
+  Importantly the C preprocessor interpret "defined(X_MIN_PIN)" the same even
+  with this enum in place. So in the first case, defined(X_MIN_PIN) is true;
+  in the second case, it is not (even though we have enumerated it a value).
+
+  The simulator uses this trick to provide stand-in values for all the pins the
+  config does or does not define, but the conditionally compiled code will
+  react consistently between the simulated or the real controller compilation
+  targets.
+
+  Additionally, this trick ensures each pin has a known value when it is used.
+  For example, X_MIN_PIN will always be '2' in the simulator when it is used.
+*/
 typedef enum {
   // Define pins used
   X_STEP_PIN,
@@ -76,6 +87,12 @@ typedef enum {
 
   STEPPER_ENABLE_PIN,
 
+  X_MAX_PIN,
+  Y_MAX_PIN,
+  Z_MAX_PIN,
+  PS_ON_PIN,
+  PS_MOSFET_PIN,
+
   SCK,
   MOSI,
   MISO,
@@ -83,14 +100,7 @@ typedef enum {
 
   RX_ENABLE_PIN,
   TX_ENABLE_PIN,
-/*
- * Not used in the simulator.  Add them to this list to enable them if needed.
-  PS_MOSFET_PIN,
-  PS_ON_PIN,
-  X_MAX_PIN,
-  Y_MAX_PIN,
-  Z_MAX_PIN,
-*/
+
   PIN_NB  /* End of PINS marker; Put all new pins before this one */
 } pin_t;
 

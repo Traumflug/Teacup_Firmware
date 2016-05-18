@@ -6,7 +6,7 @@
 
 // If no time scale specified, use 1/10th real-time for simulator
 #define DEFAULT_TIME_SCALE 10
-
+#include "config_wrapper.h"
 #include "simulator.h"
 #include "data_recorder.h"
 
@@ -157,6 +157,13 @@ void sim_start(int argc, char** argv) {
   NAME_PIN(E_ENABLE_PIN);
 
   NAME_PIN(STEPPER_ENABLE_PIN);
+
+  // Rarely used; uncomment here if you want to see them in the datalog.
+  //NAME_PIN(X_MAX_PIN);
+  //NAME_PIN(Y_MAX_PIN);
+  //NAME_PIN(Z_MAX_PIN);
+  //NAME_PIN(PS_ON_PIN);
+  //NAME_PIN(PS_MOSFET_PIN);
 }
 
 /* -- debugging ------------------------------------------------------------ */
