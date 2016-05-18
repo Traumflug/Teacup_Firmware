@@ -39,6 +39,7 @@ void display_init(void);
 void display_tick(void);
 void display_clear(void);
 
+void display_greeting(void);
 void display_clock(void);
 void display_set_cursor(uint8_t line, uint8_t column);
 void display_writechar(uint8_t data);

@@ -53,8 +53,6 @@
       logo, like "Welcome to Teacup" as a greeting screen, like writing numbers
       to readable places and so on.
 
-    - Get rid of i2c_test.c.
-
     - Allow different fonts. Already paraphrased in font.h and font.c. Needs
       a selection menu in Configtool, of course, the same way one can select
       display types.
@@ -84,6 +82,7 @@
 #include "displaybus.h"
 #include "font.h"
 #include "sendf.h"
+#include "delay.h"
 #include "dda.h"
 
 
@@ -174,6 +173,30 @@ void display_set_cursor(uint8_t line, uint8_t column) {
   // Set column.
   displaybus_write(0x00 | (column & 0x0F), 0);
   displaybus_write(0x10 | ((column >> 4) & 0x0F), 1);
+}
+
+/**
+  Show a nice greeting. Pure eye candy.
+*/
+void display_greeting(void) {
+
+  display_clear();
+
+  /**
+    "Welcome to Teacup" is 64 pixel columns wide, entire display is
+    128 columns, so we offset by 32 columns to get it to the center.
+  */
+  display_set_cursor(1, 32);
+
+  display_writestr_P(PSTR("Welcome to Teacup"));
+
+  // Forward this to the display immediately.
+  while (buf_canread(display)) {
+    display_tick();
+  }
+
+  // Allow the user to worship our work for a moment :-)
+  delay_ms(5000);
 }
 
 /**

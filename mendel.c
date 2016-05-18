@@ -30,13 +30,6 @@
 #endif
 
 #include	"config_wrapper.h"
-#ifdef I2C
-  // This is temporary, until display code is completed.
-  // It includes static i2c_test(), which is called in init():
-  #define I2C_TEST
-  #include "i2c_test.c"
-  #undef I2C_TEST
-#endif
 #include "cpu.h"
 #include	"serial.h"
 #include	"dda_queue.h"
@@ -125,8 +118,7 @@ void init(void) {
 
   #ifdef DISPLAY
     display_init();
-    display_clear();
-    i2c_test();
+    display_greeting();
   #endif
 
 	// say hi to host
