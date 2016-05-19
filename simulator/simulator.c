@@ -304,7 +304,7 @@ void cli(void) {
 #define in  false
 
 enum { X_AXIS, Y_AXIS, Z_AXIS, E_AXIS , AXIS_MAX , AXIS_NONE };
-static int pos[AXIS_MAX];            ///< Current position in steps
+static int pos[AXIS_MAX];            ///< Current position in 2 * steps
 
 static bool direction[PIN_NB];
 static bool state[PIN_NB];
@@ -314,7 +314,7 @@ static void print_pos(void) {
   int i;
   if (trace_pos) {
     for ( i = X_AXIS ; i < AXIS_MAX ; i++ ) {
-      sim_info_cont("%c:%5d   ", axis[i], pos[i]);
+      sim_info_cont("%c:%5d   ", axis[i], pos[i] / 2);
     }
     if (verbose > 1)
       clearline();
@@ -395,9 +395,29 @@ void _WRITE(pin_t pin, bool s) {
     default:
       break;
     }
+    switch ( axis ) {
+      #ifdef KINEMATICS_COREXY
+        case X_AXIS:
+          pos[X_AXIS] += dir;
+          pos[Y_AXIS] += dir;
+          break;
+        case Y_AXIS:
+          pos[X_AXIS] += dir;
+          pos[Y_AXIS] -= dir;
+          break;
+      #endif
+      case Z_AXIS:
+      case E_AXIS:
+      default:
+        pos[axis] += 2 * dir;
+        break;
+      case AXIS_NONE:
+        break;
+    }
     if ( axis != AXIS_NONE ) {
-      pos[axis] += dir;
-      record_pin(TRACE_POS + axis, pos[axis], nseconds);
+      for (int a = X_AXIS; a <= E_AXIS; a++)
+        record_pin(TRACE_POS + axis, pos[axis] / 2, nseconds);
+
       print_pos();
 
       for (int a = X_AXIS; a < E_AXIS; a++)
@@ -413,7 +433,7 @@ static void sim_endstop( int axis ) {
   bool on ;
 
   if (axis == AXIS_NONE)        return;
-  else if (pos[axis] <= -10)    on = true;
+  else if (pos[axis] <= -20)    on = true;
   else if (pos[axis] >= 0)      on = false;
   else                          return ;
 
