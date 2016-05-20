@@ -760,6 +760,7 @@ void dda_clock() {
   uint8_t endstop_trigger = 0;
   #ifdef ACCELERATION_RAMPING
   uint32_t move_step_no, move_c;
+  int32_t move_n;
   uint8_t recalc_speed;
   #endif
 
@@ -874,29 +875,29 @@ void dda_clock() {
     recalc_speed = 0;
     if (move_step_no < dda->rampup_steps) {
       #ifdef LOOKAHEAD
-        dda->n = dda->start_steps + move_step_no;
+        move_n = dda->start_steps + move_step_no;
       #else
-        dda->n = move_step_no;
+        move_n = move_step_no;
       #endif
       recalc_speed = 1;
     }
     else if (move_step_no >= dda->rampdown_steps) {
       #ifdef LOOKAHEAD
-        dda->n = dda->total_steps - move_step_no + dda->end_steps;
+        move_n = dda->total_steps - move_step_no + dda->end_steps;
       #else
-        dda->n = dda->total_steps - move_step_no;
+        move_n = dda->total_steps - move_step_no;
       #endif
       recalc_speed = 1;
     }
     if (recalc_speed) {
-      if (dda->n == 0)
+      if (move_n == 0)
         move_c = pgm_read_dword(&c0_P[dda->fast_axis]);
       else
         // Explicit formula: c0 * (sqrt(n + 1) - sqrt(n)),
         // approximation here: c0 * (1 / (2 * sqrt(n))).
         // This >> 13 looks odd, but is verified with the explicit formula.
         move_c = (pgm_read_dword(&c0_P[dda->fast_axis]) *
-                  int_inv_sqrt(dda->n)) >> 13;
+                  int_inv_sqrt(move_n)) >> 13;
 
       // TODO: most likely this whole check is obsolete. It was left as a
       //       safety margin, only. Rampup steps calculation should be accurate
@@ -918,6 +919,7 @@ void dda_clock() {
       // Write results.
       ATOMIC_START
         dda->c = move_c;
+        dda->n = move_n;
       ATOMIC_END
     }
   #endif
