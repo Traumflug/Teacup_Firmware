@@ -763,6 +763,7 @@ void dda_clock() {
   int32_t move_n;
   uint8_t recalc_speed;
   #endif
+  uint8_t current_id ;
 
   dda = queue_current_movement();
   if (dda != last_dda) {
@@ -867,6 +868,7 @@ void dda_clock() {
     // http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
     // and http://www.atmel.com/images/doc8017.pdf (Atmel app note AVR446)
     ATOMIC_START
+      current_id = dda->id;
       move_step_no = move_state.step_no;
       // All other variables are read-only or unused in dda_step(),
       // so no need for atomic operations.
@@ -918,8 +920,18 @@ void dda_clock() {
 
       // Write results.
       ATOMIC_START
-        dda->c = move_c;
-        dda->n = move_n;
+        /**
+          Apply new n & c values only if dda didn't change underneath us. It
+          is possible for dda to be modified since fetching values in the
+          ATOMIC above, e.g. when a new dda becomes live.
+
+          In case such a change happened, values in the new dda are more
+          recent than our calculation here, anyways.
+        */
+        if (current_id == dda->id) {
+          dda->c = move_c;
+          dda->n = move_n;
+        }
       ATOMIC_END
     }
   #endif
