@@ -205,9 +205,11 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO14, THERMISTOR_BED)
 */
 //#define HEATER_PIN DIO4
 //#define HEATER_PIN DIO5
+//#define HEATER_PIN DIO6
 //#define HEATER_PIN DIO8
 //#define HEATER_PIN DIO9
 //#define HEATER_PIN DIO10
+//#define HEATER_PIN DIO11
 
 /** \def DEFINE_HEATER
   Define your heaters and devices here.
