@@ -12,6 +12,7 @@
 #include "delay.h"
 #include "sendf.h"
 #include "dda.h"
+#include "temp.h"
 
 
 /**
@@ -54,7 +55,7 @@ void display_greeting(void) {
   Regular update of the display. Typically called once a second from clock.c.
 */
 void display_clock(void) {
-  static uint8_t pos = 0;
+  uint16_t temperature;
 
   display_clear();
 
@@ -62,16 +63,18 @@ void display_clock(void) {
   sendf_P(display_writechar, PSTR("X:%lq Y:%lq"),
           current_position.axis[X], current_position.axis[Y]);
 
-  /**
-    This is a tiny demo showing how cursor positioning works. The
-    four-character text should move along the second display line.
-  */
-  display_set_cursor(1, pos);
-  display_writestr_P(PSTR("ick!"));
-  pos++;
-  if (pos >= DISPLAY_SYMBOLS_PER_LINE) {
-    pos = 0;
-  }
+  #ifdef HEATER_EXTRUDER
+    display_set_cursor(1, 0);
+    temperature = temp_get(TEMP_SENSOR_extruder);
+    sendf_P(display_writechar, PSTR("%u.%su"),
+            temperature >> 2, (uint8_t)(temperature & 3) * 25);
+  #endif
+  #ifdef HEATER_BED
+    display_set_cursor(1, DISPLAY_SYMBOLS_PER_LINE / 2);
+    temperature = temp_get(TEMP_SENSOR_bed);
+    sendf_P(display_writechar, PSTR("%u.%su"),
+            temperature >> 2, (uint8_t)(temperature & 3) * 25);
+  #endif
 }
 
 /**
