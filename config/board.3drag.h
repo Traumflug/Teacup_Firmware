@@ -296,7 +296,7 @@ DEFINE_HEATER(fan,      DIO8,    0,      1)
 //#define DISPLAY_BUS_I2C
 //#define DISPLAY_BUS_SPI
 
-/** \def DISPLAY_TYPE_SSD1306 DISPLAY_TYPE_LCD1302
+/** \def DISPLAY_TYPE_SSD1306 DISPLAY_TYPE_HD44780
 
   The type of display in use. There can be only one choice. Taken into account
   only if one of DISPLAY_BUS_xxx is defined.
@@ -305,4 +305,4 @@ DEFINE_HEATER(fan,      DIO8,    0,      1)
   display, comment out all of DISPLAY_BUS_xxx.
 */
 //#define DISPLAY_TYPE_SSD1306
-//#define DISPLAY_TYPE_LCD1302
+//#define DISPLAY_TYPE_HD44780

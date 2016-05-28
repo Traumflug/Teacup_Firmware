@@ -30,9 +30,9 @@
 
     #define DISPLAY
 
-  #elif defined DISPLAY_TYPE_LCD1302
+  #else
 
-    #error Display type LCD1302 not yet supported.
+    #error Display type not yet supported.
 
   #endif /* DISPLAY_TYPE_... */
 

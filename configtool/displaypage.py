@@ -17,8 +17,8 @@ class DisplayPage(wx.Panel, Page):
                    'DISPLAY_BUS_8BIT': "Direct with 8 pins",
                    'DISPLAY_BUS_I2C': "I²C ( = TWI)",
                    'DISPLAY_BUS_SPI': "SPI",
-                   'DISPLAY_TYPE_SSD1306': "SSD1306 O-LED, 128x32",
-                   'DISPLAY_TYPE_LCD1302': "LCD 1302"}
+                   'DISPLAY_TYPE_SSD1306': "SSD1306 O-LED, 128x32 pixels",
+                   'DISPLAY_TYPE_HD44780': "HD44780 or 1602A, 16x2 characters"}
 
     sz = wx.GridBagSizer()
     sz.AddSpacer((20, 40), pos = (0, 0))
@@ -29,7 +29,7 @@ class DisplayPage(wx.Panel, Page):
     sz.AddSpacer((100, 10), pos = (1, 2))
 
     ch = self.addBoolChoice('DISPLAY_TYPE', False, 100, self.onChoice,
-                            size = (200, -1))
+                            size = (240, -1))
     sz.Add(ch, pos = (1, 3))
 
     self.SetSizer(sz)
