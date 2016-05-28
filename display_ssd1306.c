@@ -35,19 +35,7 @@
 
   TODO list:
 
-    - Procedures like display_clear() and display_set_cursor() should be queued
-      up, too. Just like characters. Fonts start at 0x20, so 0x00..0x1F are
-      available for command sequences. For example, setting the cursor could
-      queue up 0x04 0x01 0x20 (3 bytes) to set the cursor to line 1, column 32.
-      0x04 is the "command", bytes are queued up with display_writechar().
-
-      This is necessary to enforce characters and cursor commands to happen in
-      the right order. Currently, writing a few characters, moving the cursor
-      elsewhere and writing even more characters results in all characters
-      being written to the second position, because characters wait in the
-      queue, while cursor movements are executed immediately.
-
-      Code currently in display_set_cursor() would move to display_tick(), then.
+    - Move code in display_set_cursor() would to display_tick().
 
     - Lot's of prettification. Like a nice background picture with the Teacup
       logo, like "Welcome to Teacup" as a greeting screen, like writing numbers
@@ -127,28 +115,11 @@ void display_init(void) {
 }
 
 /**
-  Clear the screen. As this display supports many sophisticated commands,
-  but not a simple 'clear', we have to overwrite the entire memory with
-  zeros, byte by byte.
+  Queue up a clear screen command. Be careful, this is an expensive operation
+  on this display.
 */
 void display_clear(void) {
-  uint16_t i;
-
-  // Set horizontal adressing mode.
-  displaybus_write(0x00, 0);
-  displaybus_write(0x20, 0);
-  displaybus_write(0x00, 1);
-
-  // Write 512 zeros.
-  displaybus_write(0x40, 0);
-  for (i = 0; i < 512; i++) {
-    displaybus_write(0x00, (i == 511));
-  }
-
-  // Return to page adressing mode.
-  displaybus_write(0x00, 0);
-  displaybus_write(0x20, 0);
-  displaybus_write(0x02, 1);
+  display_writechar((uint8_t)low_code_clear);
 }
 
 /**
@@ -212,10 +183,11 @@ void display_clock(void) {
 }
 
 /**
-  Forwards a character from the display queue to the I2C queue.
+  Forwards a character or a control command from the display queue to the I2C
+  queue.
 */
 void display_tick() {
-  uint8_t i, data, index;
+  uint16_t i, data, index;
 
   if (displaybus_busy()) {
     return;
@@ -232,22 +204,50 @@ void display_tick() {
 
   if (buf_canread(display)) {
     buf_pop(display, data);
-    index = data - 0x20;
+    switch (data) {
+      case low_code_clear:
+        /**
+          Clear the screen. As this display supports many sophisticated
+          commands, but not a simple 'clear', we have to overwrite the entire
+          memory with zeros, byte by byte.
+        */
+        // Set horizontal adressing mode.
+        displaybus_write(0x00, 0);
+        displaybus_write(0x20, 0);
+        displaybus_write(0x00, 1);
 
-    // Write pixels command.
-    displaybus_write(0x40, 0);
+        // Write 512 zeros.
+        displaybus_write(0x40, 0);
+        for (i = 0; i < 512; i++) {
+          displaybus_write(0x00, (i == 511));
+        }
 
-    // Send the character bitmap.
-    #ifdef FONT_IS_PROPORTIONAL
-      for (i = 0; i < pgm_read_byte(&font[index].columns); i++) {
-    #else
-      for (i = 0; i < FONT_COLUMNS; i++) {
-    #endif
-        displaybus_write(pgm_read_byte(&font[index].data[i]), 0);
-    }
-    // Send space between characters.
-    for (i = 0; i < FONT_SYMBOL_SPACE; i++) {
-      displaybus_write(0x00, (i == FONT_SYMBOL_SPACE - 1));
+        // Return to page adressing mode.
+        displaybus_write(0x00, 0);
+        displaybus_write(0x20, 0);
+        displaybus_write(0x02, 1);
+        break;
+
+      default:
+        // Should be a printable character.
+        index = data - 0x20;
+
+        // Write pixels command.
+        displaybus_write(0x40, 0);
+
+        // Send the character bitmap.
+        #ifdef FONT_IS_PROPORTIONAL
+          for (i = 0; i < pgm_read_byte(&font[index].columns); i++) {
+        #else
+          for (i = 0; i < FONT_COLUMNS; i++) {
+        #endif
+            displaybus_write(pgm_read_byte(&font[index].data[i]), 0);
+        }
+        // Send space between characters.
+        for (i = 0; i < FONT_SYMBOL_SPACE; i++) {
+          displaybus_write(0x00, (i == FONT_SYMBOL_SPACE - 1));
+        }
+        break;
     }
   }
 }

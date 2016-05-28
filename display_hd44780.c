@@ -7,19 +7,7 @@
 /**
   TODO list:
 
-    - Procedures like display_clear() and display_set_cursor() should be queued
-      up, too. Just like characters. Fonts start at 0x20, so 0x00..0x1F are
-      available for command sequences. For example, setting the cursor could
-      queue up 0x04 0x01 0x20 (3 bytes) to set the cursor to line 1, column 32.
-      0x04 is the "command", bytes are queued up with display_writechar().
-
-      This is necessary to enforce characters and cursor commands to happen in
-      the right order. Currently, writing a few characters, moving the cursor
-      elsewhere and writing even more characters results in all characters
-      being written to the second position, because characters wait in the
-      queue, while cursor movements are executed immediately.
-
-      Code currently in display_set_cursor() would move to display_tick(), then.
+    - Implement display_set_cursor().
 */
 
 #include "display.h"
@@ -50,10 +38,10 @@ void display_init(void) {
 }
 
 /**
-  Clear the screen. This display has a dedicated command for doing it.
+  Queue up a clear screen command. Cheap operation on this display.
 */
 void display_clear(void) {
-  displaybus_write(0x01, parallel_4bit_instruction);
+  display_writechar((uint8_t)low_code_clear);
 }
 
 /**
@@ -105,8 +93,8 @@ void display_clock(void) {
 }
 
 /**
-  Forwards a character from the display queue to display bus. As this is a
-  character based display it's easy.
+  Forwards a character or a control command from the display queue to display
+  bus. As this is a character based display it's easy.
 */
 void display_tick() {
   uint8_t data;
@@ -117,7 +105,16 @@ void display_tick() {
 
   if (buf_canread(display)) {
     buf_pop(display, data);
-    displaybus_write(data, parallel_4bit_data);
+    switch (data) {
+      case low_code_clear:
+        displaybus_write(0x01, parallel_4bit_instruction);
+        break;
+
+      default:
+        // Should be a printable character.
+        displaybus_write(data, parallel_4bit_data);
+        break;
+    }
   }
 }
 

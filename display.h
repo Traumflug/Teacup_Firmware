@@ -41,6 +41,22 @@
 
 #define DISPLAY_BUFFER_SIZE 128
 
+/**
+  Printable ASCII characters and our embedded fonts start at 0x20, so we can
+  use 0x00..0x1F for storing control commands in the character queue. That's
+  what genuine ASCII does, too, we just use our own code set.
+
+  Queueing up actions together with actual characters not only postpones
+  these actions to idle time, it's also necessary to keep them in the right
+  order. Without it, writing a few characters, moving the cursor elsewhere and
+  writing even more characters would result in all characters being written to
+  the second position, because characters would wait in the queue while cursor
+  movements were executed immediately.
+*/
+enum display_low_code {
+  low_code_clear = 0x01,
+  low_code_set_cursor
+};
 
 void display_init(void);
 void display_tick(void);
