@@ -38,6 +38,25 @@ void display_clear(void) {
 }
 
 /**
+  Sets the cursor to the given position.
+
+  \param line   The vertical cursor position to set, in lines. First line is
+                zero.
+
+  \param column The horizontal cursor position to set. In characters on
+                character based displays, in pixels on pixel based displays.
+                First column is zero.
+
+  Use this directly for debugging purposes, only. Regular display updates
+  happen in display_clock().
+*/
+void display_set_cursor(uint8_t line, uint8_t column) {
+  display_writechar((uint8_t)low_code_set_cursor);
+  display_writechar((uint8_t)line);
+  display_writechar((uint8_t)column);
+}
+
+/**
   Prints a character at the current cursor position.
 
   \param data The character to be displayed.

@@ -38,23 +38,6 @@ void display_init(void) {
 }
 
 /**
-  Sets the cursor to the given position.
-
-  \param line   The vertical cursor position to set, in lines. First line is
-                zero. Line height is character height, which is currently
-                fixed to 8 pixels.
-
-  \param column The horizontal cursor position to set, in pixels. First
-                column is zero.
-
-  Use this for debugging purposes, only. Regular display updates happen in
-  display_clock().
-*/
-void display_set_cursor(uint8_t line, uint8_t column) {
-  // Currently unimplemented.
-}
-
-/**
   Show a nice greeting. Pure eye candy.
 */
 void display_greeting(void) {

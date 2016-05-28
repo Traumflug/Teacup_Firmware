@@ -35,8 +35,6 @@
 
   TODO list:
 
-    - Move code in display_set_cursor() would to display_tick().
-
     - Lot's of prettification. Like a nice background picture with the Teacup
       logo, like "Welcome to Teacup" as a greeting screen, like writing numbers
       to readable places and so on.
@@ -112,30 +110,6 @@ void display_init(void) {
     // Send last byte with 'last_byte' set.
     displaybus_write(init_sequence[i], (i == sizeof(init_sequence) - 1));
   }
-}
-
-/**
-  Sets the cursor to the given position.
-
-  \param line   The vertical cursor position to set, in lines. First line is
-                zero. Line height is character height, which is currently
-                fixed to 8 pixels.
-
-  \param column The horizontal cursor position to set, in pixels. First
-                column is zero.
-
-  Use this for debugging purposes, only. Regular display updates happen in
-  display_clock().
-*/
-void display_set_cursor(uint8_t line, uint8_t column) {
-
-  // Enter command mode.
-  displaybus_write(0x00, 0);
-  // Set line.
-  displaybus_write(0xB0 | (line & 0x03), 0);
-  // Set column.
-  displaybus_write(0x00 | (column & 0x0F), 0);
-  displaybus_write(0x10 | ((column >> 4) & 0x0F), 1);
 }
 
 /**
@@ -218,6 +192,24 @@ void display_tick() {
         displaybus_write(0x00, 0);
         displaybus_write(0x20, 0);
         displaybus_write(0x02, 1);
+        break;
+
+      case low_code_set_cursor:
+        /**
+          Set the cursor to the given position.
+
+          This is a three-byte control command, so we fetch additional bytes
+          from the queue and cross fingers they're actually there.
+        */
+        // Enter command mode.
+        displaybus_write(0x00, 0);
+        // Set line.
+        buf_pop(display, data);
+        displaybus_write(0xB0 | (data & 0x03), 0);
+        // Set column.
+        buf_pop(display, data);
+        displaybus_write(0x00 | (data & 0x0F), 0);
+        displaybus_write(0x10 | ((data >> 4) & 0x0F), 1);
         break;
 
       default:
