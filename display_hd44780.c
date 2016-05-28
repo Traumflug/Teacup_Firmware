@@ -4,12 +4,6 @@
   \brief Code specific to the HD44780 display.
 */
 
-/**
-  TODO list:
-
-    - Implement display_set_cursor().
-*/
-
 #include "display.h"
 
 #if defined TEACUP_C_INCLUDE && defined DISPLAY_TYPE_HD44780
@@ -60,12 +54,24 @@ void display_greeting(void) {
   Regular update of the display. Typically called once a second from clock.c.
 */
 void display_clock(void) {
+  static uint8_t pos = 0;
 
   display_clear();
 
   update_current_position();
   sendf_P(display_writechar, PSTR("X:%lq Y:%lq"),
           current_position.axis[X], current_position.axis[Y]);
+
+  /**
+    This is a tiny demo showing how cursor positioning works. The
+    four-character text should move along the second display line.
+  */
+  display_set_cursor(1, pos);
+  display_writestr_P(PSTR("ick!"));
+  pos++;
+  if (pos >= DISPLAY_SYMBOLS_PER_LINE) {
+    pos = 0;
+  }
 }
 
 /**
@@ -73,7 +79,7 @@ void display_clock(void) {
   bus. As this is a character based display it's easy.
 */
 void display_tick() {
-  uint8_t data;
+  uint8_t data, command;
 
   if (displaybus_busy()) {
     return;
@@ -84,6 +90,33 @@ void display_tick() {
     switch (data) {
       case low_code_clear:
         displaybus_write(0x01, parallel_4bit_instruction);
+        break;
+
+      case low_code_set_cursor:
+        /**
+          Set the cursor to the given position.
+
+          This is a three-byte control command, so we fetch additional bytes
+          from the queue and cross fingers they're actually there.
+        */
+        command = 0x80;    // "Set DDRAM Address" base command.
+
+        /**
+          Add address of line.
+
+          As we have two lines only, this can be "calculated" without
+          a multiplication.
+        */
+        buf_pop(display, data);
+        if (data) {
+          command += 0x40;
+        }
+
+        // Add column address.
+        buf_pop(display, data);
+        command += data;
+
+        displaybus_write(command, parallel_4bit_instruction);
         break;
 
       default:
