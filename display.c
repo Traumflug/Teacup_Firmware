@@ -30,6 +30,14 @@ volatile uint8_t displaybuf[BUFSIZE];
 #include "delay.h"
 
 /**
+  Queue up a clear screen command. Very cheap operation on some displays, like
+  the HD44780, rather expensive on others, like the SSD1306.
+*/
+void display_clear(void) {
+  display_writechar((uint8_t)low_code_clear);
+}
+
+/**
   Prints a character at the current cursor position.
 
   \param data The character to be displayed.

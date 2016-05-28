@@ -115,14 +115,6 @@ void display_init(void) {
 }
 
 /**
-  Queue up a clear screen command. Be careful, this is an expensive operation
-  on this display.
-*/
-void display_clear(void) {
-  display_writechar((uint8_t)low_code_clear);
-}
-
-/**
   Sets the cursor to the given position.
 
   \param line   The vertical cursor position to set, in lines. First line is
