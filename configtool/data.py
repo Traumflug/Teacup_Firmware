@@ -7,8 +7,14 @@ supportedCPUs = ['ATmega168', 'ATmega328P', 'ATmega644', 'ATmega644P',
                  'ATmega644PA', 'ATmega1280', 'ATmega1284', 'ATmega1284P',
                  'ATmega2560', 'AT90USB1286']
 
-pinNames = ["AIO%d" % x for x in range(16)] + ["DIO%d" % x for x in range(64)]
-pinNamesWithBlank = ["-"] + pinNames
+# Note: this is a kludge and works for ATmegas, only. Smaller ATmegas have a
+#       lot fewer pins, so this list provides a lot of clutter for them. ARMs
+#       have entirely different names. The right way would be to fetch pin
+#       names from the compiler environment and/or header files.
+pinNames = ["AIO%d" % x for x in range(16)] + \
+           ["DIO%d" % x for x in range(64)] + \
+           ["P%c%d" % (c, x) for c in range(ord('A'), ord('L') + 1) \
+                             for x in range(8)]
 
 sensorTypes = {'MAX6675': "TT_MAX6675", 'Thermistor': "TT_THERMISTOR",
                'AD595': "TT_AD595", 'PT100': "TT_PT100",
