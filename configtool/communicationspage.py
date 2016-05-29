@@ -47,8 +47,6 @@ class CommunicationsPage(wx.Panel, Page):
 
     k = 'BAUD'
     self.setChoice(k, cfgValues, self.defaultBaud)
-    if k in cfgValues.keys():
-      self.choicesOriginal[k] = cfgValues[k]
 
     if self.checkBoxes['USB_SERIAL'].IsChecked():
       self.checkBoxes['XONXOFF'].Enable(False)

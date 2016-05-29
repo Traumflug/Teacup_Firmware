@@ -178,16 +178,6 @@ class PinoutsPage(wx.Panel, Page):
     self.assertModified(True)
     evt.Skip()
 
-  def insertValues(self, cfgValues):
-    Page.insertValues(self, cfgValues)
-
-    for k in self.choices.keys():
-      if k in cfgValues.keys():
-        self.choicesOriginal[k] = cfgValues[k]
-        self.setChoice(k, cfgValues, "-")
-      else:
-        print "Key " + k + " not found in config data."
-
   def getValues(self):
     result = Page.getValues(self)
 

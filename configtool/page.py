@@ -260,6 +260,13 @@ class Page:
       else:
         print "Key " + k + " not found in config data."
 
+    for k in self.choices.keys():
+      if k in cfgValues.keys():
+        self.choicesOriginal[k] = cfgValues[k]
+        self.setChoice(k, cfgValues, "-")
+      else:
+        print "Key " + k + " not found in config data."
+
     for k in self.boolChoices.keys():
       choice = self.boolChoices[k]
 

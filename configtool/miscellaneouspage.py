@@ -238,13 +238,6 @@ class MiscellaneousPage(wx.Panel, Page):
       v = 0
     self.choices[k].SetSelection(v)
 
-  def insertValues(self, cfgValues):
-    Page.insertValues(self, cfgValues)
-
-    for k in self.choices.keys():
-      if k in cfgValues.keys():
-        self.choicesOriginal[k] = cfgValues[k]
-
   def getValues(self):
     result = Page.getValues(self)
 
