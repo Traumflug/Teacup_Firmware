@@ -3,6 +3,8 @@
 
 import wx
 from configtool.page import Page
+from configtool.data import pinNames
+
 
 class DisplayPage(wx.Panel, Page):
   def __init__(self, parent, nb, idPg, font):
@@ -18,7 +20,14 @@ class DisplayPage(wx.Panel, Page):
                    'DISPLAY_BUS_I2C': "I²C ( = TWI)",
                    'DISPLAY_BUS_SPI': "SPI",
                    'DISPLAY_TYPE_SSD1306': "SSD1306 O-LED, 128x32 pixels",
-                   'DISPLAY_TYPE_HD44780': "HD44780 or 1602A, 16x2 characters"}
+                   'DISPLAY_TYPE_HD44780': "HD44780 or 1602A, 16x2 characters",
+                   'DISPLAY_RS_PIN': "RS pin",
+                   'DISPLAY_RW_PIN': "R/W pin",
+                   'DISPLAY_E_PIN': "E pin",
+                   'DISPLAY_D4_PIN': "D4 pin",
+                   'DISPLAY_D5_PIN': "D5 pin",
+                   'DISPLAY_D6_PIN': "D6 pin",
+                   'DISPLAY_D7_PIN': "D7 pin"}
 
     sz = wx.GridBagSizer()
     sz.AddSpacer((20, 40), pos = (0, 0))
@@ -31,6 +40,19 @@ class DisplayPage(wx.Panel, Page):
     ch = self.addBoolChoice('DISPLAY_TYPE', False, 100, self.onChoice,
                             size = (240, -1))
     sz.Add(ch, pos = (1, 3))
+
+    b = wx.StaticBox(self, wx.ID_ANY, "Direct 4-bit Bus Pins:")
+    b.SetFont(font)
+    sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
+    sbox.AddSpacer((5, 5))
+    for k in ('DISPLAY_RS_PIN', 'DISPLAY_RW_PIN', 'DISPLAY_E_PIN',
+              'DISPLAY_D4_PIN', 'DISPLAY_D5_PIN', 'DISPLAY_D6_PIN',
+              'DISPLAY_D7_PIN'):
+      tc = self.addPinChoice(k, "", pinNames, True, 200)
+      sbox.Add(tc)
+      sbox.AddSpacer((5, 5))
+
+    sz.Add(sbox, pos = (3, 1))
 
     self.SetSizer(sz)
     self.enableAll(False)

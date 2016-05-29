@@ -296,6 +296,20 @@ DEFINE_HEATER(bed,      DIO4,    0,      1)
 //#define DISPLAY_BUS_I2C
 //#define DISPLAY_BUS_SPI
 
+/** \def DISPLAY_RS_PIN DISPLAY_RW_PIN DISPLAY_E_PIN
+    \def DISPLAY_D4_PIN DISPLAY_D5_PIN DISPLAY_D6_PIN DISPLAY_D7_PIN
+
+  Pins necessary for the 4-bit parallel display bus. Taken into account with
+  DISPLAY_BUS_4BIT defined, only.
+*/
+//#define DISPLAY_RS_PIN           xxxx
+//#define DISPLAY_RW_PIN           xxxx
+//#define DISPLAY_E_PIN            xxxx
+//#define DISPLAY_D4_PIN           xxxx
+//#define DISPLAY_D5_PIN           xxxx
+//#define DISPLAY_D6_PIN           xxxx
+//#define DISPLAY_D7_PIN           xxxx
+
 /** \def DISPLAY_TYPE_SSD1306 DISPLAY_TYPE_HD44780
 
   The type of display in use. There can be only one choice. Taken into account
