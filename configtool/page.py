@@ -316,7 +316,14 @@ class Page:
 
     for k in self.choices.keys():
       v = self.choices[k].GetSelection()
-      result[k] = self.choices[k].GetString(v), True
+      s = self.choices[k].GetString(v)
+      if s == "-":
+        if k in self.choicesOriginal.keys():
+          result[k] = self.choicesOriginal[k][0], False
+        else:
+          result[k] = "", False
+      else:
+        result[k] = s, True
 
     for k in self.boolChoices.keys():
       choice = self.boolChoices[k]

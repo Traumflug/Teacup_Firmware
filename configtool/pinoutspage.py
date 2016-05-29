@@ -177,15 +177,3 @@ class PinoutsPage(wx.Panel, Page):
   def onChoice(self, evt):
     self.assertModified(True)
     evt.Skip()
-
-  def getValues(self):
-    result = Page.getValues(self)
-
-    for k in self.choices.keys():
-      if result[k][0] == "-":
-        if k in self.choicesOriginal.keys():
-          result[k] = self.choicesOriginal[k][0], False
-        else:
-          result[k] = "", False
-
-    return result

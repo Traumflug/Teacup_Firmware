@@ -194,11 +194,4 @@ class SensorsPage(wx.Panel, Page):
     for v in values.keys():
       result[v] = values[v]
 
-    for k in self.choices.keys():
-      if result[k][0] == "-":
-        if k in self.choicesOriginal.keys():
-          result[k] = self.choicesOriginal[k][0], False
-        else:
-          result[k] = "", False
-
     return result
