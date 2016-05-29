@@ -43,16 +43,15 @@ class DisplayPage(wx.Panel, Page):
 
     b = wx.StaticBox(self, wx.ID_ANY, "Direct 4-bit Bus Pins:")
     b.SetFont(font)
-    sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    self.pinbox = wx.StaticBoxSizer(b, wx.VERTICAL)
+    self.pinbox.AddSpacer((5, 5))
     for k in ('DISPLAY_RS_PIN', 'DISPLAY_RW_PIN', 'DISPLAY_E_PIN',
               'DISPLAY_D4_PIN', 'DISPLAY_D5_PIN', 'DISPLAY_D6_PIN',
               'DISPLAY_D7_PIN'):
       tc = self.addPinChoice(k, "", pinNames, True, 200)
-      sbox.Add(tc)
-      sbox.AddSpacer((5, 5))
-
-    sz.Add(sbox, pos = (3, 1))
+      self.pinbox.Add(tc)
+      self.pinbox.AddSpacer((5, 5))
+    sz.Add(self.pinbox, pos = (3, 1))
 
     self.SetSizer(sz)
     self.enableAll(False)
@@ -63,5 +62,21 @@ class DisplayPage(wx.Panel, Page):
       self.boolChoices['DISPLAY_TYPE'].Enable(True)
     else:
       self.boolChoices['DISPLAY_TYPE'].Enable(False)
+    self.adjustPinVisibility()
 
     Page.onChoice(self, evt)
+
+  def adjustPinVisibility(self):
+    visible = False
+
+    choice = self.boolChoices['DISPLAY_BUS']
+    if choice.GetSelection() >= 0:
+      selection = choice.GetClientData(choice.GetSelection())
+      if selection == 'DISPLAY_BUS_4BIT':
+        visible = True
+
+    self.pinbox.ShowItems(visible)
+
+  def insertValues(self, cfgValues):
+    Page.insertValues(self, cfgValues)
+    self.adjustPinVisibility()
