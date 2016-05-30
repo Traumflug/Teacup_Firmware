@@ -238,6 +238,12 @@ class Page:
       if k in ht.keys():
         self.choices[k].SetToolTipString(ht[k])
 
+    for k in self.boolChoices.keys():
+      for candidate in ht.keys():
+        if candidate.startswith(k):
+          self.boolChoices[k].SetToolTipString(ht[candidate])
+          break
+
   def insertValues(self, cfgValues):
     self.assertValid(True)
     self.enableAll(True)
