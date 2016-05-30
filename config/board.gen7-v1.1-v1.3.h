@@ -293,7 +293,7 @@ DEFINE_HEATER(bed,      DIO3,    0,      1)
   Comment in the one in use, comment out all others. If there is no display,
   comment out all of them to remove display code for better performance.
 */
-//#define DISPLAY_BUS_4BIT
+#define DISPLAY_BUS_4BIT
 //#define DISPLAY_BUS_8BIT
 //#define DISPLAY_BUS_I2C
 //#define DISPLAY_BUS_SPI
@@ -304,13 +304,13 @@ DEFINE_HEATER(bed,      DIO3,    0,      1)
   Pins necessary for the 4-bit parallel display bus. Taken into account with
   DISPLAY_BUS_4BIT defined, only.
 */
-//#define DISPLAY_RS_PIN           xxxx
-//#define DISPLAY_RW_PIN           xxxx
-//#define DISPLAY_E_PIN            xxxx
-//#define DISPLAY_D4_PIN           xxxx
-//#define DISPLAY_D5_PIN           xxxx
-//#define DISPLAY_D6_PIN           xxxx
-//#define DISPLAY_D7_PIN           xxxx
+#define DISPLAY_RS_PIN           PC1
+#define DISPLAY_RW_PIN           PC0
+#define DISPLAY_E_PIN            PD2
+#define DISPLAY_D4_PIN           PD3
+#define DISPLAY_D5_PIN           PD4
+#define DISPLAY_D6_PIN           PD5
+#define DISPLAY_D7_PIN           PD6
 
 /** \def DISPLAY_TYPE_SSD1306 DISPLAY_TYPE_HD44780
 
@@ -321,4 +321,4 @@ DEFINE_HEATER(bed,      DIO3,    0,      1)
   display, comment out all of DISPLAY_BUS_xxx.
 */
 //#define DISPLAY_TYPE_SSD1306
-//#define DISPLAY_TYPE_HD44780
+#define DISPLAY_TYPE_HD44780
