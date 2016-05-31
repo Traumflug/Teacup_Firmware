@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 
+#include "dda_queue.h"
 #include "serial.h"
 #include "simulator.h"
 
@@ -95,29 +96,36 @@ uint8_t serial_rxchars(void) {
     ioctl(serial_fd, FIONREAD, &rx_chars_nb);
     return rx_chars_nb;
   }
-  // File always has more data
-  return 1;
+
+  // An open file always has more data
+  if (gcode_fd) return 1;
+
+  // No more gcode data; wait for DDA queue to drain
+  if (queue_empty()) {
+    sim_info("Gcode processing completed.");
+    exit(0);
+  }
+
+  // Nothing to read from
+  return 0;
 }
 
 // read one character
 uint8_t serial_popchar(void) {
-  uint8_t c;
-  ssize_t count;
+  uint8_t c = 0;
+  ssize_t count = 0;
   int fd = serial_fd ? serial_fd : gcode_fd;
 
   sim_assert(serial_initialised, "serial interface not initialised");
   sim_assert(serial_rxchars() > 0, "no chars to read");
-  count = read(fd, &c, 1);
-  if (gcode_fd && !count) {
+  while (fd && !count) {
+    count = read(fd, &c, 1);
+    if (!gcode_fd || count)
+      break;
     // EOF: try to open next file
     open_file();
-    if (gcode_fd || serial_fd)
-      return serial_popchar();
-
-    sim_info("Gcode processing completed.");
-    exit(0);
+    fd = serial_fd ? serial_fd : gcode_fd;
   }
-  sim_assert(count == 1, "no character in serial RX buffer");
   return c;
 }
 
