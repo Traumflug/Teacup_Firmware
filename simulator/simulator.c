@@ -42,11 +42,14 @@ enum {
 };
 
 int verbose = 1;                ///< 0=quiet, 1=normal, 2=noisy, 3=debug, etc.
+int use_color = 1;              ///< 0=No ANSI colors, 1=Use ANSI colors
 int trace_gcode = 0;            ///< show gcode on the console
 int trace_pos = 0;              ///< show print head position on the console
 
 const char * shortopts = "qgpvt:o::T::";
 struct option opts[] = {
+  { "no-color", no_argument, &use_color , 0 },
+  { "color", no_argument, &use_color , 1 },
   { "quiet", no_argument, &verbose , 0 },
   { "verbose", no_argument, NULL, 'v' },
   { "gcode", no_argument, NULL, 'g' },
@@ -64,6 +67,7 @@ static void usage(const char *name) {
   printf("   -v || --verbose               show more output\n");
   printf("   -g || --gcode                 show gcode on console as it is processed\n");
   printf("   -p || --pos                   show head position on console\n");
+  printf("   --no-color                    Do not use ANSI colors in output\n");
   printf("   -t || --time-scale=n          set time-scale; 0=warp-speed, 1=real-time, 2=half-time, etc.\n");
   printf("   -o || --tracefile[=filename]  write simulator pin trace to 'outfile' (default filename=datalog.out)\n");
   printf("\n"
@@ -168,13 +172,13 @@ void sim_start(int argc, char** argv) {
 
 /* -- debugging ------------------------------------------------------------ */
 
-static void fgreen(void) { fputs("\033[0;32m" , stdout); }
-static void fred(void)   { fputs("\033[0;31m" , stdout); }
-static void fcyan(void)  { fputs("\033[0;36m" , stdout); }
-static void fyellow(void){ fputs("\033[0;33;1m" , stdout); }
-static void fbreset(void) { fputs("\033[m" , stdout); }
+static void fgreen(void) { if (use_color) fputs("\033[0;32m" , stdout); }
+static void fred(void)   { if (use_color) fputs("\033[0;31m" , stdout); }
+static void fcyan(void)  { if (use_color) fputs("\033[0;36m" , stdout); }
+static void fyellow(void){ if (use_color) fputs("\033[0;33;1m" , stdout); }
+static void fbreset(void){ if (use_color) fputs("\033[m" , stdout); }
 
-static void bred(void)   { fputs("\033[0;41m" , stdout); }
+static void bred(void)   { if (use_color) fputs("\033[0;41m" , stdout); }
 
 static void vsim_info_cont(const char fmt[], va_list ap) {
   if (verbose < 1) return;
