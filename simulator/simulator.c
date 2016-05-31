@@ -43,6 +43,7 @@ enum {
 
 int verbose = 1;                ///< 0=quiet, 1=normal, 2=noisy, 3=debug, etc.
 int use_color = 1;              ///< 0=No ANSI colors, 1=Use ANSI colors
+int show_pintous = 0;           ///< Show pin activity on console
 int trace_gcode = 0;            ///< show gcode on the console
 int trace_pos = 0;              ///< show print head position on the console
 
@@ -50,6 +51,7 @@ const char * shortopts = "qgpvt:o::T::";
 struct option opts[] = {
   { "no-color", no_argument, &use_color , 0 },
   { "color", no_argument, &use_color , 1 },
+  { "pinouts", no_argument, &show_pintous , 1 },
   { "quiet", no_argument, &verbose , 0 },
   { "verbose", no_argument, NULL, 'v' },
   { "gcode", no_argument, NULL, 'g' },
@@ -67,6 +69,7 @@ static void usage(const char *name) {
   printf("   -v || --verbose               show more output\n");
   printf("   -g || --gcode                 show gcode on console as it is processed\n");
   printf("   -p || --pos                   show head position on console\n");
+  printf("   --pinouts                     show pin output activity as letters [A-Pa-p]\n");
   printf("   --no-color                    Do not use ANSI colors in output\n");
   printf("   -t || --time-scale=n          set time-scale; 0=warp-speed, 1=real-time, 2=half-time, etc.\n");
   printf("   -o || --tracefile[=filename]  write simulator pin trace to 'outfile' (default filename=datalog.out)\n");
@@ -225,7 +228,7 @@ void sim_debug(const char fmt[], ...) {
 }
 
 void sim_tick(char ch) {
-  if (verbose < 2) return;
+  if (!show_pintous) return;
   fcyan();
   fprintf(stdout, "%c", ch);
   fbreset();
