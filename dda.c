@@ -117,10 +117,7 @@ void dda_init(void) {
 	This is needed for example after homing or a G92. The new location must be in startpoint already.
 */
 void dda_new_startpoint(void) {
-  enum axis_e i;
-
-  for (i = X; i < AXIS_COUNT; i++)
-    startpoint_steps.axis[i] = um_to_steps(startpoint.axis[i], i);
+	axes_um_to_steps(startpoint.axis, startpoint_steps.axis);
 }
 
 /*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
@@ -218,9 +215,6 @@ void dda_create(DDA *dda, TARGET *target) {
   if ( ! target->e_relative) {
     int32_t delta_steps;
 
-    delta_um[E] = (uint32_t)labs(target->axis[E] - startpoint.axis[E]);
-    steps[E] = um_to_steps(target->axis[E], E);
-
     delta_steps = steps[E] - startpoint_steps.axis[E];
     dda->delta[E] = (uint32_t)labs(delta_steps);
     startpoint_steps.axis[E] = steps[E];
@@ -240,7 +234,7 @@ void dda_create(DDA *dda, TARGET *target) {
     // When we get more extruder axes:
     // for (i = E; i < AXIS_COUNT; i++) { ...
     delta_um[E] = (uint32_t)labs(target->axis[E]);
-    dda->delta[E] = (uint32_t)labs(um_to_steps(target->axis[E], E));
+    dda->delta[E] = (uint32_t)labs(steps[E]);
     #ifdef LOOKAHEAD
       dda->delta_um[E] = target->axis[E];
     #endif
