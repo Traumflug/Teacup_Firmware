@@ -316,9 +316,18 @@ static int pos[AXIS_MAX];            ///< Current position in 2 * steps
 static bool direction[PIN_NB];
 static bool state[PIN_NB];
 
+static int prev_pos[AXIS_MAX];            ///< last reported position
 static void print_pos(void) {
   char * axis = "xyze";
   int i;
+
+  // Only print axes if different from last report
+  for ( i = X_AXIS ; i < AXIS_MAX ; i++ )
+    if (pos[i]/2 != prev_pos[i]/2) break;
+  if (i == AXIS_MAX) return;
+  for ( i = X_AXIS ; i < AXIS_MAX ; i++ )
+    prev_pos[i] = pos[i];
+
   if (trace_pos) {
     for ( i = X_AXIS ; i < AXIS_MAX ; i++ ) {
       sim_info_cont("%c:%5d   ", axis[i], pos[i] / 2);
@@ -425,7 +434,10 @@ void _WRITE(pin_t pin, bool s) {
       for (int a = X_AXIS; a <= E_AXIS; a++)
         record_pin(TRACE_POS + axis, pos[axis] / 2, nseconds);
 
-      print_pos();
+      static uint64_t prev_ns = -1;
+      if (prev_ns != nseconds)
+        print_pos();
+      prev_ns = nseconds;
 
       for (int a = X_AXIS; a < E_AXIS; a++)
         sim_endstop(a);
