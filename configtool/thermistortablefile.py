@@ -65,7 +65,7 @@ def generateTempTables(sensors, settings):
     ofp.close();
     return True
 
-  ofp.output("const uint16_t PROGMEM temptable[NUMTABLES][NUMTEMPS][3] = {")
+  ofp.output("const TempTable PROGMEM temptable[NUMTABLES][NUMTEMPS] = {")
 
   tcount = 0
   for tn in tl:
@@ -120,7 +120,7 @@ def BetaTable(ofp, params, names, settings, finalTable):
     else:
       c = ","
 
-    delta = (t - thrm.temp(prev)) / (prev - i) if i != prev else 0
+    delta = (t - thrm.temp(prev)) / (i - prev) if i != prev else 0
     ostr = ("    {%4s, %5s, %5s}%s // %4d C, %6.0f ohms, %0.3f V,"
             " %0.2f mW, m = %6.3f") % (i, int(t * 4), int(delta * 4 * 256), c,
             int(t), int(round(r)), vTherm, ptherm * 1000, delta)
@@ -164,7 +164,7 @@ def SteinhartHartTable(ofp, params, names, settings, finalTable):
     else:
       c = ","
 
-    delta = (t - thrm.temp(prev)) / (prev - i) if i != prev else 0
+    delta = (t - thrm.temp(prev)) / (i - prev) if i != prev else 0
     ofp.output("    {%4d, %5d, %5d}%s // %4d C, %6d ohms, m = %6.3f" %
                (i, int(t * 4), int(delta * 4 * 256), c, int(t), int(round(r))),
                delta)

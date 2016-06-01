@@ -31,6 +31,12 @@ typedef enum {
 	TT_DUMMY,
 } temp_type_t;
 
+typedef struct {
+  uint16_t x;     // Beginning of Y-domain (X value)
+  uint16_t y;     // Y value @ x (same as B in Y=MX+B)
+  int16_t slope;  // Slope between this x0 and next one
+}  TempTable ;
+
 
 void temp_init(void);
 

@@ -165,7 +165,7 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
   //   hi = index of lowest entry greater than or equal to target.
   for (lo = 0, hi = NUMTEMPS - 1; hi - lo > 1; ) {
     uint8_t j = lo + (hi - lo) / 2 ;
-    if (pgm_read_word(&(temptable[table_num][j][0])) >= temp)
+    if (pgm_read_word(&(temptable[table_num][j].x)) >= temp)
       hi = j ;
     else
       lo = j ;
@@ -175,7 +175,7 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
     sersendf_P(PSTR("pin:%d Raw ADC:%d table entry: %d"),
                temp_sensors[sensor].temp_pin, temp, hi);
 
-  if (sizeof(temptable[0][0]) == 2 * sizeof(uint16_t)) {
+  if (pgm_read_word(&(temptable[table_num][lo].slope)) == 0) {
     /**
       This code handles temptables with value pairs and is deprecated.
       It's kept for compatibility with legacy, handcrafted tables, only.
@@ -188,33 +188,32 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
     // y = ((x - x₀)y₁ + (x₁-x)y₀) / (x₁ - x₀)
     // y = temp
     // x = ADC reading
-    // x₀= temptable[lo][0]
-    // x₁= temptable[hi][0]
-    // y₀= temptable[lo][1]
-    // y₁= temptable[hi][1]
+    // x₀= temptable[lo].x
+    // x₁= temptable[hi].x
+    // y₀= temptable[lo].y
+    // y₁= temptable[hi].y
     temp = (
       // ((x - x₀)y₁
-      ((uint32_t)temp - pgm_read_word(&(temptable[table_num][lo][0]))) *
-                        pgm_read_word(&(temptable[table_num][hi][1]))
+      ((uint32_t)temp - pgm_read_word(&(temptable[table_num][lo].x))) *
+                        pgm_read_word(&(temptable[table_num][hi].y))
       //             +
       +
       //               (x₁-x)y₀)
-      (pgm_read_word(&(temptable[table_num][hi][0])) - (uint32_t)temp) *
-        pgm_read_word(&(temptable[table_num][lo][1])))
+      (pgm_read_word(&(temptable[table_num][hi].x)) - (uint32_t)temp) *
+        pgm_read_word(&(temptable[table_num][lo].y)))
       //                        /
       /
       //                          (x₁ - x₀)
-      (pgm_read_word(&(temptable[table_num][hi][0])) -
-       pgm_read_word(&(temptable[table_num][lo][0])));
-  } else
-  if (sizeof(temptable[0][0]) == 3 * sizeof(uint16_t)) {
+      (pgm_read_word(&(temptable[table_num][hi].x)) -
+       pgm_read_word(&(temptable[table_num][lo].x)));
+  } else {
     // Linear interpolation using pre-computed slope.
     // y = y₁ - (x - x₁) * d₁
-    #define X1 pgm_read_word(&(temptable[table_num][hi][0]))
-    #define Y1 pgm_read_word(&(temptable[table_num][hi][1]))
-    #define D1 pgm_read_word(&(temptable[table_num][hi][2]))
+    #define X1 pgm_read_word(&(temptable[table_num][hi].x))
+    #define Y1 pgm_read_word(&(temptable[table_num][hi].y))
+    #define D1 (int16_t)pgm_read_word(&(temptable[table_num][hi].slope))
 
-    temp = Y1 - ((((int32_t)temp - X1) * D1 + (1 << 7)) >> 8);
+    temp = Y1 - ((((int32_t)X1 - temp) * D1 + (1 << 7)) >> 8);
   }
 
   if (DEBUG_PID && (debug_flags & DEBUG_PID))
