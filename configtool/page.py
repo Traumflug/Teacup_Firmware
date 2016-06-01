@@ -267,11 +267,18 @@ class Page:
         print "Key " + k + " not found in config data."
 
     for k in self.choices.keys():
-      if k in cfgValues.keys():
-        self.choicesOriginal[k] = cfgValues[k]
-        self.setChoice(k, cfgValues, "-")
-      else:
+      if k not in cfgValues.keys():
         print "Key " + k + " not found in config data."
+        # Fix this.
+        cfgValues[k] = ("xxxx", False)
+
+      # Fix existing #define, but missing value.
+      if isinstance(cfgValues[k], bool):
+        print("Fixing %s from boolean to pin with value." % k);
+        cfgValues[k] = ("xxxx", False)
+
+      self.choicesOriginal[k] = cfgValues[k]
+      self.setChoice(k, cfgValues, "-")
 
     for k in self.boolChoices.keys():
       choice = self.boolChoices[k]
