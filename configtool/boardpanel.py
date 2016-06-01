@@ -396,7 +396,12 @@ class BoardPanel(wx.Panel):
     m = reDefBool.search(ln)
     if m:
       t = m.groups()
-      if len(t) == 1 and (t[0] in self.cfgNames):
+      # Accept booleans, but not those for which a value exists already.
+      # Booleans already existing as values are most likely misconfigured
+      # manual edits (or result of a bug).
+      if len(t) == 1 and t[0] in self.cfgNames \
+                     and not (t[0] in self.cfgValues \
+                              and isinstance(self.cfgValues[t[0]], tuple)):
         if reDefBoolBL.search(ln):
           self.cfgValues[t[0]] = True
         else:
