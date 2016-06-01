@@ -230,7 +230,11 @@ class PrinterPanel(wx.Panel):
         prevLines = ""
 
       self.parseDefineName(ln)
+      self.parseDefineValue(ln)
 
+    # Read the user configuration. This usually overwrites all of the items
+    # read above, but not those missing in the user configuration, e.g.
+    # when reading an older config.
     gatheringHelpText = False
     prevLines = ""
     for ln in self.userBuffer:
@@ -251,8 +255,7 @@ class PrinterPanel(wx.Panel):
         ln = prevLines + ln
         prevLines = ""
 
-      if self.parseDefineValue(ln):
-        continue
+      self.parseDefineValue(ln)
 
     # Parsing done. All parsed stuff is now in these arrays and dicts.
     # Uncomment for debugging.

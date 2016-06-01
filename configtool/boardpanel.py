@@ -265,7 +265,11 @@ class BoardPanel(wx.Panel):
         prevLines = ""
 
       self.parseDefineName(ln)
+      self.parseDefineValue(ln)
 
+    # Read the user configuration. This usually overwrites all of the items
+    # read above, but not those missing in the user configuration, e.g.
+    # when reading an older config.
     gatheringHelpText = False
     prevLines = ""
     for ln in self.userBuffer:
