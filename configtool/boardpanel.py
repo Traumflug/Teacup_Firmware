@@ -293,27 +293,26 @@ class BoardPanel(wx.Panel):
       if self.parseCandidateValues(ln):
         continue
 
-      elif self.parseDefineValue(ln):
+      if self.parseDefineValue(ln):
         continue
 
-      else:
-        m = reDefTS.search(ln)
-        if m:
-          t = m.groups()
-          if len(t) == 1:
-            s = self.parseSensor(t[0])
-            if s:
-              self.sensors.append(s)
-              continue
+      m = reDefTS.search(ln)
+      if m:
+        t = m.groups()
+        if len(t) == 1:
+          s = self.parseSensor(t[0])
+          if s:
+            self.sensors.append(s)
+            continue
 
-        m = reDefHT.search(ln)
-        if m:
-          t = m.groups()
-          if len(t) == 1:
-            s = self.parseHeater(t[0])
-            if s:
-              self.heaters.append(s)
-              continue
+      m = reDefHT.search(ln)
+      if m:
+        t = m.groups()
+        if len(t) == 1:
+          s = self.parseHeater(t[0])
+          if s:
+            self.heaters.append(s)
+            continue
 
     # Parsing done. All parsed stuff is now in these arrays and dicts.
     # Uncomment for debugging.
