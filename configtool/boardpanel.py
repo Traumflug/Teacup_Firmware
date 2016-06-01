@@ -264,20 +264,9 @@ class BoardPanel(wx.Panel):
         ln = prevLines + ln
         prevLines = ""
 
-      if self.parseCandidateValues(ln):
-        continue
+      self.parseDefineName(ln)
 
-      if self.parseDefineName(ln):
-        continue
-
-    # Ignore candidates in the metadata file.
-    self.candHeatPins = []
-    self.candThermPins = []
-    self.candProcessors = []
-    self.candClocks = []
-    self.tempTables = {}
     gatheringHelpText = False
-
     prevLines = ""
     for ln in self.userBuffer:
       if gatheringHelpText:

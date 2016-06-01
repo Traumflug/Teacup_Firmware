@@ -229,11 +229,9 @@ class PrinterPanel(wx.Panel):
         ln = prevLines + ln
         prevLines = ""
 
-      if self.parseDefineName(ln):
-        continue
+      self.parseDefineName(ln)
 
     gatheringHelpText = False
-
     prevLines = ""
     for ln in self.userBuffer:
       if gatheringHelpText:
