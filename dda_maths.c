@@ -268,8 +268,10 @@ const uint8_t msbloc (uint32_t v) {
  *       2000 to 4096000 steps/m (and higher). The numbers are a few percent
  *       too high at very low acceleration. Test code see commit message.
  */
+#ifdef ACCELERATION_RAMPING
 uint32_t acc_ramp_len(uint32_t feedrate, uint32_t steps_per_m) {
   return (feedrate * feedrate) /
          (((uint32_t)7200000UL * ACCELERATION) / steps_per_m);
 }
+#endif
 
