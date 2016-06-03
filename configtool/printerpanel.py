@@ -232,6 +232,12 @@ class PrinterPanel(wx.Panel):
       self.parseDefineName(ln)
       self.parseDefineValue(ln)
 
+    # Set all boolean generic configuration items to False, so items not yet
+    # existing in the user configuration default to disabled.
+    for k in self.cfgValues.keys():
+      if isinstance(self.cfgValues[k], bool):
+        self.cfgValues[k] = False
+
     # Read the user configuration. This usually overwrites all of the items
     # read above, but not those missing in the user configuration, e.g.
     # when reading an older config.
