@@ -8,31 +8,28 @@
 set -e
 
 # Create an output directory for verification
-OUTDIR=build/test
-rm -rf ${OUTDIR}
-mkdir -p ${OUTDIR}
-
-EXITCODE=0
+OUTDIR="build/test"
+rm -rf "${OUTDIR}"
+mkdir -p "${OUTDIR}"
 
 # Check board and printer configurations.
-for IN in $(git ls-files config/*.h); do
+git ls-files "config/*.h" | while read IN; do
 
   # Use configtool.py to regenerate headers for comparison
-  OUT=${OUTDIR}/$(basename ${IN})
-  ./configtool.py --load=${IN} --save=${OUT} --quit
+  OUT="${OUTDIR}"/$(basename "${IN}")
+  ./configtool.py --load="${IN}" --save="${OUT}" --quit
 
   # Strip the "help text" comments from the source and output files
-  perl -p0i -e 's#/\*.*?\*/##sg' ${OUT}
-  perl -p0 -e 's#/\*.*?\*/##sg' ${IN} > ${OUT}.cmp
+  perl -p0i -e 's#/\*.*?\*/##sg' "${OUT}"
+  perl -p0 -e 's#/\*.*?\*/##sg' "${IN}" > "${OUT}.cmp"
 
   # Fail if the result is different except in whitespace
-  if ! diff -qBbw ${OUT} ${OUT}.cmp ; then
+  if ! diff -qBbw "${OUT}" "${OUT}.cmp" ; then
     echo "Configtool integrity test failed on file ${IN}"
-    echo "  Executed: ./configtool.py --load=${IN} --save=${OUT} --quit"
+    echo "  Executed: ./configtool.py --load=\"${IN}\" --save=\"${OUT}\" --quit"
     echo "  Expected resulting settings to match, but they do not."
 
-    diff -Bbw ${OUT} ${OUT}.cmp |sed -e 's/^/    /' || :
-    EXITCODE=1
+    diff -Bbw "${OUT}" "${OUT}.cmp" | sed -e 's/^/    /' || :
+    exit 1
   fi
 done
-exit ${EXITCODE}
