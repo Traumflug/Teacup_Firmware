@@ -4,10 +4,10 @@
 # are made in the GUI. This requires that the distributed config files match
 # the format of the configtool template files, but this is desired anyway.
 
-# Stop on error
+# Stop on error.
 set -e
 
-# Create an output directory for verification
+# Create an output directory for verification.
 OUTDIR="build/test"
 rm -rf "${OUTDIR}"
 mkdir -p "${OUTDIR}"
@@ -15,15 +15,18 @@ mkdir -p "${OUTDIR}"
 # Check board and printer configurations.
 git ls-files "config/*.h" | while read IN; do
 
-  # Use configtool.py to regenerate headers for comparison
+  # Use configtool.py to regenerate headers for comparison.
   OUT="${OUTDIR}"/$(basename "${IN}")
   ./configtool.py --load="${IN}" --save="${OUT}" --quit
 
-  # Strip the "help text" comments from the source and output files
+  # Strip the "help text" comments from the source and output files.
+  #
+  # This should go away one day, but currently it avoids failures on the only
+  # partially handled CANNED_CYCLE #define.
   perl -p0i -e 's#/\*.*?\*/##sg' "${OUT}"
   perl -p0 -e 's#/\*.*?\*/##sg' "${IN}" > "${OUT}.cmp"
 
-  # Fail if the result is different except in whitespace
+  # Fail if the result is different except in whitespace.
   if ! diff -qBbw "${OUT}" "${OUT}.cmp" ; then
     echo "Configtool integrity test failed on file ${IN}"
     echo "  Executed: ./configtool.py --load=\"${IN}\" --save=\"${OUT}\" --quit"
