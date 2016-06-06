@@ -33,3 +33,5 @@ git ls-files "config/*.h" | while read IN; do
     exit 1
   fi
 done
+
+rm -rf "${OUTDIR}"
