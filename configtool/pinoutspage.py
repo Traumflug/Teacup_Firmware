@@ -56,6 +56,7 @@ class PinoutsPage(wx.Panel, Page):
                    'E_INVERT_ENABLE': "Invert Enable",
 
                    'PS_ON_PIN': "PSU On Pin:",
+                   'PS_INVERT_ON': "Invert PSU On Pin",
                    'PS_MOSFET_PIN': "PSU MOSFET Pin:",
 
                    'STEPPER_ENABLE_PIN': "Stepper Enable Pin:",
@@ -159,9 +160,13 @@ class PinoutsPage(wx.Panel, Page):
     tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
     sz.Add(tc, pos = (3, 3))
 
+    k = "PS_INVERT_ON"
+    cb = self.addCheckBox(k, self.onCheckBox)
+    sz.Add(cb, pos = (5, 3), flag = wx.ALIGN_CENTER_HORIZONTAL)
+
     k = "PS_MOSFET_PIN"
     tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
-    sz.Add(tc, pos = (5, 3))
+    sz.Add(tc, pos = (7, 3))
 
     k = "SD_CARD_SELECT_PIN"
     tc = self.addPinChoice(k, "", pinNames, True, labelWidth)

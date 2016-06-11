@@ -82,6 +82,7 @@
 //#define E_INVERT_ENABLE
 
 //#define PS_ON_PIN                DIO0
+//#define PS_INVERT_ON
 //#define PS_MOSFET_PIN            DIO25
 #define STEPPER_ENABLE_PIN       DIO19
 #define STEPPER_INVERT_ENABLE
