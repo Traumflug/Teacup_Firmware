@@ -1,0 +1,14 @@
+
+As far as I (Traumflug) can see, this was an attempt to ease PID tuning by
+setting PID parameters according to a model easier understandable by humans.
+
+This was moved to the attic because a) the developer is no longer responsive
+and b) because automatic PID tuning is around the corner, so users (hopefully)
+no longer have to mess with PID parameters at all before too long.
+
+Even if automatic PID tuning turns out to be not fully satisfying,
+functionality provided by this patchset should go into Configtool (which didn't
+exist when it was written).
+
+This branch was last applied to commit 592df2c73ffe19178f53a04cd384ca9f44cda599,
+"Drop redundant "simulator.h" includes." of 2015-07-27 21:50:49.
