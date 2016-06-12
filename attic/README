@@ -1,0 +1,23 @@
+
+This attic is kind of a shelf where abandoned coding attempts get moved for
+later reference or re-pickup.
+
+Each conserved attempt is either a single file, a single patch of a folder
+with patches inside, often including an explaining README.
+
+Before getting here, most of these attempts were Git branches, so they can be
+re-applied at any time. Patchsets were created with 'git format-patch
+--keep-subject', so
+
+  'git am -3 <patch1> [<patch2> ...]'
+
+is the tool to re-apply them. For each attempt it's noted where the branch
+was applied last time, so it's likely a good idea to re-apply that code to the
+same commit again, to ensure a clean patch application and to allow seeing the
+context back then.
+
+These branches were removed from the Git repository at all to reduce the
+clutter seen in listings of branches.
+
+All files containing code are (tar'd and) gzipped to not clutter up recursive
+'grep'ing in the main source folder.
