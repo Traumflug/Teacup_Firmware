@@ -119,6 +119,7 @@ typedef struct {
 
 	#ifdef ACCELERATION_REPRAP
 	uint32_t					end_c; ///< time between 2nd last step and last step
+	int32_t						n;     ///< precalculated step time offset variable
 	#endif
 	#ifdef ACCELERATION_RAMPING
   /// precalculated step time offset variable

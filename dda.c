@@ -756,8 +756,8 @@ void dda_clock() {
   uint32_t move_step_no, move_c;
   int32_t move_n;
   uint8_t recalc_speed;
-  #endif
   uint8_t current_id ;
+  #endif
 
   dda = queue_current_movement();
   if (dda != last_dda) {
