@@ -9,7 +9,7 @@
 #include	"memory_barrier.h"
 
 
-static uint8_t adc_counter;
+static uint8_t adc_counter = 0;
 static volatile uint16_t BSS adc_result[NUM_TEMP_SENSORS];
 
 //! Configure all registers, start interrupt loop
@@ -31,8 +31,6 @@ void analog_init() {
 		#ifdef	ADCSRB
 			ADCSRB = 0;
 		#endif
-
-		adc_counter = 0;
 
 		// clear analog inputs in the data direction register(s)
 		AIO0_DDR &= ~analog_mask;
