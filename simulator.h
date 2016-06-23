@@ -100,6 +100,7 @@ typedef enum {
 
   RX_ENABLE_PIN,
   TX_ENABLE_PIN,
+  DEBUG_LED_PIN,
 
   PIN_NB  /* End of PINS marker; Put all new pins before this one */
 } pin_t;
