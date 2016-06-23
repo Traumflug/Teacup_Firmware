@@ -86,16 +86,16 @@ static struct {
 
   Default alpha constant for the Exponentially Weighted Moving Average (EWMA)
   for smoothing noisy sensors. Instrument Engineer's Handbook, 4th ed,
-  Vol 2 p126 says values of 0.05 to 0.1 are typical.
+  Vol 2 p126 says values of 50 to 100 are typical.
 
-  Setting it to 1.0 turns EWMA off.
+  This is scaled by factor 1000. Setting it to 1000 turns EWMA off.
 */
 #ifndef TEMP_EWMA
-  #define TEMP_EWMA 1.0
+  #define TEMP_EWMA 1000
 #endif
 
 #define EWMA_SCALE  1024L
-#define EWMA_ALPHA  ((uint32_t)(TEMP_EWMA * EWMA_SCALE))
+#define EWMA_ALPHA  ((TEMP_EWMA * EWMA_SCALE + 500) / 1000)
 
 // If EWMA is used, continuously update analog reading for more data points.
 #define TEMP_READ_CONTINUOUS (EWMA_ALPHA < EWMA_SCALE)

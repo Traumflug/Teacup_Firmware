@@ -145,38 +145,11 @@ class MiscellaneousPage(wx.Panel, Page):
     sz.Add(tc, pos = (7, 5))
 
     k = 'TEMP_EWMA'
-    tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlEWMA)
+    tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
     sz.Add(tc, pos = (8, 5))
 
     self.SetSizer(sz)
     self.enableAll(False)
-
-  def onTextCtrlEWMA(self, evt):
-    self.assertModified(True)
-    tc = evt.GetEventObject()
-    name = tc.GetName()
-    w = tc.GetValue().strip()
-    if w == "":
-      valid = True
-    else:
-      m = reFloat.match(w)
-      if m:
-        v = float(w)
-        if v < 0.1 or v > 1.0:
-          valid = False
-        else:
-          valid = True
-      else:
-        valid = False
-
-    self.setFieldValidity(name, valid)
-
-    if valid:
-      tc.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
-    else:
-      tc.SetBackgroundColour("pink")
-    tc.Refresh()
-    evt.Skip()
 
   def setHeaters(self, hlist):
     k = 'DC_EXTRUDER'
