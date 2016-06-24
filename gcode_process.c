@@ -793,6 +793,13 @@ void process_gcode_command() {
 				#endif
 				break;
 
+      case 221:
+        //? --- M221: Control the extruders flow ---
+        if ( ! next_target.seen_S)
+          break;
+        next_target.target.e_multiplier = next_target.S;
+        break;
+
       #ifdef DEBUG
 			case 240:
 				//? --- M240: echo off ---

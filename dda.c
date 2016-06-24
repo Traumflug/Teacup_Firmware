@@ -110,6 +110,8 @@ void dda_init(void) {
 	// set up default feedrate
 	if (startpoint.F == 0)
 		startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
+  if (startpoint.e_multiplier == 0)
+    startpoint.e_multiplier = next_target.target.e_multiplier = 100;
 }
 
 /*! Distribute a new startpoint to DDA's internal structures without any movement.
@@ -215,6 +217,11 @@ void dda_create(DDA *dda, TARGET *target) {
   // Handle extruder axes. They act independently from the bots kinematics
   // type, but are subject to other special handling.
   steps[E] = um_to_steps(target->axis[E], E);
+
+  // Apply extrusion multiplier.
+  steps[E] *= target->e_multiplier;
+  steps[E] += 50;
+  steps[E] /= 100;
 
   if ( ! target->e_relative) {
     int32_t delta_steps;
