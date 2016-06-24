@@ -17,6 +17,17 @@ carthesian_to_carthesian(TARGET *startpoint, TARGET *target,
     delta_um[i] = (uint32_t)labs(target->axis[i] - startpoint->axis[i]);
     steps[i] = um_to_steps(target->axis[i], i);
   }
+
+  /* Replacing the above five lines with this costs about 200 bytes binary
+     size on AVR, but also takes about 120 clock cycles less during movement
+     preparation. The smaller version was kept for our Arduino Nano friends.
+  delta_um[X] = (uint32_t)labs(target->axis[X] - startpoint->axis[X]);
+  steps[X] = um_to_steps(target->axis[X], X);
+  delta_um[Y] = (uint32_t)labs(target->axis[Y] - startpoint->axis[Y]);
+  steps[Y] = um_to_steps(target->axis[Y], Y);
+  delta_um[Z] = (uint32_t)labs(target->axis[Z] - startpoint->axis[Z]);
+  steps[Z] = um_to_steps(target->axis[Z], Z);
+  */
 }
 
 void
