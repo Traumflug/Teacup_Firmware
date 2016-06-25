@@ -51,6 +51,8 @@
 
   /// Enable pullup resistor.
   #define _PULLUP_ON(IO)   _WRITE(IO, 1)
+  /// No such feature on ATmegas.
+  #define _PULLDOWN_ON(IO) atmegas_dont_support_pulldown_resistors()
   /// Disable pullup resistor.
   #define _PULL_OFF(IO)    _WRITE(IO, 0)
 
@@ -89,10 +91,15 @@
       IO ## _PORT->DIR |= MASK(IO ## _PIN); \
     } while (0)
 
-  /// Enable pullup resistor.
+  /// Enable pullup resistor or switch from pulldown to pullup.
   #define _PULLUP_ON(IO) \
     do { \
       LPC_IOCON->IO ## _CMSIS = (IO ## _OUTPUT | IO_MODEMASK_PULLUP); \
+    } while (0)
+  /// Enable pulldown resistor or switch from pullup to pulldown.
+  #define _PULLDOWN_ON(IO) \
+    do { \
+      LPC_IOCON->IO ## _CMSIS = (IO ## _OUTPUT | IO_MODEMASK_PULLDOWN); \
     } while (0)
   /// Disable pull resistor.
   #define _PULL_OFF(IO) \
@@ -127,8 +134,10 @@
 /// Set pin as output wrapper.
 #define SET_OUTPUT(IO)  _SET_OUTPUT(IO)
 
-/// Enable pullup resistor.
+/// Enable pullup resistor or switch from pulldown to pullup.
 #define PULLUP_ON(IO)   _PULLUP_ON(IO)
+/// Enable pulldown resistor or switch from pullup to pulldown.
+#define PULLDOWN_ON(IO) _PULLDOWN_ON(IO)
 /// Disable pull resistor.
 #define PULL_OFF(IO)    _PULL_OFF(IO)
 
