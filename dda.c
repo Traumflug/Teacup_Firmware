@@ -118,6 +118,7 @@ void dda_init(void) {
 */
 void dda_new_startpoint(void) {
 	axes_um_to_steps(startpoint.axis, startpoint_steps.axis);
+  startpoint_steps.axis[E] = um_to_steps(startpoint.axis[E], E);
 }
 
 /*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
@@ -184,6 +185,7 @@ void dda_create(DDA *dda, TARGET *target) {
     dda->id = idcnt++;
   #endif
 
+  // Handle bot axes. They're subject to kinematics considerations.
   code_axes_to_stepper_axes(&startpoint, target, delta_um, steps);
   for (i = X; i < E; i++) {
     int32_t delta_steps;
@@ -210,11 +212,14 @@ void dda_create(DDA *dda, TARGET *target) {
     #endif
   }
 
-  // TODO: this can likely be, at least partially, joined with the above for()
-  //       loop. Lots of almost-duplicate code.
+  // Handle extruder axes. They act independently from the bots kinematics
+  // type, but are subject to other special handling.
+  steps[E] = um_to_steps(target->axis[E], E);
+
   if ( ! target->e_relative) {
     int32_t delta_steps;
 
+    delta_um[E] = (uint32_t)labs(target->axis[E] - startpoint.axis[E]);
     delta_steps = steps[E] - startpoint_steps.axis[E];
     dda->delta[E] = (uint32_t)labs(delta_steps);
     startpoint_steps.axis[E] = steps[E];
