@@ -216,6 +216,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
     this_F = muldiv(current->fast_um, current->endpoint.F, current->distance);
     crossF = muldiv(current->fast_um, crossF, current->distance);
 
+    // TODO: calculate the steps from the fastest axis and not from X.
     prev_F_in_steps = ACCELERATE_RAMP_LEN(prev_F);
     this_F_in_steps = ACCELERATE_RAMP_LEN(this_F);
     crossF_in_steps = ACCELERATE_RAMP_LEN(crossF);
