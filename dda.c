@@ -152,7 +152,7 @@ void dda_new_startpoint(void) {
  * 6. Lookahead calculation too slow. This is handled in dda_join_moves()
  *    already.
  */
-void dda_create(DDA *dda, TARGET *target) {
+void dda_create(DDA *dda, const TARGET *target) {
   axes_uint32_t delta_um;
   axes_int32_t steps;
 	uint32_t	distance, c_limit, c_limit_calc;
@@ -311,7 +311,7 @@ void dda_create(DDA *dda, TARGET *target) {
       // 60 * 16 MHz * 5 mm is > 32 bits
       uint32_t move_duration, md_candidate;
 
-      move_duration = distance * ((60 * F_CPU) / (target->F * 1000UL));
+      move_duration = distance * ((60 * F_CPU) / (dda->endpoint.F * 1000UL));
       for (i = X; i < AXIS_COUNT; i++) {
         md_candidate = dda->delta[i] * ((60 * F_CPU) /
                        (pgm_read_dword(&maximum_feedrate_P[i]) * 1000UL));
@@ -357,7 +357,7 @@ void dda_create(DDA *dda, TARGET *target) {
     dda->c = move_duration / startpoint.F;
     if (dda->c < c_limit)
       dda->c = c_limit;
-    dda->end_c = move_duration / target->F;
+    dda->end_c = move_duration / dda->endpoint.F;
     if (dda->end_c < c_limit)
       dda->end_c = c_limit;
 
@@ -366,7 +366,7 @@ void dda_create(DDA *dda, TARGET *target) {
 
     if (dda->c != dda->end_c) {
 			uint32_t stF = startpoint.F / 4;
-			uint32_t enF = target->F / 4;
+			uint32_t enF = dda->endpoint.F / 4;
 			// now some constant acceleration stuff, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
 			uint32_t ssq = (stF * stF);
 			uint32_t esq = (enF * enF);
@@ -406,7 +406,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		else
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
-      dda->c_min = move_duration / target->F;
+      dda->c_min = move_duration / dda->endpoint.F;
       if (dda->c_min < c_limit) {
         dda->c_min = c_limit;
         dda->endpoint.F = move_duration / dda->c_min;
@@ -463,7 +463,7 @@ void dda_create(DDA *dda, TARGET *target) {
       }
 
 		#else
-      dda->c = move_duration / target->F;
+      dda->c = move_duration / dda->endpoint.F;
       if (dda->c < c_limit)
         dda->c = c_limit;
 		#endif
@@ -473,7 +473,7 @@ void dda_create(DDA *dda, TARGET *target) {
 		serial_writestr_P(PSTR("] }\n"));
 
 	// next dda starts where we finish
-	memcpy(&startpoint, target, sizeof(TARGET));
+	memcpy(&startpoint, &dda->endpoint, sizeof(TARGET));
   #ifdef LOOKAHEAD
     prev_dda = dda;
   #endif

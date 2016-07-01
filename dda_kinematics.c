@@ -9,7 +9,7 @@
 
 
 void
-carthesian_to_carthesian(TARGET *startpoint, TARGET *target,
+carthesian_to_carthesian(const TARGET *startpoint, const TARGET *target,
                          axes_uint32_t delta_um, axes_int32_t steps) {
   enum axis_e i;
 
@@ -31,7 +31,7 @@ carthesian_to_carthesian(TARGET *startpoint, TARGET *target,
 }
 
 void
-carthesian_to_corexy(TARGET *startpoint, TARGET *target,
+carthesian_to_corexy(const TARGET *startpoint, const TARGET *target,
                      axes_uint32_t delta_um, axes_int32_t steps) {
 
   delta_um[X] = (uint32_t)labs((target->axis[X] - startpoint->axis[X]) +

@@ -190,7 +190,7 @@ void dda_init(void);
 void dda_new_startpoint(void);
 
 // create a DDA
-void dda_create(DDA *dda, TARGET *target);
+void dda_create(DDA *dda, const TARGET *target);
 
 // start a created DDA (called from timer interrupt)
 void dda_start(DDA *dda);

@@ -8,19 +8,19 @@
 #include "dda.h"
 
 
-void carthesian_to_carthesian(TARGET *startpoint, TARGET *target,
+void carthesian_to_carthesian(const TARGET *startpoint, const TARGET *target,
                               axes_uint32_t delta_um, axes_int32_t steps);
 
-void carthesian_to_corexy(TARGET *startpoint, TARGET *target,
+void carthesian_to_corexy(const TARGET *startpoint, const TARGET *target,
                           axes_uint32_t delta_um, axes_int32_t steps);
 
 //void carthesian_to_scara(TARGET *startpoint, TARGET *target,
 //                         axes_uint32_t delta_um, axes_int32_t steps);
 
-static void code_axes_to_stepper_axes(TARGET *, TARGET *, axes_uint32_t,
+static void code_axes_to_stepper_axes(const TARGET *, const TARGET *, axes_uint32_t,
                                       axes_int32_t)
                                       __attribute__ ((always_inline));
-inline void code_axes_to_stepper_axes(TARGET *startpoint, TARGET *target,
+inline void code_axes_to_stepper_axes(const TARGET *startpoint, const TARGET *target,
                                       axes_uint32_t delta_um,
                                       axes_int32_t steps) {
   #if defined KINEMATICS_STRAIGHT
