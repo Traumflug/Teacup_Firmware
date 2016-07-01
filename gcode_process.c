@@ -797,7 +797,8 @@ void process_gcode_command() {
         //? --- M221: Control the extruders flow ---
         if ( ! next_target.seen_S)
           break;
-        next_target.target.e_multiplier = next_target.S;
+        // Scale 100% = 256
+        next_target.target.e_multiplier = (next_target.S * 64 + 12) / 25;
         break;
 
       #ifdef DEBUG

@@ -111,7 +111,7 @@ void dda_init(void) {
 	if (startpoint.F == 0)
 		startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
   if (startpoint.e_multiplier == 0)
-    startpoint.e_multiplier = next_target.target.e_multiplier = 100;
+    startpoint.e_multiplier = next_target.target.e_multiplier = 256;
 }
 
 /*! Distribute a new startpoint to DDA's internal structures without any movement.
@@ -219,9 +219,11 @@ void dda_create(DDA *dda, TARGET *target) {
   steps[E] = um_to_steps(target->axis[E], E);
 
   // Apply extrusion multiplier.
+  if (target->e_multiplier != 256) {
   steps[E] *= target->e_multiplier;
-  steps[E] += 50;
-  steps[E] /= 100;
+    steps[E] += 128;
+    steps[E] /= 256;
+  }
 
   if ( ! target->e_relative) {
     int32_t delta_steps;

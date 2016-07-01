@@ -41,7 +41,7 @@ typedef struct {
   axes_int32_t axis;
   uint32_t  F;
 
-  uint8_t   e_multiplier;
+  uint16_t  e_multiplier;
   uint8_t   e_relative        :1; ///< bool: e axis relative? Overrides all_relative
 } TARGET;
 
