@@ -793,6 +793,14 @@ void process_gcode_command() {
 				#endif
 				break;
 
+      case 220:
+        //? --- M220: Set speed factor override percentage ---
+        if ( ! next_target.seen_S)
+          break;
+        // Scale 100% = 256
+        next_target.target.f_multiplier = (next_target.S * 64 + 12) / 25;
+        break;
+
       case 221:
         //? --- M221: Control the extruders flow ---
         if ( ! next_target.seen_S)

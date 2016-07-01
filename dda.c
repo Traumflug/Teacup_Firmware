@@ -112,6 +112,8 @@ void dda_init(void) {
 		startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
   if (startpoint.e_multiplier == 0)
     startpoint.e_multiplier = next_target.target.e_multiplier = 256;
+  if (startpoint.f_multiplier == 0)
+    startpoint.f_multiplier = next_target.target.f_multiplier = 256;
 }
 
 /*! Distribute a new startpoint to DDA's internal structures without any movement.
@@ -176,6 +178,13 @@ void dda_create(DDA *dda, const TARGET *target) {
     sersendf_P(PSTR("\nCreate: X %lq  Y %lq  Z %lq  F %lu\n"),
                dda->endpoint.axis[X], dda->endpoint.axis[Y],
                dda->endpoint.axis[Z], dda->endpoint.F);
+
+  // Apply feedrate multiplier.
+  if (dda->endpoint.f_multiplier != 256) {
+    dda->endpoint.F *= dda->endpoint.f_multiplier;
+    dda->endpoint.F += 128;
+    dda->endpoint.F /= 256;
+  }
 
   #ifdef LOOKAHEAD
     // Set the start and stop speeds to zero for now = full stops between
