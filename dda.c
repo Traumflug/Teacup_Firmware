@@ -49,15 +49,6 @@ TARGET BSS current_position;
 /// \brief numbers for tracking the current state of movement
 MOVE_STATE BSS move_state;
 
-/// \var steps_per_m_P
-/// \brief motor steps required to advance one meter on each axis
-static const axes_uint32_t PROGMEM steps_per_m_P = {
-  STEPS_PER_M_X,
-  STEPS_PER_M_Y,
-  STEPS_PER_M_Z,
-  STEPS_PER_M_E
-};
-
 /// \var maximum_feedrate_P
 /// \brief maximum allowed feedrate on each axis
 static const axes_uint32_t PROGMEM maximum_feedrate_P = {
@@ -279,7 +270,6 @@ void dda_create(DDA *dda, const TARGET *target) {
       dda->fast_axis = i;
       dda->total_steps = dda->delta[i];
       dda->fast_um = delta_um[i];
-      dda->fast_spm = pgm_read_dword(&steps_per_m_P[i]);
     }
   }
 
@@ -428,7 +418,7 @@ void dda_create(DDA *dda, const TARGET *target) {
       // Acceleration ramps are based on the fast axis, not the combined speed.
       dda->rampup_steps =
         acc_ramp_len(muldiv(dda->fast_um, dda->endpoint.F, distance),
-                     dda->fast_spm);
+                     dda->fast_axis);
 
       if (dda->rampup_steps > dda->total_steps / 2)
         dda->rampup_steps = dda->total_steps / 2;

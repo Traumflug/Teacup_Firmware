@@ -115,7 +115,6 @@ typedef struct {
   // uint8_t        fast_axis;   (see below)
   uint32_t          total_steps; ///< steps of the "fast" axis
   uint32_t          fast_um;     ///< movement length of this fast axis
-  uint32_t          fast_spm;    ///< steps per meter of the fast axis
 
 	uint32_t					c; ///< time until next step, 24.8 fixed point
 
