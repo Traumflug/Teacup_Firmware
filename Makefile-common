@@ -143,7 +143,7 @@ regressiontests:
 	  MCU=atmega644 F_CPU=20000000UL EXTRA_CFLAGS=-Werror all
 	# Test for parallel 4-bit bus and HD44780 display using an old Gen7.
 	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-display.h \
-	  EXTRA_CFLAGS=-Werror all
+	  MCU=atmega644 F_CPU=20000000UL EXTRA_CFLAGS=-Werror all
 	# Test for ACCELERATION_REPRAP.
 	$(MAKE) -f Makefile-AVR \
 	  USER_CONFIG=testcases/config.regtest-acceleration-reprap.h \
@@ -154,13 +154,13 @@ regressiontests:
 	  MCU=atmega2560 F_CPU=16000000UL EXTRA_CFLAGS=-Werror all
 	# Continue with ARM based boards, a Gen7-ARM.
 	$(MAKE) -f Makefile-ARM USER_CONFIG=testcases/config.regtest-gen7-arm.h \
-	  EXTRA_CFLAGS=-Werror all
+	  MCU=lpc1114 F_CRYSTAL=12000000UL EXTRA_CFLAGS=-Werror all
 	# Config scenario: no endstops defined
 	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.regtest-no-endstops.h \
 	  MCU=atmega644 F_CPU=20000000UL EXTRA_CFLAGS=-Werror all
 	# Don't forget the hostside simulator.
 	$(MAKE) -f Makefile-SIM USER_CONFIG=testcases/config.regtest-gen7-avr.h \
-	  EXTRA_CFLAGS=-Werror all
+	  MCU=atmega644 F_CPU=20000000UL EXTRA_CFLAGS=-Werror all
 	# Check integrity and configtool's view of the config files.
 	testcases/check_configtool.sh
 	# Restore the original thermistor table.
