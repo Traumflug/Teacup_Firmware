@@ -61,6 +61,14 @@
 #endif
 
 /**
+  For ACCELERATION_REPRAP or no acceleration at all, lookahead makes no sense.
+  Explicitely disable it to deal with misconfigurations.
+*/
+#if ! defined ACCELERATION_RAMPING && ! defined ACCELERATION_TEMPORAL
+  #undef LOOKAHEAD
+#endif
+
+/**
   Silently discard EECONFIG on ARM. Silently to not disturb regression tests.
 
   TODO:

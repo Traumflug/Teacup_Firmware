@@ -5,11 +5,6 @@
 #include "config_wrapper.h"
 #include "dda.h"
 
-#ifndef ACCELERATION_RAMPING
-// Only enable the lookahead bits if ramping acceleration is enabled
-#undef LOOKAHEAD
-#endif
-
 #ifdef LOOKAHEAD
 
 // Sanity: make sure the defines are in place
