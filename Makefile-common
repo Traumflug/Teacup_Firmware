@@ -155,9 +155,6 @@ regressiontests:
 	  EXTRA_CFLAGS=-Werror all
 	# Check integrity and configtool's view of the config files.
 	testcases/check_configtool.sh
-	@# Nonstandard builds go into a subdirectory of build/, see definition of
-	@# $(BUILDDIR) above. Let's clean that up on success.
-	rm -rf $(BUILDDIR)/testcases/ $(BUILDDIR)/sim/
 	# Restore the original thermistor table.
 	if [ -e thermistortable.h.aside ]; then \
 		mv thermistortable.h.aside thermistortable.h; \
