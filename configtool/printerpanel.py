@@ -187,7 +187,7 @@ class PrinterPanel(wx.Panel):
 
     k = 'DC_EXTRUDER'
     if k in self.printer.cfgValues.keys() and self.printer.cfgValues[k][1] == True:
-      self.pgMiscellaneous.setOriginalHeater(self.cfgValues[k][0])
+      self.pgMiscellaneous.setOriginalHeater(self.printer.cfgValues[k][0])
     else:
       self.pgMiscellaneous.setOriginalHeater(None)
 
