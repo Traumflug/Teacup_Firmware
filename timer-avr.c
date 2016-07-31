@@ -179,7 +179,7 @@ uint8_t timer_set(int32_t delay, uint8_t check_short) {
       // 200 = safe number of cpu cycles after current_time to allow a new
       // interrupt happening. This is mostly the time needed to complete the
       // current interrupt.
-      if ((current_time - step_start) + 200 > delay)
+      if ((current_time - step_start) + 200 > delay) 
         return 1;
     }
 	#endif /* ACCELERATION_TEMPORAL */
