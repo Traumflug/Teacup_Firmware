@@ -74,6 +74,7 @@ void timer_init() {
   */
   RCC->APB1ENR |= RCC_APB1ENR_TIM5EN;             // Turn on TIM5 power.
 
+  TIM5->CCR1          = 0xFFFFFFFF;               // First timer should not occur at 0
   TIM5->CR1          &= ~(0x03FF);                // clear register
   TIM5->CR1          |= TIM_CR1_CEN;              // Enable counter.
 
@@ -176,14 +177,14 @@ uint8_t timer_set(int32_t delay, uint8_t check_short) {
   #ifdef ACCELERATION_TEMPORAL
     if (check_short) {
       /**
-        100 = safe number of cpu cycles after current_time to allow a new
+        160 = safe number of cpu cycles after current_time to allow a new
         interrupt happening. This is mostly the time needed to complete the
-        current interrupt.
+        current interrupt. The interrupt needs up to 152 cycles.
 
         TIM5->CNT         = timer counter = current time.
         TIM5->CCR1        = last capture compare = time of the last step.
       */
-      if ((TIM5->CNT - TIM5->CCR1) + 100 > delay)
+      if ((TIM5->CNT - TIM5->CCR1) + 160 > delay)
         return 1;
     }
   #endif /* ACCELERATION_TEMPORAL */
