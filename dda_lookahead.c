@@ -17,15 +17,18 @@
 #include "timer.h"
 #include "delay.h"
 #include "dda_queue.h"
-#include "debug.h"
 #include "sersendf.h"
 #include "pinio.h"
 #include "memory_barrier.h"
 
 extern uint8_t use_lookahead;
 
-uint32_t lookahead_joined = 0;      // Total number of moves joined together
-uint32_t lookahead_timeout = 0;     // Moves that did not compute in time to be actually joined
+#ifdef DEBUG
+  // Total number of moves joined together.
+  uint32_t lookahead_joined = 0;
+  // Moves that did not compute in time to be actually joined.
+  uint32_t lookahead_timeout = 0;
+#endif
 
 /// \var maximum_jerk_P
 /// \brief maximum allowed feedrate jerk on each axis
@@ -300,7 +303,9 @@ void dda_join_moves(DDA *prev, DDA *current) {
 
     ATOMIC_START
       // Evaluation: determine how we did...
-      lookahead_joined++;
+      #ifdef DEBUG
+        lookahead_joined++;
+      #endif
 
       // Determine if we are fast enough - if not, just leave the moves
       // Note: to test if the previous move was already executed and replaced by a new
@@ -321,7 +326,9 @@ void dda_join_moves(DDA *prev, DDA *current) {
     // If we were not fast enough, any feedback will happen outside the atomic block:
     if(timeout) {
       sersendf_P(PSTR("// Notice: look ahead not fast enough\n"));
-      lookahead_timeout++;
+      #ifdef DEBUG
+        lookahead_timeout++;
+      #endif
     }
   }
 }
