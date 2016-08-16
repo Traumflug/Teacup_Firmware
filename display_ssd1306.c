@@ -108,7 +108,7 @@ void display_init(void) {
 
   for (i = 0; i < sizeof(init_sequence); i++) {
     // Send last byte with 'last_byte' set.
-    displaybus_write(init_sequence[i], (i == sizeof(init_sequence) - 1));
+    displaybus_write(pgm_read_byte(&init_sequence[i]), (i == sizeof(init_sequence) - 1));
   }
 }
 
