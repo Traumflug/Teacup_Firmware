@@ -70,7 +70,7 @@ class SensorsPage(wx.Panel, Page):
     sz.Add(bsz, pos = (1, 3))
 
     k = "MCP3008_SELECT_PIN"
-    tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
+    tc = self.addPinChoice(k, labelWidth)
     sz.Add(tc, pos = (2, 1))
 
     self.SetSizer(sz)

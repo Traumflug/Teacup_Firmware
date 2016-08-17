@@ -2,7 +2,8 @@
 import wx
 
 from configtool.decoration import Decoration
-from configtool.data import reInteger, reFloat, offsetChLabel, offsetTcLabel
+from configtool.data import (reInteger, reFloat, offsetChLabel, offsetTcLabel,
+                             pinNames)
 
 
 class Page:
@@ -90,29 +91,19 @@ class Page:
 
     return lsz
 
-  def addPinChoice(self, name, choiceVal, pins, allowBlank , labelWidth):
+  def addPinChoice(self, name, labelWidth):
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, self.labels[name],
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(self.font)
     lsz.Add(st, 1, wx.TOP, offsetChLabel)
 
-    if allowBlank:
-      opts = ["-"] + pins
-    else:
-      opts = pins
-
-    ch = wx.Choice(self, wx.ID_ANY, choices = opts, name = name,
-                   style = wx.CB_SORT)
+    ch = wx.Choice(self, wx.ID_ANY, name = name, style = wx.CB_SORT)
     ch.SetBackgroundColour(self.deco.getBackgroundColour())
     ch.SetFont(self.font)
+    ch.AppendItems(["-"] + pinNames)
     ch.Bind(wx.EVT_CHOICE, self.onChoice)
     self.choices[name] = ch
-    try:
-      sv = self.pinNames.index(choiceVal)
-    except:
-      sv = 0
-    ch.SetSelection(sv)
     lsz.Add(ch)
 
     return lsz

@@ -3,7 +3,6 @@
 
 import wx
 from configtool.page import Page
-from configtool.data import pinNames
 
 
 class DisplayPage(wx.Panel, Page):
@@ -48,7 +47,7 @@ class DisplayPage(wx.Panel, Page):
     for k in ('DISPLAY_RS_PIN', 'DISPLAY_RW_PIN', 'DISPLAY_E_PIN',
               'DISPLAY_D4_PIN', 'DISPLAY_D5_PIN', 'DISPLAY_D6_PIN',
               'DISPLAY_D7_PIN'):
-      tc = self.addPinChoice(k, "", pinNames, True, 200)
+      tc = self.addPinChoice(k, 200)
       self.pinbox.Add(tc)
       self.pinbox.AddSpacer((5, 5))
     sz.Add(self.pinbox, pos = (3, 1))

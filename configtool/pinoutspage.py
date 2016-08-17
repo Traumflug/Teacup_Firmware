@@ -1,7 +1,6 @@
 
 import wx
 from configtool.page import Page
-from configtool.data import pinNames
 
 
 class PinoutsPage(wx.Panel, Page):
@@ -79,7 +78,7 @@ class PinoutsPage(wx.Panel, Page):
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
         sbox.Add(tc)
       elif ctype == 2:
-        tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
+        tc = self.addPinChoice(k, labelWidth)
         sbox.Add(tc)
       else:
         cb = self.addCheckBox(k, self.onCheckBox)
@@ -98,7 +97,7 @@ class PinoutsPage(wx.Panel, Page):
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
         sbox.Add(tc)
       elif ctype == 2:
-        tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
+        tc = self.addPinChoice(k, labelWidth)
         sbox.Add(tc)
       else:
         cb = self.addCheckBox(k, self.onCheckBox)
@@ -117,7 +116,7 @@ class PinoutsPage(wx.Panel, Page):
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
         sbox.Add(tc)
       elif ctype == 2:
-        tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
+        tc = self.addPinChoice(k, labelWidth)
         sbox.Add(tc)
       else:
         cb = self.addCheckBox(k, self.onCheckBox)
@@ -136,7 +135,7 @@ class PinoutsPage(wx.Panel, Page):
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
         sbox.Add(tc)
       elif ctype == 2:
-        tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
+        tc = self.addPinChoice(k, labelWidth)
         sbox.Add(tc)
       else:
         cb = self.addCheckBox(k, self.onCheckBox)
@@ -147,7 +146,7 @@ class PinoutsPage(wx.Panel, Page):
     sz.Add(sbox, pos = (1, 7))
 
     k = "STEPPER_ENABLE_PIN"
-    tc = self.addPinChoice(k, "", pinNames, True, labelWidth + 20)
+    tc = self.addPinChoice(k, labelWidth + 20)
     sz.Add(tc, pos = (3, 1))
 
     sz.AddSpacer((10, 10), pos = (4, 1))
@@ -157,7 +156,7 @@ class PinoutsPage(wx.Panel, Page):
     sz.Add(cb, pos = (5, 1), flag = wx.ALIGN_CENTER_HORIZONTAL)
 
     k = "PS_ON_PIN"
-    tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
+    tc = self.addPinChoice(k, labelWidth)
     sz.Add(tc, pos = (3, 3))
 
     k = "PS_INVERT_ON"
@@ -165,15 +164,15 @@ class PinoutsPage(wx.Panel, Page):
     sz.Add(cb, pos = (5, 3), flag = wx.ALIGN_CENTER_HORIZONTAL)
 
     k = "PS_MOSFET_PIN"
-    tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
+    tc = self.addPinChoice(k, labelWidth)
     sz.Add(tc, pos = (7, 3))
 
     k = "SD_CARD_SELECT_PIN"
-    tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
+    tc = self.addPinChoice(k, labelWidth)
     sz.Add(tc, pos = (3, 7))
 
     k = "DEBUG_LED_PIN"
-    tc = self.addPinChoice(k, "", pinNames, True, labelWidth)
+    tc = self.addPinChoice(k, labelWidth)
     sz.Add(tc, pos = (5, 7))
 
     self.SetSizer(sz)
