@@ -70,8 +70,14 @@
 #include "sendf.h"
 #include "delay.h"
 #include "dda.h"
+#include "pinio.h" // for initialisation (reset pin)
 
 
+// TODO: this should moved into board.xxx.h and needs also some modifications for configtool
+#define SSD1306_STANDARD
+// #define SSD1306_ADAFRUIT
+
+#ifdef SSD1306_STANDARD
 static const uint8_t PROGMEM init_sequence[] = {
   0x00,             // Command marker.
   0xAE,             // Display off.
@@ -92,6 +98,32 @@ static const uint8_t PROGMEM init_sequence[] = {
   0xA4,             // Resume display.
   0xAF              // Display on.
 };
+
+#elif defined SSD1306_ADAFRUIT
+static const uint8_t PROGMEM init_sequence[] = {
+  0x00,             // Command marker.
+  0xAE,             /* display off, sleep mode */
+  0xD5, 0x80,       /* clock divide ratio (0x00=1) and oscillator frequency (0x8) */
+  0xA8, 0x1F,       /* Multiplex / LCDHIEGHT - 1 */
+  0xD3, 0x00,       /* Displayoffset / no offset */
+  0x40 | 0x00,      /* start line | line #0 */
+  0x8D, 0x14,       /* charge pump / internal */ 
+  0x20, 0x02,       // Page addressing mode (reset).
+  0x22, 0x00, 0x03, // Start and end page in horiz./vert. addressing mode[1].
+  0x21, 0x00, 0x7F, // Start and end column in horiz./vert. addressing mode.
+  0xA0 | 0x01,      /* segment remap 0x01 */
+  0xC8,             /* scan dir dec */
+  0xDA, 0x02,       /* set com pins */
+  0x81, 0x8F,       /* set contrast */
+  0xD9, 0xF1,       /* set precharge / internal (same as charge pump) */
+  0xDB, 0x40,       /* vcomh deselect level */
+  0xA4,             /* resume display */
+  0xA6,             /* positiv display */
+  0x2E,             /* deactivate scroll */
+  0xAF              /* display on */
+};
+#endif
+
 // [1] Do not set this to 0x00..0x07 on a 32 pixel high display, or vertical
 //     addressing mode will mess up. 32 pixel high displays have only 4 pages
 //     (0..3), still addressing logic accepts, but can't deal with the 0..7
@@ -105,6 +137,18 @@ void display_init(void) {
   uint8_t i;
 
   displaybus_init(DISPLAY_I2C_ADDRESS);
+
+  #if defined SSD1306_ADAFRUIT
+    #ifndef DISPLAY_RS_PIN
+     #error Adafruit SSD1306 needs a reset pin!
+    #endif
+    SET_OUTPUT(DISPLAY_RS_PIN);
+    WRITE(DISPLAY_RS_PIN, 1);
+    delay_ms(1);
+    WRITE(DISPLAY_RS_PIN,0);
+    delay_ms(10);
+    WRITE(DISPLAY_RS_PIN,1);
+  #endif
 
   for (i = 0; i < sizeof(init_sequence); i++) {
     // Send last byte with 'last_byte' set.
