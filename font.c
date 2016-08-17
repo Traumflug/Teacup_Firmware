@@ -12,5 +12,5 @@
 
 #define TEACUP_C_INCLUDE
 #include "font_8x4.c"
-//#include "font_ another.c"
+#include "font_8x8.c"
 #undef TEACUP_C_INCLUDE
