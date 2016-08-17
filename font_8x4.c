@@ -9,7 +9,7 @@
 */
 
 // So far we have no #define DISPLAY_FONT_... in Configtool.
-#if defined TEACUP_C_INCLUDE /* && defined DISPLAY_FONT_8x4 */
+#if defined TEACUP_C_INCLUDE && defined DISPLAY_FONT_8X4
 
 #include "font.h"
 
@@ -117,4 +117,4 @@ const symbol_t PROGMEM font[] = {
   {4, {0x00, 0x00, 0x00, 0x00}}   /* del */
 };
 
-#endif /* TEACUP_C_INCLUDE && DISPLAY_FONT_8x4 */
+#endif /* TEACUP_C_INCLUDE && DISPLAY_FONT_8X4 */
