@@ -167,6 +167,9 @@ void display_greeting(void) {
     "Welcome to Teacup" is 64 pixel columns wide, entire display is
     128 columns, so we offset by 32 columns to get it to the center.
   */
+  display_set_cursor(0, 0);
+  display_writechar((uint8_t)low_code_logo);
+  
   display_set_cursor(1, 32);
 
   display_writestr_P(PSTR("Welcome to Teacup"));
@@ -255,6 +258,30 @@ void display_tick() {
         displaybus_write(0x00 | (data & 0x0F), 0);
         displaybus_write(0x10 | ((data >> 4) & 0x0F), 1);
         break;
+
+      case low_code_logo:
+        /*
+          Add a logo in your favorite font.h
+
+          Maybe you want also to set the cursor before to 0, 0.
+          Then simple display_writechar((uint8_t)low_code_logo)
+        */
+        // Set horizontal adressing mode.
+        displaybus_write(0x00, 0);
+        displaybus_write(0x20, 0);
+        displaybus_write(0x00, 1);
+
+        // Write 512 zeros.
+        displaybus_write(0x40, 0);
+        for (i = 0; i < 512; i++) {
+          displaybus_write(pgm_read_byte(&logo[i]), (i == 511));
+        }
+
+        displaybus_write(0x00, 0);
+        displaybus_write(0x20, 0);
+        displaybus_write(0x02, 1);
+        break;
+        // Return to page adressing mode.
 
       default:
         // Should be a printable character.

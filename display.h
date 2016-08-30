@@ -55,7 +55,8 @@
 */
 enum display_low_code {
   low_code_clear = 0x01,
-  low_code_set_cursor
+  low_code_set_cursor,
+  low_code_logo
 };
 
 void display_init(void);
