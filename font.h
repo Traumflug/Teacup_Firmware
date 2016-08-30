@@ -36,5 +36,6 @@ typedef struct {
 } symbol_t;
 
 extern const symbol_t PROGMEM font[];
+extern const uint8_t PROGMEM logo[];
 
 #endif /* _FONT_H */
