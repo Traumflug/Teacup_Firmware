@@ -14,6 +14,8 @@
 #include	"heater.h"
 #include	"serial.h"
 #include "display.h"
+#include "key.h"
+
 #ifdef	TEMP_INTERCOM
 	#include	"intercom.h"
 #endif
@@ -134,6 +136,8 @@ static void clock_10ms(void) {
 
 	temp_sensor_tick();
 
+  key_clock();
+
 	ifclock(clock_flag_250ms) {
 		clock_250ms();
 	}
@@ -150,6 +154,8 @@ void clock() {
 	ifclock(clock_flag_10ms) {
 		clock_10ms();
 	}
+
+  key_tick();
 
   #ifdef DISPLAY
     display_tick();

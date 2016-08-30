@@ -46,6 +46,7 @@
 #include "spi.h"
 #include "sd.h"
 #include "display.h"
+#include "key.h"
 
 #ifdef SIMINFO
   #include "../simulavr/src/simulavr_info.h"
@@ -105,6 +106,8 @@ void init(void) {
   #ifdef SD
     sd_init();
   #endif
+
+  key_init();
 
 	// enable interrupts
 	sei();
