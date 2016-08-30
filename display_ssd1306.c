@@ -71,6 +71,7 @@
 #include "delay.h"
 #include "dda.h"
 #include "pinio.h" // for initialisation (reset pin)
+#include "display_menu.h"
 
 
 // TODO: this should moved into board.xxx.h and needs also some modifications for configtool
@@ -188,11 +189,12 @@ void display_greeting(void) {
 */
 void display_clock(void) {
 
-  display_set_cursor(0, 2);
-  update_current_position();
-  sendf_P(display_writechar, PSTR("X:%lq Y:%lq Z:%lq  F:%lu  "),
-          current_position.axis[X], current_position.axis[Y],
-          current_position.axis[Z], current_position.F);
+  display_menu_clock();
+  // display_set_cursor(0, 2);
+  // update_current_position();
+  // sendf_P(display_writechar, PSTR("X:%lq Y:%lq Z:%lq  F:%lu  "),
+  //         current_position.axis[X], current_position.axis[Y],
+  //         current_position.axis[Z], current_position.F);
 }
 
 /**
