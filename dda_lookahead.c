@@ -299,7 +299,9 @@ void dda_join_moves(DDA *prev, DDA *current) {
       sersendf_P(PSTR("this_F: %lu\n"), this_F_in_steps);
     }
 
-    uint8_t timeout = 0;
+    #ifdef DEBUG
+      uint8_t timeout = 0;
+    #endif
 
     ATOMIC_START
       // Evaluation: determine how we did...
@@ -319,17 +321,20 @@ void dda_join_moves(DDA *prev, DDA *current) {
         current->end_steps = 0;
         current->start_steps = this_F_start_in_steps;
         la_cnt++;
-      } else
-        timeout = 1;
+      }
+      #ifdef DEBUG
+        else
+          timeout = 1;
+      #endif
     ATOMIC_END
 
     // If we were not fast enough, any feedback will happen outside the atomic block:
-    if(timeout) {
-      sersendf_P(PSTR("// Notice: look ahead not fast enough\n"));
-      #ifdef DEBUG
+    #ifdef DEBUG
+      if (timeout) {
+        sersendf_P(PSTR("// Notice: look ahead not fast enough\n"));
         lookahead_timeout++;
-      #endif
-    }
+      }
+    #endif
   }
 }
 
