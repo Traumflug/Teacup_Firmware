@@ -40,12 +40,18 @@
     #error MCP3008 sensors (TEMP_MCP3008) not yet supported on ARM.
   #endif
   #include "spi.h"
+  #undef PROGMEM
+  #define PROGMEM __flash
   #include "thermistortable.h"
+  #undef PROGMEM
 #endif
 
 #ifdef	TEMP_THERMISTOR
-#include	"analog.h"
-#include	"thermistortable.h"
+  #include  "analog.h"
+  #undef PROGMEM
+  #define PROGMEM __flash
+  #include "thermistortable.h"
+  #undef PROGMEM
 #endif
 
 #ifdef	TEMP_AD595
