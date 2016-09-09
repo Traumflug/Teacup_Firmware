@@ -43,7 +43,7 @@ ISR(WDT_vect) {
 void wd_init() {
 	// check if we were reset by the watchdog
 // 	if (mcusr_mirror & MASK(WDRF))
-// 		serial_writestr_P(PSTR("Watchdog Reset!\n"));
+// 		serial_writestr_F(XSTR("Watchdog Reset!\n"));
 
 	// 0.5s timeout, interrupt and system reset
 	wdt_enable(WDTO_500MS);

@@ -196,14 +196,14 @@ void serial_init() {
       binary size.
     */
     delay_ms(500);
-    serial_writestr_P(PSTR("\nSerial port parameters were calculated at "));
-    serial_writestr_P(PSTR("runtime.\nInsert these values to the list of "));
-    serial_writestr_P(PSTR("known settings in serial-arm.c:\n"));
+    serial_writestr_F(XSTR("\nSerial port parameters were calculated at "));
+    serial_writestr_F(XSTR("runtime.\nInsert these values to the list of "));
+    serial_writestr_F(XSTR("known settings in serial-arm.c:\n"));
     sersendf_F(serial_writechar, FSTR("  UART_DLM %sx\n"), (DL >> 8) & 0xFF);
     sersendf_F(serial_writechar, FSTR("  UART_DLL %sx\n"), (DL >> 0) & 0xFF);
     sersendf_F(serial_writechar, FSTR("  UART_FDR %sx\n"),
                (DivAddVal << 0) | (MulVal << 4));
-    serial_writestr_P(PSTR("Doing so will speed up serial considerably.\n\n"));
+    serial_writestr_F(XSTR("Doing so will speed up serial considerably.\n\n"));
   #endif
 }
 

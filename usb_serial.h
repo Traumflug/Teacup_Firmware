@@ -30,7 +30,7 @@
     - No need for usb_serial_flush_input(), usb_serial_flush_output().
 
     - usb_serial_write() does about the same as serial_writestr() /
-      serial_writestr_P() but isn't used, so either drop it or, if it's
+      serial_writestr_F() but isn't used, so either drop it or, if it's
       faster / smaller, change other code to use it.
 
     - Macros ATOMIC_START, ATOMIC_END not used.

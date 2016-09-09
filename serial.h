@@ -28,6 +28,6 @@
 void serial_writestr(uint8_t *data);
 
 // write from flash
-void serial_writestr_P(PGM_P data_P);
+void serial_writestr_F(const __flash char *data_F);
 
 #endif	/* _SERIAL_H */

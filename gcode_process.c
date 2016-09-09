@@ -357,7 +357,7 @@ void process_gcode_command() {
 				for (i = 0; i < NUM_HEATERS; i++)
 					temp_set(i, 0);
 				power_off();
-        serial_writestr_P(PSTR("\nstop\n"));
+        serial_writestr_F(XSTR("\nstop\n"));
 				break;
 
 			case 6:
@@ -664,35 +664,35 @@ void process_gcode_command() {
           #if ! (defined(X_MIN_PIN) || defined(X_MAX_PIN) || \
                  defined(Y_MIN_PIN) || defined(Y_MAX_PIN) || \
                  defined(Z_MIN_PIN) || defined(Z_MAX_PIN))
-            serial_writestr_P(PSTR("No endstops defined."));
+            serial_writestr_F(XSTR("No endstops defined."));
           #else
-            const char* const open = PSTR("open ");
-            const char* const triggered = PSTR("triggered ");
+            const __flash char* const open = XSTR("open ");
+            const __flash char* const triggered = XSTR("triggered ");
           #endif
 
           #if defined(X_MIN_PIN)
-            serial_writestr_P(PSTR("x_min:"));
-            x_min() ? serial_writestr_P(triggered) : serial_writestr_P(open);
+            serial_writestr_F(XSTR("x_min:"));
+            x_min() ? serial_writestr_F(triggered) : serial_writestr_F(open);
           #endif
           #if defined(X_MAX_PIN)
-            serial_writestr_P(PSTR("x_max:"));
-            x_max() ? serial_writestr_P(triggered) : serial_writestr_P(open);
+            serial_writestr_F(XSTR("x_max:"));
+            x_max() ? serial_writestr_F(triggered) : serial_writestr_F(open);
           #endif
           #if defined(Y_MIN_PIN)
-            serial_writestr_P(PSTR("y_min:"));
-            y_min() ? serial_writestr_P(triggered) : serial_writestr_P(open);
+            serial_writestr_F(XSTR("y_min:"));
+            y_min() ? serial_writestr_F(triggered) : serial_writestr_F(open);
           #endif
           #if defined(Y_MAX_PIN)
-            serial_writestr_P(PSTR("y_max:"));
-            y_max() ? serial_writestr_P(triggered) : serial_writestr_P(open);
+            serial_writestr_F(XSTR("y_max:"));
+            y_max() ? serial_writestr_F(triggered) : serial_writestr_F(open);
           #endif
           #if defined(Z_MIN_PIN)
-            serial_writestr_P(PSTR("z_min:"));
-            z_min() ? serial_writestr_P(triggered) : serial_writestr_P(open);
+            serial_writestr_F(XSTR("z_min:"));
+            z_min() ? serial_writestr_F(triggered) : serial_writestr_F(open);
           #endif
           #if defined(Z_MAX_PIN)
-            serial_writestr_P(PSTR("z_max:"));
-            z_max() ? serial_writestr_P(triggered) : serial_writestr_P(open);
+            serial_writestr_F(XSTR("z_max:"));
+            z_max() ? serial_writestr_F(triggered) : serial_writestr_F(open);
           #endif
         }
         endstops_off();
@@ -809,7 +809,7 @@ void process_gcode_command() {
 				//? Disable echo.
 				//? This command is only available in DEBUG builds.
 				debug_flags &= ~DEBUG_ECHO;
-				serial_writestr_P(PSTR("Echo off\n"));
+				serial_writestr_F(XSTR("Echo off\n"));
 				break;
 
 			case 241:
@@ -817,7 +817,7 @@ void process_gcode_command() {
 				//? Enable echo.
 				//? This command is only available in DEBUG builds.
 				debug_flags |= DEBUG_ECHO;
-				serial_writestr_P(PSTR("Echo on\n"));
+				serial_writestr_F(XSTR("Echo on\n"));
 				break;
       #endif /* DEBUG */
 

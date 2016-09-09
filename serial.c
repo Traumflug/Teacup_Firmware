@@ -36,10 +36,10 @@ void serial_writestr(uint8_t *data)
   For single character writes (i.e. '\n' instead of "\n"), using
   serial_writechar() directly is the better choice.
 */
-void serial_writestr_P(PGM_P data_P)
+void serial_writestr_F(const __flash char * data_F)
 {
 	uint8_t r, i = 0;
 	// yes, this is *supposed* to be assignment rather than comparison, so we break when r is assigned zero
-	while ((r = pgm_read_byte(&data_P[i++])))
+	while ((r = data_F[i++]))
 		serial_writechar(r);
 }

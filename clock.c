@@ -96,12 +96,12 @@ static void clock_250ms(void) {
     temp_residency_tick();
 
     if (temp_waiting()) {
-      serial_writestr_P(PSTR("Waiting for target temp\n"));
+      serial_writestr_F(XSTR("Waiting for target temp\n"));
       wait_for_temp = 1;
     }
     else {
       if (wait_for_temp) {
-        serial_writestr_P(PSTR("Temp achieved\n"));
+        serial_writestr_F(XSTR("Temp achieved\n"));
         wait_for_temp = 0;
       }
     }

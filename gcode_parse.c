@@ -450,7 +450,7 @@ uint8_t gcode_parse_char(uint8_t c) {
 \***************************************************************************/
 
 void request_resend(void) {
-	serial_writestr_P(PSTR("rs "));
+	serial_writestr_F(XSTR("rs "));
 	serwrite_uint8(next_target.N);
 	serial_writechar('\n');
 }

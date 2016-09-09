@@ -121,7 +121,7 @@ void init(void) {
   #endif
 
 	// say hi to host
-	serial_writestr_P(PSTR("start\nok\n"));
+	serial_writestr_F(XSTR("start\nok\n"));
 
 }
 
@@ -159,7 +159,7 @@ int main (void)
         incoming every about 1250 CPU clocks on AVR 16 MHz.
       */
       if (ack_waiting) {
-        serial_writestr_P(PSTR("ok\n"));
+        serial_writestr_F(XSTR("ok\n"));
         ack_waiting = 0;
       }
 
@@ -178,7 +178,7 @@ int main (void)
         if (( ! gcode_active || gcode_active & GCODE_SOURCE_SD) &&
             gcode_sources & GCODE_SOURCE_SD) {
           if (sd_read_gcode_line()) {
-            serial_writestr_P(PSTR("\nSD file done.\n"));
+            serial_writestr_F(XSTR("\nSD file done.\n"));
             gcode_sources &= ! GCODE_SOURCE_SD;
             // There is no pf_close(), subsequent reads will stick at EOF
             // and return zeros.
