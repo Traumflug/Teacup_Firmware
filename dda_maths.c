@@ -14,14 +14,14 @@
   These should be calculated at run-time once in dda_init() if the
   STEPS_PER_M_* constants are ever replaced with run-time options.
 */
-const axes_uint32_t PROGMEM axis_qn_P = {
+const axes_uint32_t_F axis_qn_P = {
   (uint32_t)STEPS_PER_M_X / UM_PER_METER,
   (uint32_t)STEPS_PER_M_Y / UM_PER_METER,
   (uint32_t)STEPS_PER_M_Z / UM_PER_METER,
   (uint32_t)STEPS_PER_M_E / UM_PER_METER
 };
 
-const axes_uint32_t PROGMEM axis_qr_P = {
+const axes_uint32_t_F axis_qr_P = {
   (uint32_t)STEPS_PER_M_X % UM_PER_METER,
   (uint32_t)STEPS_PER_M_Y % UM_PER_METER,
   (uint32_t)STEPS_PER_M_Z % UM_PER_METER,
@@ -272,7 +272,7 @@ const uint8_t msbloc (uint32_t v) {
 /*!
   Pre-calculated constant values for acceleration ramp calculations.
 */
-static const axes_uint32_t PROGMEM acc_ramp_div_P = {
+static const axes_uint32_t_F acc_ramp_div_F = {
   (uint32_t)((7200000.0f * ACCELERATION) / STEPS_PER_M_X),
   (uint32_t)((7200000.0f * ACCELERATION) / STEPS_PER_M_Y),
   (uint32_t)((7200000.0f * ACCELERATION) / STEPS_PER_M_Z),
@@ -292,6 +292,6 @@ static const axes_uint32_t PROGMEM acc_ramp_div_P = {
  *       too high at very low acceleration. Test code see commit message.
  */
 uint32_t acc_ramp_len(uint32_t feedrate, uint8_t fast_axis) {
-  return (feedrate * feedrate) / pgm_read_dword(&acc_ramp_div_P[fast_axis]);
+  return (feedrate * feedrate) / acc_ramp_div_F[fast_axis];
 }
 

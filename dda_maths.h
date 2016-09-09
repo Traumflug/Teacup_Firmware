@@ -25,13 +25,13 @@ inline int32_t muldiv(int32_t multiplicand, uint32_t multiplier,
 
 #define UM_PER_METER (1000000UL)
 
-extern const axes_uint32_t PROGMEM axis_qn_P;
-extern const axes_uint32_t PROGMEM axis_qr_P;
+extern const axes_uint32_t_F axis_qn_P;
+extern const axes_uint32_t_F axis_qr_P;
 
 static int32_t um_to_steps(int32_t, enum axis_e) __attribute__ ((always_inline));
 inline int32_t um_to_steps(int32_t distance, enum axis_e a) {
-  return muldivQR(distance, pgm_read_dword(&axis_qn_P[a]),
-                  pgm_read_dword(&axis_qr_P[a]), UM_PER_METER);
+  return muldivQR(distance, axis_qn_P[a],
+                  axis_qr_P[a], UM_PER_METER);
 }
 
 // approximate 2D distance

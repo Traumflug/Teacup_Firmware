@@ -28,9 +28,9 @@
   uint32_t lookahead_timeout = 0;
 #endif
 
-/// \var maximum_jerk_P
+/// \var maximum_jerk_F
 /// \brief maximum allowed feedrate jerk on each axis
-static const axes_uint32_t PROGMEM maximum_jerk_P = {
+static const axes_uint32_t_F maximum_jerk_F = {
   MAX_JERK_X,
   MAX_JERK_Y,
   MAX_JERK_Z,
@@ -116,12 +116,12 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
       dv = currF[i] + prevF[i];
 
     if (dv) {
-      speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[i]) << 8) / dv;
+      speed_factor = ((uint32_t)maximum_jerk_F[i] << 8) / dv;
       if (speed_factor < max_speed_factor)
         max_speed_factor = speed_factor;
       if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
         sersendf_F(XSTR("%c: dv %lu of %lu   factor %lu of %lu\n"),
-                   'X' + i, dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[i]),
+                   'X' + i, dv, (uint32_t)maximum_jerk_F[i],
                    speed_factor, (uint32_t)1 << 8);
     }
   }
