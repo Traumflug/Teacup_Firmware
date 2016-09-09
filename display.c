@@ -79,12 +79,12 @@ void display_writechar(uint8_t data) {
   }
 }
 
-void display_writestr_P(PGM_P data_P) {
+void display_writestr_F(const __flash char *data_F) {
   uint8_t r, i = 0;
 
   // Yes, this is *supposed* to be assignment rather than comparison, so we
   // break when r is assigned zero.
-  while ((r = pgm_read_byte(&data_P[i]))) {
+  while ((r = data_F[i])) {
     display_writechar(r);
     i++;
   }

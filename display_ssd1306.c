@@ -24,7 +24,7 @@
 
     - Clearing the display.
 
-    - Writing text with display_writestr_P().
+    - Writing text with display_writestr_F().
 
     - Writing formatted text with sendf_F(display_writechar, ...).
 
@@ -72,7 +72,7 @@
 #include "dda.h"
 
 
-static const uint8_t PROGMEM init_sequence[] = {
+static const __flash uint8_t init_sequence[] = {
   0x00,             // Command marker.
   0xAE,             // Display off.
   0xD5, 0x80,       // Display clock divider (reset).
@@ -125,7 +125,7 @@ void display_greeting(void) {
   */
   display_set_cursor(1, 32);
 
-  display_writestr_P(PSTR("Welcome to Teacup"));
+  display_writestr_F(XSTR("Welcome to Teacup"));
 
   // Forward this to the display immediately.
   while (buf_canread(display)) {
@@ -221,11 +221,11 @@ void display_tick() {
 
         // Send the character bitmap.
         #ifdef FONT_IS_PROPORTIONAL
-          for (i = 0; i < pgm_read_byte(&font[index].columns); i++) {
+          for (i = 0; i < font[index].columns; i++) {
         #else
           for (i = 0; i < FONT_COLUMNS; i++) {
         #endif
-            displaybus_write(pgm_read_byte(&font[index].data[i]), 0);
+            displaybus_write(font[index].data[i], 0);
         }
         // Send space between characters.
         for (i = 0; i < FONT_SYMBOL_SPACE; i++) {

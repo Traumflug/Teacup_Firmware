@@ -13,7 +13,7 @@
 
 #include "font.h"
 
-const symbol_t PROGMEM font[] = {
+const __flash symbol_t font[] = {
   {2, {0x00, 0x00, 0x00, 0x00}},  /* space */
   {3, {0x0C, 0x5E, 0x0C, 0x00}},  /* excl_mark */
   {3, {0x03, 0x00, 0x03, 0x00}},  /* quot_mark */

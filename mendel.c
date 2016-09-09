@@ -58,7 +58,7 @@
 #endif
 
 #ifdef CANNED_CYCLE
-  const char PROGMEM canned_gcode_P[] = CANNED_CYCLE;
+  const char __flash canned_gcode_F[] = CANNED_CYCLE;
 #endif
 
 /** Initialise all the subsystems.
@@ -202,10 +202,10 @@ int main (void)
         */
         static uint32_t canned_gcode_pos = 0;
 
-        gcode_parse_char(pgm_read_byte(&(canned_gcode_P[canned_gcode_pos])));
+        gcode_parse_char(canned_gcode_F[canned_gcode_pos]);
 
         canned_gcode_pos++;
-        if (pgm_read_byte(&(canned_gcode_P[canned_gcode_pos])) == 0)
+        if (canned_gcode_F[canned_gcode_pos] == 0)
           canned_gcode_pos = 0;
 
       #endif /* CANNED_CYCLE */

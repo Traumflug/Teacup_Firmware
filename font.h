@@ -3,7 +3,7 @@
 #define _FONT_H
 
 #include <stdint.h>
-#include "arduino.h"  // For PROGMEM.
+#include "arduino.h"  // For __flash.
 
 /**
   So far we have only one font and no choice for fonts in Configtool,
@@ -30,6 +30,6 @@ typedef struct {
   uint8_t data[FONT_COLUMNS];
 } symbol_t;
 
-extern const symbol_t PROGMEM font[];
+extern const __flash symbol_t font[];
 
 #endif /* _FONT_H */

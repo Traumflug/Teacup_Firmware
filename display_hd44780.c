@@ -40,7 +40,7 @@ void display_greeting(void) {
   display_clear();
 
   // We have only 16 characters at our disposal ...
-  display_writestr_P(PSTR("Welcome @ Teacup"));
+  display_writestr_F(XSTR("Welcome @ Teacup"));
 
   // Forward this to the display immediately.
   while (buf_canread(display)) {
