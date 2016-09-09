@@ -234,7 +234,7 @@ void heater_set(heater_t index, uint8_t value) {
       *heaters[index].ccr = (uint32_t)value * (PWM_SCALE / 255);
 
       if (DEBUG_PID && (debug_flags & DEBUG_PID))
-        sersendf_P(PSTR("PWM %su = %lu\n"), index, *heaters[index].ccr);
+        sersendf_F(XSTR("PWM %su = %lu\n"), index, *heaters[index].ccr);
     }
     else {
       *(heaters[index].bsrr) =

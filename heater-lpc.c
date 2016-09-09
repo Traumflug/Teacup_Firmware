@@ -202,7 +202,7 @@ void heater_set(heater_t index, uint8_t value) {
       *heaters[index].match = pwm_value;
 
       if (DEBUG_PID && (debug_flags & DEBUG_PID))
-        sersendf_P(PSTR("PWM %su = %lu\n"), index, *heaters[index].match);
+        sersendf_F(XSTR("PWM %su = %lu\n"), index, *heaters[index].match);
     }
     else {
       *(heaters[index].masked_port) =

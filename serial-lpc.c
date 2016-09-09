@@ -199,9 +199,9 @@ void serial_init() {
     serial_writestr_P(PSTR("\nSerial port parameters were calculated at "));
     serial_writestr_P(PSTR("runtime.\nInsert these values to the list of "));
     serial_writestr_P(PSTR("known settings in serial-arm.c:\n"));
-    sersendf_P(serial_writechar, PSTR("  UART_DLM %sx\n"), (DL >> 8) & 0xFF);
-    sersendf_P(serial_writechar, PSTR("  UART_DLL %sx\n"), (DL >> 0) & 0xFF);
-    sersendf_P(serial_writechar, PSTR("  UART_FDR %sx\n"),
+    sersendf_F(serial_writechar, FSTR("  UART_DLM %sx\n"), (DL >> 8) & 0xFF);
+    sersendf_F(serial_writechar, FSTR("  UART_DLL %sx\n"), (DL >> 0) & 0xFF);
+    sersendf_F(serial_writechar, FSTR("  UART_FDR %sx\n"),
                (DivAddVal << 0) | (MulVal << 4));
     serial_writestr_P(PSTR("Doing so will speed up serial considerably.\n\n"));
   #endif

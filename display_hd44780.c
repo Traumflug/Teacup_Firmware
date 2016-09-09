@@ -60,19 +60,19 @@ void display_clock(void) {
   display_clear();
 
   update_current_position();
-  sendf_P(display_writechar, PSTR("X:%lq Y:%lq"),
+  sendf_F(display_writechar, XSTR("X:%lq Y:%lq"),
           current_position.axis[X], current_position.axis[Y]);
 
   #ifdef HEATER_EXTRUDER
     display_set_cursor(1, 0);
     temperature = temp_get(TEMP_SENSOR_extruder);
-    sendf_P(display_writechar, PSTR("%u.%su"),
+    sendf_F(display_writechar, XSTR("%u.%su"),
             temperature >> 2, (uint8_t)(temperature & 3) * 25);
   #endif
   #ifdef HEATER_BED
     display_set_cursor(1, DISPLAY_SYMBOLS_PER_LINE / 2);
     temperature = temp_get(TEMP_SENSOR_bed);
-    sendf_P(display_writechar, PSTR("%u.%su"),
+    sendf_F(display_writechar, XSTR("%u.%su"),
             temperature >> 2, (uint8_t)(temperature & 3) * 25);
   #endif
 }

@@ -35,11 +35,11 @@
 
 	Example:
 
-  \code sersendf_P(serial_writechar,
-                   PSTR("X:%ld Y:%ld temp:%u.%d flags:%sx Q%su/%su%c\n"),
-                   target.X, target.Y, current_temp >> 2,
-                   (current_temp & 3) * 25, dda.allflags, mb_head, mb_tail,
-                   (queue_full()?'F':(queue_empty()?'E':' '))) \endcode
+  \code sendf_F(serial_writechar,
+                XSTR("X:%ld Y:%ld temp:%u.%d flags:%sx Q%su/%su%c\n"),
+                target.X, target.Y, current_temp >> 2,
+                (current_temp & 3) * 25, dda.allflags, mb_head, mb_tail,
+                (queue_full()?'F':(queue_empty()?'E':' '))) \endcode
 */
 
 /**
@@ -53,13 +53,13 @@
   #define GET_ARG(T) ((T)va_arg(args, int))
 #endif
 
-void sendf_P(void (*writechar)(uint8_t), PGM_P format_P, ...) {
+void sendf_F(void (*writechar)(uint8_t), const __flash char *format_F, ...) {
 	va_list args;
-	va_start(args, format_P);
+	va_start(args, format_F);
 
 	uint16_t i = 0;
 	uint8_t c = 1, j = 0;
-	while ((c = pgm_read_byte(&format_P[i++]))) {
+	while ((c = format_F[i++])) {
 		if (j) {
 			switch(c) {
 				case 's':

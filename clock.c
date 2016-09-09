@@ -109,13 +109,13 @@ static void clock_250ms(void) {
 		if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
 			// current position
 			update_current_position();
-      sersendf_P(PSTR("Pos: %lq,%lq,%lq,%lq,%lu\n"),
+      sersendf_F(XSTR("Pos: %lq,%lq,%lq,%lq,%lu\n"),
                  current_position.axis[X], current_position.axis[Y],
                  current_position.axis[Z], current_position.axis[E],
                  current_position.F);
 
 			// target position
-      sersendf_P(PSTR("Dst: %lq,%lq,%lq,%lq,%lu\n"),
+      sersendf_F(XSTR("Dst: %lq,%lq,%lq,%lq,%lu\n"),
                  mb_tail_dda->endpoint.axis[X],
                  mb_tail_dda->endpoint.axis[Y],
                  mb_tail_dda->endpoint.axis[Z],

@@ -221,7 +221,7 @@ void heater_set(heater_t index, uint8_t value) {
       (255 - value) : value;
 
 		if (DEBUG_PID && (debug_flags & DEBUG_PID))
-			sersendf_P(PSTR("PWM{%u = %u}\n"), index, *heaters[index].heater_pwm);
+			sersendf_F(XSTR("PWM{%u = %u}\n"), index, *heaters[index].heater_pwm);
 	}
 	else {
     if ((value >= HEATER_THRESHOLD && ! heaters[index].invert) ||

@@ -67,7 +67,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
     F = current->endpoint.F;
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-    sersendf_P(PSTR("Distance: %lu, then %lu\n"),
+    sersendf_F(XSTR("Distance: %lu, then %lu\n"),
                prev->distance, current->distance);
 
   // Find individual axis speeds.
@@ -82,7 +82,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   }
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-    sersendf_P(PSTR("prevF: %ld  %ld  %ld  %ld\ncurrF: %ld  %ld  %ld  %ld\n"),
+    sersendf_F(XSTR("prevF: %ld  %ld  %ld  %ld\ncurrF: %ld  %ld  %ld  %ld\n"),
                prevF[X], prevF[Y], prevF[Z], prevF[E],
                currF[X], currF[Y], currF[Z], currF[E]);
 
@@ -120,7 +120,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
       if (speed_factor < max_speed_factor)
         max_speed_factor = speed_factor;
       if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-        sersendf_P(PSTR("%c: dv %lu of %lu   factor %lu of %lu\n"),
+        sersendf_F(XSTR("%c: dv %lu of %lu   factor %lu of %lu\n"),
                    'X' + i, dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[i]),
                    speed_factor, (uint32_t)1 << 8);
     }
@@ -132,7 +132,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
     current->crossF = (F * max_speed_factor) >> 8;
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-    sersendf_P(PSTR("Cross speed reduction from %lu to %lu\n"),
+    sersendf_F(XSTR("Cross speed reduction from %lu to %lu\n"),
                F, current->crossF);
 
   return;
@@ -189,7 +189,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
 
     // Show the proposed crossing speed - this might get adjusted below.
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("Initial crossing speed: %lu\n"), current->crossF);
+      sersendf_F(XSTR("Initial crossing speed: %lu\n"), current->crossF);
 
   // Make sure we have 2 moves and the previous move is not already active
   if (prev->live == 0) {
@@ -224,7 +224,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
 
     // Show the proposed crossing speed - this might get adjusted below
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("Initial crossing speed: %lu\n"), crossF_in_steps);
+      sersendf_F(XSTR("Initial crossing speed: %lu\n"), crossF_in_steps);
 
     // Compute the maximum speed we can reach for crossing.
     crossF_in_steps = MIN(crossF_in_steps, this_total_steps);
@@ -285,16 +285,16 @@ void dda_join_moves(DDA *prev, DDA *current) {
     this_F_start_in_steps = crossF_in_steps;
 
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
-      sersendf_P(PSTR("prev_F_start: %lu\n"), prev_F_start_in_steps);
-      sersendf_P(PSTR("prev_F: %lu\n"), prev_F_in_steps);
-      sersendf_P(PSTR("prev_rampup: %lu\n"), prev_rampup);
-      sersendf_P(PSTR("prev_rampdown: %lu\n"),
+      sersendf_F(XSTR("prev_F_start: %lu\n"), prev_F_start_in_steps);
+      sersendf_F(XSTR("prev_F: %lu\n"), prev_F_in_steps);
+      sersendf_F(XSTR("prev_rampup: %lu\n"), prev_rampup);
+      sersendf_F(XSTR("prev_rampdown: %lu\n"),
                  prev_total_steps - prev_rampdown);
-      sersendf_P(PSTR("crossF: %lu\n"), crossF_in_steps);
-      sersendf_P(PSTR("this_rampup: %lu\n"), this_rampup);
-      sersendf_P(PSTR("this_rampdown: %lu\n"),
+      sersendf_F(XSTR("crossF: %lu\n"), crossF_in_steps);
+      sersendf_F(XSTR("this_rampup: %lu\n"), this_rampup);
+      sersendf_F(XSTR("this_rampdown: %lu\n"),
                  this_total_steps - this_rampdown);
-      sersendf_P(PSTR("this_F: %lu\n"), this_F_in_steps);
+      sersendf_F(XSTR("this_F: %lu\n"), this_F_in_steps);
     }
 
     #ifdef DEBUG
@@ -331,7 +331,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
     // If we were not fast enough, any feedback will happen outside the atomic block:
     #ifdef DEBUG
       if (timeout) {
-        sersendf_P(PSTR("// Notice: look ahead not fast enough\n"));
+        sersendf_F(XSTR("// Notice: look ahead not fast enough\n"));
         lookahead_timeout++;
       }
     #endif

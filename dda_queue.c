@@ -133,7 +133,7 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 /// DEBUG - print queue.
 /// Qt/hs format, t is tail, h is head, s is F/full, E/empty or neither
 void print_queue() {
-  sersendf_P(PSTR("Queue: %d/%d%c\n"), mb_tail, mb_head,
+  sersendf_F(XSTR("Queue: %d/%d%c\n"), mb_tail, mb_head,
              (queue_full() ? 'F' : (mb_tail_dda ? ' ' : 'E')));
 }
 

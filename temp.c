@@ -179,7 +179,7 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
   }
 
   if (DEBUG_PID && (debug_flags & DEBUG_PID))
-    sersendf_P(PSTR("pin:%d Raw ADC:%d table entry: %d"),
+    sersendf_F(XSTR("pin:%d Raw ADC:%d table entry: %d"),
                temp_sensors[sensor].temp_pin, temp, hi);
 
   if (sizeof(temptable[0][0]) == 2 * sizeof(uint16_t)) {
@@ -225,10 +225,10 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
   }
 
   if (DEBUG_PID && (debug_flags & DEBUG_PID))
-    sersendf_P(PSTR(" temp:%d.%d"), temp / 4, (temp % 4) * 25);
+    sersendf_F(XSTR(" temp:%d.%d"), temp / 4, (temp % 4) * 25);
 
   if (DEBUG_PID && (debug_flags & DEBUG_PID))
-    sersendf_P(PSTR(" Sensor:%d\n"), sensor);
+    sersendf_F(XSTR(" Sensor:%d\n"), sensor);
 
   return temp;
 }
@@ -532,13 +532,13 @@ void temp_residency_tick() {
 		}
 
     if (DEBUG_PID && (debug_flags & DEBUG_PID))
-      sersendf_P(PSTR("DU temp: {%d %d %d.%d}"), i,
+      sersendf_F(XSTR("DU temp: {%d %d %d.%d}"), i,
                  temp_sensors_runtime[i].last_read_temp,
                  temp_sensors_runtime[i].last_read_temp / 4,
                  (temp_sensors_runtime[i].last_read_temp & 0x03) * 25);
 	}
   if (DEBUG_PID && (debug_flags & DEBUG_PID))
-    sersendf_P(PSTR("\n"));
+    sersendf_F(XSTR("\n"));
 }
 
 /**
@@ -611,15 +611,15 @@ uint16_t temp_get(temp_sensor_t index) {
 	return temp_sensors_runtime[index].last_read_temp;
 }
 
-// extruder doesn't have sersendf_P
+// extruder doesn't have sersendf_F
 #ifndef	EXTRUDER
 static void single_temp_print(temp_sensor_t index) {
 	uint8_t c = (temp_sensors_runtime[index].last_read_temp & 3) * 25;
-	sersendf_P(PSTR("%u.%u"), temp_sensors_runtime[index].last_read_temp >> 2, c);
+	sersendf_F(XSTR("%u.%u"), temp_sensors_runtime[index].last_read_temp >> 2, c);
   #ifdef REPORT_TARGET_TEMPS
-    sersendf_P(PSTR("/"));
+    sersendf_F(XSTR("/"));
     c = (temp_sensors_runtime[index].target_temp & 3) * 25;
-    sersendf_P(PSTR("%u.%u"), temp_sensors_runtime[index].target_temp >> 2, c);
+    sersendf_F(XSTR("%u.%u"), temp_sensors_runtime[index].target_temp >> 2, c);
   #endif
 }
 
@@ -629,18 +629,18 @@ void temp_print(temp_sensor_t index) {
 
 	if (index == TEMP_SENSOR_none) { // standard behaviour
 		#ifdef HEATER_EXTRUDER
-			sersendf_P(PSTR("T:"));
+			sersendf_F(XSTR("T:"));
       single_temp_print(TEMP_SENSOR_extruder);
 		#endif
 		#ifdef HEATER_BED
-			sersendf_P(PSTR(" B:"));
+			sersendf_F(XSTR(" B:"));
       single_temp_print(TEMP_SENSOR_bed);
 		#endif
 	}
 	else {
 		if (index >= NUM_TEMP_SENSORS)
 			return;
-		sersendf_P(PSTR("T[%su]:"), index);
+		sersendf_F(XSTR("T[%su]:"), index);
 		single_temp_print(index);
 	}
   serial_writechar('\n');

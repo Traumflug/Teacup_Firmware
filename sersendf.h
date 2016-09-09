@@ -11,6 +11,6 @@
 
   Deprecated macro? Convenience macro? Dunno.
 */
-#define sersendf_P(...) sendf_P(serial_writechar, __VA_ARGS__)
+#define sersendf_F(...) sendf_F(serial_writechar, __VA_ARGS__)
 
 #endif	/* _SERSENDF_H */

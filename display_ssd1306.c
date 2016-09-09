@@ -26,7 +26,7 @@
 
     - Writing text with display_writestr_P().
 
-    - Writing formatted text with sendf_P(display_writechar, ...).
+    - Writing formatted text with sendf_F(display_writechar, ...).
 
     - Current state of code should clear the display at startup, show a
       greeting message and start displaying current X/Y/Z coordinates, updated
@@ -143,7 +143,7 @@ void display_clock(void) {
 
   display_set_cursor(0, 2);
   update_current_position();
-  sendf_P(display_writechar, PSTR("X:%lq Y:%lq Z:%lq  F:%lu  "),
+  sendf_F(display_writechar, XSTR("X:%lq Y:%lq Z:%lq  F:%lu  "),
           current_position.axis[X], current_position.axis[Y],
           current_position.axis[Z], current_position.F);
 }

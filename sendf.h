@@ -6,6 +6,6 @@
 
 
 // No __attribute__ ((format (printf, 1, 2)) here because %q isn't supported.
-void sendf_P(void (*writechar)(uint8_t), PGM_P format_P, ...);
+void sendf_F(void (*writechar)(uint8_t), const __flash char *format_F, ...);
 
 #endif /* _SENDF_H */

@@ -517,7 +517,7 @@ ISR(TWI_vect) {
 
     default:
       #ifdef TWI_INTERRUPT_DEBUG
-        sendf_P(serial_writechar, PSTR("(%sx)"), status);
+        sendf_F(serial_writechar, XSTR("(%sx)"), status);
       #endif
       break;
     }
