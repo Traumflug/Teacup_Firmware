@@ -22,6 +22,14 @@ enum axis_e { X = 0, Y, Z, E, AXIS_COUNT };
   Stored value can be anything unsigned. Units should be specified when declared.
 */
 typedef uint32_t axes_uint32_t[AXIS_COUNT];
+/**
+  \typedef axes_uint32_t_F
+  \brief n-dimensional vector used to describe uint32_t_F axis information.
+
+  Stored value can be anything unsigned. Units should be specified when declared.
+  This is the typedef for const values stored in flash.
+*/
+typedef uint32_t __flash axes_uint32_t_F[AXIS_COUNT];
 
 /**
   \typedef axes_int32_t

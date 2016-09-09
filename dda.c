@@ -49,19 +49,19 @@ TARGET BSS current_position;
 /// \brief numbers for tracking the current state of movement
 MOVE_STATE BSS move_state;
 
-/// \var maximum_feedrate_P
+/// \var maximum_feedrate_F
 /// \brief maximum allowed feedrate on each axis
-static const axes_uint32_t PROGMEM maximum_feedrate_P = {
+static const axes_uint32_t_F maximum_feedrate_F = {
   MAXIMUM_FEEDRATE_X,
   MAXIMUM_FEEDRATE_Y,
   MAXIMUM_FEEDRATE_Z,
   MAXIMUM_FEEDRATE_E
 };
 
-/// \var c0_P
+/// \var c0_F
 /// \brief Initialization constant for the ramping algorithm. Timer cycles for
 ///        first step interval.
-static const axes_uint32_t PROGMEM c0_P = {
+static const axes_uint32_t_F c0_F = {
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_X * ACCELERATION / 2000.)),
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_Y * ACCELERATION / 2000.)),
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_Z * ACCELERATION / 2000.)),
@@ -292,7 +292,7 @@ void dda_create(DDA *dda, const TARGET *target) {
       move_duration = distance * ((60 * F_CPU) / (dda->endpoint.F * 1000UL));
       for (i = X; i < AXIS_COUNT; i++) {
         md_candidate = dda->delta[i] * ((60 * F_CPU) /
-                       (pgm_read_dword(&maximum_feedrate_P[i]) * 1000UL));
+                       (maximum_feedrate_F[i] * 1000UL));
         if (md_candidate > move_duration)
           move_duration = md_candidate;
       }
@@ -325,7 +325,7 @@ void dda_create(DDA *dda, const TARGET *target) {
     for (i = X; i < AXIS_COUNT; i++) {
       c_limit_calc = (delta_um[i] * 2400L) /
                      dda->total_steps * (F_CPU / 40000) /
-                     pgm_read_dword(&maximum_feedrate_P[i]);
+                     maximum_feedrate_F[i];
       if (c_limit_calc > c_limit)
         c_limit = c_limit_calc;
     }
@@ -412,20 +412,20 @@ void dda_create(DDA *dda, const TARGET *target) {
         dda_join_moves(prev_dda, dda);
         dda->n = dda->start_steps;
         if (dda->n == 0)
-          dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
+          dda->c = c0_F[dda->fast_axis];
         else
           #if __FPU_PRESENT
-          dda->c = (pgm_read_dword(&c0_P[dda->fast_axis]) /
-                    (2 * int_f_sqrt(dda->n)));
+          dda->c = c0_F[dda->fast_axis] /
+                    (2 * int_f_sqrt(dda->n));
           #else
-          dda->c = (pgm_read_dword(&c0_P[dda->fast_axis]) *
+          dda->c = (c0_F[dda->fast_axis] *
                     int_inv_sqrt(dda->n)) >> 13;
           #endif
         if (dda->c < dda->c_min)
           dda->c = dda->c_min;
       #else
         dda->n = 0;
-        dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
+        dda->c = c0_F[dda->fast_axis];
       #endif
 
 		#elif defined ACCELERATION_TEMPORAL
@@ -874,16 +874,16 @@ void dda_clock() {
     }
     if (recalc_speed) {
       if (move_n == 0)
-        move_c = pgm_read_dword(&c0_P[dda->fast_axis]);
+        move_c = c0_F[dda->fast_axis];
       else
         // Explicit formula: c0 * (sqrt(n + 1) - sqrt(n)),
         // approximation here: c0 * (1 / (2 * sqrt(n))).
         // This >> 13 looks odd, but is verified with the explicit formula.
         #if __FPU_PRESENT
-        move_c = (pgm_read_dword(&c0_P[dda->fast_axis]) /
-                  (2 * int_f_sqrt(move_n)));
+        move_c = c0_F[dda->fast_axis] /
+                  (2 * int_f_sqrt(move_n));
         #else
-        move_c = (pgm_read_dword(&c0_P[dda->fast_axis]) *
+        move_c = (c0_F[dda->fast_axis] *
                   int_inv_sqrt(move_n)) >> 13;
         #endif
 
@@ -937,7 +937,7 @@ void update_current_position() {
   DDA *dda = mb_tail_dda;
   enum axis_e i;
 
-  static const axes_uint32_t PROGMEM steps_per_m_P = {
+  static const axes_uint32_t_F steps_per_m_F = {
     STEPS_PER_M_X,
     STEPS_PER_M_Y,
     STEPS_PER_M_Z,
@@ -954,7 +954,7 @@ void update_current_position() {
       #else
         axis_steps = move_state.steps[i];
       #endif
-      axis_um = muldiv(axis_steps, 1000000, pgm_read_dword(&steps_per_m_P[i]));
+      axis_um = muldiv(axis_steps, 1000000, steps_per_m_F[i]);
       current_position.axis[i] =
         dda->endpoint.axis[i] - (int32_t)get_direction(dda, i) * axis_um;
     }
