@@ -14,14 +14,14 @@
   These should be calculated at run-time once in dda_init() if the
   STEPS_PER_M_* constants are ever replaced with run-time options.
 */
-const axes_uint32_t_F axis_qn_P = {
+const axes_uint32_t_F axis_qn_F = {
   (uint32_t)STEPS_PER_M_X / UM_PER_METER,
   (uint32_t)STEPS_PER_M_Y / UM_PER_METER,
   (uint32_t)STEPS_PER_M_Z / UM_PER_METER,
   (uint32_t)STEPS_PER_M_E / UM_PER_METER
 };
 
-const axes_uint32_t_F axis_qr_P = {
+const axes_uint32_t_F axis_qr_F = {
   (uint32_t)STEPS_PER_M_X % UM_PER_METER,
   (uint32_t)STEPS_PER_M_Y % UM_PER_METER,
   (uint32_t)STEPS_PER_M_Z % UM_PER_METER,

@@ -172,7 +172,7 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
   //   hi = index of lowest entry greater than or equal to target.
   for (lo = 0, hi = NUMTEMPS - 1; hi - lo > 1; ) {
     uint8_t j = lo + (hi - lo) / 2 ;
-    if (pgm_read_word(&(temptable[table_num][j][0])) >= temp)
+    if ((temptable[table_num][j][0]) >= temp)
       hi = j ;
     else
       lo = j ;
@@ -201,25 +201,24 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
     // y₁= temptable[hi][1]
     temp = (
       // ((x - x₀)y₁
-      ((uint32_t)temp - pgm_read_word(&(temptable[table_num][lo][0]))) *
-                        pgm_read_word(&(temptable[table_num][hi][1]))
+      ((uint32_t)temp - temptable[table_num][lo][0]) *
+                        temptable[table_num][hi][1]
       //             +
       +
       //               (x₁-x)y₀)
-      (pgm_read_word(&(temptable[table_num][hi][0])) - (uint32_t)temp) *
-        pgm_read_word(&(temptable[table_num][lo][1])))
+      (temptable[table_num][hi][0] - (uint32_t)temp) *
+        temptable[table_num][lo][1])
       //                        /
       /
       //                          (x₁ - x₀)
-      (pgm_read_word(&(temptable[table_num][hi][0])) -
-       pgm_read_word(&(temptable[table_num][lo][0])));
+      (temptable[table_num][hi][0] - temptable[table_num][lo][0]);
   } else
   if (sizeof(temptable[0][0]) == 3 * sizeof(uint16_t)) {
     // Linear interpolation using pre-computed slope.
     // y = y₁ - (x - x₁) * d₁
-    #define X1 pgm_read_word(&(temptable[table_num][hi][0]))
-    #define Y1 pgm_read_word(&(temptable[table_num][hi][1]))
-    #define D1 pgm_read_word(&(temptable[table_num][hi][2]))
+    #define X1 temptable[table_num][hi][0]
+    #define Y1 temptable[table_num][hi][1]
+    #define D1 temptable[table_num][hi][2]
 
     temp = Y1 - ((((int32_t)temp - X1) * D1 + (1 << 7)) >> 8);
   }

@@ -12,7 +12,7 @@
 #define THERMISTOR_EXTRUDER 0
 #define THERMISTOR_BED 1
 
-const uint16_t PROGMEM temptable[NUMTABLES][NUMTEMPS][3] = {
+const uint16_t __flash temptable[NUMTABLES][NUMTEMPS][3] = {
   // EXTRUDER temp table using Beta algorithm with parameters:
   // R0 = 100000, T0 = 25, R1 = 0, R2 = 1000, beta = 4092, maxadc = 1023
   {

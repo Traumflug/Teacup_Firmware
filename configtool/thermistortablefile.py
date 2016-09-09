@@ -65,7 +65,7 @@ def generateTempTables(sensors, settings):
     ofp.close();
     return True
 
-  ofp.output("const uint16_t PROGMEM temptable[NUMTABLES][NUMTEMPS][3] = {")
+  ofp.output("const uint16_t __flash temptable[NUMTABLES][NUMTEMPS][3] = {")
 
   tcount = 0
   for tn in tl:
