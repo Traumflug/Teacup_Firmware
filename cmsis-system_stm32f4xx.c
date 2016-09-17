@@ -342,10 +342,22 @@ void SetSysClock(void)
   // PLLN_6/7:    VCO output clock = 384 MHz (2 MHz * 192)
   // PLLP_0:      PLLCLK = 96 MHz (384 MHz / 4)
   // PLLQ_3:      USB clock = 48 MHz (384 MHz / 8) --> 48MHz is best choice for USB
+  #if __SYSTEM_CLOCK == 96000000
   RCC->PLLCFGR =  RCC_PLLCFGR_PLLSRC_HSE | RCC_PLLCFGR_PLLM_2 | \
                   RCC_PLLCFGR_PLLN_6 | RCC_PLLCFGR_PLLN_7 | \
                   RCC_PLLCFGR_PLLP_0 | \
                   RCC_PLLCFGR_PLLQ_3;
+  #elif __SYSTEM_CLOCK == 100000000
+  RCC->PLLCFGR =  RCC_PLLCFGR_PLLSRC_HSE | RCC_PLLCFGR_PLLM_2 | \
+                  RCC_PLLCFGR_PLLN_3 | RCC_PLLCFGR_PLLN_6 | RCC_PLLCFGR_PLLN_7 | \
+                  RCC_PLLCFGR_PLLP_0 | \
+                  RCC_PLLCFGR_PLLQ_3;
+  #elif __SYSTEM_CLOCK == 108000000
+  RCC->PLLCFGR =  RCC_PLLCFGR_PLLSRC_HSE | RCC_PLLCFGR_PLLM_2 | \
+                  RCC_PLLCFGR_PLLN_3 | RCC_PLLCFGR_PLLN_4 | RCC_PLLCFGR_PLLN_6 | RCC_PLLCFGR_PLLN_7 | \
+                  RCC_PLLCFGR_PLLP_0 | \
+                  RCC_PLLCFGR_PLLQ_0 | RCC_PLLCFGR_PLLQ_3;
+  #endif
 
   /* Enable the main PLL. */
   RCC->CR |= RCC_CR_PLLON;
