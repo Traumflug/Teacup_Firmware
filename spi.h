@@ -10,8 +10,8 @@
 /**
   Test configuration.
 */
-#ifdef __ARMEL__
-  #error SPI (SD_CARD_SELECT_PIN, TEMP_MAX6675, TEMP_MCP3008) not yet supported on ARM.
+#ifdef __ARM_LPC1114__
+  #error SPI (SD_CARD_SELECT_PIN, TEMP_MAX6675, TEMP_MCP3008) not yet supported on LPC1114.
 #endif
 
 // Uncomment this to double SPI frequency from (F_CPU / 4) to (F_CPU / 2).
@@ -67,6 +67,7 @@ inline void spi_deselect_mcp3008(void) {
 }
 #endif /* TEMP_MCP3008 */
 
+#ifdef __AVR__
 /** Set SPI clock speed to something between 100 and 400 kHz.
 
   This is needed for initialising SD cards. We set the whole SPCR register
@@ -119,6 +120,22 @@ inline uint8_t spi_rw(uint8_t byte) {
   loop_until_bit_is_set(SPSR, SPIF);
   return SPDR;
 }
+
+#elif defined __ARM_STM32F411__
+
+void spi_speed_100_400(void);
+void spi_speed_max(void);
+
+static uint8_t spi_rw(uint8_t) __attribute__ ((always_inline));
+inline uint8_t spi_rw(uint8_t byte) {
+  SPI2->DR = byte;
+  while(!(SPI2->SR & SPI_SR_TXE));
+  while(!(SPI2->SR & SPI_SR_RXNE));
+  while(SPI2->SR & SPI_SR_BSY);
+  return SPI2->DR;
+}
+
+#endif /* AVR / STM32F411 */
 
 #endif /* SPI */
 
