@@ -19,7 +19,7 @@
 #include "spi-avr.c"
 // Each ARM needs it's own file
 // #include "spi-lpc.c"
-// #include "spi-stm32.c"
+#include "spi-stm32.c"
 #undef TEACUP_C_INCLUDE
 
 #endif /* SPI */

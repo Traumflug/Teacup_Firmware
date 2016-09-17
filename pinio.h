@@ -130,32 +130,12 @@
       	IO ## _PORT->BSRR = MASK((IO ## _PIN + 16)); \
     } while (0)
 
-  /** 
-    Set pins as input/output. Standard is input. MODER ist 32bit. 2bits for every pin.
-  */
-  /** Set pin as input.
-      - reset pullup
-      - set input mode
-  */
-  #define _SET_INPUT(IO) \
+  #define _SET_MODE(IO, v) \
     do { \
-      IO ## _PORT->PUPDR &= ~(3 << ((IO ## _PIN) << 1)); \
-      IO ## _PORT->MODER &= ~(3 << ((IO ## _PIN) << 1)); \
+      IO ## _PORT->MODER &= ~(0x3 << ((IO ## _PIN) * 2)); \
+      IO ## _PORT->MODER |= (v << ((IO ## _PIN) * 2)); \
     } while (0)
-  
-  /** Set pin as output.
-      - reset Pullup
-      - reset direction mode
-      - set output
-      - set speed
-  */
-  #define _SET_OUTPUT(IO) \
-    do { \
-      IO ## _PORT->PUPDR &= ~(3 << ((IO ## _PIN) << 1)); \
-      IO ## _PORT->MODER &= ~(3 << ((IO ## _PIN) << 1)); \
-      IO ## _PORT->MODER |= (1 << ((IO ## _PIN) << 1)); \
-      IO ## _PORT->OSPEEDR |= (3 << ((IO ## _PIN) << 1)); \
-    } while (0)
+  #define SET_MODE(IO, v) _SET_MODE(IO, v)
 
   /// Enable pullup resistor.
   #define _PULLUP_ON(IO) \
@@ -167,6 +147,50 @@
   #define _PULLUP_OFF(IO) \
     do { \
       IO ## _PORT->PUPDR &= ~(3 << ((IO ## _PIN) << 1)); \
+    } while (0)
+
+  /// Set alternate function register
+  #define _SET_AFR(IO, v) \
+    do { \
+      uint8_t subst; \
+      subst = (IO ## _PIN >= 8); \
+      IO ## _PORT->AFR[subst] &= ~(0xF << ((IO ## _PIN - (subst * 8)) * 4)); \
+      IO ## _PORT->AFR[subst] |= ((v) << ((IO ## _PIN - (subst * 8)) * 4)); \
+    } while (0)
+  #define SET_AFR(IO, v) _SET_AFR(IO, v)
+
+  /// Set output speed register
+  #define _SET_OSPEED(IO, v) \
+    do { \
+      IO ## _PORT->OSPEEDR &= ~(0x3 << ((IO ## _PIN) * 2)); \
+      IO ## _PORT->OSPEEDR |= ~(v << ((IO ## _PIN) * 2)); \
+    } while (0)
+  #define SET_OSPEED(IO, v) _SET_OSPEED(IO, v)
+
+  /** 
+    Set pins as input/output. Standard is input. MODER ist 32bit. 2bits for every pin.
+  */
+  /** Set pin as input.
+      - reset pullup
+      - set input mode
+  */
+  #define _SET_INPUT(IO) \
+    do { \
+      _PULLUP_OFF(IO); \
+      _SET_MODE(IO, 0); \
+    } while (0)
+  
+  /** Set pin as output.
+      - reset Pullup
+      - reset direction mode
+      - set output
+      - set speed
+  */
+  #define _SET_OUTPUT(IO) \
+    do { \
+      _PULLUP_OFF(IO); \
+      _SET_MODE(IO, 1); \
+      _SET_OSPEED(IO, 3); \
     } while (0)
 
 #elif defined SIMULATOR
