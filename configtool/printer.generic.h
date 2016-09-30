@@ -171,10 +171,14 @@
 \***************************************************************************/
 
 /** \def USE_INTERNAL_PULLUPS
-  The ATmega has internal pullup resistors on it's input pins which are
-  counterproductive with the commonly used eletronic endstops, so they should
-  be switched off. For other endstops, like mechanical ones, you may want to
-  uncomment this.
+
+  Most controller chips feature internal pullup resistors on their input pins,
+  which get used for endstops by turning on this switch. Don't turn it on when
+  using endstops which need no pull resistor, e.g. optical endstops, because
+  pull resistors are counterproductive there.
+
+  One can't use USE_INTERNAL_PULLUPS and USE_INTERNAL_PULLDOWNS at the same
+  time, of course.
 */
 #define USE_INTERNAL_PULLUPS
 
