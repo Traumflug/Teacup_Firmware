@@ -7,6 +7,13 @@
 
 #include	"config_wrapper.h"
 
+// Configuration tests.
+#ifdef USE_INTERNAL_PULLDOWNS
+  #ifdef USE_INTERNAL_PULLUPS
+    #error Cant use USE_INTERNAL_PULLUPS and ..._PULLDOWNS at the same time.
+  #endif
+#endif
+
 #ifndef MASK
   /// MASKING- returns \f$2^PIN\f$
   #define MASK(PIN) (1 << PIN)
@@ -380,11 +387,32 @@ inline void endstops_on(void) {
       PULLUP_ON(Z_MAX_PIN);
 		#endif
 	#endif
+
+  #ifdef USE_INTERNAL_PULLDOWNS
+    #ifdef X_MIN_PIN
+      PULLDOWN_ON(X_MIN_PIN);
+    #endif
+    #ifdef X_MAX_PIN
+      PULLDOWN_ON(X_MAX_PIN);
+    #endif
+    #ifdef Y_MIN_PIN
+      PULLDOWN_ON(Y_MIN_PIN);
+    #endif
+    #ifdef Y_MAX_PIN
+      PULLDOWN_ON(Y_MAX_PIN);
+    #endif
+    #ifdef Z_MIN_PIN
+      PULLDOWN_ON(Z_MIN_PIN);
+    #endif
+    #ifdef Z_MAX_PIN
+      PULLDOWN_ON(Z_MAX_PIN);
+    #endif
+  #endif
 }
 
 static void endstops_off(void) __attribute__ ((always_inline));
 inline void endstops_off(void) {
-	#ifdef USE_INTERNAL_PULLUPS
+  #if (defined USE_INTERNAL_PULLUPS) || (defined USE_INTERNAL_PULLDOWNS)
 		#ifdef X_MIN_PIN
       PULL_OFF(X_MIN_PIN);
 		#endif
