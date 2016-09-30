@@ -178,6 +178,18 @@
 */
 //#define USE_INTERNAL_PULLUPS
 
+/** \def USE_INTERNAL_PULLDOWNS
+
+  Some controller chips feature internal pulldown resistors on their input
+  pins, which get used for endstops by turning on this switch. Don't turn it
+  on when using endstops which need no pull resistor, e.g. optical endstops,
+  because pull resistors are counterproductive there.
+
+  One can't use USE_INTERNAL_PULLDOWNS and USE_INTERNAL_PULLUPS at the same
+  time, of course.
+*/
+//#define USE_INTERNAL_PULLDOWNS
+
 /** \def Z_AUTODISABLE
   Automatically disable Z axis when not in use. This is useful for printers
   with a self-locking Z axis, e.g. the various Mendel derivates.
