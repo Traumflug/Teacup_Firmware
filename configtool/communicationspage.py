@@ -56,7 +56,7 @@ class CommunicationsPage(wx.Panel, Page):
     result = Page.getValues(self)
 
     if result['USB_SERIAL']:
-      result['BAUD'][1] = False
+      result['BAUD'] = result['BAUD'][0], False
       result['XONXOFF'] = False
 
     return result
