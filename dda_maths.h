@@ -42,6 +42,9 @@ uint32_t approx_distance_3(uint32_t dx, uint32_t dy, uint32_t dz);
 
 // integer square root algorithm
 uint16_t int_sqrt(uint32_t a);
+#if __FPU_PRESENT
+uint_fast16_t int_f_sqrt(uint32_t a);
+#endif
 
 // integer inverse square root, 12bits precision
 uint16_t int_inv_sqrt(uint16_t a);
