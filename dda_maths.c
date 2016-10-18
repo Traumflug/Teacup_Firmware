@@ -153,6 +153,19 @@ uint32_t approx_distance_3(uint32_t dx, uint32_t dy, uint32_t dz) {
   return (( approx + 512 ) >> 10 );
 }
 
+#if __FPU_PRESENT
+uint_fast16_t int_f_sqrt(uint32_t a) {
+  // using FPUs floating square root to return an unsigned fast16 bit result
+  float result;
+
+  __ASM volatile ("vcvt.f32.u32 %[result], %[a];\n"
+                  "  vsqrt.f32 %[result], %[result];"
+                  : [result]"=t" (result)
+                  : [a]"t" (a));
+
+  return (uint_fast16_t)(result);
+}
+#endif /* __FPU_PRESENT */
 /*!
   integer square root algorithm
   \param a find square root of this number
