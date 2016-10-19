@@ -250,11 +250,14 @@ static uint16_t temp_max6675_read(temp_sensor_t i) {
 
   spi_deselect_max6675();
 
-  if ((temp & 0x8002) == 0) {
-    // Got "device id".
-    if ((temp & 4) == 0) {
-      temp = temp >> 3;
-    }
+  if ((temp & 0x4) == 0) {
+    temp = temp >> 3;
+  }
+  else { 
+    // thermocouple open, send "not ready"
+    temp = TEMP_NOT_READY;
+    // and we will read it next time.
+    temp_sensors_runtime[i].active = 0;
   }
 
   return temp;
