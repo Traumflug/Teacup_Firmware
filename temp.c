@@ -99,7 +99,12 @@ static struct {
 #define EWMA_ALPHA  ((TEMP_EWMA * EWMA_SCALE + 500) / 1000)
 
 // If EWMA is used, continuously update analog reading for more data points.
-#define TEMP_READ_CONTINUOUS (EWMA_ALPHA < EWMA_SCALE)
+#ifndef SIMULATOR
+  #define TEMP_READ_CONTINUOUS (EWMA_ALPHA < EWMA_SCALE)
+#else
+  #define TEMP_READ_CONTINUOUS 1
+#endif
+
 #define TEMP_NOT_READY       0xffff
 
 /**
