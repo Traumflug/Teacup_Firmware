@@ -166,8 +166,8 @@ def SteinhartHartTable(ofp, params, names, settings, finalTable):
 
     delta = (t - thrm.temp(prev)) / (prev - i) if i != prev else 0
     ofp.output("    {%4d, %5d, %5d}%s // %4d C, %6d ohms, m = %6.3f" %
-               (i, int(t * 4), int(delta * 4 * 256), c, int(t), int(round(r))),
-               delta)
+               (i, int(t * 4), int(delta * 4 * 256), c, int(t), int(round(r)),
+               delta))
     prev = i
 
   if finalTable:
