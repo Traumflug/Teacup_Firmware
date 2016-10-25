@@ -910,6 +910,15 @@ void dda_clock() {
         }
       ATOMIC_END
     }
+    else {
+      ATOMIC_START
+        if (current_id == dda->id)
+          // This happens only when !recalc_speed, meaning we are cruising, not
+          // accelerating or decelerating. So it pegs our dda->c at c_min if it
+          // never made it as far as c_min. 
+          dda->c = dda->c_min;
+      ATOMIC_END
+    }
   #endif
 }
 
