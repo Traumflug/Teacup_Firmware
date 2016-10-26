@@ -49,6 +49,7 @@
 //#define TX_ENABLE_PIN            xxxx
 //#define RX_ENABLE_PIN            xxxx
 
+//#define TMC2130
 #define X_STEP_PIN               DIO29
 #define X_DIR_PIN                DIO28
 #define X_MIN_PIN                DIO0
@@ -58,6 +59,7 @@
 //#define X_INVERT_MIN
 //#define X_INVERT_MAX
 //#define X_INVERT_ENABLE
+//#define X_TMC_CS_PIN             xxxx
 
 #define Y_STEP_PIN               DIO27
 #define Y_DIR_PIN                DIO26
@@ -68,6 +70,7 @@
 //#define Y_INVERT_MIN
 //#define Y_INVERT_MAX
 //#define Y_INVERT_ENABLE
+//#define Y_TMC_CS_PIN             xxxx
 
 #define Z_STEP_PIN               DIO23
 #define Z_DIR_PIN                DIO22
@@ -78,12 +81,14 @@
 //#define Z_INVERT_MIN
 //#define Z_INVERT_MAX
 //#define Z_INVERT_ENABLE
+//#define Y_TMC_CS_PIN             xxxx
 
 #define E_STEP_PIN               DIO19
 #define E_DIR_PIN                DIO18
 //#define E_ENABLE_PIN             xxxx
 //#define E_INVERT_DIR
 //#define E_INVERT_ENABLE
+//#define E_TMC_CS_PIN             xxxx
 
 #define PS_ON_PIN                DIO15
 //#define PS_INVERT_ON

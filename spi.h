@@ -4,6 +4,8 @@
 #include "config_wrapper.h"
 #include "arduino.h"
 #include "pinio.h"
+#include "delay.h"
+#include "dda.h" // for axis enum
 
 #ifdef SPI
 
@@ -66,6 +68,63 @@ inline void spi_deselect_mcp3008(void) {
   WRITE(MCP3008_SELECT_PIN, 1);
 }
 #endif /* TEMP_MCP3008 */
+
+#ifdef TMC2130
+
+static void spi_select_tmc2130(enum axis_e) __attribute__ ((always_inline));
+inline void spi_select_tmc2130(enum axis_e axis) {
+  switch (axis) {
+    default:
+    case X:
+      #ifdef X_TMC_CS_PIN
+        WRITE(X_TMC_CS_PIN, 0);
+      #endif
+      break;
+    case Y:
+      #ifdef Y_TMC_CS_PIN
+        WRITE(Y_TMC_CS_PIN, 0);
+      #endif
+      break;
+    case Z:
+      #ifdef Z_TMC_CS_PIN
+        WRITE(Z_TMC_CS_PIN, 0);
+      #endif
+      break;
+    case E:
+      #ifdef E_TMC_CS_PIN
+        WRITE(E_TMC_CS_PIN, 0);
+      #endif
+      break;
+  }
+}
+
+static void spi_deselect_tmc2130(enum axis_e) __attribute__ ((always_inline));
+inline void spi_deselect_tmc2130(enum axis_e axis) {
+  switch (axis) {
+    default:
+    case X:
+      #ifdef X_TMC_CS_PIN
+        WRITE(X_TMC_CS_PIN, 1);
+      #endif
+      break;
+    case Y:
+      #ifdef Y_TMC_CS_PIN
+        WRITE(Y_TMC_CS_PIN, 1);
+      #endif
+      break;
+    case Z:
+      #ifdef Z_TMC_CS_PIN
+        WRITE(Z_TMC_CS_PIN, 1);
+      #endif
+      break;
+    case E:
+      #ifdef E_TMC_CS_PIN
+        WRITE(E_TMC_CS_PIN, 1);
+      #endif
+      break;
+  }
+}
+#endif
 
 /** Set SPI clock speed to something between 100 and 400 kHz.
 

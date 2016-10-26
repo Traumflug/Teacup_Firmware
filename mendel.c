@@ -46,6 +46,7 @@
 #include "spi.h"
 #include "sd.h"
 #include "display.h"
+#include "tmc2130.h"
 
 #ifdef SIMINFO
   #include "../simulavr/src/simulavr_info.h"
@@ -104,6 +105,10 @@ void init(void) {
 
   #ifdef SD
     sd_init();
+  #endif
+
+  #ifdef TMC2130
+    tmc2130_init();
   #endif
 
 	// enable interrupts
