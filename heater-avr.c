@@ -31,8 +31,9 @@ typedef struct {
 
 #undef DEFINE_HEATER
 /// \brief helper macro to fill heater definition struct from config.h
-#define DEFINE_HEATER(name, pin, pwm, kP, kI, kD, i_limit, watts, t_dead) { \
+#define DEFINE_HEATER(name, pin, invert, pwm, kP, kI, kD, i_limit, watts, t_dead) { \
   &(pin ## _WPORT), pin ## _PIN, \
+  invert ? 1 : 0, \
   pwm ? (pin ## _PWM) : NULL, \
   (int32_t)(kP > 0 ? kP * PID_SCALE_P : -kP ), \
   (int32_t)(kI >=0 ? (kI * PID_SCALE_I) : kP * PID_SCALE_I / (-kI)), \
@@ -209,7 +210,7 @@ void heater_init() {
 
 	// set all heater pins to output
   #undef DEFINE_HEATER
-  #define DEFINE_HEATER(name, pin, pwm, p, i, d, iLim, watt, t_dead) \
+  #define DEFINE_HEATER(name, pin, invert, pwm, kP, kI, kD, i_limit, watts, t_dead) \
     SET_OUTPUT(pin);                            \
     WRITE(pin, invert ? 1 : 0);
   #include "config_wrapper.h"
