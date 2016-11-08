@@ -180,7 +180,7 @@ void dda_create(DDA *dda, const TARGET *target) {
                dda->endpoint.axis[Z], dda->endpoint.F);
 
   // Apply feedrate multiplier.
-  if (dda->endpoint.f_multiplier != 256) {
+  if (dda->endpoint.f_multiplier != 256 && ! dda->endstop_check) {
     dda->endpoint.F *= dda->endpoint.f_multiplier;
     dda->endpoint.F += 128;
     dda->endpoint.F /= 256;
