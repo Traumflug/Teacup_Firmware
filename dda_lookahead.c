@@ -174,8 +174,8 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // back up the move settings: they will remain constant.
   uint32_t this_F, this_F_in_steps, this_F_start_in_steps, this_rampup, this_rampdown, this_total_steps, this_fast_axis;
   uint8_t this_id;
-  static uint32_t la_cnt = 0;     // Counter: how many moves did we join?
   #ifdef LOOKAHEAD_DEBUG
+  static uint32_t la_cnt = 0;     // Counter: how many moves did we join?
   static uint32_t moveno = 0;     // Debug counter to number the moves - helps while debugging
   moveno++;
   #endif
@@ -318,7 +318,9 @@ void dda_join_moves(DDA *prev, DDA *current) {
         current->rampdown_steps = this_rampdown;
         current->end_steps = 0;
         current->start_steps = this_F_start_in_steps;
-        la_cnt++;
+        #ifdef LOOKAHEAD_DEBUG
+          la_cnt++;
+        #endif
       }
       #ifdef DEBUG
         else
