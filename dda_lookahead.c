@@ -202,12 +202,12 @@ void dda_join_moves(DDA *prev, DDA *current) {
     //
     // All calculations here are done along the fast axis, so recalculate
     // F and crossF to match this, too.
-    prev_F = muldiv(prev->fast_um, prev->endpoint.F, prev->distance);
-    this_F = muldiv(current->fast_um, current->endpoint.F, current->distance);
+    //
+    // pref_F and this_f /_in_steps are calculated some lines below, because
+    // we have a break condition before and don't need to be calculated, when
+    // cross_f_in_steps == 0
     crossF = muldiv(current->fast_um, current->crossF, current->distance);
 
-    this_F_in_steps = acc_ramp_len(this_F, current->fast_axis);
-    prev_F_in_steps = acc_ramp_len(prev_F, current->fast_axis);
     crossF_in_steps = acc_ramp_len(crossF, current->fast_axis);
 
     // Show the proposed crossing speed - this might get adjusted below
@@ -221,6 +221,12 @@ void dda_join_moves(DDA *prev, DDA *current) {
     if (crossF_in_steps == 0)
       return;
 
+    prev_F = muldiv(prev->fast_um, prev->endpoint.F, prev->distance);
+    this_F = muldiv(current->fast_um, current->endpoint.F, current->distance);
+
+    this_F_in_steps = acc_ramp_len(this_F, current->fast_axis);
+    prev_F_in_steps = acc_ramp_len(prev_F, current->fast_axis);
+    
     // Build ramps for previous move.
     if (crossF_in_steps == prev_F_in_steps) {
       prev_rampup = prev_F_in_steps - prev->start_steps;
