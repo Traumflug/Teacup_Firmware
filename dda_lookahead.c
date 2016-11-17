@@ -173,7 +173,6 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // Note: we assume 'current' will not be dispatched while this function runs, so we do not to
   // back up the move settings: they will remain constant.
   uint32_t this_F, this_F_in_steps, this_F_start_in_steps, this_rampup, this_rampdown, this_total_steps, this_fast_axis;
-  uint8_t this_id;
   #ifdef LOOKAHEAD_DEBUG
   static uint32_t la_cnt = 0;     // Counter: how many moves did we join?
   static uint32_t moveno = 0;     // Debug counter to number the moves - helps while debugging
@@ -190,17 +189,17 @@ void dda_join_moves(DDA *prev, DDA *current) {
 
   // Make sure we have 2 moves and the previous move is not already active
   if (prev->live == 0) {
-    // Perform an atomic copy to preserve volatile parameters during the calculations
-    ATOMIC_START
+    // This is atomic, because it's 8 bit.
+    // See issue #248
+    // Traumflug: dda->id is an 8-bit value, so no need at all to be atomic during reads.
       prev_id = prev->id;
+
       prev_F = prev->endpoint.F;
       prev_F_start_in_steps = prev->start_steps;
       prev_total_steps = prev->total_steps;
       crossF = current->crossF;
-      this_id = current->id;
       this_total_steps = current->total_steps;
       this_fast_axis = current->fast_axis;
-    ATOMIC_END
 
     // Here we have to distinguish between feedrate along the movement
     // direction and feedrate of the fast axis. They can differ by a factor
@@ -306,7 +305,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
       // Determine if we are fast enough - if not, just leave the moves
       // Note: to test if the previous move was already executed and replaced by a new
       // move, we compare the DDA id.
-      if(prev->live == 0 && prev->id == prev_id && current->live == 0 && current->id == this_id) {
+      if(prev->live == 0 && prev->id == prev_id) {
         prev->end_steps = prev_F_end_in_steps;
         prev->rampup_steps = prev_rampup;
         prev->rampdown_steps = prev_rampdown;
