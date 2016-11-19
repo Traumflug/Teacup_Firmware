@@ -30,6 +30,9 @@ class MechanicalPage(wx.Panel, Page):
 
     self.kinematicsKeys = ['KINEMATICS_STRAIGHT', 'KINEMATICS_COREXY']
 
+    self.homingKeys = [('HOMING_STEP1', 2), ('HOMING_STEP2', 2),
+                       ('HOMING_STEP3', 2), ('HOMING_STEP4', 2)]
+
     self.labels = {'STEPS_PER_M_X': "X:", 'STEPS_PER_M_Y': "Y:",
                    'STEPS_PER_M_Z': "Z:", 'STEPS_PER_M_E' : "E:",
                    'MAXIMUM_FEEDRATE_X': "X:", 'MAXIMUM_FEEDRATE_Y': "Y:",
@@ -42,9 +45,21 @@ class MechanicalPage(wx.Panel, Page):
                    'Y_MAX': "Max Y:", 'Z_MIN': "Min Z:", 'Z_MAX': "Max Z:",
                    'E_ABSOLUTE': "Absolute E Coordinates",
                    'KINEMATICS_STRAIGHT': "Straight",
-                   'KINEMATICS_COREXY': "CoreXY"}
+                   'KINEMATICS_COREXY': "CoreXY",
+                   'HOMING_STEP1': "Step 1:",
+                   'HOMING_STEP2': "Step 2:",
+                   'HOMING_STEP3': "Step 3:",
+                   'HOMING_STEP4': "Step 4:",
+                   'none': "-",
+                   'x_negative': "X min",
+                   'x_positive': "X max",
+                   'y_negative': "Y min",
+                   'y_positive': "Y max",
+                   'z_negative': "Z min",
+                   'z_positive': "Z max"}
 
     labelWidth = 40;
+    labelWidthHoming = 60;
 
     sz = wx.GridBagSizer()
     sz.AddSpacer((10, 10), pos = (0, 0))
@@ -119,11 +134,11 @@ class MechanicalPage(wx.Panel, Page):
       sbox.Add(rb, 1, wx.LEFT + wx.RIGHT, 16)
       sbox.AddSpacer((5, 5))
 
-    vsz.Add(sbox, 1, wx.LEFT, 40)
+    vsz.Add(sbox, 1, wx.LEFT, 10)
 
     cb = self.addCheckBox('E_ABSOLUTE', self.onCheckBox)
 
-    vsz.Add(cb, 1, wx.LEFT, 40)
+    vsz.Add(cb, 1, wx.LEFT, 10)
 
     sz.Add(vsz, pos = (3, 1))
 
@@ -145,6 +160,18 @@ class MechanicalPage(wx.Panel, Page):
     self.bCalcScrew = b
 
     sz.Add(bsz, pos = (1, 3))
+
+    b = wx.StaticBox(self, wx.ID_ANY, "Homing Order")
+    b.SetFont(font)
+    sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
+    sbox.AddSpacer((5, 5))
+    for k, ctype in self.homingKeys:
+      if ctype == 2:
+        tc = self.addChoice(k, [], 0, labelWidthHoming, self.onChoice)
+        sbox.Add(tc)
+      sbox.AddSpacer((5, 5))
+    sz.Add(sbox, pos = (3, 3))
+
     self.enableAll(False)
     self.SetSizer(sz)
 
@@ -181,17 +208,37 @@ class MechanicalPage(wx.Panel, Page):
       for k in self.kinematicsKeys:
         self.radioButtons[k].SetToolTipString(ht['KINEMATICS'])
 
+  def prepareHomingValues(self, name, i, cfgValues):
+    self.choices[name].Clear()
+    for p in cfgValues['HOMING_OPTS']:
+      self.choices[name].Append(self.labels[p])
+    i = cfgValues['HOMING_OPTS'].index(cfgValues[name])
+    self.choices[name].SetSelection(i)
+
   def insertValues(self, cfgValues):
     Page.insertValues(self, cfgValues)
+
+    self.prepareHomingValues('HOMING_STEP1', 0, cfgValues)
+    self.prepareHomingValues('HOMING_STEP2', 1, cfgValues)
+    self.prepareHomingValues('HOMING_STEP3', 2, cfgValues)
+    self.prepareHomingValues('HOMING_STEP4', 3, cfgValues)
 
     for tag in self.kinematicsKeys:
       if tag in cfgValues.keys() and cfgValues[tag]:
         self.radioButtons[tag].SetValue(True)
+
+  def getHomingValue(self, name, result):
+    return (self.labels.keys()[self.labels.values().index(result[name][0])], True)
 
   def getValues(self):
     result = Page.getValues(self)
 
     for tag in self.kinematicsKeys:
       result[tag] = self.radioButtons[tag].GetValue()
+
+    result['HOMING_STEP1'] = self.getHomingValue('HOMING_STEP1', result)
+    result['HOMING_STEP2'] = self.getHomingValue('HOMING_STEP2', result)
+    result['HOMING_STEP3'] = self.getHomingValue('HOMING_STEP3', result)
+    result['HOMING_STEP4'] = self.getHomingValue('HOMING_STEP4', result)
 
     return result

@@ -75,3 +75,9 @@ defineValueFormat =      "#define %-24s %s\n"
 defineBoolFormat =       "#define %s\n"
 defineHeaterFormat =     "#define HEATER_%s HEATER_%s\n"
 defineDCExtruderFormat = "#define %-24s HEATER_%s\n"
+
+reHomingOpts = re.compile("^\s*//\s*#define\s+HOMING_OPT\s+(\w+)")
+reStartHoming = re.compile("^\s*//\s*DEFINE_HOMING_START")
+reEndHoming = re.compile("^\s*//\s*DEFINE_HOMING_END")
+reDefHoming = re.compile("\s*(DEFINE_HOMING\\([^)]*\\))")
+reHoming4 = re.compile(".*\\(\s*(\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*,\s*(\w+)\s*\\)")

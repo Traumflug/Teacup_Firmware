@@ -6,7 +6,9 @@ from sys import platform
 from configtool.data import (defineValueFormat, defineBoolFormat,
                              reHelpTextStart, reHelpTextEnd,
                              reDefine, reDefineBL, reDefQS, reDefQSm,
-                             reDefQSm2, reDefBool, reDefBoolBL)
+                             reDefQSm2, reDefBool, reDefBoolBL,
+                             reHomingOpts, reStartHoming, reEndHoming,
+                             reDefHoming, reHoming4)
 
 class Printer:
   def __init__(self, settings):
@@ -86,6 +88,12 @@ class Printer:
         ln = prevLines + ln
         prevLines = ""
 
+      if self.parseCandidateValues(ln):
+        continue
+
+      if self.parseHoming(ln):
+        continue
+
       self.parseDefineName(ln)
       self.parseDefineValue(ln)
 
@@ -118,6 +126,12 @@ class Printer:
         ln = prevLines + ln
         prevLines = ""
 
+      if self.parseCandidateValues(ln):
+        continue
+
+      if self.parseHoming(ln):
+        continue
+
       self.parseDefineValue(ln)
 
     # Parsing done. All parsed stuff is now in these array and dicts.
@@ -138,6 +152,40 @@ class Printer:
       return True
 
     return False
+
+  def parseCandidateValues(self, ln):
+    m = reHomingOpts.match(ln)
+    if m:
+      t = m.groups()
+      if len(t) == 1:
+        if 'HOMING_OPTS' in self.cfgValues:
+          if t[0] not in self.cfgValues['HOMING_OPTS']:
+            self.cfgValues['HOMING_OPTS'].append(t[0])
+        else:
+          self.cfgValues['HOMING_OPTS'] = [t[0]]
+      return True
+
+  def parseHoming(self, ln):
+    m = reDefHoming.search(ln)
+    if m:
+      t = m.groups()
+      if len(t) == 1:
+        n = reHoming4.search(t[0])
+        if n:
+          u = n.groups()
+          if len(u) == 4:
+            t2 = []
+            for x in u:
+              t2.append(x)
+
+            self.cfgValues['HOMING_STEP1'] = t2[0]
+            self.cfgValues['HOMING_STEP2'] = t2[1]
+            self.cfgValues['HOMING_STEP3'] = t2[2]
+            self.cfgValues['HOMING_STEP4'] = t2[3]
+
+            return True
+        return None
+      return True
 
   def parseDefineValue(self, ln):
     m = reDefQS.search(ln)
@@ -194,7 +242,27 @@ class Printer:
     fp = file(path, 'w')
     self.configFile = path
 
+    skipToHomingEnd = False
+
     for ln in self.cfgBuffer:
+      m = reStartHoming.match(ln)
+      if m:
+        fp.write(ln)
+        sstr = "%s, %s, %s, %s" % ((values['HOMING_STEP1']),
+                                   (values['HOMING_STEP2']),
+                                   (values['HOMING_STEP3']),
+                                   (values['HOMING_STEP4']))
+        fp.write("DEFINE_HOMING(%s)\n" % sstr)
+        skipToHomingEnd = True
+        continue
+
+      if skipToHomingEnd:
+        m = reEndHoming.match(ln)
+        if m:
+          fp.write(ln)
+          skipToHomingEnd = False
+        continue
+
       m = reDefine.match(ln)
       if m:
         t = m.groups()

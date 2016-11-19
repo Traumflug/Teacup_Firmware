@@ -73,26 +73,20 @@ void set_axis_home_position(enum axis_e n, int8_t dir);
 void home() {
   #ifdef DEFINE_HOMING
     #undef DEFINE_HOMING
-      #define DEFINE_HOMING(first, second, third) \
+      #define DEFINE_HOMING(first, second, third, fourth) \
         { \
           home_##first(); \
           home_##second(); \
           home_##third(); \
+          home_##fourth(); \
         };
-      #include "config_wrapper.h"    
+      #include "config_wrapper.h"
     #undef DEFINE_HOMING
-  #else
-    home_x_negative();
-    home_x_positive();
-
-    home_y_negative();
-    home_y_positive();
-
-    home_z_negative();
-    home_z_positive();
   #endif
 }
 
+void home_none() {
+}
 
 /// find X MIN endstop
 void home_x_negative() {

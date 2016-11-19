@@ -111,6 +111,30 @@
 */
 #define E_ABSOLUTE
 
+/** \def HOMING_OPT
+
+  Options for homing movements. 'none' means no movement at all. For each
+  option XXX, a function home_XXX() has to exist, typically in home.c/.h.
+*/
+//#define HOMING_OPT none
+//#define HOMING_OPT x_negative
+//#define HOMING_OPT x_positive
+//#define HOMING_OPT y_negative
+//#define HOMING_OPT y_positive
+//#define HOMING_OPT z_negative
+//#define HOMING_OPT z_positive
+
+/** \def DEFINE_HOMING
+
+  Order (and number) of homing movements.
+*/
+#ifndef DEFINE_HOMING
+  #define DEFINE_HOMING(...)
+#endif
+//DEFINE_HOMING_START
+DEFINE_HOMING(x_negative, y_negative, z_negative, none)
+//DEFINE_HOMING_END
+
 /** \def ACCELERATION_REPRAP ACCELERATION_RAMPING ACCELERATION_TEMPORAL
   Choose optionally one of ACCELERATION_REPRAP, ACCELERATION_RAMPING or
   ACCELERATION_TEMPORAL. With none of them defined, movements are done

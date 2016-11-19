@@ -99,7 +99,7 @@
 //#define Y_MAX                    200.0
 
 //#define Z_MIN                    0.0
-//#define Z_MAX                    140.0
+#define Z_MAX                    1000
 
 /** \def E_ABSOLUTE
   Some G-code creators produce relative length commands for the extruder,
@@ -110,6 +110,30 @@
   This is the startup default and can be changed with M82/M83 while running.
 */
 #define E_ABSOLUTE
+
+/** \def HOMING_OPT
+
+  Options for homing movements. 'none' means no movement at all. For each
+  option XXX, a function home_XXX() has to exist, typically in home.c/.h.
+*/
+//#define HOMING_OPT none
+//#define HOMING_OPT x_negative
+//#define HOMING_OPT x_positive
+//#define HOMING_OPT y_negative
+//#define HOMING_OPT y_positive
+//#define HOMING_OPT z_negative
+//#define HOMING_OPT z_positive
+
+/** \def DEFINE_HOMING
+
+  Order (and number) of homing movements.
+*/
+#ifndef DEFINE_HOMING
+  #define DEFINE_HOMING(...)
+#endif
+//DEFINE_HOMING_START
+DEFINE_HOMING(z_negative, x_negative, y_negative, none)
+//DEFINE_HOMING_END
 
 /** \def ACCELERATION_REPRAP ACCELERATION_RAMPING ACCELERATION_TEMPORAL
   Choose optionally one of ACCELERATION_REPRAP, ACCELERATION_RAMPING or

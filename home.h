@@ -12,6 +12,7 @@ enum axis_endstop_e {
   Z_MAX_ENDSTOP = 0x20,
 };
 
+void home_none(void);
 void home_x_negative(void);
 void home_x_positive(void);
 void home_y_negative(void);
