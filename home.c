@@ -56,16 +56,28 @@
 
 /// home all 3 axes
 void home() {
+  #ifdef DEFINE_HOMING
+    #undef DEFINE_HOMING
+      #define DEFINE_HOMING(first, second, third) \
+        { \
+          home_##first(); \
+          home_##second(); \
+          home_##third(); \
+        };
+      #include "config_wrapper.h"    
+    #undef DEFINE_HOMING
+  #else
+    home_x_negative();
+    home_x_positive();
 
-  home_x_negative();
-  home_x_positive();
+    home_y_negative();
+    home_y_positive();
 
-  home_y_negative();
-  home_y_positive();
-
-  home_z_negative();
-  home_z_positive();
+    home_z_negative();
+    home_z_positive();
+  #endif
 }
+
 
 /// find X MIN endstop
 void home_x_negative() {
