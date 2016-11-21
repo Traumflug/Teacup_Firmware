@@ -56,14 +56,11 @@ typedef struct {
 	// bresenham counters
   axes_int32_t      counter; ///< counter for total_steps vs each axis
 
-	// step counters
-  axes_uint32_t     steps;   ///< number of steps on each axis
-
-	#ifdef ACCELERATION_RAMPING
+  #if ! defined ACCELERATION_TEMPORAL
 	/// counts actual steps done
 	uint32_t					step_no;
-	#endif
-	#ifdef ACCELERATION_TEMPORAL
+	#else
+    axes_uint32_t   steps;      ///< number of steps on each axis
   axes_uint32_t     time;       ///< time of the last step on each axis
   uint32_t          last_time;  ///< time of the last step of any axis
 	#endif

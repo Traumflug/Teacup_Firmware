@@ -220,7 +220,7 @@ void dda_create(DDA *dda, const TARGET *target) {
 
   // Apply extrusion multiplier.
   if (target->e_multiplier != 256) {
-  steps[E] *= target->e_multiplier;
+    steps[E] *= target->e_multiplier;
     steps[E] += 128;
     steps[E] /= 256;
   }
@@ -522,12 +522,12 @@ void dda_start(DDA *dda) {
 		// initialise state variable
     move_state.counter[X] = move_state.counter[Y] = move_state.counter[Z] = \
       move_state.counter[E] = -(dda->total_steps >> 1);
-    memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
     move_state.endstop_stop = 0;
 		#ifdef ACCELERATION_RAMPING
 			move_state.step_no = 0;
 		#endif
 		#ifdef ACCELERATION_TEMPORAL
+      memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
       move_state.time[X] = move_state.time[Y] = \
         move_state.time[Z] = move_state.time[E] = 0UL;
 		#endif
@@ -565,40 +565,29 @@ void dda_start(DDA *dda) {
 */
 void dda_step(DDA *dda) {
 
-#if ! defined ACCELERATION_TEMPORAL
-  if (move_state.steps[X]) {
+  #if ! defined ACCELERATION_TEMPORAL
     move_state.counter[X] -= dda->delta[X];
     if (move_state.counter[X] < 0) {
 			x_step();
-      move_state.steps[X]--;
       move_state.counter[X] += dda->total_steps;
 		}
-	}
-  if (move_state.steps[Y]) {
     move_state.counter[Y] -= dda->delta[Y];
     if (move_state.counter[Y] < 0) {
 			y_step();
-      move_state.steps[Y]--;
       move_state.counter[Y] += dda->total_steps;
 		}
-	}
-  if (move_state.steps[Z]) {
     move_state.counter[Z] -= dda->delta[Z];
     if (move_state.counter[Z] < 0) {
 			z_step();
-      move_state.steps[Z]--;
       move_state.counter[Z] += dda->total_steps;
 		}
-	}
-  if (move_state.steps[E]) {
     move_state.counter[E] -= dda->delta[E];
     if (move_state.counter[E] < 0) {
 			e_step();
-      move_state.steps[E]--;
       move_state.counter[E] += dda->total_steps;
 		}
-	}
-#endif
+    move_state.step_no++;
+  #endif
 
 	#ifdef ACCELERATION_REPRAP
 		// linear acceleration magic, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
@@ -626,10 +615,6 @@ void dda_step(DDA *dda) {
 			}
 			// else we are already at target speed
 		}
-	#endif
-
-	#ifdef ACCELERATION_RAMPING
-		move_state.step_no++;
 	#endif
 
   #ifdef ACCELERATION_TEMPORAL
@@ -710,12 +695,14 @@ void dda_step(DDA *dda) {
   //
   // TODO: with ACCELERATION_TEMPORAL this duplicates some code. See where
   //       dda->live is zero'd, about 10 lines above.
-  if ((move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
-       move_state.steps[Z] == 0 && move_state.steps[E] == 0)
-    #ifdef ACCELERATION_RAMPING
-      || (move_state.endstop_stop && dda->n <= 0)
-    #endif
-      ) {
+  #if ! defined ACCELERATION_TEMPORAL
+    if (move_state.step_no >= dda->total_steps ||
+        (move_state.endstop_stop && dda->n <= 0))
+  #else
+    if (move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
+        move_state.steps[Z] == 0 && move_state.steps[E] == 0)
+  #endif
+  {
 		dda->live = 0;
     dda->done = 1;
     #ifdef LOOKAHEAD
@@ -958,26 +945,36 @@ void update_current_position() {
     ((STEPS_PER_M_E + 500) / 1000)
   };
 
-	if (queue_empty()) {
+  if (dda->live) {
+    uint32_t axis_steps;
+
+    for (i = X; i < AXIS_COUNT; i++) {
+      #if ! defined ACCELERATION_TEMPORAL
+        axis_steps = muldiv(dda->total_steps - move_state.step_no,
+                            dda->delta[i], dda->total_steps);
+      #else
+        axis_steps = move_state.steps[i];
+      #endif
+      current_position.axis[i] =
+        dda->endpoint.axis[i] - (int32_t)get_direction(dda, i) *
+        // Should be: move_state.steps[i] * 1000000 / steps_per_m_P[i])
+        // but steps[i] can be like 1000000 already, so we'd overflow.
+        // Unfortunately, using muldiv() overwhelms the compiler.
+        // Also keep the parens around this term, else results go wrong.
+        ((axis_steps * 1000) / pgm_read_dword(&steps_per_mm_P[i]));
+    }
+
+    if (dda->endpoint.e_relative) {
+      // We support only one extruder, so axis_steps is already valid.
+      current_position.axis[E] =
+          (axis_steps * 1000) / pgm_read_dword(&steps_per_mm_P[E]);
+    }
+
+		// current_position.F is updated in dda_start()
+	}
+  else {
     for (i = X; i < AXIS_COUNT; i++) {
       current_position.axis[i] = startpoint.axis[i];
     }
-	}
-	else if (dda->live) {
-    for (i = X; i < AXIS_COUNT; i++) {
-      current_position.axis[i] = dda->endpoint.axis[i] -
-          (int32_t)get_direction(dda, i) *
-          // Should be: move_state.steps[i] * 1000000 / steps_per_m_P[i])
-          // but steps[i] can be like 1000000 already, so we'd overflow.
-          // Unfortunately, using muldiv() overwhelms the compiler.
-          // Also keep the parens around this term, else results go wrong.
-          ((move_state.steps[i] * 1000) / pgm_read_dword(&steps_per_mm_P[i]));
-    }
-
-    if (dda->endpoint.e_relative)
-      current_position.axis[E] =
-          (move_state.steps[E] * 1000) / pgm_read_dword(&steps_per_mm_P[E]);
-
-		// current_position.F is updated in dda_start()
 	}
 }
