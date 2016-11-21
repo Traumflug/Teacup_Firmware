@@ -566,25 +566,33 @@ void dda_start(DDA *dda) {
 void dda_step(DDA *dda) {
 
   #if ! defined ACCELERATION_TEMPORAL
-    move_state.counter[X] -= dda->delta[X];
-    if (move_state.counter[X] < 0) {
-			x_step();
-      move_state.counter[X] += dda->total_steps;
+    if (dda->delta[X]) {
+      move_state.counter[X] -= dda->delta[X];
+      if (move_state.counter[X] < 0) {
+        x_step();
+        move_state.counter[X] += dda->total_steps;
+      }
 		}
-    move_state.counter[Y] -= dda->delta[Y];
-    if (move_state.counter[Y] < 0) {
-			y_step();
-      move_state.counter[Y] += dda->total_steps;
+    if (dda->delta[Y]) {
+      move_state.counter[Y] -= dda->delta[Y];
+      if (move_state.counter[Y] < 0) {
+        y_step();
+        move_state.counter[Y] += dda->total_steps;
+      }
 		}
-    move_state.counter[Z] -= dda->delta[Z];
-    if (move_state.counter[Z] < 0) {
-			z_step();
-      move_state.counter[Z] += dda->total_steps;
+    if (dda->delta[Z]) {
+      move_state.counter[Z] -= dda->delta[Z];
+      if (move_state.counter[Z] < 0) {
+        z_step();
+        move_state.counter[Z] += dda->total_steps;
+      }
 		}
-    move_state.counter[E] -= dda->delta[E];
-    if (move_state.counter[E] < 0) {
-			e_step();
-      move_state.counter[E] += dda->total_steps;
+    if (dda->delta[E]) {
+      move_state.counter[E] -= dda->delta[E];
+      if (move_state.counter[E] < 0) {
+        e_step();
+        move_state.counter[E] += dda->total_steps;
+      }
 		}
     move_state.step_no++;
   #endif
