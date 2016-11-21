@@ -56,8 +56,8 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   axes_int32_t prevF, currF;
   enum axis_e i;
 
-  // Bail out if there's nothing to join (e.g. G1 F1500).
-  if ( ! prev || prev->nullmove)
+  // Bail out if there's nothing to join (e.g. first movement after a pause).
+  if ( ! prev)
     return;
 
   // We always look at the smaller of both combined speeds,
@@ -180,8 +180,8 @@ void dda_join_moves(DDA *prev, DDA *current) {
   moveno++;
   #endif
 
-  // Bail out if there's nothing to join (e.g. G1 F1500).
-  if ( ! prev || prev->nullmove || current->crossF == 0)
+  // Bail out if there's nothing to join.
+  if ( ! prev || current->crossF == 0)
     return;
 
     // Show the proposed crossing speed - this might get adjusted below.

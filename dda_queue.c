@@ -63,7 +63,7 @@ DDA *queue_current_movement() {
   ATOMIC_START
     current = &movebuffer[mb_tail];
 
-    if ( ! current->live || current->waitfor_temp || current->nullmove)
+    if ( ! current->live || current->waitfor_temp)
       current = NULL;
   ATOMIC_END
 
@@ -125,23 +125,32 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 	}
   dda_create(new_movebuffer, t);
 
-	// make certain all writes to global memory
-	// are flushed before modifying mb_head.
-	MEMORY_BARRIER();
+  /**
+    It's pointless to queue up movements which don't actually move the stepper,
+    e.g. pure velocity changes or movements shorter than a single motor step.
 
-	mb_head = h;
+    That said, accept movements which do move the steppers by forwarding
+    mb_head. Also kick off movements if it's the first movement after a pause.
+  */
+  if ( ! new_movebuffer->nullmove) {
+    // make certain all writes to global memory
+    // are flushed before modifying mb_head.
+    MEMORY_BARRIER();
 
-  uint8_t isdead;
+    mb_head = h;
 
-  ATOMIC_START
-    isdead = (movebuffer[mb_tail].live == 0);
-  ATOMIC_END
+    uint8_t isdead;
 
-	if (isdead) {
-    timer_reset();
-		next_move();
-    // Compensate for the cli() in timer_set().
-		sei();
+    ATOMIC_START
+      isdead = (movebuffer[mb_tail].live == 0);
+    ATOMIC_END
+
+    if (isdead) {
+      timer_reset();
+      next_move();
+      // Compensate for the cli() in timer_set().
+      sei();
+    }
 	}
 }
 
@@ -154,7 +163,8 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 /// move buffer was dead in the non-interrupt case (which indicates that the
 /// timer interrupt is disabled).
 void next_move() {
-	while ((queue_empty() == 0) && (movebuffer[mb_tail].live == 0)) {
+
+  if (queue_empty() == 0) {
     // Tail must be set before calling timer_set(), as timer_set() reenables
     // the timer interrupt, potentially exposing mb_tail to the timer
     // interrupt routine.

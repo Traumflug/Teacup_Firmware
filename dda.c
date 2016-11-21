@@ -116,7 +116,10 @@ void dda_new_startpoint(void) {
   startpoint_steps.axis[E] = um_to_steps(startpoint.axis[E], E);
 }
 
-/*! CREATE a dda given current_position and a target, save to passed location so we can write directly into the queue
+/**
+  Create a DDA using startpoint, startpoint_steps and a target, save to passed
+  location so we can write directly into the queue.
+
 	\param *dda pointer to a dda_queue entry to overwrite
 	\param *target the target position of this move
 
@@ -126,8 +129,9 @@ void dda_new_startpoint(void) {
 
 	It also pre-fills any data that the selected accleration algorithm needs, and can be pre-computed for the whole move.
 
-	This algorithm is probably the main limiting factor to print speed in terms of firmware limitations
- *
+  This algorithm is the main limiting factor when queuing movements and can
+  become a limitation to print speed if there are lots of tiny, fast movements.
+
  * Regarding lookahead, we can distinguish everything into these cases:
  *
  * 1. Standard movement. To be joined with the previous move.
@@ -278,6 +282,7 @@ void dda_create(DDA *dda, const TARGET *target) {
 
 	if (dda->total_steps == 0) {
 		dda->nullmove = 1;
+    startpoint.F = dda->endpoint.F;
 	}
 	else {
 		// get steppers ready to go
@@ -467,16 +472,16 @@ void dda_create(DDA *dda, const TARGET *target) {
       if (dda->c < c_limit)
         dda->c = c_limit;
 		#endif
+
+    // next dda starts where we finish
+    memcpy(&startpoint, &dda->endpoint, sizeof(TARGET));
+    #ifdef LOOKAHEAD
+      prev_dda = dda;
+    #endif
 	} /* ! dda->total_steps == 0 */
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 		serial_writestr_P(PSTR("] }\n"));
-
-	// next dda starts where we finish
-	memcpy(&startpoint, &dda->endpoint, sizeof(TARGET));
-  #ifdef LOOKAHEAD
-    prev_dda = dda;
-  #endif
 }
 
 /*! Start a prepared DDA
@@ -498,7 +503,6 @@ void dda_start(DDA *dda) {
                dda->endpoint.axis[X], dda->endpoint.axis[Y],
                dda->endpoint.axis[Z], dda->endpoint.F);
 
-	if ( ! dda->nullmove) {
 		// get ready to go
 		psu_timeout = 0;
     #ifdef Z_AUTODISABLE
@@ -538,10 +542,6 @@ void dda_start(DDA *dda) {
 		// set timeout for first step
     timer_set(dda->c, 0);
 	}
-	// else just a speed change, keep dda->live = 0
-
-	current_position.F = dda->endpoint.F;
-}
 
 /**
   \brief Do per-step movement maintenance.
@@ -971,11 +971,12 @@ void update_current_position() {
       current_position.axis[E] = axis_um;
     }
 
-		// current_position.F is updated in dda_start()
+    current_position.F = dda->endpoint.F;
 	}
   else {
     for (i = X; i < AXIS_COUNT; i++) {
       current_position.axis[i] = startpoint.axis[i];
     }
+    current_position.F = startpoint.F;
 	}
 }
