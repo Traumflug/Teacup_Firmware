@@ -46,8 +46,8 @@ echo "Taking Teacup binary ${TEACUP_ELF}."
 
 # Prepare statistics.
 echo                             > ${STATISTICS_FILE}
-(cd .. && echo make USER_CONFIG="${USER_CONFIG}" size) | \
-  tail -4                       >> ${STATISTICS_FILE}
+(cd .. && make USER_CONFIG="testcases/${USER_CONFIG}" size) | \
+  tail -5 | head -4             >> ${STATISTICS_FILE}
 
 
 # Prepare a pin tracing file, assuming a Gen7-v1.4 configuration. See
