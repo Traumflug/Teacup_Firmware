@@ -154,12 +154,11 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 void next_move() {
 	while ((queue_empty() == 0) && (movebuffer[mb_tail].live == 0)) {
 		// next item
-    uint8_t t = MB_NEXT(mb_tail);
-		DDA* current_movebuffer = &movebuffer[t];
+    mb_tail = MB_NEXT(mb_tail);
+    DDA* current_movebuffer = &movebuffer[mb_tail];
     // Tail must be set before calling timer_set(), as timer_set() reenables
     // the timer interrupt, potentially exposing mb_tail to the timer
     // interrupt routine.
-		mb_tail = t;
 		if (current_movebuffer->waitfor_temp) {
 			serial_writestr_P(PSTR("Waiting for target temp\n"));
 			current_movebuffer->live = 1;
