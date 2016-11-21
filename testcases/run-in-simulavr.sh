@@ -36,7 +36,7 @@ mkfifo ${PIPE_OUT_FILE} || exit 1
 if [ "${USER_CONFIG}" ]; then
   CONFIG="${USER_CONFIG}"
   TEACUP_ELF="${USER_CONFIG%.h}/teacup.elf"
-  TEACUP_ELF="../build/${TEACUP_ELF#../}"
+  TEACUP_ELF="../build/testcases/${TEACUP_ELF#../}"
 else
   CONFIG="../config.h"
   TEACUP_ELF="../build/teacup.elf"

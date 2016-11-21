@@ -177,7 +177,7 @@ size: $(BUILDDIR)/$(PROGRAM).elf
 	$(call show_size,Data,1,2,4,8)
 	$(call show_size,EEPROM,1,2,2,4)
 
-.PHONY: simulavr-check simulavr
+.PHONY: simulavr-check simulavr performancetest
 simulavr-check:
 	@if [ ! -x ../simulavr/src/simulavr ]; then \
 	  echo "Can't find SimulAVR executable in ../simulavr/src/simulavr."; \
@@ -192,3 +192,11 @@ simulavr:
 	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.h.Profiling \
 	  MCU=atmega644 F_CPU=20000000UL all
 	../simulavr/src/simulavr -f build/testcases/config.h.Profiling/teacup.elf
+
+performancetest:
+	@$(MAKE) --no-print-directory -f Makefile-AVR simulavr-check
+	@echo "Compiling for SimulAVR and running performance tests."
+	$(MAKE) -f Makefile-AVR USER_CONFIG=testcases/config.h.Profiling \
+	  MCU=atmega644 F_CPU=20000000UL all
+	cd testcases && USER_CONFIG=config.h.Profiling \
+	  ./run-in-simulavr.sh short-moves.gcode smooth-curves.gcode triangle-odd.gcode
