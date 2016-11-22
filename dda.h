@@ -85,14 +85,11 @@ typedef struct {
 		struct {
 			// status fields
 			uint8_t						nullmove			:1; ///< bool: no axes move, maybe we wait for temperatures or change speed
-			uint8_t						live					:1; ///< bool: this DDA is running and still has steps to do
+			volatile uint8_t  live          :1; ///< bool: this DDA is running and still has steps to do
       uint8_t           done          :1; ///< bool: this DDA is done.
 			#ifdef ACCELERATION_REPRAP
 			uint8_t						accel					:1; ///< bool: speed changes during this move, run accel code
 			#endif
-
-			// wait for temperature to stabilise flag
-			uint8_t						waitfor_temp	:1; ///< bool: wait for temperatures to reach their set values
 
 			// directions
       // As we have muldiv() now, overflows became much less an issue and

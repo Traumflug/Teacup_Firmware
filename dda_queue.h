@@ -5,7 +5,6 @@
 #include "dda.h"
 #include "timer.h"
 
-#define HEATER_WAIT_TIMEOUT 1000 MS
 
 /*
   variables

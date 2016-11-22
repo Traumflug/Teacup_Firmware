@@ -63,7 +63,7 @@ DDA *queue_current_movement() {
   ATOMIC_START
     current = &movebuffer[mb_tail];
 
-    if ( ! current->live || current->waitfor_temp)
+    if ( ! current->live)
       current = NULL;
   ATOMIC_END
 
@@ -76,27 +76,15 @@ DDA *queue_current_movement() {
 // -------------------------------------------------------
 /// Take a step or go to the next move.
 void queue_step() {
-	// do our next step
-	DDA* current_movebuffer = &movebuffer[mb_tail];
-	if (current_movebuffer->live) {
-		if (current_movebuffer->waitfor_temp) {
-      timer_set(HEATER_WAIT_TIMEOUT, 0);
-			if (temp_achieved()) {
-				current_movebuffer->live = current_movebuffer->done = 0;
-				serial_writestr_P(PSTR("Temp achieved\n"));
-			}
-      else {
-        temp_print(TEMP_SENSOR_none);
-      }
-		}
-		else {
-			dda_step(current_movebuffer);
-		}
+
+  if (movebuffer[mb_tail].live) {
+    dda_step(&movebuffer[mb_tail]);
 	}
 
   // Start the next move if this one is done.
-	if (current_movebuffer->live == 0)
+  if ( ! movebuffer[mb_tail].live) {
 		next_move();
+  }
 }
 
 /// add a move to the movebuffer
@@ -115,14 +103,8 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
   // dda->live, dda->done and dda->wait_for_temp.
   new_movebuffer->allflags = 0;
 
-  if (t != NULL) {
-		new_movebuffer->endstop_check = endstop_check;
-		new_movebuffer->endstop_stop_cond = endstop_stop_cond;
-	}
-	else {
-		// it's a wait for temp
-		new_movebuffer->waitfor_temp = 1;
-	}
+  new_movebuffer->endstop_check = endstop_check;
+  new_movebuffer->endstop_stop_cond = endstop_stop_cond;
   dda_create(new_movebuffer, t);
 
   /**
@@ -170,16 +152,9 @@ void next_move() {
     // interrupt routine.
     mb_tail = MB_NEXT(mb_tail);
 
-    if (movebuffer[mb_tail].waitfor_temp) {
-			serial_writestr_P(PSTR("Waiting for target temp\n"));
-      movebuffer[mb_tail].live = 1;
-      timer_set(HEATER_WAIT_TIMEOUT, 0);
-		}
-		else {
       dda_start(&movebuffer[mb_tail]);
 		}
 	}
-}
 
 /// DEBUG - print queue.
 /// Qt/hs format, t is tail, h is head, s is F/full, E/empty or neither

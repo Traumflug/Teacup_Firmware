@@ -159,12 +159,9 @@ void dda_create(DDA *dda, const TARGET *target) {
   static uint8_t idcnt = 0;
   static DDA* prev_dda = NULL;
 
-  if ((prev_dda && prev_dda->done) || dda->waitfor_temp)
+  if (prev_dda && prev_dda->done)
     prev_dda = NULL;
   #endif
-
-  if (dda->waitfor_temp)
-    return;
 
   // We end at the passed target.
   memcpy(&(dda->endpoint), target, sizeof(TARGET));
