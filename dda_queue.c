@@ -83,7 +83,17 @@ void queue_step() {
 
   // Start the next move if this one is done.
   if ( ! movebuffer[mb_tail].live) {
-		next_move();
+    /**
+      This is a simplified version of next_move() (which we'd use it it wasn't
+      so performance critical here).
+
+      queue_empty() used in next_move() needs no atomic protection, because
+      we're in an interrupt already.
+    */
+    if (mb_tail != mb_head) {
+      mb_tail = MB_NEXT(mb_tail);
+      dda_start(&movebuffer[mb_tail]);
+    }
   }
 }
 
