@@ -936,17 +936,15 @@ void update_current_position() {
 	DDA *dda = &movebuffer[mb_tail];
   enum axis_e i;
 
-  // Use smaller values to adjust to avoid overflow in later calculations,
-  // (STEPS_PER_M_X / 1000) is a bit inaccurate for low STEPS_PER_M numbers.
-  static const axes_uint32_t PROGMEM steps_per_mm_P = {
-    ((STEPS_PER_M_X + 500) / 1000),
-    ((STEPS_PER_M_Y + 500) / 1000),
-    ((STEPS_PER_M_Z + 500) / 1000),
-    ((STEPS_PER_M_E + 500) / 1000)
+  static const axes_uint32_t PROGMEM steps_per_m_P = {
+    STEPS_PER_M_X,
+    STEPS_PER_M_Y,
+    STEPS_PER_M_Z,
+    STEPS_PER_M_E
   };
 
   if (dda->live) {
-    uint32_t axis_steps;
+    uint32_t axis_steps, axis_um;
 
     for (i = X; i < AXIS_COUNT; i++) {
       #if ! defined ACCELERATION_TEMPORAL
@@ -955,19 +953,14 @@ void update_current_position() {
       #else
         axis_steps = move_state.steps[i];
       #endif
+      axis_um = muldiv(axis_steps, 1000000, pgm_read_dword(&steps_per_m_P[i]));
       current_position.axis[i] =
-        dda->endpoint.axis[i] - (int32_t)get_direction(dda, i) *
-        // Should be: move_state.steps[i] * 1000000 / steps_per_m_P[i])
-        // but steps[i] can be like 1000000 already, so we'd overflow.
-        // Unfortunately, using muldiv() overwhelms the compiler.
-        // Also keep the parens around this term, else results go wrong.
-        ((axis_steps * 1000) / pgm_read_dword(&steps_per_mm_P[i]));
+        dda->endpoint.axis[i] - (int32_t)get_direction(dda, i) * axis_um;
     }
 
     if (dda->endpoint.e_relative) {
-      // We support only one extruder, so axis_steps is already valid.
-      current_position.axis[E] =
-          (axis_steps * 1000) / pgm_read_dword(&steps_per_mm_P[E]);
+      // We support only one extruder, so axis_um is already valid.
+      current_position.axis[E] = axis_um;
     }
 
 		// current_position.F is updated in dda_start()
