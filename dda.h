@@ -156,6 +156,7 @@ typedef struct {
   /// word boundaries only and fill smaller variables in between with gaps,
   /// so keep small variables grouped together to reduce the amount of these
   /// gaps. See e.g. NXP application note AN10963, page 10f.
+  uint8_t           active_axes;     ///< Bit mask of moving axes
   uint8_t           fast_axis;       ///< number of the fast axis
 
 	/// Endstop homing
