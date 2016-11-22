@@ -35,9 +35,6 @@ inline void enqueue(TARGET *t) {
   enqueue_home(t, 0, 0);
 }
 
-// called from step timer when current move is complete
-void next_move(void);
-
 // print queue status
 void print_queue(void);
 

@@ -81,15 +81,12 @@ void queue_step() {
     dda_step(&movebuffer[mb_tail]);
 	}
 
-  // Start the next move if this one is done.
-  if ( ! movebuffer[mb_tail].live) {
-    /**
-      This is a simplified version of next_move() (which we'd use it it wasn't
-      so performance critical here).
+  /**
+    Start the next move if this one is done and another one is available.
 
-      queue_empty() used in next_move() needs no atomic protection, because
-      we're in an interrupt already.
-    */
+    This needs no atomic protection, because we're in an interrupt already.
+  */
+  if ( ! movebuffer[mb_tail].live) {
     if (mb_tail != mb_head) {
       mb_tail = MB_NEXT(mb_tail);
       dda_start(&movebuffer[mb_tail]);
@@ -125,46 +122,30 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
     mb_head. Also kick off movements if it's the first movement after a pause.
   */
   if ( ! new_movebuffer->nullmove) {
+    // Remember if the queue was empty before we complete the queueing.
+    uint8_t isdead = queue_empty();
+
     // make certain all writes to global memory
     // are flushed before modifying mb_head.
     MEMORY_BARRIER();
 
     mb_head = h;
 
-    uint8_t isdead;
-
-    ATOMIC_START
-      isdead = (movebuffer[mb_tail].live == 0);
-    ATOMIC_END
-
     if (isdead) {
+      /**
+        Go to the next move.
+
+        This is the version used from outside interrupts. The in-interrupt
+        version is inlined (and simplified) in queue_step().
+      */
       timer_reset();
-      next_move();
+      mb_tail = MB_NEXT(mb_tail);
+      dda_start(&movebuffer[mb_tail]);
       // Compensate for the cli() in timer_set().
       sei();
     }
 	}
 }
-
-/// go to the next move.
-/// be aware that this is sometimes called from interrupt context, sometimes not.
-/// Note that if it is called from outside an interrupt it must not/can not
-/// be interrupted such that it can be re-entered from within an interrupt.
-/// The timer interrupt MUST be disabled on entry. This is ensured because
-/// the timer was disabled at the start of the ISR or else because the current
-/// move buffer was dead in the non-interrupt case (which indicates that the
-/// timer interrupt is disabled).
-void next_move() {
-
-  if (queue_empty() == 0) {
-    // Tail must be set before calling timer_set(), as timer_set() reenables
-    // the timer interrupt, potentially exposing mb_tail to the timer
-    // interrupt routine.
-    mb_tail = MB_NEXT(mb_tail);
-
-      dda_start(&movebuffer[mb_tail]);
-		}
-	}
 
 /// DEBUG - print queue.
 /// Qt/hs format, t is tail, h is head, s is F/full, E/empty or neither
