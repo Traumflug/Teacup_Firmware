@@ -25,4 +25,6 @@ void timer_reset(void);
 
 void timer_stop(void);
 
+void timer_debug_reset(void);
+
 #endif	/* _TIMER_H */

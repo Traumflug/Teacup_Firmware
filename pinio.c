@@ -1,5 +1,6 @@
 #include	"pinio.h"
 #include	"delay.h"
+#include  "timer.h"
 
 static char ps_is_on = 0;
 
@@ -138,6 +139,7 @@ void power_on() {
 
 void power_off() {
 
+  timer_debug_reset();
 	stepper_disable();
 	x_disable();
 	y_disable();

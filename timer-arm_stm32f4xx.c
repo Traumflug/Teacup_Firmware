@@ -12,6 +12,10 @@
 #include "pinio.h"
 #include "dda_queue.h"
 
+#include "debug.h"
+#include "sersendf.h"
+DEBUG_VARS
+
 /** Timer initialisation.
 
   Initialise timer and enable system clock interrupt. Step interrupt is
@@ -81,6 +85,9 @@ void timer_init() {
   NVIC_SetPriority(TIM5_IRQn,
   NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));           // Also highest priority.
   NVIC_EnableIRQ(TIM5_IRQn);                // Enable interrupt generally.
+
+  DEBUG_INIT
+  DEBUG_PRINT
 }
 
 /** System clock interrupt.
@@ -118,6 +125,7 @@ void TIM5_IRQHandler(void) {
   #ifdef DEBUG_LED_PIN
     WRITE(DEBUG_LED_PIN, 1);
   #endif
+  DEBUG_START
 
   /**
     Turn off interrupt generation, timer counter continues. As this interrupt
@@ -133,6 +141,7 @@ void TIM5_IRQHandler(void) {
 
   queue_step();
 
+  DEBUG_END
   #ifdef DEBUG_LED_PIN
     WRITE(DEBUG_LED_PIN, 0);
   #endif
@@ -224,6 +233,10 @@ void timer_reset() {
 */
 void timer_stop() {
   SysTick->CTRL = 0;
+}
+
+void timer_debug_reset() {
+  DEBUG_PRINT
 }
 
 #endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */

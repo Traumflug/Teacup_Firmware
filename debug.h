@@ -40,7 +40,7 @@
 
 extern volatile uint8_t	debug_flags;
 
-// #define DEBUG_CM4
+#define DEBUG_CM4
 // #define DEBUG_SIM
 
 #ifdef DEBUG_CM4
