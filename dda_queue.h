@@ -11,7 +11,6 @@
 */
 
 // this is the ringbuffer that holds the current and pending moves.
-extern uint8_t	mb_head;
 extern uint8_t	mb_tail;
 extern DDA movebuffer[MOVEBUFFER_SIZE];
 

@@ -16,10 +16,12 @@
 #include "cpu.h"
 #include	"memory_barrier.h"
 
-/// movebuffer head pointer. Points to the last move in the queue.
-/// this variable is used both in and out of interrupts, but is
-/// only written outside of interrupts.
-uint8_t	mb_head = 0;
+/**
+  Movebuffer head pointer. Points to the last move in the queue. This variable
+  is used both in and out of interrupts, but is only written outside of
+  interrupts.
+*/
+static uint8_t mb_head = 0;
 
 /// movebuffer tail pointer. Points to the currently executing move
 /// this variable is read/written both in and out of interrupts.
