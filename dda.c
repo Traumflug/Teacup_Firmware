@@ -187,7 +187,6 @@ void dda_create(DDA *dda, const TARGET *target) {
     dda->id = idcnt++;
   #endif
 
-  dda->active_axes = 0;
   // Handle bot axes. They're subject to kinematics considerations.
   code_axes_to_stepper_axes(&startpoint, target, delta_um, steps);
   for (i = X; i < E; i++) {
@@ -195,8 +194,6 @@ void dda_create(DDA *dda, const TARGET *target) {
 
     delta_steps = steps[i] - startpoint_steps.axis[i];
     dda->delta[i] = (uint32_t)labs(delta_steps);
-    if (delta_steps)
-      dda->active_axes |= 1 << i;
     startpoint_steps.axis[i] = steps[i];
 
     set_direction(dda, i, delta_steps);
@@ -257,9 +254,6 @@ void dda_create(DDA *dda, const TARGET *target) {
     #endif
     dda->e_direction = (target->axis[E] >= 0)?1:0;
 	}
-
-  if (dda->delta[E])
-    dda->active_axes |= 1 << E;
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("[%ld,%ld,%ld,%ld]"),
@@ -572,28 +566,28 @@ void dda_start(DDA *dda) {
 void dda_step(DDA *dda) {
 
   #if ! defined ACCELERATION_TEMPORAL
-    if (dda->active_axes & (1 << X)) {
+    if (dda->delta[X]) {
       move_state.counter[X] -= dda->delta[X];
       if (move_state.counter[X] < 0) {
         x_step();
         move_state.counter[X] += dda->total_steps;
       }
 		}
-    if (dda->active_axes & (1 << Y)) {
+    if (dda->delta[Y]) {
       move_state.counter[Y] -= dda->delta[Y];
       if (move_state.counter[Y] < 0) {
         y_step();
         move_state.counter[Y] += dda->total_steps;
       }
 		}
-    if (dda->active_axes & (1 << Z)) {
+    if (dda->delta[Z]) {
       move_state.counter[Z] -= dda->delta[Z];
       if (move_state.counter[Z] < 0) {
         z_step();
         move_state.counter[Z] += dda->total_steps;
       }
 		}
-    if (dda->active_axes & (1 << E)) {
+    if (dda->delta[E]) {
       move_state.counter[E] -= dda->delta[E];
       if (move_state.counter[E] < 0) {
         e_step();
