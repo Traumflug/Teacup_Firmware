@@ -492,51 +492,50 @@ void dda_create(DDA *dda, const TARGET *target) {
 	Called both inside and outside of interrupts.
 */
 void dda_start() {
-  DDA *dda = mb_tail_dda;
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Start: X %lq  Y %lq  Z %lq  F %lu\n"),
-               dda->endpoint.axis[X], dda->endpoint.axis[Y],
-               dda->endpoint.axis[Z], dda->endpoint.F);
+               mb_tail_dda->endpoint.axis[X], mb_tail_dda->endpoint.axis[Y],
+               mb_tail_dda->endpoint.axis[Z], mb_tail_dda->endpoint.F);
 
 		// get ready to go
 		psu_timeout = 0;
     #ifdef Z_AUTODISABLE
-      if (dda->delta[Z])
+      if (mb_tail_dda->delta[Z])
         z_enable();
     #endif
-		if (dda->endstop_check)
+		if (mb_tail_dda->endstop_check)
 			endstops_on();
 
 		// set direction outputs
-		x_direction(dda->x_direction);
-		y_direction(dda->y_direction);
-		z_direction(dda->z_direction);
-		e_direction(dda->e_direction);
+		x_direction(mb_tail_dda->x_direction);
+		y_direction(mb_tail_dda->y_direction);
+		z_direction(mb_tail_dda->z_direction);
+		e_direction(mb_tail_dda->e_direction);
 
 		#ifdef	DC_EXTRUDER
-    if (dda->delta[E])
+    if (mb_tail_dda->delta[E])
 			heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
 		#endif
 
 		// initialise state variable
     move_state.counter[X] = move_state.counter[Y] = move_state.counter[Z] = \
-      move_state.counter[E] = -(dda->total_steps >> 1);
+      move_state.counter[E] = -(mb_tail_dda->total_steps >> 1);
     move_state.endstop_stop = 0;
 		#ifdef ACCELERATION_RAMPING
 			move_state.step_no = 0;
 		#endif
 		#ifdef ACCELERATION_TEMPORAL
-      memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
+      memcpy(&move_state.steps[X], &mb_tail_dda->delta[X], sizeof(uint32_t) * 4);
       move_state.time[X] = move_state.time[Y] = \
         move_state.time[Z] = move_state.time[E] = 0UL;
 		#endif
 
 		// ensure this dda starts
-		dda->live = 1;
+		mb_tail_dda->live = 1;
 
 		// set timeout for first step
-    timer_set(dda->c, 0);
+    timer_set(mb_tail_dda->c, 0);
 	}
 
 /**
