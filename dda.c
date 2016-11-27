@@ -764,7 +764,9 @@ void dda_clock() {
   uint8_t current_id ;
   #endif
 
-  dda = queue_current_movement();
+  ATOMIC_START
+    dda = mb_tail_dda;
+  ATOMIC_END
   if (dda != last_dda) {
     move_state.debounce_count_x =
     move_state.debounce_count_z =
