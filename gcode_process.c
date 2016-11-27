@@ -611,15 +611,15 @@ void process_gcode_command() {
 
         if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
           sersendf_P(PSTR("Endpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\n"),
-                     movebuffer[mb_tail].endpoint.axis[X],
-                     movebuffer[mb_tail].endpoint.axis[Y],
-                     movebuffer[mb_tail].endpoint.axis[Z],
-                     movebuffer[mb_tail].endpoint.axis[E],
-                     movebuffer[mb_tail].endpoint.F,
+                     mb_tail_dda->endpoint.axis[X],
+                     mb_tail_dda->endpoint.axis[Y],
+                     mb_tail_dda->endpoint.axis[Z],
+                     mb_tail_dda->endpoint.axis[E],
+                     mb_tail_dda->endpoint.F,
                      #ifdef ACCELERATION_REPRAP
-                       movebuffer[mb_tail].end_c
+                       mb_tail_dda->end_c
                      #else
-                       movebuffer[mb_tail].c
+                       mb_tail_dda->c
                      #endif
           );
           print_queue();

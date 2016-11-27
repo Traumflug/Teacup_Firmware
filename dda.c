@@ -940,7 +940,7 @@ void dda_clock() {
 
 /// update global current_position struct
 void update_current_position() {
-	DDA *dda = &movebuffer[mb_tail];
+  DDA *dda = mb_tail_dda;
   enum axis_e i;
 
   static const axes_uint32_t PROGMEM steps_per_m_P = {
@@ -950,7 +950,7 @@ void update_current_position() {
     STEPS_PER_M_E
   };
 
-  if (dda->live) {
+  if (dda != NULL) {
     uint32_t axis_steps, axis_um;
 
     for (i = X; i < AXIS_COUNT; i++) {

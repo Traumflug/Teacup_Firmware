@@ -58,8 +58,8 @@ uint8_t queue_full() {
 /// Take a step or go to the next move.
 void queue_step() {
 
-  if (movebuffer[mb_tail].live) {
-    dda_step(&movebuffer[mb_tail]);
+  if (mb_tail_dda != NULL) {
+    dda_step(mb_tail_dda);
 	}
 
   /**
@@ -67,7 +67,7 @@ void queue_step() {
 
     This needs no atomic protection, because we're in an interrupt already.
   */
-  if ( ! movebuffer[mb_tail].live) {
+  if ( ! mb_tail_dda->live) {
     if (mb_tail != mb_head) {
       mb_tail = MB_NEXT(mb_tail);
       mb_tail_dda = &(movebuffer[mb_tail]);

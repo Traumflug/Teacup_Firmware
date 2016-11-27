@@ -116,11 +116,11 @@ static void clock_250ms(void) {
 
 			// target position
       sersendf_P(PSTR("Dst: %lq,%lq,%lq,%lq,%lu\n"),
-                 movebuffer[mb_tail].endpoint.axis[X],
-                 movebuffer[mb_tail].endpoint.axis[Y],
-                 movebuffer[mb_tail].endpoint.axis[Z],
-                 movebuffer[mb_tail].endpoint.axis[E],
-                 movebuffer[mb_tail].endpoint.F);
+                 mb_tail_dda->endpoint.axis[X],
+                 mb_tail_dda->endpoint.axis[Y],
+                 mb_tail_dda->endpoint.axis[Z],
+                 mb_tail_dda->endpoint.axis[E],
+                 mb_tail_dda->endpoint.F);
 
 			// Queue
 			print_queue();
