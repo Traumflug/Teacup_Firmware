@@ -139,7 +139,7 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
         version is inlined (and simplified) in queue_step().
       */
       timer_reset();
-      mb_tail = MB_NEXT(mb_tail);
+      mb_tail = mb_head;  // Valid ONLY if the queue was empty before!
       dda_start(&movebuffer[mb_tail]);
       // Compensate for the cli() in timer_set().
       sei();
