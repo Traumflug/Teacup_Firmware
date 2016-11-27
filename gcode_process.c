@@ -108,6 +108,7 @@ void process_gcode_command() {
 				//?
 				//? In this case move rapidly to X = 12 mm.  In fact, the RepRap firmware uses exactly the same code for rapid as it uses for controlled moves (see G1 below), as - for the RepRap machine - this is just as efficient as not doing so.  (The distinction comes from some old machine tools that used to move faster if the axes were not driven in a straight line.  For them G0 allowed any movement in space to get to the destination as fast as possible.)
 				//?
+        temp_wait();
 				backup_f = next_target.target.F;
 				next_target.target.F = MAXIMUM_FEEDRATE_X * 2L;
 				enqueue(&next_target.target);
@@ -121,6 +122,7 @@ void process_gcode_command() {
 				//?
 				//? Go in a straight line from the current (X, Y) point to the point (90.6, 13.8), extruding material as the move happens from the current extruded length to a length of 22.4 mm.
 				//?
+        temp_wait();
 				enqueue(&next_target.target);
 				break;
 
@@ -445,9 +447,7 @@ void process_gcode_command() {
 				//? --- M101: extruder on ---
 				//?
 				//? Undocumented.
-				if (temp_achieved() == 0) {
-					enqueue(NULL);
-				}
+        temp_wait();
 				#ifdef DC_EXTRUDER
 					heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
 				#endif
@@ -648,8 +648,7 @@ void process_gcode_command() {
 				//? Example: M116
 				//?
 				//? Wait for temperatures and other slowly-changing variables to arrive at their set values.
-
-				enqueue(NULL);
+        temp_set_wait();
 				break;
 
       case 119:

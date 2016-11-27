@@ -42,6 +42,10 @@ void temp_residency_tick(void);
 
 uint8_t	temp_achieved(void);
 
+void temp_set_wait(void);
+uint8_t temp_waiting(void);
+void temp_wait(void);
+
 void temp_set(temp_sensor_t index, uint16_t temperature);
 uint16_t temp_get(temp_sensor_t index);
 

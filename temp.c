@@ -12,6 +12,7 @@
 #include	<stdlib.h>
 #include	"arduino.h"
 #include "serial.h"
+#include "clock.h"
 #include	"debug.h"
 #ifndef	EXTRUDER
 	#include	"sersendf.h"
@@ -100,6 +101,12 @@ static struct {
 // If EWMA is used, continuously update analog reading for more data points.
 #define TEMP_READ_CONTINUOUS (EWMA_ALPHA < EWMA_SCALE)
 #define TEMP_NOT_READY       0xffff
+
+/**
+  Flag for wether we currently wait for achieving temperatures.
+*/
+static uint8_t wait_for_temp = 0;
+
 
 /// Set up temp sensors.
 void temp_init() {
@@ -548,6 +555,33 @@ uint8_t	temp_achieved() {
 			all_ok = 0;
 	}
 	return all_ok;
+}
+
+/**
+  Note that we're waiting for temperatures to achieve their target. Typically
+  set by M116.
+*/
+void temp_set_wait() {
+  wait_for_temp = 1;
+}
+
+/**
+  Wether we're currently waiting for achieving temperatures.
+*/
+uint8_t temp_waiting(void) {
+  if (temp_achieved()) {
+    wait_for_temp = 0;
+  }
+  return wait_for_temp;
+}
+
+/**
+  Wait until all temperatures are achieved.
+*/
+void temp_wait(void) {
+  while (wait_for_temp && ! temp_achieved()) {
+    clock();
+  }
 }
 
 /// specify a target temperature

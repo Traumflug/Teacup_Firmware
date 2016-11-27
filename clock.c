@@ -87,11 +87,24 @@ static void clock_250ms(void) {
   temp_heater_tick();
 
 	ifclock(clock_flag_1s) {
+    static uint8_t wait_for_temp = 0;
+
     #ifdef DISPLAY
       display_clock();
     #endif
 
     temp_residency_tick();
+
+    if (temp_waiting()) {
+      serial_writestr_P(PSTR("Waiting for target temp\n"));
+      wait_for_temp = 1;
+    }
+    else {
+      if (wait_for_temp) {
+        serial_writestr_P(PSTR("Temp achieved\n"));
+        wait_for_temp = 0;
+      }
+    }
 
 		if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
 			// current position
