@@ -101,7 +101,7 @@ uint8_t serial_rxchars(void) {
   if (gcode_fd) return 1;
 
   // No more gcode data; wait for DDA queue to drain
-  if (queue_empty()) {
+  if (mb_tail_dda == NULL) {
     sim_info("Gcode processing completed.");
     exit(0);
   }

@@ -22,7 +22,6 @@ extern DDA *mb_tail_dda;
 
 // queue status methods
 uint8_t queue_full(void);
-uint8_t queue_empty(void);
 DDA *queue_current_movement(void);
 
 // take one step

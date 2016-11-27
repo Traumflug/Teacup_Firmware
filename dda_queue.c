@@ -51,17 +51,6 @@ uint8_t queue_full() {
   return MB_NEXT(mb_head) == mb_tail;
 }
 
-/// check if the queue is completely empty
-uint8_t queue_empty() {
-  uint8_t result;
-
-  ATOMIC_START
-    result = (mb_tail == mb_head && movebuffer[mb_tail].live == 0);
-  ATOMIC_END
-
-	return result;
-}
-
 /// Return the current movement, or NULL, if there's no movement going on.
 DDA *queue_current_movement() {
   DDA* current;
@@ -132,16 +121,13 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
     mb_head. Also kick off movements if it's the first movement after a pause.
   */
   if ( ! new_movebuffer->nullmove) {
-    // Remember if the queue was empty before we complete the queueing.
-    uint8_t isdead = queue_empty();
-
     // make certain all writes to global memory
     // are flushed before modifying mb_head.
     MEMORY_BARRIER();
 
     mb_head = h;
 
-    if (isdead) {
+    if (mb_tail_dda == NULL) {
       /**
         Go to the next move.
 
@@ -161,7 +147,8 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 /// DEBUG - print queue.
 /// Qt/hs format, t is tail, h is head, s is F/full, E/empty or neither
 void print_queue() {
-  sersendf_P(PSTR("Queue: %d/%d%c\n"), mb_tail, mb_head, (queue_full()?'F':(queue_empty()?'E':' ')));
+  sersendf_P(PSTR("Queue: %d/%d%c\n"), mb_tail, mb_head,
+             (queue_full() ? 'F' : (mb_tail_dda ? ' ' : 'E')));
 }
 
 /// dump queue for emergency stop.
@@ -178,6 +165,6 @@ void queue_flush() {
 
 /// wait for queue to empty
 void queue_wait() {
-	while (queue_empty() == 0)
+  while (mb_tail_dda)
 		clock();
 }
