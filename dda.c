@@ -974,9 +974,6 @@ void update_current_position() {
     current_position.F = dda->endpoint.F;
 	}
   else {
-    for (i = X; i < AXIS_COUNT; i++) {
-      current_position.axis[i] = startpoint.axis[i];
-    }
-    current_position.F = startpoint.F;
+    memcpy(&current_position, &startpoint, sizeof(TARGET));
 	}
 }
