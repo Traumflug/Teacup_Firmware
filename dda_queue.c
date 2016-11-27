@@ -36,6 +36,12 @@ uint8_t	mb_tail = 0;
 /// The size does not need to be a power of 2 anymore!
 DDA BSS movebuffer[MOVEBUFFER_SIZE];
 
+/**
+  Pointer to the currently ongoing movement, or NULL, if there's no movement
+  ongoing. Actually a cache of movebuffer[mb_tail].
+*/
+DDA *mb_tail_dda;
+
 /// Find the next DDA index after 'x', where 0 <= x < MOVEBUFFER_SIZE
 #define MB_NEXT(x) ((x) < MOVEBUFFER_SIZE - 1 ? (x) + 1 : 0)
 
@@ -89,7 +95,11 @@ void queue_step() {
   if ( ! movebuffer[mb_tail].live) {
     if (mb_tail != mb_head) {
       mb_tail = MB_NEXT(mb_tail);
-      dda_start(&movebuffer[mb_tail]);
+      mb_tail_dda = &(movebuffer[mb_tail]);
+      dda_start(mb_tail_dda);
+    }
+    else {
+      mb_tail_dda = NULL;
     }
   }
 }
@@ -140,7 +150,8 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
       */
       timer_reset();
       mb_tail = mb_head;  // Valid ONLY if the queue was empty before!
-      dda_start(&movebuffer[mb_tail]);
+      mb_tail_dda = new_movebuffer; // Dito!
+      dda_start(mb_tail_dda);
       // Compensate for the cli() in timer_set().
       sei();
     }
@@ -162,7 +173,7 @@ void queue_flush() {
   // if the timer were running, this would require
   // wrapping in ATOMIC_START ... ATOMIC_END.
   mb_tail = mb_head;
-  movebuffer[mb_head].live = 0;
+  mb_tail_dda = NULL;
 }
 
 /// wait for queue to empty
