@@ -167,13 +167,6 @@ void process_gcode_command() {
 				next_target.option_inches = 0;
 				break;
 
-			case 30:
-				//? --- G30: Go home via point ---
-				//?
-				//? Undocumented.
-				enqueue(&next_target.target);
-				// no break here, G30 is move and then go home
-
 			case 28:
 				//? --- G28: Home ---
 				//?
