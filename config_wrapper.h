@@ -7,9 +7,22 @@
 */
 #include "arduino.h"
 
-#ifndef DEFINE_HEATER
-  #define DEFINE_HEATER(...)
+#ifndef DEFINE_HEATER_ACTUAL
+  #define DEFINE_HEATER_ACTUAL(...)
 #endif
+
+// Heater definition helpers.  This collection of macros turns any DEFINE_HEATER(...) macro
+// expansion into a DEFINE_HEATER_ACTUAL(a,b,c,d), i.e. a macro with four arguments.  Currently
+// we expand 3 to 6 arguments, but we ignore the 6th arg in this code.  This allows
+// us to use this "old" code with some "newer" configs which come at us from the future, so long
+// as the newer configs add parameters at the end of the list rather than in the middle.
+// From http://stackoverflow.com/questions/11761703/overloading-macro-on-number-of-arguments
+#define GET_MACRO(_1, _2, _3, _4, _5, _6, NAME, ...) NAME
+#define DEFINE_HEATER(...) GET_MACRO(__VA_ARGS__, DHTR_6, DHTR_5, DHTR_4, DHTR_3)(__VA_ARGS__)
+#define DHTR_3(name, pin, pwm) DEFINE_HEATER_ACTUAL(name, pin, 0, pwm, 100)
+#define DHTR_4(name, pin, invert, pwm) DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, 100)
+#define DHTR_5(name, pin, invert, pwm, max_pwm)  DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_pwm)
+#define DHTR_6(name, pin, invert, pwm, max_pwm, arg6)  DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_pwm)
 
 /**
   This wrapper config header is used to allow makefiles and test scripts to

@@ -71,8 +71,8 @@ typedef struct {
   uint8_t uses_pwm;
 } heater_definition_t;
 
-#undef DEFINE_HEATER
-#define DEFINE_HEATER(name, pin, invert, pwm) \
+#undef DEFINE_HEATER_ACTUAL
+#define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
   { \
     { pwm && pin ## _TIMER ? \
       &(pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,)) : \
@@ -83,7 +83,7 @@ typedef struct {
 static const heater_definition_t heaters[NUM_HEATERS] = {
   #include "config_wrapper.h"
 };
-#undef DEFINE_HEATER
+#undef DEFINE_HEATER_ACTUAL
 
 /** Initialise heater subsystem.
 
@@ -154,8 +154,8 @@ void heater_init() {
       
   */
   // Auto-generate pin setup.
-  #undef DEFINE_HEATER 
-  #define DEFINE_HEATER(name, pin, invert, pwm) \
+  #undef DEFINE_HEATER_ACTUAL 
+  #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
     if (pwm && pin ## _TIMER) {                                                          \
       uint32_t freq;                                                                     \
       uint8_t macro_mask;                                                                \
@@ -208,7 +208,7 @@ void heater_init() {
     }
 
     #include "config_wrapper.h"
-    #undef DEFINE_HEATER
+    #undef DEFINE_HEATER_ACTUAL
 
   pid_init();
 }

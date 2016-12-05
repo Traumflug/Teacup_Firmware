@@ -29,15 +29,15 @@
 #endif
 
 
-#undef DEFINE_HEATER
-#define DEFINE_HEATER(name, pin, invert, pwm, ...) HEATER_ ## name,
+#undef DEFINE_HEATER_ACTUAL
+#define DEFINE_HEATER_ACTUAL(name, ...) HEATER_ ## name,
 typedef enum
 {
 	#include "config_wrapper.h"
 	NUM_HEATERS,
 	HEATER_noheater
 } heater_t;
-#undef DEFINE_HEATER
+#undef DEFINE_HEATER_ACTUAL
 
 /** This struct holds the runtime heater data.
 

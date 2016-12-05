@@ -83,8 +83,8 @@ typedef struct {
   #define HEATER_MAX_VALUE(dummy)
 #endif
 
-#undef DEFINE_HEATER
-#define DEFINE_HEATER(name, pin, invert, pwm, max_value) \
+#undef DEFINE_HEATER_ACTUAL
+#define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_value) \
   { \
     { pwm && pin ## _TIMER ? \
       &(pin ## _TIMER->MR[pin ## _MATCH]) : \
@@ -96,7 +96,7 @@ typedef struct {
 static const heater_definition_t heaters[NUM_HEATERS] = {
   #include "config_wrapper.h"
 };
-#undef DEFINE_HEATER
+#undef DEFINE_HEATER_ACTUAL
 
 /** Initialise heater subsystem.
 
@@ -143,8 +143,8 @@ void heater_init() {
       PIO1_9   CT16B1_MAT0     0x1            ---
   */
   // Auto-generate pin setup.
-  #undef DEFINE_HEATER
-  #define DEFINE_HEATER(name, pin, invert, pwm, max_value) \
+  #undef DEFINE_HEATER_ACTUAL
+  #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_value) \
     if (pwm && pin ## _TIMER) {                                             \
       uint32_t freq;                                                        \
                                                                             \
@@ -184,7 +184,7 @@ void heater_init() {
       WRITE(pin, invert ? 1 : 0);                                           \
     }
   #include "config_wrapper.h"
-  #undef DEFINE_HEATER
+  #undef DEFINE_HEATER_ACTUAL
 
   pid_init();
 }

@@ -32,9 +32,9 @@ typedef struct {
   #define HEATER_MAX_VALUE(dummy)
 #endif
 
-#undef DEFINE_HEATER
+#undef DEFINE_HEATER_ACTUAL
 /// \brief helper macro to fill heater definition struct from config.h
-#define	DEFINE_HEATER(name, pin, invert, pwm, max_value) { \
+#define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_value) { \
   &(pin ## _WPORT), \
   pin ## _PIN, \
   invert ? 1 : 0, \
@@ -45,7 +45,7 @@ static const heater_definition_t heaters[NUM_HEATERS] =
 {
 	#include	"config_wrapper.h"
 };
-#undef DEFINE_HEATER
+#undef DEFINE_HEATER_ACTUAL
 
 
 /// \brief initialise heater subsystem
@@ -208,12 +208,12 @@ void heater_init() {
 	}
 
 	// set all heater pins to output
-  #undef DEFINE_HEATER
-  #define DEFINE_HEATER(name, pin, invert, pwm, max_value) \
+  #undef DEFINE_HEATER_ACTUAL
+  #define DEFINE_HEATER_ACTUAL(name, pin, invert, ...) \
     SET_OUTPUT(pin);                            \
     WRITE(pin, invert ? 1 : 0);
   #include "config_wrapper.h"
-  #undef DEFINE_HEATER
+  #undef DEFINE_HEATER_ACTUAL
 
   pid_init();
 }
