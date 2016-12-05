@@ -197,10 +197,6 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO0,  THERMISTOR_BED)
 *                                                                           *
 \***************************************************************************/
 
-#ifndef DEFINE_HEATER
-  #define DEFINE_HEATER(...)
-#endif
-
 /** \def HEATER_PIN
   Heater pins a user should be able to choose from in configtool. All
   commented out.

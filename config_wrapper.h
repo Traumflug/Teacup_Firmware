@@ -7,6 +7,10 @@
 */
 #include "arduino.h"
 
+#ifndef DEFINE_HEATER
+  #define DEFINE_HEATER(...)
+#endif
+
 /**
   This wrapper config header is used to allow makefiles and test scripts to
   replace or augment the user's 'config.h' file in a controlled manner. A
