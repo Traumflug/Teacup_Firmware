@@ -482,7 +482,6 @@ void dda_create(DDA *dda, const TARGET *target) {
 }
 
 /*! Start a prepared DDA
-	\param *dda pointer to entry in dda_queue to start
 
 	This function actually begins the move described by the passed DDA entry.
 
@@ -492,8 +491,8 @@ void dda_create(DDA *dda, const TARGET *target) {
 
 	Called both inside and outside of interrupts.
 */
-void dda_start(DDA *dda) {
-	// called from interrupt context: keep it simple!
+void dda_start() {
+  DDA *dda = mb_tail_dda;
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Start: X %lq  Y %lq  Z %lq  F %lu\n"),

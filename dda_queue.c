@@ -71,7 +71,7 @@ void queue_step() {
     if (mb_tail != mb_head) {
       mb_tail = MB_NEXT(mb_tail);
       mb_tail_dda = &(movebuffer[mb_tail]);
-      dda_start(mb_tail_dda);
+      dda_start();
     }
     else {
       mb_tail_dda = NULL;
@@ -123,7 +123,7 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
       timer_reset();
       mb_tail = mb_head;  // Valid ONLY if the queue was empty before!
       mb_tail_dda = new_movebuffer; // Dito!
-      dda_start(mb_tail_dda);
+      dda_start();
       // Compensate for the cli() in timer_set().
       sei();
     }
