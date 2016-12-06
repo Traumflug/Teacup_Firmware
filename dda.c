@@ -481,64 +481,59 @@ void dda_create(DDA *dda, const TARGET *target) {
 		serial_writestr_P(PSTR("] }\n"));
 }
 
-/*! Start a prepared DDA
-	\param *dda pointer to entry in dda_queue to start
+/** Start a prepared DDA
 
-	This function actually begins the move described by the passed DDA entry.
+  \param *dda Pointer to entry in the movement queue to start.
 
-	We set direction and enable outputs, and set the timer for the first step from the precalculated value.
-
-	We also mark this DDA as running, so other parts of the firmware know that something is happening
-
-	Called both inside and outside of interrupts.
+  This function actually begins the move described by the passed DDA entry.
+  Called from both, inside and outside of interrupts.
 */
 void dda_start(DDA *dda) {
-	// called from interrupt context: keep it simple!
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Start: X %lq  Y %lq  Z %lq  F %lu\n"),
                dda->endpoint.axis[X], dda->endpoint.axis[Y],
                dda->endpoint.axis[Z], dda->endpoint.F);
 
-		// get ready to go
-		psu_timeout = 0;
-    #ifdef Z_AUTODISABLE
-      if (dda->delta[Z])
-        z_enable();
-    #endif
-		if (dda->endstop_check)
-			endstops_on();
+  // Get ready to go.
+  psu_timeout = 0;
+  #ifdef Z_AUTODISABLE
+    if (dda->delta[Z])
+      z_enable();
+  #endif
+  if (dda->endstop_check)
+    endstops_on();
 
-		// set direction outputs
-		x_direction(dda->x_direction);
-		y_direction(dda->y_direction);
-		z_direction(dda->z_direction);
-		e_direction(dda->e_direction);
+  // Set direction outputs.
+  x_direction(dda->x_direction);
+  y_direction(dda->y_direction);
+  z_direction(dda->z_direction);
+  e_direction(dda->e_direction);
 
-		#ifdef	DC_EXTRUDER
+  #ifdef DC_EXTRUDER
     if (dda->delta[E])
-			heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
-		#endif
+      heater_set(DC_EXTRUDER, DC_EXTRUDER_PWM);
+  #endif
 
-		// initialise state variable
-    move_state.counter[X] = move_state.counter[Y] = move_state.counter[Z] = \
-      move_state.counter[E] = -(dda->total_steps >> 1);
-    move_state.endstop_stop = 0;
-		#ifdef ACCELERATION_RAMPING
-			move_state.step_no = 0;
-		#endif
-		#ifdef ACCELERATION_TEMPORAL
-      memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
-      move_state.time[X] = move_state.time[Y] = \
-        move_state.time[Z] = move_state.time[E] = 0UL;
-		#endif
+  // Initialise state variables.
+  move_state.counter[X] = move_state.counter[Y] = move_state.counter[Z] = \
+    move_state.counter[E] = -(dda->total_steps >> 1);
+  move_state.endstop_stop = 0;
+  #ifdef ACCELERATION_RAMPING
+    move_state.step_no = 0;
+  #endif
+  #ifdef ACCELERATION_TEMPORAL
+    memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
+    move_state.time[X] = move_state.time[Y] = \
+      move_state.time[Z] = move_state.time[E] = 0UL;
+  #endif
 
-		// ensure this dda starts
-		dda->live = 1;
+  // Ensure this DDA starts.
+  dda->live = 1;
 
-		// set timeout for first step
-    timer_set(dda->c, 0);
-	}
+  // Set timeout for first step.
+  timer_set(dda->c, 0);
+}
 
 /**
   \brief Do per-step movement maintenance.
