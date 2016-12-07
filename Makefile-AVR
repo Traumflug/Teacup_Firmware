@@ -136,14 +136,16 @@ CFLAGS += -Wa,-adhlns=$(@:.o=.al)
 #CFLAGS += -dM -E # To list all predefined macros into the .o file.
 
 LDFLAGS  = -Wl,--as-needed
+LDFLAGS += -Wl,--gc-sections
 
 ifneq ($(realpath ../simulavr/src/simulavr_info.h),)
   # Neccessary for simulavr support, doesn't hurt others.
   CFLAGS += -DSIMINFO
   LDFLAGS += -Wl,--section-start=.siminfo=0x900000
-else
-  # Doesn't work for simulavr, can't allow dead code removal.
-  LDFLAGS += -Wl,--gc-sections
+  LDFLAGS += -u siminfo_device
+  LDFLAGS += -u siminfo_cpufrequency
+  LDFLAGS += -u siminfo_serial_in
+  LDFLAGS += -u siminfo_serial_out
 endif
 
 LIBS  = -lm
