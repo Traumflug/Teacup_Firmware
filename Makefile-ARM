@@ -107,7 +107,7 @@ endif
 CFLAGS += -Wall
 CFLAGS += -Wstrict-prototypes
 CFLAGS += -Os
-#CFLAGS += -flto
+CFLAGS += -flto
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
 #CFLAGS += -dM -E # To list all predefined macros into the .o file.
