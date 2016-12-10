@@ -73,13 +73,12 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   // Find individual axis speeds.
   // TODO: this is eight expensive muldiv()s. It should be possible to store
   //       currF as prevF for the next calculation somehow, to save 4 of
-  //       these 8 muldiv()s. This would also allow to get rid of
-  //       dda->delta_um[] and using delta_um[] from dda_create() instead.
+  //       these 8 muldiv()s.
   //       Caveat: bail out condition above and some other non-continuous
   //               situations might need some extra code for handling.
   for (i = X; i < AXIS_COUNT; i++) {
-    prevF[i] = muldiv(prev->delta_um[i], F, prev->distance);
-    currF[i] = muldiv(current->delta_um[i], F, current->distance);
+    prevF[i] = muldiv(prev->delta[i], F, prev->total_steps);
+    currF[i] = muldiv(current->delta[i], F, current->total_steps);
   }
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
@@ -111,7 +110,11 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   max_speed_factor = (uint32_t)2 << 8;
 
   for (i = X; i < AXIS_COUNT; i++) {
-    dv = currF[i] > prevF[i] ? currF[i] - prevF[i] : prevF[i] - currF[i];
+    if (get_direction(prev, i) == get_direction(current, i))
+      dv = currF[i] > prevF[i] ? currF[i] - prevF[i] : prevF[i] - currF[i];
+    else
+      dv = currF[i] + prevF[i];
+
     if (dv) {
       speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[i]) << 8) / dv;
       if (speed_factor < max_speed_factor)

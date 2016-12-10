@@ -85,7 +85,7 @@ static void set_direction(DDA *dda, enum axis_e n, int32_t delta) {
 
 /*! Find the direction of the 'n' axis
 */
-static int8_t get_direction(DDA *dda, enum axis_e n) {
+int8_t get_direction(DDA *dda, enum axis_e n) {
   if ((n == X && dda->x_direction) ||
       (n == Y && dda->y_direction) ||
       (n == Z && dda->z_direction) ||
@@ -198,21 +198,6 @@ void dda_create(DDA *dda, const TARGET *target) {
     startpoint_steps.axis[i] = steps[i];
 
     set_direction(dda, i, delta_steps);
-    #ifdef LOOKAHEAD
-      // Also displacements in micrometers, but for the lookahead alogrithms.
-      // TODO: this is redundant. delta_um[] and dda->delta_um[] differ by
-      //       just signedness and storage location. Ideally, dda is used
-      //       as storage place only if neccessary (LOOKAHEAD turned on?)
-      //       because this space is multiplied by the movement queue size.
-      //
-      // Update 2014/10: it was tried to use delta_um[]'s sign to set stepper
-      //                 direction in dda_start() to allow getting rid of
-      //                 some of this redundancy, but this increases dda_start()
-      //                 by at least 20 clock cycles. Not good for performance.
-      //                 Tried code can be found in the archive folder.
-      dda->delta_um[i] = (delta_steps >= 0) ?
-                         (int32_t)delta_um[i] : -(int32_t)delta_um[i];
-    #endif
   }
 
   // Handle extruder axes. They act independently from the bots kinematics
@@ -235,24 +220,12 @@ void dda_create(DDA *dda, const TARGET *target) {
     startpoint_steps.axis[E] = steps[E];
 
     set_direction(dda, E, delta_steps);
-    #ifdef LOOKAHEAD
-      // Also displacements in micrometers, but for the lookahead alogrithms.
-      // TODO: this is redundant. delta_um[] and dda->delta_um[] differ by
-      //       just signedness and storage location. Ideally, dda is used
-      //       as storage place only if neccessary (LOOKAHEAD turned on?)
-      //       because this space is multiplied by the movement queue size.
-      dda->delta_um[E] = (delta_steps >= 0) ?
-                         (int32_t)delta_um[E] : -(int32_t)delta_um[E];
-    #endif
   }
   else {
     // When we get more extruder axes:
     // for (i = E; i < AXIS_COUNT; i++) { ...
     delta_um[E] = (uint32_t)labs(target->axis[E]);
     dda->delta[E] = (uint32_t)labs(steps[E]);
-    #ifdef LOOKAHEAD
-      dda->delta_um[E] = target->axis[E];
-    #endif
     dda->e_direction = (target->axis[E] >= 0)?1:0;
 	}
 

@@ -134,10 +134,6 @@ typedef struct {
   // These two are based on the "fast" axis, the axis with the most steps.
   uint32_t          start_steps; ///< would be required to reach start feedrate
   uint32_t          end_steps; ///< would be required to stop from end feedrate
-  // Displacement vector, in um, based between the difference of the starting
-  // point and the target. Required to obtain the jerk between 2 moves.
-  // Note: x_delta and co are in steps, not um.
-  axes_int32_t      delta_um;
   // Number the moves to be able to test at the end of lookahead if the moves
   // are the same. Note: we do not need a lot of granularity here: more than
   // MOVEBUFFER_SIZE is already enough.
@@ -176,6 +172,8 @@ extern TARGET current_position;
 /*
 	methods
 */
+
+int8_t get_direction(DDA *dda, enum axis_e n);
 
 // initialize dda structures
 void dda_init(void);
