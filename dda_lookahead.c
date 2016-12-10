@@ -173,7 +173,6 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // Note: we assume 'current' will not be dispatched while this function runs, so we do not to
   // back up the move settings: they will remain constant.
   uint32_t this_F, this_F_in_steps, this_F_start_in_steps, this_rampup, this_rampdown;
-  uint8_t this_id;
   #ifdef LOOKAHEAD_DEBUG
   static uint32_t la_cnt = 0;     // Counter: how many moves did we join?
   static uint32_t moveno = 0;     // Debug counter to number the moves - helps while debugging
@@ -193,7 +192,6 @@ void dda_join_moves(DDA *prev, DDA *current) {
     // Copy DDA ids to verify later that nothing changed during calculations
     ATOMIC_START
       prev_id = prev->id;
-      this_id = current->id;
     ATOMIC_END
 
     // Here we have to distinguish between feedrate along the movement
@@ -299,7 +297,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
       // Determine if we are fast enough - if not, just leave the moves
       // Note: to test if the previous move was already executed and replaced by a new
       // move, we compare the DDA id.
-      if(prev->live == 0 && prev->id == prev_id && current->live == 0 && current->id == this_id) {
+      if(!prev->live && !prev->done && prev->id == prev_id) {
         prev->end_steps = crossF_in_steps;
         prev->rampup_steps = prev_rampup;
         prev->rampdown_steps = prev_rampdown;
