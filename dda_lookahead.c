@@ -190,9 +190,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // Make sure we have 2 moves and the previous move is not already active
   if (prev->live == 0) {
     // Copy DDA ids to verify later that nothing changed during calculations
-    ATOMIC_START
       prev_id = prev->id;
-    ATOMIC_END
 
     // Here we have to distinguish between feedrate along the movement
     // direction and feedrate of the fast axis. They can differ by a factor
