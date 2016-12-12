@@ -241,9 +241,9 @@ void dda_create(DDA *dda, const TARGET *target) {
   // keep it for now. --Traumflug
   for (i = X; i < AXIS_COUNT; i++) {
     if (i == X || dda->delta[i] > dda->total_steps) {
-      dda->fast_axis = i;
       dda->total_steps = dda->delta[i];
       dda->fast_um = delta_um[i];
+      dda->fast_axis = i;
     }
   }
 
