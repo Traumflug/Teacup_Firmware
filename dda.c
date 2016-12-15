@@ -309,7 +309,6 @@ void dda_create(DDA *dda, const TARGET *target) {
 			// changed distance * 6000 .. * F_CPU / 100000 to
 			//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
 			uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
-		#endif
 
 		// similarly, find out how fast we can run our axes.
 		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
@@ -326,6 +325,7 @@ void dda_create(DDA *dda, const TARGET *target) {
         c_limit = c_limit_calc;
     }
     c_limit = c_limit / dda->total_steps * (F_CPU / 40000);
+    #endif
 
 		#ifdef ACCELERATION_REPRAP
 		// c is initial step time in IOclk ticks
@@ -423,7 +423,9 @@ void dda_create(DDA *dda, const TARGET *target) {
 		#elif defined ACCELERATION_TEMPORAL
 			// TODO: calculate acceleration/deceleration for each axis
 
-      dda->axis_to_step = dda->fast_axis;
+      // dda->endpoint.F = distance * ((60 * (F_CPU / 1000UL)) / move_duration);
+
+      // dda->axis_to_step = dda->fast_axis;
 
       dda->rampup_steps =
         acc_ramp_len(muldiv(dda->fast_um, dda->endpoint.F, distance),
@@ -434,15 +436,16 @@ void dda_create(DDA *dda, const TARGET *target) {
       dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
       
       for (i = X; i < AXIS_COUNT; i++) {
-        dda->c_min[i] = 0xFFFFFFFF;
         if (dda->delta[i]) {
           // This is our minimum of dda->c
           dda->c_min[i] = move_duration / dda->delta[i];
           // This calculates the first step of the other axis.
           // The explicid formula is c0 / sqrt(delta/delta_fast) * 0.676
-          dda->step_interval[i] = pgm_read_dword(&c0_P[dda->fast_axis]) * int_sqrt(dda->delta[dda->fast_axis]) / 
-                                                                          int_sqrt(dda->delta[i]) * 173 / 256; // 173 / 256 ~ 0.676
+          dda->step_interval[i] = pgm_read_dword(&c0_P[dda->fast_axis]) * int_sqrt(dda->delta[dda->fast_axis]) / 256 * 
+                                                                          173 / int_sqrt(dda->delta[i]); // 173 / 256 ~ 0.676
         }
+        else
+          dda->c_min[i] = 0xFFFFFFFF;
       }
 
       // fast axis will always steps first
@@ -659,20 +662,20 @@ void dda_step(DDA *dda) {
       if (current_fast_step <= dda->rampup_steps) {
         // accelerating
         dda->step_interval[axis_to_step] = dda->step_interval[axis_to_step] - (dda->step_interval[axis_to_step] * 2) \
-                                                                            / ((4 * (dda->delta[axis_to_step] - move_state.steps[axis_to_step])) + 1);
+                                                                            / ((4 * (dda->delta[axis_to_step] - move_state.steps[axis_to_step] + 1)) + 1);
       }
-      else if (current_fast_step >=(dda->rampdown_steps)) {
+      else if (current_fast_step >= dda->rampdown_steps) {
         // decelerating
         dda->step_interval[axis_to_step] = dda->step_interval[axis_to_step] + (dda->step_interval[axis_to_step] * 2) \
-                                                                            / ((4 * move_state.steps[axis_to_step]) + 1);
+                                                                            / ((4 * (move_state.steps[axis_to_step])) - 1);
       }
       else {
         // traveling
         dda->step_interval[axis_to_step] = dda->c_min[axis_to_step];
       }
 
-      if (dda->step_interval[axis_to_step] < dda->c_min[axis_to_step])
-        dda->step_interval[axis_to_step] = dda->c_min[axis_to_step];
+      // if (dda->step_interval[axis_to_step] < dda->c_min[axis_to_step])
+      //   dda->step_interval[axis_to_step] = dda->c_min[axis_to_step];
 
       // Find the next stepper to step.
       dda->c = 0xFFFFFFFF;
