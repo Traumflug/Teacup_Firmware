@@ -153,7 +153,7 @@ void dda_create(DDA *dda, const TARGET *target) {
   axes_uint32_t delta_um;
   axes_int32_t steps;
 	uint32_t	distance;
-  #ifndef ACCELERATION_TEMPORAL
+  #ifdef ACCELERATION_REPRAP
   uint32_t c_limit, c_limit_calc;
   #endif
   enum axis_e i;
@@ -285,19 +285,28 @@ void dda_create(DDA *dda, const TARGET *target) {
 
     ATOMIC_START
     WRITE(DEBUG_LED_PIN, 1);
-    #ifndef	ACCELERATION_TEMPORAL
+    #ifndef	ACCELERATION_REPRAP
       // bracket part of this equation in an attempt to avoid overflow:
       // 60 * 16 MHz * 5 mm is > 32 bits
       uint32_t move_duration, md_candidate;
+
+      #ifdef ACCELERATION_RAMPING
+      uint8_t recalc_feedrate = 0;
+      #endif
 
       move_duration = distance * ((60 * F_CPU) / (dda->endpoint.F * 1000UL));
       for (i = X; i < AXIS_COUNT; i++) {
         md_candidate = delta_um[i] * ((60 * F_CPU) /
                        (pgm_read_dword(&maximum_feedrate_P[i]) * 1000UL));
-        if (md_candidate > move_duration)
+        if (md_candidate > move_duration) {
           move_duration = md_candidate;
+          #ifdef ACCELERATION_RAMPING
+          recalc_feedrate = 1;
+          #endif
+        }
       }
-		#else
+    #endif
+		#if defined ACCELERATION_REPRAP
       // pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
       // mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
       //   note: um (distance) * 60000 == mm * 60000000
@@ -314,7 +323,6 @@ void dda_create(DDA *dda, const TARGET *target) {
       // changed distance * 6000 .. * F_CPU / 100000 to
       //         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
       uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
-
       // similarly, find out how fast we can run our axes.
       // do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
       
@@ -332,8 +340,7 @@ void dda_create(DDA *dda, const TARGET *target) {
           c_limit = c_limit_calc;
       }
       c_limit = c_limit / dda->total_steps * (F_CPU / 40000);
-    #endif
-		#ifdef ACCELERATION_REPRAP
+
 		// c is initial step time in IOclk ticks
     dda->c = move_duration / startpoint.F;
     if (dda->c < c_limit)
@@ -387,16 +394,17 @@ void dda_create(DDA *dda, const TARGET *target) {
 		else
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
-      dda->c_min = move_duration / dda->endpoint.F;
-      if (dda->c_min < c_limit) {
-        dda->c_min = c_limit;
-        dda->endpoint.F = move_duration / dda->c_min;
-      }
+      dda->c_min = move_duration / dda->total_steps;
+
+      if (recalc_feedrate)
+        dda->endpoint.F = muldiv(distance, (60 * (F_CPU / 1000UL)), move_duration);
 
       WRITE(DEBUG_LED_PIN, 0);
       ATOMIC_END
       
       // Lookahead can deal with 16 bits ( = 1092 mm/s), only.
+      // We can calculate the limits or add an error when the user sets the maximum feedrates
+      // above 16bit. In that case we don't need this test. ~Wurstnase 2016/12/18
       if (dda->endpoint.F > 65535)
         dda->endpoint.F = 65535;
 
