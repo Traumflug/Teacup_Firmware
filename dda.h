@@ -56,10 +56,10 @@ typedef struct {
 	// bresenham counters
   axes_int32_t      counter; ///< counter for total_steps vs each axis
 
-  #if ! defined ACCELERATION_TEMPORAL
+  // #if ! defined ACCELERATION_TEMPORAL
 	/// counts actual steps done
 	uint32_t					step_no;
-	#else
+	#if defined ACCELERATION_TEMPORAL
     axes_uint32_t   steps;      ///< number of steps on each axis
   axes_uint32_t     time;       ///< time of the last step on each axis
   uint32_t          last_time;  ///< time of the last step of any axis
@@ -116,7 +116,7 @@ typedef struct {
 	uint32_t					end_c; ///< time between 2nd last step and last step
 	int32_t						n;     ///< precalculated step time offset variable
 	#endif
-	#ifdef ACCELERATION_RAMPING
+	#if defined ACCELERATION_RAMPING || defined ACCELERATION_TEMPORAL
   /// precalculated step time offset variable
   int32_t           n;
 	/// number of steps accelerating
@@ -124,7 +124,9 @@ typedef struct {
 	/// number of last step before decelerating
 	uint32_t					rampdown_steps;
 	/// 24.8 fixed point timer value, maximum speed
+  #ifdef ACCELERATION_RAMPING
 	uint32_t					c_min;
+  #endif
   #ifdef LOOKAHEAD
   // With the look-ahead functionality, it is possible to retain physical
   // movement between G1 moves. These variables keep track of the entry and
@@ -143,11 +145,13 @@ typedef struct {
 	#ifdef ACCELERATION_TEMPORAL
   axes_uint32_t     step_interval;   ///< time between steps on each axis
   axes_uint32_t     c_min;           ///< max step rate in the current dda
-  uint32_t          fast_steps;      ///< save the steps for the fast axis
+  // uint32_t          fast_steps;      ///< save the steps for the fast axis
+  axes_uint32_t     divisor;
+  uint32_t          dividend;
     /// number of steps accelerating
-  uint32_t          rampup_steps;
+  // uint32_t          rampup_steps;
   /// number of last step before decelerating
-  uint32_t          rampdown_steps;
+  // uint32_t          rampdown_steps;
 	uint8_t						axis_to_step;    ///< axis to be stepped on the next interrupt
 	#endif
 
