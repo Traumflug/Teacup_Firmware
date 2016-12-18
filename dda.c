@@ -152,7 +152,10 @@ void dda_new_startpoint(void) {
 void dda_create(DDA *dda, const TARGET *target) {
   axes_uint32_t delta_um;
   axes_int32_t steps;
-	uint32_t	distance, c_limit, c_limit_calc;
+	uint32_t	distance;
+  #ifndef ACCELERATION_TEMPORAL
+  uint32_t c_limit, c_limit_calc;
+  #endif
   enum axis_e i;
   #ifdef LOOKAHEAD
   // Number the moves to identify them; allowed to overflow.
@@ -293,40 +296,41 @@ void dda_create(DDA *dda, const TARGET *target) {
           move_duration = md_candidate;
       }
 		#else
-			// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
-			// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
-			//   note: um (distance) * 60000 == mm * 60000000
-			// so in the interrupt we must simply calculate
-			// mm.us per step.min / mm per min (F) = us per step
+      // pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
+      // mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
+      //   note: um (distance) * 60000 == mm * 60000000
+      // so in the interrupt we must simply calculate
+      // mm.us per step.min / mm per min (F) = us per step
 
-			// break this calculation up a bit and lose some precision because 300,000um * 60000 is too big for a uint32
-			// calculate this with a uint64 if you need the precision, but it'll take longer so routines with lots of short moves may suffer
-			// 2^32/6000 is about 715mm which should be plenty
+      // break this calculation up a bit and lose some precision because 300,000um * 60000 is too big for a uint32
+      // calculate this with a uint64 if you need the precision, but it'll take longer so routines with lots of short moves may suffer
+      // 2^32/6000 is about 715mm which should be plenty
 
-			// changed * 10 to * (F_CPU / 100000) so we can work in cpu_ticks rather than microseconds.
-			// timer.c timer_set() routine altered for same reason
+      // changed * 10 to * (F_CPU / 100000) so we can work in cpu_ticks rather than microseconds.
+      // timer.c timer_set() routine altered for same reason
 
-			// changed distance * 6000 .. * F_CPU / 100000 to
-			//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
-			uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
-		#endif
+      // changed distance * 6000 .. * F_CPU / 100000 to
+      //         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
+      uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
 
-		// similarly, find out how fast we can run our axes.
-		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
-    // TODO: instead of calculating c_min directly, it's probably more simple
-    //       to calculate (maximum) move_duration for each axis, like done for
-    //       ACCELERATION_TEMPORAL above. This should make re-calculating the
-    //       allowed F easier.
-    c_limit = 0;
-    for (i = X; i < AXIS_COUNT; i++) {
-      c_limit_calc = (delta_um[i] * 2400L) /
-                     // dda->total_steps * (F_CPU / 40000) /
-                     pgm_read_dword(&maximum_feedrate_P[i]);
-      if (c_limit_calc > c_limit)
-        c_limit = c_limit_calc;
-    }
-    c_limit = c_limit / dda->total_steps * (F_CPU / 40000);
-
+      // similarly, find out how fast we can run our axes.
+      // do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
+      
+      // Instead of calculating c_min directly, it's probably more simple
+      // to calculate (maximum) move_duration for each axis, like done for
+      // ACCELERATION_TEMPORAL above. This should make re-calculating the
+      // allowed F easier.
+      // This was tested in issue #257. Re-calculating of allowed F needs then a muldiv, which
+      // is quit expensive. ~Wurstnase 2016/12/19
+      c_limit = 0;
+      for (i = X; i < AXIS_COUNT; i++) {
+        c_limit_calc = (delta_um[i] * 2400L) /
+                       pgm_read_dword(&maximum_feedrate_P[i]);
+        if (c_limit_calc > c_limit)
+          c_limit = c_limit_calc;
+      }
+      c_limit = c_limit / dda->total_steps * (F_CPU / 40000);
+    #endif
 		#ifdef ACCELERATION_REPRAP
 		// c is initial step time in IOclk ticks
     dda->c = move_duration / startpoint.F;
