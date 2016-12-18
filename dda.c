@@ -152,7 +152,10 @@ void dda_new_startpoint(void) {
 void dda_create(DDA *dda, const TARGET *target) {
   axes_uint32_t delta_um;
   axes_int32_t steps;
-	uint32_t	distance, c_limit, c_limit_calc;
+	uint32_t	distance;
+  #ifndef ACCELERATION_TEMPORAL
+  uint32_t c_limit, c_limit_calc;
+  #endif
   enum axis_e i;
   #ifdef ACCELERATION_RAMPING
   // Number the moves to identify them; allowed to overflow.
@@ -313,7 +316,6 @@ void dda_create(DDA *dda, const TARGET *target) {
 			// changed distance * 6000 .. * F_CPU / 100000 to
 			//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
 			uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
-		#endif
 
 		// similarly, find out how fast we can run our axes.
 		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
@@ -329,7 +331,7 @@ void dda_create(DDA *dda, const TARGET *target) {
       if (c_limit_calc > c_limit)
         c_limit = c_limit_calc;
     }
-
+    #endif
 		#ifdef ACCELERATION_REPRAP
 		// c is initial step time in IOclk ticks
     dda->c = move_duration / startpoint.F;
