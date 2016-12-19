@@ -58,6 +58,13 @@ static const axes_uint32_t PROGMEM maximum_feedrate_P = {
   MAXIMUM_FEEDRATE_E
 };
 
+static const axes_uint32_t PROGMEM steps_per_m_P = {
+  STEPS_PER_M_X,
+  STEPS_PER_M_Y,
+  STEPS_PER_M_Z,
+  STEPS_PER_M_E
+};
+
 /// \var c0_P
 /// \brief Initialization constant for the ramping algorithm. Timer cycles for
 ///        first step interval.
@@ -66,6 +73,23 @@ static const axes_uint32_t PROGMEM c0_P = {
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_Y * ACCELERATION / 2000.)),
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_Z * ACCELERATION / 2000.)),
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_E * ACCELERATION / 2000.))
+};
+
+// Precalculated c_min when hitting maximum feedrate
+static const axes_uint32_t PROGMEM c_min_P = {
+  (uint32_t)((double)F_CPU * 60.0f * 1000.0f / ((double)STEPS_PER_M_X * MAXIMUM_FEEDRATE_X)),
+  (uint32_t)((double)F_CPU * 60.0f * 1000.0f / ((double)STEPS_PER_M_Y * MAXIMUM_FEEDRATE_Y)),
+  (uint32_t)((double)F_CPU * 60.0f * 1000.0f / ((double)STEPS_PER_M_Z * MAXIMUM_FEEDRATE_Z)),
+  (uint32_t)((double)F_CPU * 60.0f * 1000.0f / ((double)STEPS_PER_M_E * MAXIMUM_FEEDRATE_E))
+};
+
+// scaled by 1/4. So we could save STEPS_PER_M > 262000 with 65535 MAXIMUM_FEEDRATE
+// feedrate > 65535 should be avoided also for lookahead.
+static const axes_uint32_t PROGMEM end_cF_P = {
+  (uint32_t)((double)STEPS_PER_M_X * MAXIMUM_FEEDRATE_X / 4.0f),
+  (uint32_t)((double)STEPS_PER_M_Y * MAXIMUM_FEEDRATE_Y / 4.0f),
+  (uint32_t)((double)STEPS_PER_M_Z * MAXIMUM_FEEDRATE_Z / 4.0f),
+  (uint32_t)((double)STEPS_PER_M_E * MAXIMUM_FEEDRATE_E / 4.0f)
 };
 
 /*! Set the direction of the 'n' axis
@@ -289,6 +313,7 @@ void dda_create(DDA *dda, const TARGET *target) {
       // bracket part of this equation in an attempt to avoid overflow:
       // 60 * 16 MHz * 5 mm is > 32 bits
       uint32_t move_duration, md_candidate;
+      enum axis_e md_axis;
 
       #ifdef ACCELERATION_RAMPING
       uint8_t recalc_feedrate = 0;
@@ -302,6 +327,7 @@ void dda_create(DDA *dda, const TARGET *target) {
           move_duration = md_candidate;
           #ifdef ACCELERATION_RAMPING
           recalc_feedrate = 1;
+          md_axis = i;
           #endif
         }
       }
@@ -394,10 +420,13 @@ void dda_create(DDA *dda, const TARGET *target) {
 		else
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
-      dda->c_min = move_duration / dda->total_steps;
 
-      if (recalc_feedrate)
-        dda->endpoint.F = muldiv(distance, (60 * (F_CPU / 1000UL)), move_duration);
+      if (recalc_feedrate) {
+        dda->c_min = pgm_read_dword(&c_min_P[md_axis]);
+        dda->endpoint.F = pgm_read_dword(&end_cF_P[md_axis]) / (pgm_read_dword(&steps_per_m_P[dda->fast_axis]) / 4);
+      }
+      else
+        dda->c_min = move_duration / dda->total_steps;
 
       WRITE(DEBUG_LED_PIN, 0);
       ATOMIC_END
@@ -934,13 +963,6 @@ void dda_clock() {
 void update_current_position() {
   DDA *dda = mb_tail_dda;
   enum axis_e i;
-
-  static const axes_uint32_t PROGMEM steps_per_m_P = {
-    STEPS_PER_M_X,
-    STEPS_PER_M_Y,
-    STEPS_PER_M_Z,
-    STEPS_PER_M_E
-  };
 
   if (dda != NULL) {
     uint32_t axis_steps, axis_um;
