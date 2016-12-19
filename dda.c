@@ -153,7 +153,7 @@ void dda_create(DDA *dda, const TARGET *target) {
   axes_uint32_t delta_um;
   axes_int32_t steps;
 	uint32_t	distance;
-  #ifdef ACCELERATION_REPRAP
+  #ifndef ACCELERATION_TEMPORAL
   uint32_t c_limit, c_limit_calc;
   #endif
   enum axis_e i;
@@ -313,21 +313,21 @@ void dda_create(DDA *dda, const TARGET *target) {
 			//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
 			uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
 
-		// similarly, find out how fast we can run our axes.
-		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
-    // TODO: instead of calculating c_min directly, it's probably more simple
-    //       to calculate (maximum) move_duration for each axis, like done for
-    //       ACCELERATION_TEMPORAL above. This should make re-calculating the
-    //       allowed F easier.
-    c_limit = 0;
-    for (i = X; i < AXIS_COUNT; i++) {
-      c_limit_calc = (delta_um[i] * 2400L) /
-                     // dda->total_steps * (F_CPU / 40000) /
-                     pgm_read_dword(&maximum_feedrate_P[i]);
-      if (c_limit_calc > c_limit)
-        c_limit = c_limit_calc;
-    }
-    c_limit = c_limit / dda->total_steps * (F_CPU / 40000);
+  		// similarly, find out how fast we can run our axes.
+  		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
+      // TODO: instead of calculating c_min directly, it's probably more simple
+      //       to calculate (maximum) move_duration for each axis, like done for
+      //       ACCELERATION_TEMPORAL above. This should make re-calculating the
+      //       allowed F easier.
+      c_limit = 0;
+      for (i = X; i < AXIS_COUNT; i++) {
+        c_limit_calc = (delta_um[i] * 2400L) /
+                       // dda->total_steps * (F_CPU / 40000) /
+                       pgm_read_dword(&maximum_feedrate_P[i]);
+        if (c_limit_calc > c_limit)
+          c_limit = c_limit_calc;
+      }
+      c_limit = c_limit / dda->total_steps * (F_CPU / 40000);
     #endif
 
 		#ifdef ACCELERATION_REPRAP
@@ -441,16 +441,16 @@ void dda_create(DDA *dda, const TARGET *target) {
       for (i = X; i < AXIS_COUNT; i++) {
         if (dda->delta[i]) {
           // This is our minimum of dda->c
-          dda->c_min[i] = move_duration / dda->delta[i];
+          // dda->c_min[i] = move_duration / dda->delta[i];
           // This calculates the first step of the other axis.
-          // The explicid formula is c0 / sqrt(delta/delta_fast) * 0.676
-          dda->dividend = int_sqrt(dda->total_steps);
-          dda->divisor[i] = int_sqrt(dda->delta[i]);
+          // The explicid formula is c0 / sqrt(delta/delta_fast)
 
-          dda->step_interval[i] = muldiv(pgm_read_dword(&c0_P[dda->fast_axis]), dda->dividend, dda->divisor[i]);
+          dda->step_interval[i] = pgm_read_dword(&c0_P[dda->fast_axis]) *
+                                         int_sqrt(dda->total_steps) /
+                                         int_sqrt(dda->delta[i]);
         }
-        else
-          dda->c_min[i] = 0xFFFFFFFF;
+        // else
+        //   dda->c_min[i] = 0xFFFFFFFF;
       }
 
       // fast axis will always steps first
@@ -637,7 +637,7 @@ void dda_step(DDA *dda) {
                            dda->step_interval[dda->axis_to_step];
 
     do {
-      uint32_t c_candidate;
+      int32_t c_candidate;
       enum axis_e i;
       // uint32_t current_fast_step;
 
@@ -681,17 +681,34 @@ void dda_step(DDA *dda) {
       //   dda->step_interval[axis_to_step] = dda->c_min[axis_to_step];
 
       // Find the next stepper to step.
-      dda->c = 0xFFFFFFFF;
+      int32_t dda_c = 0x7FFFFFFF;
+      // dda->c = 0xFFFFFFFF;
       for (i = X; i < AXIS_COUNT; i++) {
         if (move_state.steps[i]) {
           c_candidate = move_state.time[i] + dda->step_interval[i] -
                         move_state.last_time;
-          if (c_candidate < dda->c) {
+          if (c_candidate < dda_c) {
             dda->axis_to_step = i;
-            dda->c = c_candidate;
+            dda_c = c_candidate;
           }
         }
       }
+
+      if (dda_c < 0)
+        dda->c = 0;
+      else
+        if (dda_c == 0x7FFFFFFF)
+          dda->c = 0xFFFFFFFF;
+        else
+          dda->c = dda_c;
+    //   if (c_candidate < 0) {
+    //     serial_writechar('-');
+
+    //   if (dda->axis_to_step == X)
+    //     serial_writechar('X');
+    //   if (dda->axis_to_step == Y)
+    //     serial_writechar('Y');
+    // }
 
       unstep();
 
@@ -703,18 +720,22 @@ void dda_step(DDA *dda) {
       }
     } while (timer_set(dda->c, 1));
 
+    // serial_writechar('\n');
+
   #endif /* ACCELERATION_TEMPORAL */
 
   // If there are no steps left or an endstop stop happened, we have finished.
   //
   // TODO: with ACCELERATION_TEMPORAL this duplicates some code. See where
   //       dda->live is zero'd, about 10 lines above.
-  // #if ! defined ACCELERATION_TEMPORAL
+  #if ! defined ACCELERATION_TEMPORAL
     if (move_state.step_no >= dda->total_steps ||
         (move_state.endstop_stop && dda->n <= 0))
-  // #else
+  #else
+    if (move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
+        move_state.steps[Z] == 0 && move_state.steps[E] == 0)
     // if (dda->c == 0xFFFFFFFF)
-  // #endif
+  #endif
   {
 		dda->live = 0;
     dda->done = 1;
@@ -931,13 +952,17 @@ void dda_clock() {
       //   #endif
       // }
 
+      #ifdef ACCELERATION_TEMPORAL
       axes_uint32_t interval;
       for (enum axis_e n = X; n < AXIS_COUNT; n++) {
-        if (n != dda->fast_axis)
-          interval[n] = muldiv(move_c, dda->total_steps, dda->delta[n]);
+        if (n != dda->fast_axis) {
+          // interval[n] = muldiv(move_c, dda->total_steps, dda->delta[n]);
+          interval[n] = move_c * dda->total_steps / dda->delta[n];
+        }
         else
           interval[n] = move_c;
       }
+      #endif
 
       // Write results.
       ATOMIC_START
@@ -962,6 +987,14 @@ void dda_clock() {
         }
       ATOMIC_END
     }
+    // static uint32_t ticker = 0;
+
+    // ticker++;
+
+    // if(!(ticker%50)) {
+    //   sersendf_P(PSTR("%lu:%lu:%lu\n"), move_c, move_state.steps[X], move_state.steps[Y]);
+    //   sersendf_P(PSTR("%lu:%lu\n"), dda->step_interval[X], dda->step_interval[Y]);
+    // }
   #endif
 }
 

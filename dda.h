@@ -144,10 +144,10 @@ typedef struct {
 	#endif
 	#ifdef ACCELERATION_TEMPORAL
   axes_uint32_t     step_interval;   ///< time between steps on each axis
-  axes_uint32_t     c_min;           ///< max step rate in the current dda
+  // axes_uint32_t     c_min;           ///< max step rate in the current dda
   // uint32_t          fast_steps;      ///< save the steps for the fast axis
-  axes_uint32_t     divisor;
-  uint32_t          dividend;
+  // axes_uint32_t     divisor;
+  // uint32_t          dividend;
     /// number of steps accelerating
   // uint32_t          rampup_steps;
   /// number of last step before decelerating
