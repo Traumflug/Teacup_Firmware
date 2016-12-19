@@ -72,9 +72,9 @@ ISR(TIMER1_COMPA_vect) {
 	// Check if this is a real step, or just a next_step_time "overflow"
 	if (next_step_time < 65536) {
 		// step!
-		#ifdef DEBUG_LED_PIN
-			WRITE(DEBUG_LED_PIN, 1);
-		#endif
+		// #ifdef DEBUG_LED_PIN
+		// 	WRITE(DEBUG_LED_PIN, 1);
+		// #endif
 
 		// disable this interrupt. if we set a new timeout, it will be re-enabled when appropriate
 		TIMSK1 &= ~MASK(OCIE1A);
@@ -83,9 +83,9 @@ ISR(TIMER1_COMPA_vect) {
 		queue_step();
 
 		// led off
-		#ifdef DEBUG_LED_PIN
-			WRITE(DEBUG_LED_PIN, 0);
-		#endif
+		// #ifdef DEBUG_LED_PIN
+		// 	WRITE(DEBUG_LED_PIN, 0);
+		// #endif
 
 		return;
 	}

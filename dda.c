@@ -283,7 +283,9 @@ void dda_create(DDA *dda, const TARGET *target) {
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",ds:%lu"), distance);
 
-    #ifdef	ACCELERATION_TEMPORAL
+    ATOMIC_START
+    WRITE(DEBUG_LED_PIN, 1);
+    #ifndef	ACCELERATION_TEMPORAL
       // bracket part of this equation in an attempt to avoid overflow:
       // 60 * 16 MHz * 5 mm is > 32 bits
       uint32_t move_duration, md_candidate;
@@ -391,6 +393,9 @@ void dda_create(DDA *dda, const TARGET *target) {
         dda->endpoint.F = move_duration / dda->c_min;
       }
 
+      WRITE(DEBUG_LED_PIN, 0);
+      ATOMIC_END
+      
       // Lookahead can deal with 16 bits ( = 1092 mm/s), only.
       if (dda->endpoint.F > 65535)
         dda->endpoint.F = 65535;
