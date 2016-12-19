@@ -290,7 +290,7 @@ void dda_create(DDA *dda, const TARGET *target) {
 
       move_duration = distance * ((60 * F_CPU) / (dda->endpoint.F * 1000UL));
       for (i = X; i < AXIS_COUNT; i++) {
-        md_candidate = dda->delta[i] * ((60 * F_CPU) /
+        md_candidate = delta_um[i] * ((60 * F_CPU) /
                        (pgm_read_dword(&maximum_feedrate_P[i]) * 1000UL));
         if (md_candidate > move_duration)
           move_duration = md_candidate;
