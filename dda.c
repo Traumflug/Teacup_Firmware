@@ -520,6 +520,7 @@ void dda_start(DDA *dda) {
     memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
     move_state.time[X] = move_state.time[Y] = \
       move_state.time[Z] = move_state.time[E] = 0UL;
+    move_state.last_time = dda->c;
   #endif
 
   // Ensure this DDA starts.
@@ -632,9 +633,6 @@ void dda_step(DDA *dda) {
       later. In turn we promise here to send a maximum of four such
       short-delays consecutively and to give sufficient time on average.
     */
-    // This is the time which led to this call of dda_step().
-    move_state.last_time = move_state.time[dda->axis_to_step] +
-                           dda->step_interval[dda->axis_to_step];
 
     do {
       int32_t c_candidate;
@@ -718,6 +716,11 @@ void dda_step(DDA *dda) {
         // dda->done = 1;
         break;
       }
+
+      // This is the time when the next call of dda_step() happens.
+      move_state.last_time = move_state.time[dda->axis_to_step] +
+                             dda->step_interval[dda->axis_to_step];
+
     } while (timer_set(dda->c, 1));
 
     // serial_writechar('\n');
