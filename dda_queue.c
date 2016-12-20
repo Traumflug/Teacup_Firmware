@@ -67,7 +67,7 @@ void queue_step() {
 
     This needs no atomic protection, because we're in an interrupt already.
   */
-  if ( ! mb_tail_dda->live) {
+  if (mb_tail_dda == NULL || ! mb_tail_dda->live) {
     if (mb_tail != mb_head) {
       mb_tail = MB_NEXT(mb_tail);
       mb_tail_dda = &(movebuffer[mb_tail]);
