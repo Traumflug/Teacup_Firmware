@@ -609,19 +609,21 @@ void process_gcode_command() {
                         current_position.axis[Z], current_position.axis[E],
 				                current_position.F);
 
-        if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
-          sersendf_P(PSTR("Endpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\n"),
-                     mb_tail_dda->endpoint.axis[X],
-                     mb_tail_dda->endpoint.axis[Y],
-                     mb_tail_dda->endpoint.axis[Z],
-                     mb_tail_dda->endpoint.axis[E],
-                     mb_tail_dda->endpoint.F,
-                     #ifdef ACCELERATION_REPRAP
-                       mb_tail_dda->end_c
-                     #else
-                       mb_tail_dda->c
-                     #endif
-          );
+        if (mb_tail_dda != NULL) {
+          if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
+            sersendf_P(PSTR("Endpoint: X:%ld,Y:%ld,Z:%ld,E:%ld,F:%lu,c:%lu}\n"),
+                       mb_tail_dda->endpoint.axis[X],
+                       mb_tail_dda->endpoint.axis[Y],
+                       mb_tail_dda->endpoint.axis[Z],
+                       mb_tail_dda->endpoint.axis[E],
+                       mb_tail_dda->endpoint.F,
+                       #ifdef ACCELERATION_REPRAP
+                         mb_tail_dda->end_c
+                       #else
+                         mb_tail_dda->c
+                       #endif
+            );
+          }
           print_queue();
         }
 
