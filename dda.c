@@ -154,9 +154,9 @@ void dda_create(DDA *dda, const TARGET *target) {
   axes_int32_t steps;
 	uint32_t	distance, c_limit, c_limit_calc;
   enum axis_e i;
-  #ifdef LOOKAHEAD
   // Number the moves to identify them; allowed to overflow.
   static uint8_t idcnt = 0;
+  #ifdef LOOKAHEAD
   static DDA* prev_dda = NULL;
 
   if (prev_dda && prev_dda->done)
@@ -184,9 +184,9 @@ void dda_create(DDA *dda, const TARGET *target) {
     dda->crossF = 0;
     dda->start_steps = 0;
     dda->end_steps = 0;
-    // Give this move an identifier.
-    dda->id = idcnt++;
   #endif
+  // Give this move an identifier.
+  dda->id = idcnt++;
 
   // Handle bot axes. They're subject to kinematics considerations.
   code_axes_to_stepper_axes(&startpoint, target, delta_um, steps);
