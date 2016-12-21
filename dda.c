@@ -659,10 +659,7 @@ void dda_step(DDA *dda) {
         e_step();
       }
 
-      do {
         move_state.time[dda->axis_to_step] += dda->step_interval[dda->axis_to_step];
-      } while (move_state.time[dda->axis_to_step] < move_state.last_time + dda->step_interval[dda->axis_to_step]/4);
-
       move_state.steps[dda->axis_to_step]--;
 
       if (dda->axis_to_step == dda->fast_axis)
@@ -941,6 +938,9 @@ void dda_clock() {
           dda->c = move_c;
           #elif defined ACCELERATION_TEMPORAL
           memcpy(&dda->step_interval[X], &interval[X], sizeof(uint32_t) * 4);
+          for (enum axis_e n = X; n < AXIS_COUNT; n++)
+            while (move_state.time[n] + interval[n] + (interval[n]>>1) < move_state.last_time)
+              move_state.time[n] += interval[n];
           #endif
           dda->n = move_n;
         }
