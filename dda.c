@@ -632,27 +632,26 @@ void dda_step(DDA *dda) {
     do {
       uint32_t c_candidate;
       enum axis_e i;
+      uint8_t current_axis;
 
-      if (dda->axis_to_step == X) {
+      current_axis = dda->axis_to_step;
+
+      if (current_axis == X) {
         x_step();
-        move_state.steps[X]--;
-        move_state.time[X] += dda->step_interval[X];
       }
-      if (dda->axis_to_step == Y) {
+      if (current_axis == Y) {
         y_step();
-        move_state.steps[Y]--;
-        move_state.time[Y] += dda->step_interval[Y];
       }
-      if (dda->axis_to_step == Z) {
+      if (current_axis == Z) {
         z_step();
-        move_state.steps[Z]--;
-        move_state.time[Z] += dda->step_interval[Z];
       }
-      if (dda->axis_to_step == E) {
+      if (current_axis == E) {
         e_step();
-        move_state.steps[E]--;
-        move_state.time[E] += dda->step_interval[E];
       }
+
+      move_state.steps[current_axis]--;
+      move_state.time[current_axis] += dda->step_interval[current_axis];
+
       unstep();
 
       // Find the next stepper to step.
