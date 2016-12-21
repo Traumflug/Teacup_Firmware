@@ -435,21 +435,37 @@ void dda_create(DDA *dda, const TARGET *target) {
       #endif
 
 		#elif defined ACCELERATION_TEMPORAL
-			// TODO: calculate acceleration/deceleration for each axis
+
+      dda->endpoint.F = muldiv(distance, (60 * (F_CPU / 1000)), move_duration);
+
+      // Lookahead can deal with 16 bits ( = 1092 mm/s), only.
+      if (dda->endpoint.F > 65535)
+        dda->endpoint.F = 65535;
+
+      dda->rampup_steps =
+        acc_ramp_len(muldiv(dda->fast_um, dda->endpoint.F, distance),
+                     dda->fast_axis);
+
+      if (dda->rampup_steps > dda->total_steps / 2)
+        dda->rampup_steps = dda->total_steps / 2;
+      dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
+
       for (i = X; i < AXIS_COUNT; i++) {
-        dda->step_interval[i] = 0xFFFFFFFF;
-        if (dda->delta[i])
-          dda->step_interval[i] = move_duration / dda->delta[i];
+        if (dda->delta[i]) {
+          // This is our minimum of dda->c
+          dda->c_min[i] = move_duration / dda->delta[i];
+          // This calculates the first step of the other axis.
+          dda->step_interval[i] = pgm_read_dword(&c0_P[dda->fast_axis]) * int_sqrt(dda->delta[dda->fast_axis])
+                                                                        / int_sqrt(dda->delta[i]);
+        }
+        else
+          dda->c_min[i] = 0xFFFFFFFF;
       }
 
-      dda->c = 0xFFFFFFFF;
-      dda->axis_to_step = X; // Safety value
-      for (i = X; i < AXIS_COUNT; i++) {
-        if (dda->step_interval[i] < dda->c) {
-          dda->axis_to_step = i;
-          dda->c = dda->step_interval[i];
-        }
-      }
+      // fast axis will always steps first
+      dda->n = 0;
+      dda->axis_to_step = dda->fast_axis;
+      dda->c = dda->step_interval[dda->fast_axis];
 
 		#else
       dda->c = move_duration / dda->endpoint.F;
@@ -630,7 +646,7 @@ void dda_step(DDA *dda) {
                            dda->step_interval[dda->axis_to_step];
 
     do {
-      uint32_t c_candidate;
+      int32_t c_candidate;
       enum axis_e i;
 
       if (dda->axis_to_step == X) {
@@ -653,25 +669,33 @@ void dda_step(DDA *dda) {
         move_state.steps[E]--;
         move_state.time[E] += dda->step_interval[E];
       }
-      unstep();
+
+      if (dda->axis_to_step == dda->fast_axis)
+        move_state.step_no++;
 
       // Find the next stepper to step.
-      dda->c = 0xFFFFFFFF;
+      int32_t temp_c = 0x7FFFFFFF;
       for (i = X; i < AXIS_COUNT; i++) {
         if (move_state.steps[i]) {
           c_candidate = move_state.time[i] + dda->step_interval[i] -
                         move_state.last_time;
-          if (c_candidate < dda->c) {
+          if (c_candidate < temp_c) {
             dda->axis_to_step = i;
-            dda->c = c_candidate;
+            temp_c = c_candidate;
+          }
           }
         }
+
+      if (temp_c < 0) {
+        temp_c = 0;
       }
 
+      dda->c = temp_c;
+
+      unstep();
+
       // No stepper to step found? Then we're done.
-      if (dda->c == 0xFFFFFFFF) {
-        dda->live = 0;
-        dda->done = 1;
+      if (dda->c == 0x7FFFFFFF) {
         break;
       }
     } while (timer_set(dda->c, 1));
@@ -739,8 +763,8 @@ void dda_clock() {
   DDA *dda;
   static DDA *last_dda = NULL;
   uint8_t endstop_trigger = 0;
-  #ifdef ACCELERATION_RAMPING
-  uint32_t move_step_no, move_step, move_c;
+  #if defined ACCELERATION_RAMPING || defined ACCELERATION_TEMPORAL
+  uint32_t move_step_no, move_c;
   int32_t move_n;
   uint8_t recalc_speed;
   uint8_t current_id ;
@@ -823,7 +847,7 @@ void dda_clock() {
 
     // If an endstop is definitely triggered, stop the movement.
     if (endstop_trigger) {
-      #ifdef ACCELERATION_RAMPING
+      #if defined ACCELERATION_RAMPING || defined ACCELERATION_TEMPORAL
         // For always smooth operations, don't halt apruptly,
         // but start deceleration here.
         ATOMIC_START
@@ -848,7 +872,7 @@ void dda_clock() {
     }
   } /* ! move_state.endstop_stop */
 
-  #ifdef ACCELERATION_RAMPING
+  #if defined ACCELERATION_RAMPING || defined ACCELERATION_TEMPORAL
     // For maths about stepper speed profiles, see
     // http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
     // and http://www.atmel.com/images/doc8017.pdf (Atmel app note AVR446)
@@ -893,21 +917,15 @@ void dda_clock() {
                   int_inv_sqrt(move_n)) >> 13;
         #endif
 
-      // TODO: most likely this whole check is obsolete. It was left as a
-      //       safety margin, only. Rampup steps calculation should be accurate
-      //       now and give the requested target speed within a few percent.
-      if (move_c < dda->c_min) {
-        // We hit max speed not always exactly.
-        move_c = dda->c_min;
-
-        // This is a hack which deals with movements with an unknown number of
-        // acceleration steps. dda_create() sets a very high number, then,
-        // but we don't want to re-calculate all the time.
-        // This hack doesn't work with lookahead.
-        #ifndef LOOKAHEAD
-          dda->rampup_steps = move_step_no;
-          dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
-        #endif
+      axes_uint32_t interval;
+      for (enum axis_e n = X; n < AXIS_COUNT; n++) {
+        if (dda->delta[n])
+          if (n != dda->fast_axis)
+            interval[n] = muldiv(move_c, dda->total_steps, dda->delta[n]);
+          else
+            interval[n] = move_c;
+        else
+          interval[n] = 0xFFFFFFFF;
       }
 
       // Write results.
@@ -921,7 +939,11 @@ void dda_clock() {
           recent than our calculation here, anyways.
         */
         if (current_id == dda->id) {
+          #if defined ACCELERATION_RAMPING
           dda->c = move_c;
+          #elif defined ACCELERATION_TEMPORAL
+          memcpy(&dda->step_interval[X], &interval[X], sizeof(uint32_t) * 4);
+          #endif
           dda->n = move_n;
         }
       ATOMIC_END
@@ -932,7 +954,11 @@ void dda_clock() {
           // This happens only when !recalc_speed, meaning we are cruising, not
           // accelerating or decelerating. So it pegs our dda->c at c_min if it
           // never made it as far as c_min. 
+          #if defined ACCELERATION_RAMPING
           dda->c = dda->c_min;
+          #else
+          memcpy(&dda->step_interval[X], &dda->c_min[X], sizeof(uint32_t) * 4);
+          #endif
       ATOMIC_END
     }
   #endif

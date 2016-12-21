@@ -56,6 +56,8 @@ typedef struct {
   // bresenham counters
   axes_int32_t      counter;    ///< counter for total_steps vs each axis
 
+	/// counts actual steps done
+	uint32_t					step_no;
   #ifdef ACCELERATION_TEMPORAL
   axes_uint32_t     time;       ///< time of the last step on each axis
   uint32_t          last_time;  ///< time of the last step of any axis
@@ -108,14 +110,12 @@ typedef struct {
   uint32_t          fast_um;     ///< movement length of this fast axis
 
   uint32_t          c; ///< time until next step, 24.8 fixed point
+  int32_t           n;     ///< precalculated step time offset variable
 
   #ifdef ACCELERATION_REPRAP
   uint32_t          end_c; ///< time between 2nd last step and last step
-  int32_t           n;     ///< precalculated step time offset variable
   #endif
   #ifdef ACCELERATION_RAMPING
-  /// precalculated step time offset variable
-  int32_t           n;
   /// number of steps accelerating
   uint32_t          rampup_steps;
   /// number of last step before decelerating
@@ -132,16 +132,20 @@ typedef struct {
   uint32_t          start_steps; ///< would be required to reach start feedrate
   uint32_t          end_steps; ///< would be required to stop from end feedrate
   #endif
-  // Number the moves to be able to test at the end of lookahead if the moves
+  #endif
+  #ifdef ACCELERATION_TEMPORAL
+  axes_uint32_t     step_interval;   ///< time between steps on each axis
+  axes_uint32_t     c_min;           ///< max step rate in the current dda
+  uint32_t          rampup_steps;    /// number of steps accelerating
+  uint32_t          rampdown_steps;  /// number of last step before decelerating
+  uint8_t           axis_to_step;    ///< axis to be stepped on the next interrupt
+  #endif
+  #if defined ACCELERATION_RAMPING || defined ACCELERATION_TEMPORAL
+  // Number the moves to be able to test at the end of lookahead and ramping if the moves
   // are the same. Note: we do not need a lot of granularity here: more than
   // MOVEBUFFER_SIZE is already enough.
   uint8_t           id;
   #endif
-  #ifdef ACCELERATION_TEMPORAL
-  axes_uint32_t     step_interval;   ///< time between steps on each axis
-  uint8_t           axis_to_step;    ///< axis to be stepped on the next interrupt
-  #endif
-
   /// Small variables. Many CPUs can access 32-bit variables at word or double
   /// word boundaries only and fill smaller variables in between with gaps,
   /// so keep small variables grouped together to reduce the amount of these
