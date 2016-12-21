@@ -157,9 +157,9 @@ void dda_create(DDA *dda, const TARGET *target) {
   uint32_t c_limit, c_limit_calc;
   #endif
   enum axis_e i;
-  #ifdef LOOKAHEAD
   // Number the moves to identify them; allowed to overflow.
   static uint8_t idcnt = 0;
+  #ifdef LOOKAHEAD
   static DDA* prev_dda = NULL;
 
   if (prev_dda && prev_dda->done)
@@ -187,9 +187,9 @@ void dda_create(DDA *dda, const TARGET *target) {
     dda->crossF = 0;
     dda->start_steps = 0;
     dda->end_steps = 0;
-    // Give this move an identifier.
-    dda->id = idcnt++;
   #endif
+  // Give this move an identifier.
+  dda->id = idcnt++;
 
   // Handle bot axes. They're subject to kinematics considerations.
   code_axes_to_stepper_axes(&startpoint, target, delta_um, steps);
@@ -793,9 +793,7 @@ void dda_clock() {
   uint32_t move_step_no, move_c;
   int32_t move_n;
   uint8_t recalc_speed;
-  #ifdef LOOKAHEAD
   uint8_t current_id ;
-  #endif
   #endif
 
   ATOMIC_START
@@ -903,9 +901,7 @@ void dda_clock() {
     // http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
     // and http://www.atmel.com/images/doc8017.pdf (Atmel app note AVR446)
     ATOMIC_START
-      #ifdef LOOKAHEAD
       current_id = dda->id;
-      #endif
       move_step_no = move_state.step_no;
       // All other variables are read-only or unused in dda_step(),
       // so no need for atomic operations.
@@ -977,9 +973,7 @@ void dda_clock() {
           In case such a change happened, values in the new dda are more
           recent than our calculation here, anyways.
         */
-        #ifdef LOOKAHEAD
         if (current_id == dda->id)
-        #endif
         {
           #ifdef ACCELERATION_RAMPING
           dda->c = move_c;
