@@ -652,7 +652,11 @@ void dda_step(DDA *dda) {
       if (axis_to_step == E)
         e_step();
 
-      move_state.time[axis_to_step] += dda->step_interval[axis_to_step];
+
+      do {
+        move_state.time[axis_to_step] += dda->step_interval[axis_to_step];
+      } while (move_state.time[axis_to_step] < move_state.last_time + dda->step_interval[axis_to_step]/4);
+
       move_state.steps[axis_to_step]--;
 
       if (axis_to_step == dda->fast_axis)
@@ -716,12 +720,10 @@ void dda_step(DDA *dda) {
         // dda->done = 1;
         break;
       }
-
-      // This is the time when the next call of dda_step() happens.
-      move_state.last_time = move_state.time[dda->axis_to_step] +
-                             dda->step_interval[dda->axis_to_step];
-
     } while (timer_set(dda->c, 1));
+
+    // This is the time when the next call of dda_step() happens.
+    move_state.last_time += dda->c;
 
     // serial_writechar('\n');
 
@@ -954,7 +956,7 @@ void dda_clock() {
       #ifdef ACCELERATION_TEMPORAL
       axes_uint32_t interval;
       for (enum axis_e n = X; n < AXIS_COUNT; n++) {
-        if (n != dda->fast_axis) {
+        if (dda->delta[n] && n != dda->fast_axis) {
           // interval[n] = muldiv(move_c, dda->total_steps, dda->delta[n]);
           interval[n] = move_c * dda->total_steps / dda->delta[n];
         }
