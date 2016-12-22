@@ -641,6 +641,9 @@ void dda_step(DDA *dda) {
       later. In turn we promise here to send a maximum of four such
       short-delays consecutively and to give sufficient time on average.
     */
+    // This is the time which led to this call of dda_step().
+    move_state.last_time = move_state.time[dda->axis_to_step] +
+                           dda->step_interval[dda->axis_to_step];
 
     do {
       int32_t c_candidate;
@@ -648,22 +651,24 @@ void dda_step(DDA *dda) {
 
       if (dda->axis_to_step == X) {
         x_step();
+        move_state.steps[X]--;
+        move_state.time[X] += dda->step_interval[X];
       }
       if (dda->axis_to_step == Y) {
         y_step();
+        move_state.steps[Y]--;
+        move_state.time[Y] += dda->step_interval[Y];
       }
       if (dda->axis_to_step == Z) {
         z_step();
+        move_state.steps[Z]--;
+        move_state.time[Z] += dda->step_interval[Z];
       }
       if (dda->axis_to_step == E) {
         e_step();
+        move_state.steps[E]--;
+        move_state.time[E] += dda->step_interval[E];
       }
-
-      do {
-        move_state.time[dda->axis_to_step] += dda->step_interval[dda->axis_to_step];
-      } while (move_state.time[dda->axis_to_step] < move_state.last_time + dda->step_interval[dda->axis_to_step]/4);
-
-      move_state.steps[dda->axis_to_step]--;
 
       if (dda->axis_to_step == dda->fast_axis)
         move_state.step_no++;
@@ -694,9 +699,6 @@ void dda_step(DDA *dda) {
         break;
       }
     } while (timer_set(dda->c, 1));
-
-    // This is the time when the next call of dda_step() happens.
-    move_state.last_time += dda->c;
 
   #endif /* ACCELERATION_TEMPORAL */
 
