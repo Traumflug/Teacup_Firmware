@@ -920,6 +920,7 @@ void dda_clock() {
                   int_inv_sqrt(move_n)) >> 13;
         #endif
 
+      #ifdef ACCELERATION_TEMPORAL
       axes_uint32_t interval;
       for (enum axis_e n = X; n < AXIS_COUNT; n++) {
         if (dda->delta[n])
@@ -930,6 +931,7 @@ void dda_clock() {
         else
           interval[n] = 0xFFFFFFFF;
       }
+      #endif
 
       // Write results.
       ATOMIC_START
