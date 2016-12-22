@@ -69,15 +69,6 @@
 #endif
 
 /**
-  ACCELERATION_TEMPORAL doesn't support lookahead, yet.
-*/
-#if defined ACCELERATION_TEMPORAL && defined LOOKAHEAD
-  #warning Acceleration temporal doesnt support lookahead, yet. \
-           Lookahead disabled.
-  #undef LOOKAHEAD
-#endif
-
-/**
   For ACCELERATION_REPRAP or no acceleration at all, lookahead makes no sense.
   Explicitely disable it to deal with misconfigurations.
 */

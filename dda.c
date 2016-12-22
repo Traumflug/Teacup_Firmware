@@ -450,20 +450,46 @@ void dda_create(DDA *dda, const TARGET *target) {
         dda->rampup_steps = dda->total_steps / 2;
       dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
 
+      #ifdef LOOKAHEAD
+        dda->distance = distance;
+        dda_find_crossing_speed(prev_dda, dda);
+        // TODO: this should become a reverse-stepping through the existing
+        //       movement queue to allow higher speeds for short moves.
+        //       dda_find_crossing_speed() is required only once.
+        dda_join_moves(prev_dda, dda);
+        dda->n = dda->start_steps;
+      #endif
+
       for (i = X; i < AXIS_COUNT; i++) {
         if (dda->delta[i]) {
           // This is our minimum of dda->c
           dda->c_min[i] = move_duration / dda->delta[i];
           // This calculates the first step of the other axis.
-          dda->step_interval[i] = pgm_read_dword(&c0_P[dda->fast_axis]) * int_sqrt(dda->delta[dda->fast_axis])
+          #ifdef LOOKAHEAD
+          if (dda->n == 0)
+          #endif
+          dda->step_interval[i] = pgm_read_dword(&c0_P[dda->fast_axis]) * int_sqrt(dda->total_steps)
                                                                         / int_sqrt(dda->delta[i]);
+          #ifdef LOOKAHEAD
+          else {
+            uint32_t step_interval;
+            step_interval = pgm_read_dword(&c0_P[dda->fast_axis]) *
+                            int_inv_sqrt(dda->n) >> 13;
+            dda->step_interval[i] = muldiv(step_interval, dda->total_steps, dda->delta[i]);
+            // sersendf_P(PSTR("look n > 0\n"));
+          }
+          #endif
+
         }
         else
           dda->c_min[i] = 0xFFFFFFFF;
       }
 
+      #ifndef LOOKAHEAD
       // fast axis will always steps first
       dda->n = 0;
+      #endif
+
       dda->axis_to_step = dda->fast_axis;
       dda->c = dda->step_interval[dda->fast_axis];
 
