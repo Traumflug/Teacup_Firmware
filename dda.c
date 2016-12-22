@@ -642,11 +642,11 @@ void dda_step(DDA *dda) {
       short-delays consecutively and to give sufficient time on average.
     */
     // This is the time which led to this call of dda_step().
-    if (move_state.step_no < dda->rampup_steps)
+    if (move_state.step_no >= dda->rampdown_steps)
+      move_state.last_time += dda->c;
+    else
     move_state.last_time = move_state.time[dda->axis_to_step] +
                            dda->step_interval[dda->axis_to_step];
-    else
-      move_state.last_time += dda->c;
 
     do {
       int32_t c_candidate;
