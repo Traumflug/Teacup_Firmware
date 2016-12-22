@@ -458,6 +458,16 @@ void dda_create(DDA *dda, const TARGET *target) {
         //       dda_find_crossing_speed() is required only once.
         dda_join_moves(prev_dda, dda);
         dda->n = dda->start_steps;
+
+        uint32_t step_interval_pre;
+        if (dda->n == 0)
+          step_interval_pre = pgm_read_dword(&c0_P[dda->fast_axis]) * int_sqrt(dda->total_steps);
+        else
+          step_interval_pre = (pgm_read_dword(&c0_P[dda->fast_axis]) *
+                                int_inv_sqrt(dda->n) >> 13) * dda->total_steps;
+      #else
+        uint32_t step_interval_pre;
+        step_interval_pre = pgm_read_dword(&c0_P[dda->fast_axis]) * int_sqrt(dda->total_steps);
       #endif
 
       for (i = X; i < AXIS_COUNT; i++) {
@@ -468,18 +478,12 @@ void dda_create(DDA *dda, const TARGET *target) {
           #ifdef LOOKAHEAD
           if (dda->n == 0)
           #endif
-          dda->step_interval[i] = pgm_read_dword(&c0_P[dda->fast_axis]) * int_sqrt(dda->total_steps)
-                                                                        / int_sqrt(dda->delta[i]);
+          dda->step_interval[i] = step_interval_pre / int_sqrt(dda->delta[i]);
           #ifdef LOOKAHEAD
           else {
-            uint32_t step_interval;
-            step_interval = pgm_read_dword(&c0_P[dda->fast_axis]) *
-                            int_inv_sqrt(dda->n) >> 13;
-            dda->step_interval[i] = muldiv(step_interval, dda->total_steps, dda->delta[i]);
-            // sersendf_P(PSTR("look n > 0\n"));
+            dda->step_interval[i] = step_interval_pre / dda->delta[i];
           }
           #endif
-
         }
         else
           dda->c_min[i] = 0xFFFFFFFF;
@@ -948,12 +952,10 @@ void dda_clock() {
 
       #ifdef ACCELERATION_TEMPORAL
       axes_uint32_t interval;
+      move_c = move_c * dda->total_steps;
       for (enum axis_e n = X; n < AXIS_COUNT; n++) {
         if (dda->delta[n])
-          if (n != dda->fast_axis)
-            interval[n] = muldiv(move_c, dda->total_steps, dda->delta[n]);
-          else
-            interval[n] = move_c;
+          interval[n] = move_c / dda->delta[n];
         else
           interval[n] = 0xFFFFFFFF;
       }
