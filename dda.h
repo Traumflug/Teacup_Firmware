@@ -115,6 +115,8 @@ typedef struct {
 
 	uint32_t					c; ///< time until next step, 24.8 fixed point
 
+  uint32_t          accel_per_tick; // fast axis acceleration per TICK_TIME, 8.24 fixed point
+  uint32_t          velocity;       // current velocity, updated every TICK_TIME
 	#ifdef ACCELERATION_REPRAP
 	uint32_t					end_c; ///< time between 2nd last step and last step
 	int32_t						n;     ///< precalculated step time offset variable

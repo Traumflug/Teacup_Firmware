@@ -68,6 +68,19 @@ static const axes_uint32_t PROGMEM c0_P = {
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_E * ACCELERATION / 2000.))
 };
 
+// Acceleration per TICK_TIME.
+// Accel = ACCELERATION * TICK_TIME(s)^2 * STEPS_PER_M / 1000
+//         ACCELERATION * 4 / 1000000 * STEPS_PER_M / 1000
+//         ACCELERATION * STEPS_PER_M * 4 / 1000000000
+//         ACCELERATION * STEPS_PER_M / 250000000
+// Normalized to q8.24
+static const axes_uint32_t PROGMEM accel_P = {
+  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_X) <<24) / 250000000),
+  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_Y) <<24) / 250000000),
+  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_Z) <<24) / 250000000),
+  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_E) <<24) / 250000000)
+};
+
 /*! Set the direction of the 'n' axis
 */
 static void set_direction(DDA *dda, enum axis_e n, int32_t delta) {
@@ -403,6 +416,9 @@ void dda_create(DDA *dda, const TARGET *target) {
       if (dda->rampup_steps > dda->total_steps / 2)
         dda->rampup_steps = dda->total_steps / 2;
       dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
+
+      dda->accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
+      dda->velocity = dda->accel_per_tick/2;
 
       #ifdef LOOKAHEAD
         dda->distance = distance;
@@ -853,6 +869,7 @@ void dda_clock() {
 
     recalc_speed = 0;
     if (move_step_no < dda->rampup_steps) {
+      dda->velocity += dda->accel_per_tick;
       #ifdef LOOKAHEAD
         move_n = dda->start_steps + move_step_no;
       #else
@@ -861,6 +878,7 @@ void dda_clock() {
       recalc_speed = 1;
     }
     else if (move_step_no >= dda->rampdown_steps) {
+      dda->velocity -= dda->accel_per_tick;
       #ifdef LOOKAHEAD
         move_n = dda->total_steps - move_step_no + dda->end_steps;
       #else
@@ -869,20 +887,9 @@ void dda_clock() {
       recalc_speed = 1;
     }
     if (recalc_speed) {
-      if (move_n == 0)
-        move_c = pgm_read_dword(&c0_P[dda->fast_axis]);
-      else
-        // Explicit formula: c0 * (sqrt(n + 1) - sqrt(n)),
-        // approximation here: c0 * (1 / (2 * sqrt(n))).
-        // This >> 13 looks odd, but is verified with the explicit formula.
-        move_c = ((pgm_read_dword(&c0_P[dda->fast_axis])>>2) *
-                  int_inv_sqrt(move_n)) >> 11;
+      move_c = muldiv(TICK_TIME , 1UL<<24, dda->velocity);
 
-      // TODO: most likely this whole check is obsolete. It was left as a
-      //       safety margin, only. Rampup steps calculation should be accurate
-      //       now and give the requested target speed within a few percent.
       if (move_c < dda->c_min) {
-        // We hit max speed not always exactly.
         move_c = dda->c_min;
 
         // This is a hack which deals with movements with an unknown number of
