@@ -278,7 +278,7 @@ void dda_create(DDA *dda, const TARGET *target) {
 		else
 			distance = approx_distance_3(delta_um[X], delta_um[Y], delta_um[Z]);
 
-		if (distance < 2)
+		if (distance < 1)
 			distance = delta_um[E];
 
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
