@@ -496,11 +496,11 @@ void dda_start(DDA *dda) {
   move_state.counter[X] = move_state.counter[Y] = move_state.counter[Z] = \
     move_state.counter[E] = -(dda->total_steps >> 1);
   move_state.endstop_stop = 0;
+  memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
   #ifdef ACCELERATION_RAMPING
     move_state.step_no = 0;
   #endif
   #ifdef ACCELERATION_TEMPORAL
-    memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
     move_state.time[X] = move_state.time[Y] = \
       move_state.time[Z] = move_state.time[E] = 0UL;
   #endif
@@ -535,34 +535,38 @@ void dda_start(DDA *dda) {
 void dda_step(DDA *dda) {
 
   #if ! defined ACCELERATION_TEMPORAL
-    if (dda->delta[X]) {
+    if (move_state.steps[X]) {
       move_state.counter[X] -= dda->delta[X];
       if (move_state.counter[X] < 0) {
         x_step();
+        move_state.steps[X]--;
         move_state.counter[X] += dda->total_steps;
       }
-		}
-    if (dda->delta[Y]) {
+    }
+    if (move_state.steps[Y]) {
       move_state.counter[Y] -= dda->delta[Y];
       if (move_state.counter[Y] < 0) {
         y_step();
+        move_state.steps[Y]--;
         move_state.counter[Y] += dda->total_steps;
       }
-		}
-    if (dda->delta[Z]) {
+    }
+    if (move_state.steps[Z]) {
       move_state.counter[Z] -= dda->delta[Z];
       if (move_state.counter[Z] < 0) {
         z_step();
+        move_state.steps[Z]--;
         move_state.counter[Z] += dda->total_steps;
       }
-		}
-    if (dda->delta[E]) {
+    }
+    if (move_state.steps[E]) {
       move_state.counter[E] -= dda->delta[E];
       if (move_state.counter[E] < 0) {
         e_step();
+        move_state.steps[E]--;
         move_state.counter[E] += dda->total_steps;
       }
-		}
+    }
     move_state.step_no++;
   #endif
 
@@ -672,14 +676,12 @@ void dda_step(DDA *dda) {
   //
   // TODO: with ACCELERATION_TEMPORAL this duplicates some code. See where
   //       dda->live is zero'd, about 10 lines above.
-  #if ! defined ACCELERATION_TEMPORAL
-    if (move_state.step_no >= dda->total_steps ||
-        (move_state.endstop_stop && dda->n <= 0))
-  #else
-    if (move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
-        move_state.steps[Z] == 0 && move_state.steps[E] == 0)
-  #endif
-  {
+  if ((move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
+       move_state.steps[Z] == 0 && move_state.steps[E] == 0)
+    #ifdef ACCELERATION_RAMPING
+      || (move_state.endstop_stop && dda->n <= 0)
+    #endif
+      ) {
 		dda->live = 0;
     dda->done = 1;
     #ifdef LOOKAHEAD
