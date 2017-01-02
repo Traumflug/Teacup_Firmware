@@ -60,10 +60,13 @@ typedef struct {
 	/// counts actual steps done
 	uint32_t					step_no;
 	#else
-    axes_uint32_t   steps;      ///< number of steps on each axis
   axes_uint32_t     time;       ///< time of the last step on each axis
   uint32_t          last_time;  ///< time of the last step of any axis
 	#endif
+
+  #if defined ACCELERATION_TEMPORAL || defined ACCELERATION_RAMPING
+  axes_uint32_t   steps;      ///< number of steps on each axis
+  #endif
 
 	/// Endstop handling.
   uint8_t endstop_stop; ///< Stop due to endstop trigger
