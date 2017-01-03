@@ -69,16 +69,17 @@ static const axes_uint32_t PROGMEM c0_P = {
 };
 
 // Acceleration per TICK_TIME.
+//           mm/s^2     * (s/TICK_TIME)^2            *   steps/m   * 1m/1000mm = steps/TICK_TIME^2
 // Accel = ACCELERATION * TICK_TIME(s)^2 * STEPS_PER_M / 1000
 //         ACCELERATION * 4 / 1000000 * STEPS_PER_M / 1000
 //         ACCELERATION * STEPS_PER_M * 4 / 1000000000
 //         ACCELERATION * STEPS_PER_M / 250000000
-// Normalized to q8.24
+// Normalized to q14.18
 static const axes_uint32_t PROGMEM accel_P = {
-  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_X) <<24) / 250000000),
-  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_Y) <<24) / 250000000),
-  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_Z) <<24) / 250000000),
-  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_E) <<24) / 250000000)
+  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_X) <<19) / 250000000 + 1)/2,
+  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_Y) <<19) / 250000000 + 1)/2,
+  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_Z) <<19) / 250000000 + 1)/2,
+  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_E) <<19) / 250000000 + 1)/2
 };
 
 /*! Set the direction of the 'n' axis
@@ -417,8 +418,6 @@ void dda_create(DDA *dda, const TARGET *target) {
         dda->rampup_steps = dda->total_steps / 2;
       dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
 
-      dda->accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
-      dda->velocity = dda->accel_per_tick/2;
 
       #ifdef LOOKAHEAD
         dda->distance = distance;
@@ -514,6 +513,13 @@ void dda_start(DDA *dda) {
   move_state.endstop_stop = 0;
   memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
   #ifdef ACCELERATION_RAMPING
+    // This is constant and we could read it directly in dda_clock every time,
+    // but we intend to make acceleration a non-constant function someday. This
+    // is why we keep the current accel value in the dda.
+    move_state.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
+
+    move_state.velocity = 0; //move_state.accel_per_tick/2;  // TODO: Use dda->start_velocity here
+    move_state.position = move_state.remainder = move_state.elapsed = 0;
     move_state.step_no = 0;
   #endif
   #ifdef ACCELERATION_TEMPORAL
@@ -752,6 +758,7 @@ void dda_clock() {
   #ifdef ACCELERATION_RAMPING
   uint32_t move_step_no, move_c;
   int32_t move_n;
+  uint32_t velocity, remainder, dpos;
   uint8_t recalc_speed;
   uint8_t current_id ;
   #endif
@@ -863,13 +870,22 @@ void dda_clock() {
     ATOMIC_START
       current_id = dda->id;
       move_step_no = move_state.step_no;
+      velocity = move_state.velocity;
       // All other variables are read-only or unused in dda_step(),
       // so no need for atomic operations.
     ATOMIC_END
 
+    remainder = move_state.remainder + velocity;
+    dpos = remainder >> 18;
+    remainder &= (1<<18) - 1;
+
+    sersendf_P(PSTR("dda_clock: elapsed=%lu  vel=%lu  pos=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
+      move_state.elapsed + TICK_TIME, velocity, move_state.position + dpos, move_step_no,
+      dda->total_steps, remainder);
+
     recalc_speed = 0;
     if (move_step_no < dda->rampup_steps) {
-      dda->velocity += dda->accel_per_tick;
+      velocity += move_state.accel_per_tick;
       #ifdef LOOKAHEAD
         move_n = dda->start_steps + move_step_no;
       #else
@@ -877,8 +893,9 @@ void dda_clock() {
       #endif
       recalc_speed = 1;
     }
-    else if (move_step_no >= dda->rampdown_steps) {
-      dda->velocity -= dda->accel_per_tick;
+    else if (move_step_no + dpos > dda->rampdown_steps) {
+      if (velocity > move_state.accel_per_tick)
+        velocity -= move_state.accel_per_tick;
       #ifdef LOOKAHEAD
         move_n = dda->total_steps - move_step_no + dda->end_steps;
       #else
@@ -887,10 +904,19 @@ void dda_clock() {
       recalc_speed = 1;
     }
     if (recalc_speed) {
-      move_c = muldiv(TICK_TIME , 1UL<<24, dda->velocity);
+      // if ((velocity >> 18) == 0) {
+      //   // Slow movement.  Maybe we need to spend more time calculating c here. But since we're
+      //   // slow now, we can afford it.
+      // }
+      // move_c = muldiv(TICK_TIME , 1UL<<24, dda->velocity);
+      move_c = muldiv(TICK_TIME , 1UL<<18, velocity);
+      // move_c = (TICK_TIME * (1ULL << 18)) / velocity;
 
       if (move_c < dda->c_min) {
         move_c = dda->c_min;
+
+        if (move_c > pgm_read_dword(&c0_P[dda->fast_axis]))
+          move_c = pgm_read_dword(&c0_P[dda->fast_axis]);
 
         // This is a hack which deals with movements with an unknown number of
         // acceleration steps. dda_create() sets a very high number, then,
@@ -901,23 +927,30 @@ void dda_clock() {
           dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
         #endif
       }
+    }
 
-      // Write results.
-      ATOMIC_START
-        /**
-          Apply new n & c values only if dda didn't change underneath us. It
-          is possible for dda to be modified since fetching values in the
-          ATOMIC above, e.g. when a new dda becomes live.
+    // Write results.
+    ATOMIC_START
+      /**
+        Apply new n & c values only if dda didn't change underneath us. It
+        is possible for dda to be modified since fetching values in the
+        ATOMIC above, e.g. when a new dda becomes live.
 
-          In case such a change happened, values in the new dda are more
-          recent than our calculation here, anyways.
-        */
-        if (current_id == dda->id) {
+        In case such a change happened, values in the new dda are more
+        recent than our calculation here, anyways.
+      */
+      if (current_id == dda->id) {
+        if (recalc_speed) {
           dda->c = move_c;
           dda->n = move_n;
+          move_state.velocity = velocity;
         }
-      ATOMIC_END
-    }
+        move_state.elapsed += TICK_TIME;
+        move_state.remainder = remainder;
+        move_state.position += dpos;
+      }
+
+    ATOMIC_END
   #endif
 }
 

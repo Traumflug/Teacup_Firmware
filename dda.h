@@ -57,6 +57,14 @@ typedef struct {
   axes_int32_t      counter; ///< counter for total_steps vs each axis
 
   #if ! defined ACCELERATION_TEMPORAL
+    uint32_t          elapsed;      // time elapsed in clock ticks
+    uint32_t          Td;           // Time duration
+    uint32_t          Ts;           // Rampup time
+    uint32_t          position;     // Calculated expected fast-axis position based on elapsed time
+    uint32_t          velocity;     // fast axis velocity updated on each dda_clock call
+    uint32_t          remainder;    // calculated fractional position between dda_clock intervals
+
+    uint32_t          accel_per_tick;     // fast axis acceleration per TICK_TIME, 8.24 fixed point
 	/// counts actual steps done
 	uint32_t					step_no;
 	#else
@@ -115,8 +123,7 @@ typedef struct {
 
 	uint32_t					c; ///< time until next step, 24.8 fixed point
 
-  uint32_t          accel_per_tick; // fast axis acceleration per TICK_TIME, 8.24 fixed point
-  uint32_t          velocity;       // current velocity, updated every TICK_TIME
+
 	#ifdef ACCELERATION_REPRAP
 	uint32_t					end_c; ///< time between 2nd last step and last step
 	int32_t						n;     ///< precalculated step time offset variable
