@@ -45,7 +45,7 @@ SIM_SOURCES = $(subst $(SIM_PATH)/,,$(wildcard $(SIM_PATH)/*.c))
 SOURCES := $(filter-out $(subst _sim.c,.c,$(SIM_SOURCES)),$(SOURCES)) $(SIM_SOURCES)
 
 CFLAGS  = $(EXTRA_CFLAGS)
-CFLAGS += -g -Wall -Wstrict-prototypes -Wno-format -Os $(DEFS) -std=gnu99
+CFLAGS += -g -Wall -Wstrict-prototypes -Wno-format -O0 $(DEFS) -std=gnu99
 CFLAGS += -funsigned-char -funsigned-bitfields -fshort-enums -I.. -I.
 CFLAGS += -DSIMULATOR -Wno-format -Wno-format-security
 #CFLAGS += -dM -E # To list all predefined macros into the .o file.
