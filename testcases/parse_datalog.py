@@ -1,4 +1,5 @@
 import sys
+import linecache
 
 in_file = sys.argv[1]
 out_file = sys.argv[2]
@@ -32,23 +33,29 @@ def parse_m114_position(line):
     return X, Y, Z
 
 with open(in_file, 'r') as file:
-    old_line = None
+    start_with_line = 50
+
     found_m114 = False
-    for _ in range(50):
+    for _ in range(start_with_line - 1):
         next(file)
-    for i, line in enumerate(file):
+    for i, line in enumerate(file, start_with_line):
         if found_m114:  # we found a M114 before, so next line is the result
             found_m114 = False
             x1, y1, z1 = parse_m114_position(line)
             x = x2 - x1
             diff_list.append('{}\t\t\t{}\t\t\t{}\t\t\t{}\n'.format(i, x1, x2, x))
             pseudo_print.append('{}\t\t\t{}\t\t\t{}\n'.format(x2, y2, z2))
-        if line.find('M114') >= 0: # we found a M114, so use the line before as the result
-            if old_line is not None:
+
+        if line[0] == '#':
+            if line[2:6] == 'M114':
                 found_m114 = True
-                x2, y2, z2 = parse_stepper_position(old_line)
-        if len(line.split()) == 21: # sometimes we have empty lines. with this we are sure to have the right line.
-            old_line = line
+                # find the line with stepping positions before the M114
+                # print(linecache.getline(in_file, i))
+                for x in range(i - 1, i-20, -1):
+                    pre_m114_line = linecache.getline(in_file, x)
+                    if len(pre_m114_line.split()) == 21:
+                        break
+                x2, y2, z2 = parse_stepper_position(pre_m114_line)
 
 with open(out_file, 'w') as file:
     file.writelines(diff_list)
