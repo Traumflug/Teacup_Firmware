@@ -9,12 +9,14 @@ fi
 
 if $test_it
   then
+    cd ..
     make -f Makefile-SIM clean
     make -f Makefile-SIM
-    ./sim -t0 -g testcases/swan-test.gcode -o
+    cd testcases
+    ../sim -t0 -g swan-test.gcode -o
 fi
 
-python3 parse_datalog.py 'datalog.out' 'swan.log' "pp-${drwnumber}.asc"
+python3 parse_datalog.py 'datalog.out' 'swan.log' "swan-${drwnumber}.asc"
 
 gnuplot <<__EOF
 set term png size 1024,768
