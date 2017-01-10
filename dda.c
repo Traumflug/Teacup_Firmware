@@ -531,7 +531,10 @@ void dda_start(DDA *dda) {
   dda->live = 1;
 
   // Set timeout for first step.
-  timer_set(dda->c, 0);
+  // TODO: Add velocity change expected before next dda_clock is called; or record cpu time so dda_clock
+  //        can do it for us.
+  if (dda->c < TICK_TIME/2)
+    timer_set(dda->c, 0);
 }
 
 /**
@@ -727,7 +730,8 @@ void dda_step(DDA *dda) {
   else {
 		psu_timeout = 0;
     #ifndef ACCELERATION_TEMPORAL
-      timer_set(dda->c, 0);
+      if (dda->c < TICK_TIME)
+        timer_set(dda->c, 0);
     #endif
   }
 
@@ -759,6 +763,7 @@ void dda_clock() {
   uint32_t move_step_no, move_c;
   int32_t move_n;
   uint32_t velocity, remainder, dpos;
+  uint16_t kick_step = 0;
   uint8_t recalc_speed;
   uint8_t current_id ;
   #endif
@@ -879,9 +884,19 @@ void dda_clock() {
     dpos = remainder >> 18;
     remainder &= (1<<18) - 1;
 
-    sersendf_P(PSTR("dda_clock: elapsed=%lu  vel=%lu  pos=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
+    if (dpos && dda->c >= TICK_TIME) {
+      // TICK_TIME - TICK_TIME * (remainder / velocity)
+      uint32_t step_remainder = TICK_TIME * remainder / velocity;
+      if (step_remainder < TICK_TIME) {
+        kick_step = TICK_TIME - step_remainder;
+      } else {
+        sersendf_P(PSTR("Unexpected kick_step overflow: %lu\n"), step_remainder);
+      }
+    }
+
+    sersendf_P(PSTR("dda_clock: elapsed=%lu  vel=%lu  pos=%lu (%lu)  tsteps=%lu  rem=%lu  kick_step=%lu\n"),
       move_state.elapsed + TICK_TIME, velocity, move_state.position + dpos, move_step_no,
-      dda->total_steps, remainder);
+      dda->total_steps, remainder, kick_step);
 
     recalc_speed = 0;
     if (move_step_no < dda->rampup_steps) {
@@ -948,6 +963,10 @@ void dda_clock() {
         move_state.elapsed += TICK_TIME;
         move_state.remainder = remainder;
         move_state.position += dpos;
+        if (kick_step) {
+          timer_reset();
+          timer_set(kick_step,0);
+        }
       }
 
     ATOMIC_END
