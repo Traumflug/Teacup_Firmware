@@ -65,6 +65,8 @@ typedef struct {
     uint32_t          remainder;    // calculated fractional position between dda_clock intervals
 
     uint32_t          accel_per_tick;     // fast axis acceleration per TICK_TIME, 8.24 fixed point
+    uint32_t          next_c;       // speed of next steps
+    uint32_t          next_n;       // Number of steps in the next movement; 0 when taken by dda
 	/// counts actual steps done
 	uint32_t					step_no;
 	#else
@@ -131,6 +133,8 @@ typedef struct {
 	#ifdef ACCELERATION_RAMPING
   /// precalculated step time offset variable
   int32_t           n;
+  /// number of steps at current speed before switching to move_state.next_[cn]
+  uint32_t          steps;
 	/// number of steps accelerating
 	uint32_t					rampup_steps;
 	/// number of last step before decelerating

@@ -437,6 +437,7 @@ void dda_create(DDA *dda, const TARGET *target) {
       #else
         dda->n = 0;
         dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
+        dda->steps = 1;
       #endif
 
 		#elif defined ACCELERATION_TEMPORAL
@@ -517,10 +518,15 @@ void dda_start(DDA *dda) {
     // but we intend to make acceleration a non-constant function someday. This
     // is why we keep the current accel value in the dda.
     move_state.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
-
+    move_state.next_c = move_state.next_n = 0;
     move_state.velocity = 0; //move_state.accel_per_tick/2;  // TODO: Use dda->start_velocity here
     move_state.position = move_state.remainder = move_state.elapsed = 0;
     move_state.step_no = 0;
+    // if (dda->c > TICK_TIME) {
+    //   uint32_t n = dda->c / TICK_TIME;
+    //   move_state.velocity = move_state.accel_per_tick * (n * (n-1) + 1) / 2;
+    //   move_state.step_no = move_state.position = dda->steps;
+    // }
   #endif
   #ifdef ACCELERATION_TEMPORAL
     move_state.time[X] = move_state.time[Y] = \
@@ -590,6 +596,14 @@ void dda_step(DDA *dda) {
       }
     }
     move_state.step_no++;
+    if (--dda->steps == 0) {
+      dda->steps = move_state.next_n;
+      dda->c = move_state.next_c;
+      move_state.next_n = 0;
+      if (!dda->steps) {
+        sersendf_P(PSTR("\n-- DDA underflow with %lu steps remaining\n"), dda->total_steps - move_state.  step_no);
+      }
+    }
   #endif
 
 	#ifdef ACCELERATION_REPRAP
@@ -708,6 +722,9 @@ void dda_step(DDA *dda) {
   {
 		dda->live = 0;
     dda->done = 1;
+    if (dda->steps) {
+      sersendf_P(PSTR("\n-- DDA has %lu leftover steps in its todo list.\n"), dda->steps);
+    }
     #ifdef LOOKAHEAD
     // If look-ahead was using this move, it could have missed our activation:
     // make sure the ids do not match.
@@ -864,6 +881,10 @@ void dda_clock() {
   } /* ! move_state.endstop_stop */
 
   #ifdef ACCELERATION_RAMPING
+
+    if (move_state.next_n)
+      return;  // Queue is full
+
     // For maths about stepper speed profiles, see
     // http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
     // and http://www.atmel.com/images/doc8017.pdf (Atmel app note AVR446)
@@ -875,34 +896,41 @@ void dda_clock() {
       // so no need for atomic operations.
     ATOMIC_END
 
-    remainder = move_state.remainder + velocity;
-    dpos = remainder >> 18;
-    remainder &= (1<<18) - 1;
+    uint32_t elapsed = move_state.elapsed;
+    remainder = move_state.remainder;
 
-    sersendf_P(PSTR("dda_clock: elapsed=%lu  vel=%lu  pos=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-      move_state.elapsed + TICK_TIME, velocity, move_state.position + dpos, move_step_no,
-      dda->total_steps, remainder);
+    sersendf_P(PSTR("dda_clock: \n"));
+    do {
+      remainder += velocity;
+      dpos = remainder >> 18;
+      remainder &= (1<<18) - 1;
 
-    recalc_speed = 0;
-    if (move_step_no < dda->rampup_steps) {
-      velocity += move_state.accel_per_tick;
-      #ifdef LOOKAHEAD
-        move_n = dda->start_steps + move_step_no;
-      #else
-        move_n = move_step_no;
-      #endif
-      recalc_speed = 1;
-    }
-    else if (move_step_no + dpos > dda->rampdown_steps) {
-      if (velocity > move_state.accel_per_tick)
-        velocity -= move_state.accel_per_tick;
-      #ifdef LOOKAHEAD
-        move_n = dda->total_steps - move_step_no + dda->end_steps;
-      #else
-        move_n = dda->total_steps - move_step_no;
-      #endif
-      recalc_speed = 1;
-    }
+      sersendf_P(PSTR("    elapsed=%lu  vel=%lu  dpos=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
+        elapsed + TICK_TIME, velocity, dpos, move_step_no, dda->total_steps, remainder);
+
+      recalc_speed = 0;
+      if (move_step_no < dda->rampup_steps) {
+        velocity += move_state.accel_per_tick;
+        #ifdef LOOKAHEAD
+          move_n = dda->start_steps + move_step_no;
+        #else
+          move_n = move_step_no;
+        #endif
+        recalc_speed = 1;
+      }
+      else if (move_step_no + dpos > dda->rampdown_steps) {
+        if (velocity > move_state.accel_per_tick)
+          velocity -= move_state.accel_per_tick;
+        #ifdef LOOKAHEAD
+          move_n = dda->total_steps - move_step_no + dda->end_steps;
+        #else
+          move_n = dda->total_steps - move_step_no;
+        #endif
+        recalc_speed = 1;
+      }
+      elapsed += TICK_TIME;
+    } while (dpos == 0);
+
     if (recalc_speed) {
       // if ((velocity >> 18) == 0) {
       //   // Slow movement.  Maybe we need to spend more time calculating c here. But since we're
@@ -929,6 +957,8 @@ void dda_clock() {
       }
     }
 
+    uint16_t steps = TICK_TIME / move_c + 1;
+
     // Write results.
     ATOMIC_START
       /**
@@ -941,11 +971,12 @@ void dda_clock() {
       */
       if (current_id == dda->id) {
         if (recalc_speed) {
-          dda->c = move_c;
+          move_state.next_c = move_c;
+          move_state.next_n = steps;
           dda->n = move_n;
           move_state.velocity = velocity;
         }
-        move_state.elapsed += TICK_TIME;
+        move_state.elapsed += elapsed;
         move_state.remainder = remainder;
         move_state.position += dpos;
       }
