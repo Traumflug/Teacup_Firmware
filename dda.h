@@ -52,6 +52,12 @@ typedef struct {
 
 	Parts of this struct are initialised only once per reboot, so make sure dda_step() leaves them with a value compatible to begin a new movement at the end of the movement. Other parts are filled in by dda_start().
 */
+typedef enum Phase {
+  PHASE_ACCEL,
+  PHASE_CRUISE,
+  PHASE_DECEL
+} Phase;
+
 typedef struct {
 	// bresenham counters
   axes_int32_t      counter; ///< counter for total_steps vs each axis
@@ -67,6 +73,7 @@ typedef struct {
     uint32_t          accel_per_tick;     // fast axis acceleration per TICK_TIME, 8.24 fixed point
     uint32_t          next_c;       // speed of next steps
     uint32_t          next_n;       // Number of steps in the next movement; 0 when taken by dda
+    Phase             phase;        // accel, cruise, decel
 	/// counts actual steps done
 	uint32_t					step_no;
 	#else
@@ -141,6 +148,8 @@ typedef struct {
 	uint32_t					rampdown_steps;
 	/// 24.8 fixed point timer value, maximum speed
 	uint32_t					c_min;
+  /// Maximum velocity in steps/QUANTUM; 10.22 fixed point value
+  uint32_t          vmax;
   #ifdef LOOKAHEAD
   // With the look-ahead functionality, it is possible to retain physical
   // movement between G1 moves. These variables keep track of the entry and
