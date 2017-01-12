@@ -68,8 +68,8 @@ static const axes_uint32_t PROGMEM c0_P = {
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_E * ACCELERATION / 2000.))
 };
 
-// Period over which we calculate new velocity; should be about 2 * TICK_TIME
-#define QUANTUM (TICK_TIME*2)
+// Period over which we calculate new velocity; should be about TICK_TIME
+#define QUANTUM TICK_TIME
 
 // Acceleration per QUANTUM.
 //           mm/s^2     * (s/QUANTUM)^2            *   steps/m   * 1m/1000mm = steps/QUANTUM^2
@@ -546,6 +546,7 @@ void dda_start(DDA *dda) {
     move_state.head = 0;
     for (int i = 0; i < SUB_MOVE_QUEUE_SIZE; i++)
       move_state.next_n[i] = 0;
+    move_state.curr_c = dda->c;
 
     // Biasing the remainder causes us to step when the integral rounds-up to the next step.  This follows
     // the method used in the original stepper-motor step estimation article.  But is it reasonable to do
@@ -557,7 +558,7 @@ void dda_start(DDA *dda) {
     #ifdef USE_BIAS
     move_state.remainder = (1<<ACCEL_P_SHIFT)/2;
     #else
-    move_state.remainder = (1<<ACCEL_P_SHIFT)/10;
+    move_state.remainder = 0;//(1<<ACCEL_P_SHIFT)/10;
     #endif
 
     // Biasing the velocity by 1/2 acceleration lets us easily represent the average velocity for each
@@ -566,9 +567,9 @@ void dda_start(DDA *dda) {
     move_state.velocity = move_state.accel_per_tick/2;  // TODO: Use dda->start_velocity here
     #else
     // Calculate velocity at first step: v = v0 + a * t
-    move_state.velocity = muldiv(move_state.accel_per_tick, dda->c, QUANTUM) + move_state.accel_per_tick/2;
-    dda->n = 1;
+    move_state.velocity = muldiv(move_state.accel_per_tick, dda->c, QUANTUM);
     #endif
+    dda->n = 1;
 
     move_state.phase = PHASE_ACCEL;
     move_state.position = move_state.elapsed = 0;
@@ -652,8 +653,8 @@ void dda_step(DDA *dda) {
     if (--dda->steps == 0) {
       dda->steps = move_state.next_n[move_state.head];
       if (dda->steps) {
-        dda->c = move_state.next_c[move_state.head];
-        sersendf_P(PSTR("\n<< DDA %u. c=%lu  n=%lu\n"), move_state.head, dda->c, dda->steps);
+        dda->dc = move_state.next_dc[move_state.head];
+        // sersendf_P(PSTR("\n<< DDA %u. c=%lu  dc=%ld  n=%lu\n"), move_state.head, dda->c, dda->dc, dda->steps);
         move_state.next_n[move_state.head++] = 0;
         if (move_state.head == SUB_MOVE_QUEUE_SIZE)
           move_state.head = 0;
@@ -663,6 +664,7 @@ void dda_step(DDA *dda) {
         dda->steps++;
       }
     }
+    dda->c += dda->dc;
   #endif
 
 	#ifdef ACCELERATION_REPRAP
@@ -834,7 +836,8 @@ void dda_clock() {
   static DDA *last_dda = NULL;
   uint8_t endstop_trigger = 0;
   #ifdef ACCELERATION_RAMPING
-  uint32_t move_step_no, move_c;
+  uint32_t move_step_no, move_c, curr_c;
+  int32_t move_dc;
   uint32_t velocity, remainder;
   uint32_t dx;
   uint8_t current_id ;
@@ -997,8 +1000,8 @@ void dda_clock() {
       }
 
       elapsed += QUANTUM;
-      sersendf_P(PSTR("   %u. elapsed=%lu  vel=%lu  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-        ++i, elapsed , velocity, move_c, dda->vmax, dx, move_step_no, dda->total_steps, remainder);
+      sersendf_P(PSTR("   %u. elapsed=%lu  vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
+        ++i, elapsed , velocity, dda->vmax, dx, move_step_no, dda->total_steps, remainder);
     } while (dx == 0);
 
     if (move_state.phase >= PHASE_CRUISE)
@@ -1014,7 +1017,10 @@ void dda_clock() {
       //   // slow now, we can afford it.
       // }
       // move_c = muldiv(QUANTUM , 1UL<<ACCEL_P_SHIFT, dda->velocity);
-      move_c = muldiv(QUANTUM , 2*1UL<<ACCEL_P_SHIFT, (v0 + velocity));
+      if (dx < 3)
+        move_c = muldiv(QUANTUM , 2*1UL<<ACCEL_P_SHIFT, velocity+v0);
+      else
+        move_c = muldiv(QUANTUM , 1UL<<ACCEL_P_SHIFT, velocity);
       // move_c = (QUANTUM * (1ULL << ACCEL_P_SHIFT)) / velocity;
 
       // TODO: This shouldn't happen, ideally.  How can we prevent it?
@@ -1033,6 +1039,9 @@ void dda_clock() {
         //   dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
         // #endif
       }
+      move_dc = move_c - move_state.curr_c;
+      move_dc /= (int32_t)dx;
+      curr_c = move_state.curr_c + move_dc * dx;
     }
 
     sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  elapsed=%lu  vel=%lu,%lu  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
@@ -1049,9 +1058,10 @@ void dda_clock() {
         recent than our calculation here, anyways.
       */
       if (current_id == dda->id) {
-        move_state.next_c[tail] = move_c;
+        move_state.next_dc[tail] = move_dc;
         move_state.next_n[tail] = dx;
-        sersendf_P(PSTR("\n>> DDA %u. c=%lu  n=%lu\n"), tail, move_c, dx);
+        move_state.curr_c = curr_c;
+        // sersendf_P(PSTR("\n>> DDA %u. c=%lu  dc=%ld  n=%lu\n"), tail, curr_c, move_dc, dx);
         dda->n += dx;
         move_state.velocity = velocity;
 
