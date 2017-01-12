@@ -71,8 +71,10 @@ typedef struct {
     uint32_t          remainder;    // calculated fractional position between dda_clock intervals
 
     uint32_t          accel_per_tick;     // fast axis acceleration per TICK_TIME, 8.24 fixed point
-    uint32_t          next_c;       // speed of next steps
-    uint32_t          next_n;       // Number of steps in the next movement; 0 when taken by dda
+    #define SUB_MOVE_QUEUE_SIZE 4
+    int32_t           next_c[SUB_MOVE_QUEUE_SIZE];    // speed of next steps
+    uint32_t          next_n[SUB_MOVE_QUEUE_SIZE];    // Number of steps in the next movement; 0 when taken by dda
+    uint8_t           head;         // Index of next movement
     Phase             phase;        // accel, cruise, decel
 	/// counts actual steps done
 	uint32_t					step_no;

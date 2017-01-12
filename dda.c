@@ -542,7 +542,10 @@ void dda_start(DDA *dda) {
     // but we intend to make acceleration a non-constant function someday. This
     // is why we keep the current accel value in the dda.
     move_state.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
-    move_state.next_c = move_state.next_n = 0;
+
+    move_state.head = 0;
+    for (int i = 0; i < SUB_MOVE_QUEUE_SIZE; i++)
+      move_state.next_n[i] = 0;
 
     // Biasing the remainder causes us to step when the integral rounds-up to the next step.  This follows
     // the method used in the original stepper-motor step estimation article.  But is it reasonable to do
@@ -647,10 +650,14 @@ void dda_step(DDA *dda) {
     }
     move_state.step_no++;
     if (--dda->steps == 0) {
-      dda->steps = move_state.next_n;
-      dda->c = move_state.next_c;
-      move_state.next_n = 0;
-      if (!dda->steps) {
+      dda->steps = move_state.next_n[move_state.head];
+      if (dda->steps) {
+        dda->c = move_state.next_c[move_state.head];
+        sersendf_P(PSTR("\n<< DDA %u. c=%lu  n=%lu\n"), move_state.head, dda->c, dda->steps);
+        move_state.next_n[move_state.head++] = 0;
+        if (move_state.head == SUB_MOVE_QUEUE_SIZE)
+          move_state.head = 0;
+      } else {
         // This is bad.  It means we will idle at the last commanded speed and send more steps than commanded.
         sersendf_P(PSTR("\n-- DDA underflow with %lu steps remaining\n"), dda->total_steps - move_state.  step_no);
         dda->steps++;
@@ -935,7 +942,14 @@ void dda_clock() {
 
   #ifdef ACCELERATION_RAMPING
 
-    if (move_state.next_n)
+    uint8_t tail = move_state.head;
+    for (int i=0; i < SUB_MOVE_QUEUE_SIZE; i++) {
+      tail = move_state.head+i;
+      if (tail > SUB_MOVE_QUEUE_SIZE) tail = 0;
+      if (move_state.next_n[tail] == 0)
+        break;
+    }
+    if (move_state.next_n[tail])
       return;  // Planner queue is full
 
     // For maths about stepper speed profiles, see
@@ -965,11 +979,11 @@ void dda_clock() {
         // Almost reached mid-point of move or max velocity; time to cruise
         if ((move_step_no + dx + 1)*2 >= dda->total_steps || vnext > dda->vmax) {
           move_state.phase = PHASE_CRUISE;
-          dx = dda->total_steps - move_step_no*2;
+          dx = dda->total_steps - move_step_no*2 - 2;
 
           // TODO: Calculate accurate remainder for next phase?  It should affect only
           //       very slow movements and seems pointless.
-          remainder = (1<<ACCEL_P_SHIFT) - remainder;
+          remainder = (1<<ACCEL_P_SHIFT) - (remainder & ((1<<ACCEL_P_SHIFT)-1));
 
           elapsed += muldiv(dx*100, (QUANTUM/100) << ACCEL_P_SHIFT, velocity) - QUANTUM;
         } else {
@@ -984,7 +998,7 @@ void dda_clock() {
 
       elapsed += QUANTUM;
       sersendf_P(PSTR("   %u. elapsed=%lu  vel=%lu  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-        ++i, elapsed , velocity, move_c, dda->vmax, dx, move_step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
+        ++i, elapsed , velocity, move_c, dda->vmax, dx, move_step_no, dda->total_steps, remainder);
     } while (dx == 0);
 
     if (move_state.phase >= PHASE_CRUISE)
@@ -1021,8 +1035,8 @@ void dda_clock() {
       }
     }
 
-    sersendf_P(PSTR("  %lu  S#=%lu, State=%d  elapsed=%lu  vel=%lu,%lu  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-      move_c, step_no, move_state.phase, elapsed , v0,velocity, move_c, dda->vmax, dx, move_step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
+    sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  elapsed=%lu  vel=%lu,%lu  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
+      move_c, step_no, tail, move_state.phase, elapsed , v0,velocity, move_c, dda->vmax, dx, move_step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
 
     // Write results.
     ATOMIC_START
@@ -1035,8 +1049,9 @@ void dda_clock() {
         recent than our calculation here, anyways.
       */
       if (current_id == dda->id) {
-        move_state.next_c = move_c;
-        move_state.next_n = dx;
+        move_state.next_c[tail] = move_c;
+        move_state.next_n[tail] = dx;
+        sersendf_P(PSTR("\n>> DDA %u. c=%lu  n=%lu\n"), tail, move_c, dx);
         dda->n += dx;
         move_state.velocity = velocity;
 
