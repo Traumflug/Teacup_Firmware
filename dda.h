@@ -68,7 +68,7 @@ typedef struct {
     uint32_t          Ts;           // Rampup time
     uint32_t          position;     // Calculated expected fast-axis position based on elapsed time
     uint32_t          velocity;     // fast axis velocity updated on each dda_clock call
-    uint32_t          remainder;    // calculated fractional position between dda_clock intervals
+    uint64_t          remainder;    // calculated fractional position between dda_clock intervals
 
     uint32_t          accel_per_tick;     // fast axis acceleration per TICK_TIME, 8.24 fixed point
     #define SUB_MOVE_QUEUE_SIZE 4

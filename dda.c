@@ -79,6 +79,7 @@ static const axes_uint32_t PROGMEM c0_P = {
 //         ACCELERATION * QUANTUM * QUANTUM * STEPS_PER_M / F_CPU / F_CPU / 1000
 // Normalized to q10.22; allows up to 2^10=1024 in mantissa (steps per 2ms)
 #define ACCEL_P_SHIFT 22
+// TODO: ASSERT(rampup_steps_to_vmax < 1<<(32-ACCEL_P_SHIFT))
 static const axes_uint32_t PROGMEM accel_P = {
   (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_X) <<(ACCEL_P_SHIFT+1)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
   (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_Y) <<(ACCEL_P_SHIFT+1)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
@@ -558,7 +559,7 @@ void dda_start(DDA *dda) {
     #ifdef USE_BIAS
     move_state.remainder = (1ULL<<ACCEL_P_SHIFT)/2;
     #else
-    move_state.remainder = 0;//(1ULL<<ACCEL_P_SHIFT)/10;
+    move_state.remainder = (1ULL<<ACCEL_P_SHIFT);
     #endif
 
     // Biasing the velocity by 1/2 acceleration lets us easily represent the average velocity for each
@@ -960,7 +961,8 @@ void dda_clock() {
       uint8_t tail = move_state.tail;
       uint32_t move_c, curr_c;
       int32_t move_dc;
-      uint32_t velocity, remainder;
+      uint32_t velocity;
+      uint64_t remainder;
       uint32_t dx = 0;
       unsigned i=0;
 
@@ -975,28 +977,32 @@ void dda_clock() {
 
 
       while (dx==0 ) {
-        remainder += velocity;
-        dx = remainder >> ACCEL_P_SHIFT;
 
         if (move_state.phase == PHASE_ACCEL) {
+          remainder += velocity;
+          dx = (remainder >> ACCEL_P_SHIFT) - move_step_no;
+
           uint32_t vnext = velocity + move_state.accel_per_tick;
           step_no += dx;
           // Almost reached mid-point of move or max velocity; time to cruise
-          if ((move_step_no + dx + 10)*2 >= dda->total_steps || vnext > dda->vmax) {
+          if ((move_step_no + dx )*2 >= dda->total_steps || vnext > dda->vmax) {
             move_state.phase = PHASE_CRUISE;
-            dx = dda->total_steps - move_step_no*2 - 15;
+            dx = dda->total_steps - move_step_no*2 - dx;
 
             // TODO: Calculate accurate remainder for next phase?  It should affect only
             //       very slow movements and seems pointless.
             // remainder = (1ULL<<ACCEL_P_SHIFT) - (remainder & ((1ULL<<ACCEL_P_SHIFT)-1));
-            remainder = 0;
+        //     remainder = 0;
 
             // elapsed += muldiv(dx*100, (QUANTUM/100) << ACCEL_P_SHIFT, velocity) - QUANTUM;
           } else {
             velocity = vnext;
           }
         }
-        else if (move_state.phase >= PHASE_CRUISE) {
+        else {//if (move_state.phase >= PHASE_CRUISE) {
+          remainder -= velocity;
+          dx = dda->total_steps - move_step_no - (remainder >> ACCEL_P_SHIFT) ;
+
           move_state.phase = PHASE_DECEL;
           if (velocity > move_state.accel_per_tick)
             velocity -= move_state.accel_per_tick;
@@ -1005,7 +1011,7 @@ void dda_clock() {
         // elapsed += QUANTUM;
         #ifdef SIMULATOR
         sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-           ++i, velocity, dda->vmax, dx, move_step_no, dda->total_steps, remainder);
+           ++i, velocity, dda->vmax, dx, move_step_no+dx, dda->total_steps, remainder);
         #endif
       }
 
@@ -1013,7 +1019,7 @@ void dda_clock() {
         step_no = dda->total_steps - step_no;
 
       // Mask off mantissa
-      remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
+      // remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
 
       // if (recalc_speed)
       {
@@ -1052,6 +1058,12 @@ void dda_clock() {
         curr_c = move_state.curr_c + move_dc * dx;
       }
 
+      #ifdef SIMULATOR
+        sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  vel=%lu,%lu  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
+          move_c, step_no, tail, move_state.phase, v0,velocity, move_c, dda->vmax, dx, move_step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
+      // sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
+      //    ++i, velocity, dda->vmax, dx, move_step_no+dx, dda->total_steps, remainder);
+      #endif
       // sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  elapsed=%lu  vel=%lu,%lu  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
       //   move_c, step_no, tail, move_state.phase, elapsed , v0,velocity, move_c, dda->vmax, dx, move_step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
 
