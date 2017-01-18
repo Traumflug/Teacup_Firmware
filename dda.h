@@ -76,6 +76,7 @@ typedef struct {
     int32_t           next_dc[SUB_MOVE_QUEUE_SIZE];   // delta speed of next steps
     uint32_t          next_n[SUB_MOVE_QUEUE_SIZE];    // Number of steps in the next movement; 0 when taken by dda
     uint8_t           head;                           // Index of next movement queue
+    uint8_t           tail;                           // Index of last movement queue
     Phase             phase;                          // accel, cruise, decel
 	/// counts actual steps done
 	uint32_t					step_no;
