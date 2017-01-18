@@ -52,23 +52,14 @@ typedef struct {
 
 	Parts of this struct are initialised only once per reboot, so make sure dda_step() leaves them with a value compatible to begin a new movement at the end of the movement. Other parts are filled in by dda_start().
 */
-typedef enum Phase {
-  PHASE_ACCEL,
-  PHASE_CRUISE,
-  PHASE_DECEL
-} Phase;
-
 typedef struct {
 	// bresenham counters
   axes_int32_t      counter; ///< counter for total_steps vs each axis
 
   #if ! defined ACCELERATION_TEMPORAL
-    uint32_t          elapsed;      // time elapsed in clock ticks
-    uint32_t          Td;           // Time duration
-    uint32_t          Ts;           // Rampup time
-    uint32_t          position;     // Calculated expected fast-axis position based on elapsed time
+    uint32_t          position;     // Calculated fast-axis position planned
     uint32_t          velocity;     // fast axis velocity updated on each dda_clock call
-    uint64_t          remainder;    // calculated fractional position between dda_clock intervals
+    uint32_t          remainder;    // calculated fractional position between dda_clock intervals
 
     uint32_t          accel_per_tick;     // fast axis acceleration per TICK_TIME, 8.24 fixed point
     #define SUB_MOVE_QUEUE_SIZE 4
@@ -77,7 +68,7 @@ typedef struct {
     uint32_t          next_n[SUB_MOVE_QUEUE_SIZE];    // Number of steps in the next movement; 0 when taken by dda
     uint8_t           head;                           // Index of next movement queue
     uint8_t           tail;                           // Index of last movement queue
-    Phase             phase;                          // accel, cruise, decel
+    uint8_t           accel    :1 ;                   // bool: accel or decel/cruise
 	/// counts actual steps done
 	uint32_t					step_no;
 	#else

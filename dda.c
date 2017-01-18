@@ -78,7 +78,7 @@ static const axes_uint32_t PROGMEM c0_P = {
 //         ACCELERATION * QUANTUM/F_CPU * QUANTUM/F_CPU * STEPS_PER_M / 1000
 //         ACCELERATION * QUANTUM * QUANTUM * STEPS_PER_M / F_CPU / F_CPU / 1000
 // Normalized to q10.22; allows up to 2^10=1024 in mantissa (steps per 2ms)
-#define ACCEL_P_SHIFT 22
+#define ACCEL_P_SHIFT 24
 // TODO: ASSERT(rampup_steps_to_vmax < 1<<(32-ACCEL_P_SHIFT))
 static const axes_uint32_t PROGMEM accel_P = {
   (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_X) <<(ACCEL_P_SHIFT+1)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
@@ -570,11 +570,10 @@ void dda_start(DDA *dda) {
     // Calculate velocity at first step: v = v0 + a * t
     move_state.velocity = muldiv(move_state.accel_per_tick, dda->c, QUANTUM);
     #endif
-    dda->n = 1;
+    dda->n = move_state.position = 1;
 
-    move_state.phase = PHASE_ACCEL;
-    move_state.position = move_state.elapsed = 0;
     move_state.step_no = 0;
+    move_state.accel = 1;
 
     // if (dda->c > QUANTUM) {
     //   uint32_t n = dda->c / QUANTUM;
@@ -943,7 +942,6 @@ void dda_clock() {
 
   #ifdef ACCELERATION_RAMPING
 
-    uint32_t move_step_no;
     // For maths about stepper speed profiles, see
     // http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
     // and http://www.atmel.com/images/doc8017.pdf (Atmel app note AVR446)
@@ -953,88 +951,84 @@ void dda_clock() {
       // so no need for atomic operations.
     ATOMIC_END
 
-
     // Plan ahead until the movement queue is full
-    while (dda->n < dda->total_steps &&
+    while (move_state.position < dda->total_steps &&
            current_id == dda->id &&
            move_state.next_n[move_state.tail] == 0) {
       uint8_t tail = move_state.tail;
       uint32_t move_c, curr_c;
       int32_t move_dc;
-      uint32_t velocity;
-      uint64_t remainder;
+      uint32_t velocity = move_state.velocity;
+      uint32_t remainder;
       uint32_t dx = 0;
-      unsigned i=0;
 
-      // FIXME: Move this to move_state
-      move_step_no = dda->n;
-
-      velocity = move_state.velocity;
-      // uint32_t elapsed = move_state.elapsed;
       remainder = move_state.remainder;
-      uint32_t step_no = move_step_no;
+      uint32_t step_no = move_state.position;
       uint32_t v0 = velocity;
+      #ifdef SIMULATOR
+        uint32_t i = 0;
+      #endif
 
+      while ( dx==0 ) {
 
-      while (dx==0 ) {
-
-        if (move_state.phase == PHASE_ACCEL) {
+        if (move_state.accel) {
+        //   uint32_t old_rem = remainder;
           remainder += velocity;
-          dx = (remainder >> ACCEL_P_SHIFT) - move_step_no;
+          dx = remainder >> ACCEL_P_SHIFT ;
+          step_no += dx;
+
+        //   sersendf_P(PSTR(" $$> vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, old_rem, dx, step_no);
 
           uint32_t vnext = velocity + move_state.accel_per_tick;
-          step_no += dx;
           // Almost reached mid-point of move or max velocity; time to cruise
-          if ((move_step_no + dx )*2 >= dda->total_steps || vnext > dda->vmax) {
-            move_state.phase = PHASE_CRUISE;
-            dx = dda->total_steps - move_step_no*2 - dx;
-
-            // TODO: Calculate accurate remainder for next phase?  It should affect only
-            //       very slow movements and seems pointless.
-            // remainder = (1ULL<<ACCEL_P_SHIFT) - (remainder & ((1ULL<<ACCEL_P_SHIFT)-1));
-        //     remainder = 0;
-
-            // elapsed += muldiv(dx*100, (QUANTUM/100) << ACCEL_P_SHIFT, velocity) - QUANTUM;
+          if (step_no*2 >= dda->total_steps || vnext > dda->vmax) {
+            move_state.accel = 0;
+            dx = dda->total_steps - step_no*2 + dx;
           } else {
             velocity = vnext;
           }
         }
         else {//if (move_state.phase >= PHASE_CRUISE) {
           remainder -= velocity;
-          dx = dda->total_steps - move_step_no - (remainder >> ACCEL_P_SHIFT) ;
+          remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
 
-          move_state.phase = PHASE_DECEL;
+          dx = (remainder + velocity) >> ACCEL_P_SHIFT ;
+          step_no += dx;
+
+        //   sersendf_P(PSTR(" $$< vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, (remainder + velocity) , dx, step_no);
+
           if (velocity > move_state.accel_per_tick)
             velocity -= move_state.accel_per_tick;
+
+          while (remainder >= velocity && velocity > move_state.accel_per_tick) {
+                  #ifdef SIMULATOR
+                    sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
+                      ++i, velocity, dda->vmax, dx, step_no, dda->total_steps, remainder);
+                  #endif
+            remainder -= velocity;
+            remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
+            velocity -= move_state.accel_per_tick;
+          }
         }
 
-        // elapsed += QUANTUM;
         #ifdef SIMULATOR
-        sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-           ++i, velocity, dda->vmax, dx, move_step_no+dx, dda->total_steps, remainder);
+          sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
+             ++i, velocity, dda->vmax, dx, step_no, dda->total_steps, remainder);
         #endif
       }
 
-      if (move_state.phase >= PHASE_CRUISE)
-        step_no = dda->total_steps - step_no;
-
       // Mask off mantissa
-      // remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
+      remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
 
       // if (recalc_speed)
       {
-        // if ((velocity >> ACCEL_P_SHIFT) == 0) {
-        //   // Slow movement.  Maybe we need to spend more time calculating c here. But since we're
-        //   // slow now, we can afford it.
-        // }
-        // move_c = muldiv(QUANTUM , 1UL<<ACCEL_P_SHIFT, dda->velocity);
         // If just 1 or 2 steps per quantum, use average velocity since the last movement (v0).
         // Otherwise, use the current velocity at the end of this quantum for the many steps expected.
         // TODO: Remove this distinction; it seems like we can always use the average without issue.
-        if (dx < 3)
+        // if (dx < 3)
           move_c = muldiv(QUANTUM , 2*1UL<<ACCEL_P_SHIFT, velocity+v0);
-        else
-          move_c = muldiv(QUANTUM , 1UL<<ACCEL_P_SHIFT, velocity);
+        // else
+        //   move_c = muldiv(QUANTUM , 1UL<<ACCEL_P_SHIFT, velocity);
         // move_c = (QUANTUM << 16) / (velocity >> (ACCEL_P_SHIFT - 16));
 
         // TODO: This shouldn't happen, ideally.  How can we prevent it?
@@ -1043,24 +1037,15 @@ void dda_clock() {
 
         if (move_c < dda->c_min) {
           move_c = dda->c_min;
-
-          // This is a hack which deals with movements with an unknown number of
-          // acceleration steps. dda_create() sets a very high number, then,
-          // but we don't want to re-calculate all the time.
-          // This hack doesn't work with lookahead.
-          // #ifndef LOOKAHEAD
-          //   dda->rampup_steps = move_step_no;
-          //   dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
-          // #endif
         }
-        move_dc = move_c - move_state.curr_c;
+        move_dc = move_c - move_state.curr_c + dx/2;
         move_dc /= (int32_t)dx;
         curr_c = move_state.curr_c + move_dc * dx;
       }
 
       #ifdef SIMULATOR
         sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  vel=%lu,%lu  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-          move_c, step_no, tail, move_state.phase, v0,velocity, move_c, dda->vmax, dx, move_step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
+          move_c, step_no, tail, move_state.accel, v0,velocity, move_c, dda->vmax, dx, step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
       // sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
       //    ++i, velocity, dda->vmax, dx, move_step_no+dx, dda->total_steps, remainder);
       #endif
@@ -1082,10 +1067,8 @@ void dda_clock() {
           move_state.next_n[tail] = dx;
           move_state.curr_c = curr_c;
           // sersendf_P(PSTR("\n>> DDA %u. c=%lu  dc=%ld  n=%lu\n"), tail, curr_c, move_dc, dx);
-          dda->n += dx;
           move_state.velocity = velocity;
 
-          // move_state.elapsed = elapsed;
           move_state.remainder = remainder;
           move_state.position += dx;
         }
