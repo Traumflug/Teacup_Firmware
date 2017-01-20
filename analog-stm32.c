@@ -9,6 +9,7 @@
 
 #include "cmsis-stm32f4xx.h"
 #include "arduino.h"
+#include "pinio.h"
 #include "delay.h"
 #include "temp.h"
 #include <string.h>
@@ -48,9 +49,9 @@ void init_analog() {
    3. high speed
   */
   #define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
-    pin ## _PORT->MODER |= (GPIO_MODER_MODER0 << ((pin ## _PIN) << 1)); \
-    pin ## _PORT->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << ((pin ## _PIN) << 1)); \
-    pin ## _PORT->OSPEEDR |= (GPIO_OSPEEDER_OSPEEDR0 << ((pin ## _PIN) << 1));
+    SET_MODE(pin, 0x3);   \
+    PULL_OFF(pin);        \
+    SET_OSPEED(pin, 0x3);
   #include "config_wrapper.h"
   #undef DEFINE_TEMP_SENSOR
 
@@ -144,38 +145,18 @@ void init_dma() {
    * halfword for memory and periphal: the 12bit ADC is 16bit right aligned
    * memory inc.: we read any adc and doing a step of 16bits after each conversion
    * circular mode: repeat until inf
-   * double buffer mode: we write to one adress and read the other
    */
   tmp_CR &= ~(DMA_SxCR_DIR);
   tmp_CR |= DMA_SxCR_MSIZE_0 |
             DMA_SxCR_PSIZE_0 |
             DMA_SxCR_MINC |
-            DMA_SxCR_CIRC |
-            DMA_SxCR_TCIE;
+            DMA_SxCR_CIRC;
 
   DMA2_Stream4->CR = tmp_CR;
 
   // 10. Enable DMA-Stream
   DMA2_Stream4->CR |= DMA_SxCR_EN;
   while(!(DMA2_Stream4->CR & DMA_SxCR_EN));
-
-  NVIC_SetPriority(DMA2_Stream4_IRQn,
-  NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 3, 1));
-  NVIC_EnableIRQ(DMA2_Stream4_IRQn);                // Enable interrupt generally.
-
-}
-
-/**
-  DMA2 Stream4 interrupt.
-
-  Happens every time the complete stream is written.
-  In that case, we can turn of the ADC until we read it.
-
-  Must have the same name as in cmsis-startup_stm32f411xe.s.
-*/
-void DMA2_Stream4_IRQHandler(void) {
-  DMA2->HIFCR = DMA_HIFCR_CTCIF4;
-  ADC1->CR2 &= ~(ADC_CR2_DMA);     // clear DMA flag; we restart it in start_adc()
 }
 
 /** Read analog value.
@@ -212,6 +193,7 @@ uint16_t analog_read(uint8_t index) {
   Start a new ADC conversion.
 */
 void start_adc() {
+  ADC1->CR2 &= ~(ADC_CR2_DMA);
   ADC1->CR2 |= ADC_CR2_DMA;
 }
 
