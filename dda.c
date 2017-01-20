@@ -415,14 +415,6 @@ void dda_create(DDA *dda, const TARGET *target) {
       if (dda->endpoint.F > 65535)
         dda->endpoint.F = 65535;
 
-      // Acceleration ramps are based on the fast axis, not the combined speed.
-      dda->rampup_steps =
-        acc_ramp_len(muldiv(dda->fast_um, dda->endpoint.F, distance),
-                     dda->fast_axis);
-
-      if (dda->rampup_steps > dda->total_steps / 2)
-        dda->rampup_steps = dda->total_steps / 2;
-      dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
 
       // // vmax = v0 + a*t
       // // a*t = vmax - v0
@@ -655,6 +647,11 @@ void dda_step(DDA *dda) {
       dda->steps = move_state.next_n[move_state.head];
       if (dda->steps) {
         dda->dc = move_state.next_dc[move_state.head];
+
+        // Minimize the "cruise" motion if endstop is triggered
+        if (move_state.endstop_stop && dda->dc == 0)
+          dda->steps = 1;
+
         // sersendf_P(PSTR("\n<< DDA %u. c=%lu  dc=%ld  n=%lu\n"), move_state.head, dda->c, dda->dc, dda->steps);
         move_state.next_n[move_state.head++] = 0;
         if (move_state.head == SUB_MOVE_QUEUE_SIZE)
@@ -775,8 +772,7 @@ void dda_step(DDA *dda) {
   // TODO: with ACCELERATION_TEMPORAL this duplicates some code. See where
   //       dda->live is zero'd, about 10 lines above.
   #if ! defined ACCELERATION_TEMPORAL
-    if (move_state.step_no >= dda->total_steps ||
-        (move_state.endstop_stop && dda->n <= 0))
+    if (move_state.step_no >= dda->total_steps)
   #else
     if (move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
         move_state.steps[Z] == 0 && move_state.steps[E] == 0)
@@ -922,16 +918,16 @@ void dda_clock() {
         // but start deceleration here.
         ATOMIC_START
           move_state.endstop_stop = 1;
-          if (move_state.step_no < dda->rampup_steps)  // still accelerating
-            dda->total_steps = move_state.step_no * 2;
-          else
-            // A "-=" would overflow earlier.
-            dda->total_steps = dda->total_steps - dda->rampdown_steps +
-                               move_state.step_no;
-          dda->rampdown_steps = move_state.step_no;
+          if (move_state.accel)  // still accelerating
+            dda->total_steps = move_state.position * 2;
+          else {
+            // The "cruise" planner step is already queued.
+            // dda_step will ignore the cruise plan when endstop is triggered,
+            // but if we are already in the cruise step, end it now.
+            if (dda->dc == 0)
+              dda->steps = 1;
+          }
         ATOMIC_END
-        // Not atomic, because not used in dda_step().
-        dda->rampup_steps = 0; // in case we're still accelerating
       #else
         dda->live = 0;
       #endif
