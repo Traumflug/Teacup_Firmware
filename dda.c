@@ -982,6 +982,10 @@ void dda_clock() {
             velocity -= move_state.accel_per_tick;
             remainder -= velocity;
 
+            // Squash overflow because we went too far
+            if (dx+step_no > dda->total_steps) {
+              dx = 0;
+            }
           }
         }
         else {
