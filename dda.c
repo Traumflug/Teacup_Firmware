@@ -1035,13 +1035,9 @@ void dda_clock() {
       curr_c = move_state.curr_c + move_dc * dx;
 
       #ifdef SIMULATOR
-        sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  vel=%lu,%lu  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-          move_c, step_no, tail, move_state.accel, v0,velocity, move_c, dda->vmax, dx, step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
-      // sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-      //    ++i, velocity, dda->vmax, dx, move_step_no+dx, dda->total_steps, remainder);
+        sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  vel=%lu (%lu,%lu)  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
+          move_c, step_no, tail, move_state.accel, (v0+velocity)/2, v0,velocity, move_c, dda->vmax, dx, step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
       #endif
-      // sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  elapsed=%lu  vel=%lu,%lu  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-      //   move_c, step_no, tail, move_state.phase, elapsed , v0,velocity, move_c, dda->vmax, dx, move_step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
 
       // Write results.
       ATOMIC_START
