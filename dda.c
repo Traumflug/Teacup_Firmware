@@ -974,32 +974,31 @@ void dda_clock() {
         if (move_state.accel) {
         //   uint32_t old_rem = remainder;
           remainder += velocity;
+          velocity += move_state.accel_per_tick;
           dx = remainder >> ACCEL_P_SHIFT ;
-          step_no += dx;
 
         //   sersendf_P(PSTR(" $$> vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, old_rem, dx, step_no);
 
-          uint32_t vnext = velocity + move_state.accel_per_tick;
           // Almost reached mid-point of move or max velocity; time to cruise
-          if (step_no*2 >= dda->total_steps || vnext > dda->vmax) {
+          if (step_no*2 + dx*2 >= dda->total_steps || velocity > dda->vmax) {
             move_state.accel = 0;
-            dx = dda->total_steps - step_no*2 + dx;
-          } else {
-            velocity = vnext;
+            dx = dda->total_steps - 2*step_no;
+            // Undo speed change for this step
+            velocity -= move_state.accel_per_tick;
+            remainder -= velocity;
+
           }
         }
-        else {//if (move_state.phase >= PHASE_CRUISE) {
+        else {
           remainder -= velocity;
           remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
-
-          dx = (remainder + velocity) >> ACCEL_P_SHIFT ;
-          step_no += dx;
 
         //   sersendf_P(PSTR(" $$< vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, (remainder + velocity) , dx, step_no);
 
           if (velocity > move_state.accel_per_tick)
             velocity -= move_state.accel_per_tick;
 
+          dx = (remainder + velocity) >> ACCEL_P_SHIFT ;
           while (remainder >= velocity && velocity > move_state.accel_per_tick) {
                   #ifdef SIMULATOR
                     sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
@@ -1011,6 +1010,7 @@ void dda_clock() {
           }
         }
 
+        step_no += dx;
         #ifdef SIMULATOR
           sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
              ++i, velocity, dda->vmax, dx, step_no, dda->total_steps, remainder);
