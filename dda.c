@@ -656,7 +656,8 @@ void dda_step(DDA *dda) {
         move_state.next_n[move_state.head++] = 0;
         if (move_state.head == SUB_MOVE_QUEUE_SIZE)
           move_state.head = 0;
-      } else {
+      }
+      else if (move_state.step_no < dda->total_steps ) {
         // This is bad.  It means we will idle at the last commanded speed and send more steps than commanded.
         // sersendf_P(PSTR("\n-- DDA underflow with %lu steps remaining\n"), dda->total_steps - move_state.  step_no);
         dda->steps++;
@@ -781,9 +782,7 @@ void dda_step(DDA *dda) {
 		dda->live = 0;
     dda->done = 1;
     if (dda->steps) {
-      // Note: currently we expect to have leftover steps because the feeder never stops feeding.
-      // Maybe we should fix that, but it is no harm for now.
-      // sersendf_P(PSTR("\n-- DDA has %lu leftover steps in its todo list.\n"), dda->steps);
+      sersendf_P(PSTR("\n-- DDA has %lu leftover steps in its todo list.\n"), dda->steps);
     }
     #ifdef LOOKAHEAD
     // If look-ahead was using this move, it could have missed our activation:
