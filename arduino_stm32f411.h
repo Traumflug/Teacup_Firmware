@@ -24,10 +24,8 @@
 
 /** Pins for UART, the serial port.
 */
-#define RXD_PORT        PA_3_PORT
-#define RXD_PIN         PA_3_PIN
-#define TXD_PORT        PA_2_PORT
-#define TXD_PIN         PA_2_PIN
+#define RXD             PA_3
+#define TXD             PA_2
 
 /**
   We define only pins available on the Nucleo F411RE here.

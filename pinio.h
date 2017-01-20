@@ -143,13 +143,19 @@
   /// Enable pullup resistor.
   #define _PULLUP_ON(IO) \
     do { \
-      IO ## _PORT->PUPDR &= ~(3 << ((IO ## _PIN) << 1)); \
-      IO ## _PORT->PUPDR |= (1 << ((IO ## _PIN) << 1)); \
+      IO ## _PORT->PUPDR &= ~(0x3 << ((IO ## _PIN) * 2)); \
+      IO ## _PORT->PUPDR |= (0x1 << ((IO ## _PIN) * 2)); \
+    } while (0)
+  /// Enable pulldown resistor.
+  #define _PULLDOWN_ON(IO) \
+    do { \
+      IO ## _PORT->PUPDR &= ~(0x3 << ((IO ## _PIN) * 2)); \
+      IO ## _PORT->PUPDR |= (0x2 << ((IO ## _PIN) * 2)); \
     } while (0)
   /// Disable pullup resistor.
   #define _PULL_OFF(IO) \
     do { \
-      IO ## _PORT->PUPDR &= ~(3 << ((IO ## _PIN) << 1)); \
+      IO ## _PORT->PUPDR &= ~(0x3 << ((IO ## _PIN) * 2)); \
     } while (0)
 
   /// Set alternate function register
