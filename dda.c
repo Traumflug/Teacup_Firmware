@@ -77,14 +77,14 @@ static const axes_uint32_t PROGMEM c0_P = {
 //         ACCELERATION * (QUANTUM/F_CPU)^2 * STEPS_PER_M / 1000
 //         ACCELERATION * QUANTUM/F_CPU * QUANTUM/F_CPU * STEPS_PER_M / 1000
 //         ACCELERATION * QUANTUM * QUANTUM * STEPS_PER_M / F_CPU / F_CPU / 1000
-// Normalized to q10.22; allows up to 2^10=1024 in mantissa (steps per 2ms)
+// Normalized to q8.24; allows up to 2^8=256 in mantissa (steps per quantum)
 #define ACCEL_P_SHIFT 24
 // TODO: ASSERT(rampup_steps_to_vmax < 1<<(32-ACCEL_P_SHIFT))
 static const axes_uint32_t PROGMEM accel_P = {
-  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_X) <<(ACCEL_P_SHIFT+1)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
-  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_Y) <<(ACCEL_P_SHIFT+1)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
-  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_Z) <<(ACCEL_P_SHIFT+1)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
-  (uint32_t)((((uint64_t)ACCELERATION * STEPS_PER_M_E) <<(ACCEL_P_SHIFT+1)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2
+  (uint32_t)((((double)ACCELERATION * STEPS_PER_M_X) *(2<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
+  (uint32_t)((((double)ACCELERATION * STEPS_PER_M_Y) *(2<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
+  (uint32_t)((((double)ACCELERATION * STEPS_PER_M_Z) *(2<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
+  (uint32_t)((((double)ACCELERATION * STEPS_PER_M_E) *(2<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2
 };
 
 /*! Set the direction of the 'n' axis
@@ -559,7 +559,7 @@ void dda_start(DDA *dda) {
     #ifdef USE_BIAS
     move_state.remainder = (1ULL<<ACCEL_P_SHIFT)/2;
     #else
-    move_state.remainder = (1ULL<<ACCEL_P_SHIFT);
+    move_state.remainder = 0;
     #endif
 
     // Biasing the velocity by 1/2 acceleration lets us easily represent the average velocity for each
