@@ -168,19 +168,10 @@ void heater_init() {
       else if (pin ## _TIMER == TIM4) {                                                  \
         RCC->APB1ENR |= RCC_APB1ENR_TIM4EN; }                     /* turn on TIM4     */ \
       /* TIM5 is for stepper, TIM9, TIM10 and TIM11 are not used                      */ \
-      pin ## _PORT->MODER &= ~(3 << (pin ## _PIN << 1));      /*  reset pin mode      */ \
-      pin ## _PORT->MODER |= (2 << (pin ## _PIN << 1));       /*  pin mode to AF      */ \
-      pin ## _PORT->OSPEEDR |= (3 << (pin ## _PIN << 1));     /*  high speed          */ \
-      pin ## _PORT->PUPDR &= ~(3 << ((pin ## _PIN) << 1));    /*  no pullup-pulldown  */ \
-      macro_mask = pin ## _PIN < 8 ? (pin ## _PIN) : (pin ## _PIN - 8);                  \
-      /* we have to registers for AFR. ARF[0] for the first 8, ARF[1] for the second 8*/ \
-      /* also we use this to keep the compiler happy and don't shift > 32             */ \
-      if (pin ## _PIN < 8) {                                                             \
-        pin ## _PORT->AFR[0] |= pin ## _AF << (macro_mask * 4);                          \
-      } else {                                                                           \
-        pin ## _PORT->AFR[1] |= pin ## _AF << (macro_mask * 4);                          \
-      }                                                                                  \
-      /* AFR is a 64bit register, first half are for pin 0-7, second half 8-15        */ \
+      SET_MODE(pin, 0x2);                                         /* pin mode to AF   */ \
+      SET_AFR(pin, pin ## _AF);                                                          \
+      SET_OSPEED(pin, 0x3);                                       /* high speed       */ \
+      PULL_OFF(pin);                                              /* no pullup/-down  */ \
       pin ## _TIMER->CR1 |= TIM_CR1_ARPE;                     /* auto-reload preload  */ \
       pin ## _TIMER->ARR = PWM_SCALE - 1;             /* reset on auto reload at 254  */ \
                         /* PWM_SCALE - 1, so CCR = 255 is full off.                   */ \
