@@ -1020,28 +1020,20 @@ void dda_clock() {
       // Mask off mantissa
       remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
 
-      // if (recalc_speed)
-      {
-        // If just 1 or 2 steps per quantum, use average velocity since the last movement (v0).
-        // Otherwise, use the current velocity at the end of this quantum for the many steps expected.
-        // TODO: Remove this distinction; it seems like we can always use the average without issue.
-        // if (dx < 3)
-          move_c = muldiv(QUANTUM , 2*1UL<<ACCEL_P_SHIFT, velocity+v0);
-        // else
-        //   move_c = muldiv(QUANTUM , 1UL<<ACCEL_P_SHIFT, velocity);
-        // move_c = (QUANTUM << 16) / (velocity >> (ACCEL_P_SHIFT - 16));
+      // Average velocity since the last movement (v0).
+      // FIXME: The "mul" is constant here; can't we make this a simple division?
+      move_c = muldiv(QUANTUM , 2*1UL<<ACCEL_P_SHIFT, velocity+v0);
 
-        // TODO: This shouldn't happen, ideally.  How can we prevent it?
-        if (move_c > pgm_read_dword(&c0_P[dda->fast_axis]))
-          move_c = pgm_read_dword(&c0_P[dda->fast_axis]);
+      // TODO: This shouldn't happen, ideally.  How can we prevent it?
+      if (move_c > pgm_read_dword(&c0_P[dda->fast_axis]))
+        move_c = pgm_read_dword(&c0_P[dda->fast_axis]);
 
-        if (move_c < dda->c_min) {
-          move_c = dda->c_min;
-        }
-        move_dc = move_c - move_state.curr_c + dx/2;
-        move_dc /= (int32_t)dx;
-        curr_c = move_state.curr_c + move_dc * dx;
+      if (move_c < dda->c_min) {
+        move_c = dda->c_min;
       }
+      move_dc = move_c - move_state.curr_c + dx/2;
+      move_dc /= (int32_t)dx;
+      curr_c = move_state.curr_c + move_dc * dx;
 
       #ifdef SIMULATOR
         sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  vel=%lu,%lu  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
