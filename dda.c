@@ -454,7 +454,6 @@ void dda_create(DDA *dda, const TARGET *target) {
       #else
         dda->n = 0;
         dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
-        dda->steps = 1;
       #endif
 
 		#elif defined ACCELERATION_TEMPORAL
@@ -536,9 +535,12 @@ void dda_start(DDA *dda) {
     // is why we keep the current accel value in the dda.
     move_state.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
 
-    move_state.head = move_state.tail = 0;
-    for (int i = 0; i < SUB_MOVE_QUEUE_SIZE; i++)
+    move_state.head = 0;
+    move_state.tail = 1;
+    for (int i = 1; i < SUB_MOVE_QUEUE_SIZE; i++)
       move_state.next_n[i] = 0;
+    move_state.next_n[move_state.head] = 1;
+    move_state.next_dc[move_state.head] = 1;
     move_state.curr_c = dda->c;
 
     // Biasing the remainder causes us to step when the integral rounds-up to the next step.  This follows
@@ -562,7 +564,7 @@ void dda_start(DDA *dda) {
     // Calculate velocity at first step: v = v0 + a * t
     move_state.velocity = muldiv(move_state.accel_per_tick, dda->c, QUANTUM);
     #endif
-    dda->n = move_state.position = 1;
+    move_state.position = 1;
 
     move_state.step_no = 0;
     move_state.accel = 1;
@@ -643,27 +645,6 @@ void dda_step(DDA *dda) {
       }
     }
     move_state.step_no++;
-    if (--dda->steps == 0) {
-      dda->steps = move_state.next_n[move_state.head];
-      if (dda->steps) {
-        dda->dc = move_state.next_dc[move_state.head];
-
-        // Minimize the "cruise" motion if endstop is triggered
-        if (move_state.endstop_stop && dda->dc == 0)
-          dda->steps = 1;
-
-        // sersendf_P(PSTR("\n<< DDA %u. c=%lu  dc=%ld  n=%lu\n"), move_state.head, dda->c, dda->dc, dda->steps);
-        move_state.next_n[move_state.head++] = 0;
-        if (move_state.head == SUB_MOVE_QUEUE_SIZE)
-          move_state.head = 0;
-      }
-      else if (move_state.step_no < dda->total_steps ) {
-        // This is bad.  It means we will idle at the last commanded speed and send more steps than commanded.
-        // sersendf_P(PSTR("\n-- DDA underflow with %lu steps remaining\n"), dda->total_steps - move_state.  step_no);
-        dda->steps++;
-      }
-    }
-    dda->c += dda->dc;
   #endif
 
 	#ifdef ACCELERATION_REPRAP
@@ -781,8 +762,8 @@ void dda_step(DDA *dda) {
   {
 		dda->live = 0;
     dda->done = 1;
-    if (dda->steps) {
-      sersendf_P(PSTR("\n-- DDA has %lu leftover steps in its todo list.\n"), dda->steps);
+    if (move_state.next_n[move_state.head]) {
+      sersendf_P(PSTR("\n-- DDA has %lu leftover steps in its todo list.\n"), move_state.next_n[move_state.head]);
     }
     #ifdef LOOKAHEAD
     // If look-ahead was using this move, it could have missed our activation:
@@ -802,6 +783,24 @@ void dda_step(DDA *dda) {
 	}
   else {
 		psu_timeout = 0;
+
+    // Check for movement underflow
+    if (move_state.next_n[move_state.head] == 0) {
+      // This is bad.  It means we will idle at the last commanded speed and send more steps than commanded.
+      sersendf_P(PSTR("\n-- DDA underflow @ %u with %lu steps remaining\n"), move_state.head, dda->total_steps - move_state.  step_no);
+      move_state.next_n[move_state.head]++;
+    }
+
+    if (--move_state.next_n[move_state.head] == 0) {
+      if (++move_state.head == SUB_MOVE_QUEUE_SIZE)
+        move_state.head = 0;
+    } else {
+      // Minimize the "cruise" motion if endstop is triggered
+      if (move_state.endstop_stop && move_state.next_dc[move_state.head] == 0)
+        move_state.next_n[move_state.head] = 1;
+    }
+    dda->c += move_state.next_dc[move_state.head];
+
     #ifndef ACCELERATION_TEMPORAL
       timer_set(dda->c, 0);
     #endif
@@ -919,13 +918,6 @@ void dda_clock() {
           move_state.endstop_stop = 1;
           if (move_state.accel)  // still accelerating
             dda->total_steps = move_state.position * 2;
-          else {
-            // The "cruise" planner step is already queued.
-            // dda_step will ignore the cruise plan when endstop is triggered,
-            // but if we are already in the cruise step, end it now.
-            if (dda->dc == 0)
-              dda->steps = 1;
-          }
         ATOMIC_END
       #else
         dda->live = 0;

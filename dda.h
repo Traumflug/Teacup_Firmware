@@ -135,10 +135,6 @@ typedef struct {
 	#ifdef ACCELERATION_RAMPING
   /// precalculated step time offset variable
   int32_t           n;
-  /// number of steps at current slope (dc) before switching to move_state.head++
-  uint32_t          steps;
-  /// Delta c (slope of c) for current moves
-  int32_t           dc;
 	/// number of steps accelerating
 	uint32_t					rampup_steps;
 	/// number of last step before decelerating
