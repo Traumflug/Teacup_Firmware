@@ -23,11 +23,32 @@
   uint8_t serial_popchar(void);
   // send one character
   void serial_writechar(uint8_t data);
+
+  #ifdef SERIAL_DEBUG
+    // uint8_t debug_rxchars(void);
+    // uint8_t debug_txchars(void);
+    // uint8_t debug_popchar(void);
+    void debug_writechar(uint8_t data);
+  #else
+    #define debug_writechar(data) serial_writechar(data)
+  #endif
+
 #endif /* USB_SERIAL */
 
-void serial_writestr(uint8_t *data);
+void writestr(void (*writechar)(uint8_t), uint8_t *data, ...);
 
 // write from flash
-void serial_writestr_P(PGM_P data_P);
+void writestr_P(void (*writechar)(uint8_t), PGM_P data_P, ...);
+
+#define serial_writestr(...) writestr(serial_writechar, __VA_ARGS__)
+#define serial_writestr_P(...) writestr_P(serial_writechar, __VA_ARGS__)
+
+#ifdef SERIAL_DEBUG
+  #define debug_writestr(...) writestr(debug_writechar, __VA_ARGS__)
+  #define debug_writestr_P(...) writestr_P(debug_writechar, __VA_ARGS__)
+#else
+  #define debug_writestr(...) writestr(serial_writechar, __VA_ARGS__)
+  #define debug_writestr_P(...) writestr_P(serial_writechar, __VA_ARGS__)
+#endif
 
 #endif	/* _SERIAL_H */

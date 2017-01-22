@@ -122,6 +122,9 @@ void init(void) {
 
 	// say hi to host
 	serial_writestr_P(PSTR("start\nok\n"));
+  #ifdef SERIAL_DEBUG
+    debug_writestr_P(PSTR("debug start\nok\n"));
+  #endif
 
 }
 

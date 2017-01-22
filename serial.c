@@ -18,12 +18,12 @@
 
 
 /// send a string- look for null byte instead of expecting a length
-void serial_writestr(uint8_t *data)
+void writestr(void (*writechar)(uint8_t), uint8_t *data, ...)
 {
 	uint8_t i = 0, r;
 	// yes, this is *supposed* to be assignment rather than comparison, so we break when r is assigned zero
 	while ((r = data[i++]))
-		serial_writechar(r);
+		writechar(r);
 }
 
 /**
@@ -36,10 +36,10 @@ void serial_writestr(uint8_t *data)
   For single character writes (i.e. '\n' instead of "\n"), using
   serial_writechar() directly is the better choice.
 */
-void serial_writestr_P(PGM_P data_P)
+void writestr_P(void (*writechar)(uint8_t), PGM_P data_P, ...)
 {
 	uint8_t r, i = 0;
 	// yes, this is *supposed* to be assignment rather than comparison, so we break when r is assigned zero
 	while ((r = pgm_read_byte(&data_P[i++])))
-		serial_writechar(r);
+		writechar(r);
 }
