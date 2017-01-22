@@ -141,7 +141,7 @@ typedef struct {
 	uint32_t					rampdown_steps;
 	/// 24.8 fixed point timer value, maximum speed
 	uint32_t					c_min;
-  /// Maximum velocity in steps/QUANTUM; 10.22 fixed point value
+  /// Maximum velocity in steps/QUANTUM; 8.24 fixed point value
   uint32_t          vmax;
   #ifdef LOOKAHEAD
   // With the look-ahead functionality, it is possible to retain physical

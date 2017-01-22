@@ -79,7 +79,6 @@ static const axes_uint32_t PROGMEM c0_P = {
 //         ACCELERATION * QUANTUM * QUANTUM * STEPS_PER_M / F_CPU / F_CPU / 1000
 // Normalized to q8.24; allows up to 2^8=256 in mantissa (steps per quantum)
 #define ACCEL_P_SHIFT 24
-// TODO: ASSERT(rampup_steps_to_vmax < 1<<(32-ACCEL_P_SHIFT))
 static const axes_uint32_t PROGMEM accel_P = {
   (uint32_t)((((double)ACCELERATION * STEPS_PER_M_X) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
   (uint32_t)((((double)ACCELERATION * STEPS_PER_M_Y) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
