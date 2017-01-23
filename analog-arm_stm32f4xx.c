@@ -12,11 +12,10 @@
 #include "pinio.h"
 #include "delay.h"
 #include "temp.h"
-#include <string.h>
 
 // DMA ADC-buffer
 #define OVERSAMPLE 6
-static uint16_t BSS adc_buffer[NUM_TEMP_SENSORS * OVERSAMPLE];
+static uint16_t BSS adc_buffer[OVERSAMPLE][NUM_TEMP_SENSORS];
 
 // Private functions
 void init_analog(void);
@@ -41,6 +40,8 @@ void analog_init() {
 */
 void init_analog() {
 
+  RCC->APB2ENR |= RCC_APB2ENR_ADC1EN; //Enable clock
+
   #undef DEFINE_TEMP_SENSOR
   /*
    config analog pins
@@ -54,8 +55,6 @@ void init_analog() {
     SET_OSPEED(pin, 0x3);
   #include "config_wrapper.h"
   #undef DEFINE_TEMP_SENSOR
-
-  RCC->APB2ENR |= RCC_APB2ENR_ADC1EN; //Enable clock
 
   /* Set ADC parameters */
   /* Set the ADC clock prescaler */
@@ -102,9 +101,10 @@ void init_analog() {
   ADC1->CR2 |= ADC_CR2_SWSTART;
 }
 
-/** Init the DMA for ADC
-*/
 
+/**
+  Init the DMA for ADC
+*/
 void init_dma() {
 
   RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN; // Enable clock
@@ -123,18 +123,15 @@ void init_dma() {
   DMA2_Stream4->PAR = (uint32_t)&ADC1->DR;
 
   // 3. memory address
-  DMA2_Stream4->M0AR = (uint32_t)&adc_buffer;
+  DMA2_Stream4->M0AR = (uint32_t)adc_buffer;
 
   // 4. total number of data items
   DMA2_Stream4->NDTR = NUM_TEMP_SENSORS * OVERSAMPLE;
 
   // 5. DMA channel
-  // channel 0
   tmp_CR &= ~(DMA_SxCR_CHSEL);
 
-  // 6.
   // 7. priority
-  // Very high
   tmp_CR |= DMA_SxCR_PL;
 
   // 8. FIFO
@@ -150,13 +147,32 @@ void init_dma() {
   tmp_CR |= DMA_SxCR_MSIZE_0 |
             DMA_SxCR_PSIZE_0 |
             DMA_SxCR_MINC |
-            DMA_SxCR_CIRC;
+            DMA_SxCR_CIRC |
+            DMA_SxCR_TCIE;
 
   DMA2_Stream4->CR = tmp_CR;
 
   // 10. Enable DMA-Stream
   DMA2_Stream4->CR |= DMA_SxCR_EN;
   while(!(DMA2_Stream4->CR & DMA_SxCR_EN));
+
+  NVIC_SetPriority(DMA2_Stream4_IRQn,
+  NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 3, 3));
+  NVIC_EnableIRQ(DMA2_Stream4_IRQn);                // Enable interrupt generally.
+
+}
+
+/**
+  DMA2 Stream4 interrupt.
+
+  Happens every time the complete stream is written.
+  In that case we stop the continious conversion and clear the DMA bit.
+
+  Must have the same name as in cmsis-startup_stm32f411xe.s.
+*/
+void DMA2_Stream4_IRQHandler(void) {
+  DMA2->HIFCR = DMA_HIFCR_CTCIF4;
+  ADC1->CR2 &= ~(ADC_CR2_CONT | ADC_CR2_DMA);
 }
 
 /** Read analog value.
@@ -166,7 +182,6 @@ void init_dma() {
   \return Analog reading, 10-bit right aligned.
 
 */
-
 uint16_t analog_read(uint8_t index) {
   if (NUM_TEMP_SENSORS > 0) {
     uint16_t r = 0;
@@ -175,7 +190,7 @@ uint16_t analog_read(uint8_t index) {
     uint16_t min_temp = 0xffff;
 
     for (uint8_t i = 0; i < OVERSAMPLE; i++) {
-      temp = adc_buffer[index + NUM_TEMP_SENSORS * i];
+      temp = adc_buffer[i][index];
       max_temp = max_temp > temp ? max_temp : temp;
       min_temp = min_temp < temp ? min_temp : temp;
       r += temp;
@@ -186,15 +201,18 @@ uint16_t analog_read(uint8_t index) {
   } else {
     return 0;
   }
-  // memset(adc_buffer[!(DMA2_Stream4->CR & DMA_SxCR_CT)], 0, sizeof(adc_buffer[0]));
 }
 
 /**
   Start a new ADC conversion.
 */
 void start_adc() {
-  ADC1->CR2 &= ~(ADC_CR2_DMA);
-  ADC1->CR2 |= ADC_CR2_DMA;
+  /* To restart the DMA, clear (done in the TCI) and set the DMA bit.
+     Then enable the continious conversion and start the ADC again.
+  */
+  ADC1->CR2 |= ADC_CR2_DMA |
+               ADC_CR2_CONT |
+               ADC_CR2_SWSTART;
 }
 
 #endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
