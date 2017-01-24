@@ -31,6 +31,13 @@ typedef uint32_t axes_uint32_t[AXIS_COUNT];
 */
 typedef int32_t axes_int32_t[AXIS_COUNT];
 
+// Period over which we calculate new velocity; should be at least TICK_TIME/2
+#define QUANTUM (TICK_TIME*2)
+
+// Acceleration per QUANTUM.
+// Normalized to q8.24; allows up to 2^8=256 in mantissa (steps per quantum)
+#define ACCEL_P_SHIFT 24
+
 /**
 	\struct TARGET
 	\brief target is simply a point in space/time
@@ -152,6 +159,11 @@ typedef struct {
   // These two are based on the "fast" axis, the axis with the most steps.
   uint32_t          start_steps; ///< would be required to reach start feedrate
   uint32_t          end_steps; ///< would be required to stop from end feedrate
+
+  /// Start velocity in steps/QUANTUM; 8.24 fixed point value
+  uint32_t          start_v;
+  /// End velocity in steps/QUANTUM; 8.24 fixed point value
+  uint32_t          end_v;
   #endif
   // Number the moves to be able to test at the end of lookahead if the moves
   // are the same. Note: we do not need a lot of granularity here: more than

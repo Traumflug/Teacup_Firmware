@@ -68,9 +68,6 @@ static const axes_uint32_t PROGMEM c0_P = {
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_E * ACCELERATION / 2000.))
 };
 
-// Period over which we calculate new velocity; should be at least TICK_TIME/2
-#define QUANTUM (TICK_TIME*2)
-
 // Acceleration per QUANTUM.
 //           mm/s^2     * (s/QUANTUM)^2            *   steps/m   * 1m/1000mm = steps/QUANTUM^2
 // Accel = ACCELERATION * QUANTUM(s)^2 * STEPS_PER_M / 1000
@@ -78,7 +75,6 @@ static const axes_uint32_t PROGMEM c0_P = {
 //         ACCELERATION * QUANTUM/F_CPU * QUANTUM/F_CPU * STEPS_PER_M / 1000
 //         ACCELERATION * QUANTUM * QUANTUM * STEPS_PER_M / F_CPU / F_CPU / 1000
 // Normalized to q8.24; allows up to 2^8=256 in mantissa (steps per quantum)
-#define ACCEL_P_SHIFT 24
 static const axes_uint32_t PROGMEM accel_P = {
   (uint32_t)((((double)ACCELERATION * STEPS_PER_M_X) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
   (uint32_t)((((double)ACCELERATION * STEPS_PER_M_Y) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
@@ -204,6 +200,7 @@ void dda_create(DDA *dda, const TARGET *target) {
     dda->crossF = 0;
     dda->start_steps = 0;
     dda->end_steps = 0;
+    dda->start_v = dda->end_v = 0 ;
   #endif
   #ifdef ACCELERATION_RAMPING
     // Give this move an identifier.
@@ -408,12 +405,16 @@ void dda_create(DDA *dda, const TARGET *target) {
         dda->c_min = c_limit;
         dda->endpoint.F = move_duration / dda->c_min;
       }
-      dda->vmax = muldiv(QUANTUM, 1UL << ACCEL_P_SHIFT, dda->c_min);
 
       // Lookahead can deal with 16 bits ( = 1092 mm/s), only.
       if (dda->endpoint.F > 65535)
         dda->endpoint.F = 65535;
 
+      dda->vmax = muldiv(QUANTUM, 1UL << ACCEL_P_SHIFT, dda->c_min);
+      dda->rampup_steps = muldiv(dda->vmax + dda->start_v, dda->vmax - dda->start_v, pgm_read_dword(&accel_P[dda->fast_axis])*2);
+      if (dda->rampup_steps > dda->total_steps )
+        dda->rampup_steps = dda->total_steps ;
+      dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
 
       // // vmax = v0 + a*t
       // // a*t = vmax - v0
@@ -450,6 +451,7 @@ void dda_create(DDA *dda, const TARGET *target) {
                     int_inv_sqrt(dda->n)) >> 11;
         if (dda->c < dda->c_min)
           dda->c = dda->c_min;
+        dda->vmax = muldiv(QUANTUM, 1UL << ACCEL_P_SHIFT, dda->c_min);
       #else
         dda->n = 0;
         dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
@@ -538,32 +540,52 @@ void dda_start(DDA *dda) {
     move_state.tail = 1;
     for (int i = 1; i < SUB_MOVE_QUEUE_SIZE; i++)
       move_state.next_n[i] = 0;
-    move_state.next_n[move_state.head] = 1;
-    move_state.next_dc[move_state.head] = 1;
+
     move_state.curr_c = dda->c;
 
-    // Biasing the remainder causes us to step when the integral rounds-up to the next step.  This follows
-    // the method used in the original stepper-motor step estimation article.  But is it reasonable to do
-    // this or should we wait until something closer to the actual step-time occurs? This seems to work
-    // and is least disruptive, so keep it for now.  But set this remainder to something smaller (like 0)
-    // for better step-time accuracy.
-
-    //#define USE_BIAS
-    #ifdef USE_BIAS
-    move_state.remainder = (1ULL<<ACCEL_P_SHIFT)/2;
-    #else
+    // TODO: Reset this every time or only when we come to a stop?
     move_state.remainder = 0;
-    #endif
 
-    // Biasing the velocity by 1/2 acceleration lets us easily represent the average velocity for each
-    // QUANTUM without any extra math.
-    #ifdef USE_BIAS
-    move_state.velocity = move_state.accel_per_tick/2;  // TODO: Use dda->start_velocity here
-    #else
-    // Calculate velocity at first step: v = v0 + a * t
-    move_state.velocity = muldiv(move_state.accel_per_tick, dda->c, QUANTUM);
-    #endif
-    move_state.position = 1;
+/*
+    // For constant acceleration only
+    dv = vmax - vstart;
+    v = v0 + at;
+    vmax = vstart + at;
+    vmax - vstart = at;
+    dv = at;
+    t = dv/a;
+    x = x0 + v0*t + a*t^2 / 2
+    dx = v0*t + at^2/2
+    dx = ( vstart + a*t/2 ) * t
+    // For accel ramps, substitute t=dv/a, and we get
+    dx = ( vstart + a*(dv/a)/2 ) * (dv/a)
+    dx = ( vstart + (vmax-vstart)/2) * (vmax-vstart)/a
+    dx = (vstart + vmax/2 - vstart/2) * (vmax - vstart) / a
+    dx = (vstart/2 + vmax/2) * (vmax - vstart) / a
+    dx = (vstart + vmax) * (vmax - vstart) / 2a
+    dx = (vmax^2 - vstart^2) / 2a
+    dx = (vmax^2/a - vstart^2/a)/2
+*/
+
+    // dda->rampup_steps = muldiv(dda->vmax + dda->vstart, dda->vmax - dda->vstart, move_state.accel_per_tick*2);
+
+    // uint32_t accel_time = (dda->vmax - dda->vstart) /
+    if (dda->n < 1 ) {
+            // Calculate velocity at first step: v = v0 + a * t
+            move_state.velocity = muldiv(move_state.accel_per_tick, dda->c, QUANTUM);
+            move_state.position = 1;
+            move_state.next_n[move_state.head] = 1;
+            move_state.next_dc[move_state.head] = 1;
+    } else {
+            // Calculate velocity at C:  (2 * QUANTUM / C) << ACCEL_P_SHIFT
+            move_state.velocity = muldiv(QUANTUM, 1ULL << ACCEL_P_SHIFT, dda->c);
+            move_state.position = QUANTUM/dda->c + 1;
+            move_state.next_n[move_state.head] = move_state.position;
+            move_state.next_dc[move_state.head] = 1;  // FIXME: Find actual slope
+            // FIXME: Velocity calculated wrong here?  In triangle.gcode we abruptly change direction
+            //   Also, we don't compensate for end velocity correctly yet.  Is this what I'm seeing?
+            printf("dda_start: dda->start_steps=%u\n", dda->start_steps);
+    }
 
     move_state.step_no = 0;
     move_state.accel = 1;
@@ -965,10 +987,14 @@ void dda_clock() {
 
         //   sersendf_P(PSTR(" $$> vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, old_rem, dx, step_no);
 
+          // FIXME: Calculate step when we cross vmax and then limit dx to that.  But then we need to use
+          //    the same dx on the way down.  We don't have room to store three motions, so we would need
+          //    to store this somewhere in the move_state.  Seems wasteful.
+
           // Almost reached mid-point of move or max velocity; time to cruise
-          if (step_no*2 + dx*2 >= dda->total_steps || velocity > dda->vmax) {
+          if (step_no*2 + dx*2 + dda->n >= dda->total_steps || velocity > dda->vmax) {
             move_state.accel = 0;
-            dx = dda->total_steps - 2*step_no;
+            dx = dda->total_steps - 2*step_no - dda->n ;
             // Undo speed change for this step
             velocity -= move_state.accel_per_tick;
             remainder -= velocity;

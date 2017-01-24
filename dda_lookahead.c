@@ -37,6 +37,19 @@ static const axes_uint32_t PROGMEM maximum_jerk_P = {
   MAX_JERK_E
 };
 
+/// \var maximum_jerk_steps_P
+/// \brief maximum allowed feedrate jerk on each axis in to steps per QUANTUM
+///        scaled to q16.16
+/// mm/min * 1min/60s * (QUANTUM/F_CPU)s * (steps/m * m/1000mm) = steps / QUANTUM
+#define JERK_P_SHIFT 16
+static const axes_uint32_t PROGMEM maximum_jerk_steps_P = {
+  (uint32_t)((((double)MAX_JERK_X * STEPS_PER_M_X) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2,
+  (uint32_t)((((double)MAX_JERK_Y * STEPS_PER_M_Y) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2,
+  (uint32_t)((((double)MAX_JERK_Z * STEPS_PER_M_Z) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2,
+  (uint32_t)((((double)MAX_JERK_E * STEPS_PER_M_E) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2
+};
+
+
 
 /**
  * \brief Find maximum corner speed between two moves.
@@ -52,8 +65,9 @@ static const axes_uint32_t PROGMEM maximum_jerk_P = {
  * \return dda->crossF
  */
 void dda_find_crossing_speed(DDA *prev, DDA *current) {
-  uint32_t F, dv, speed_factor, max_speed_factor;
+  uint32_t F, v, dv, speed_factor, max_speed_factor;
   axes_int32_t prevF, currF;
+  axes_int32_t prevV, currV;
   enum axis_e i;
 
   // Bail out if there's nothing to join (e.g. first movement after a pause).
@@ -65,6 +79,9 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   F = prev->endpoint.F;
   if (current->endpoint.F < F)
     F = current->endpoint.F;
+
+  v = MIN(prev->vmax, current->vmax);
+  v >>= (ACCEL_P_SHIFT - JERK_P_SHIFT);
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Distance: %lu, then %lu\n"),
@@ -81,10 +98,20 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
     currF[i] = muldiv(current->delta[i], F, current->total_steps);
   }
 
+  for (i = X; i < AXIS_COUNT; i++) {
+    prevV[i] = i==fast_axis? v : muldiv(prev->delta[i], v, prev->delta[prev->fast_axis]);
+    currV[i] = i==fast_axis? v : muldiv(current->delta[i], v, current->delta[current->fast_axis]);
+  }
+
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("prevF: %ld  %ld  %ld  %ld\ncurrF: %ld  %ld  %ld  %ld\n"),
                prevF[X], prevF[Y], prevF[Z], prevF[E],
                currF[X], currF[Y], currF[Z], currF[E]);
+
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("prevV: %ld  %ld  %ld  %ld\ncurrV: %ld  %ld  %ld  %ld\n"),
+            prevV[X], prevV[Y], prevV[Z], prevV[E],
+            currV[X], currV[Y], currV[Z], currV[E]);
 
   /**
    * What we want is (for each axis):
@@ -92,7 +119,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
    *   delta velocity = dv = |v1 - v2| < max_jerk
    *
    * In case this isn't satisfied, we can slow down by some factor x until
-   * the equitation is satisfied:
+   * the equation is satisfied:
    *
    *   x * |v1 - v2| < max_jerk
    *
@@ -135,6 +162,34 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
     sersendf_P(PSTR("Cross speed reduction from %lu to %lu\n"),
                F, current->crossF);
 
+  max_speed_factor = (uint32_t)2 << JERK_P_SHIFT;
+
+  for (i = X; i < AXIS_COUNT; i++) {
+    if (get_direction(prev, i) == get_direction(current, i))
+      dv = currV[i] > prevV[i] ? currV[i] - prevV[i] : prevV[i] - currV[i];
+    else
+      dv = currV[i] + prevV[i];
+
+    if (dv) {
+      speed_factor = muldiv((uint32_t)pgm_read_dword(&maximum_jerk_steps_P[i]), 1ULL<<JERK_P_SHIFT, dv);
+      if (speed_factor < max_speed_factor)
+        max_speed_factor = speed_factor;
+      if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+        sersendf_P(PSTR("%c: dv %lu of %lu   factor %lu of %lu\n"),
+                   'X' + i, dv, (uint32_t)pgm_read_dword(&maximum_jerk_steps_P[i]),
+                   speed_factor, (uint32_t)1 << JERK_P_SHIFT);
+    }
+  }
+
+  if (max_speed_factor >= ((uint32_t)1 << JERK_P_SHIFT))
+    current->start_v = v;
+  else
+    current->start_v = (v * max_speed_factor) >> JERK_P_SHIFT;
+
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("Cross speed reduction from %lu to %lu\n"),
+            v, current->start_v);
+
   return;
 }
 
@@ -143,7 +198,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
  * \details To join the moves, the deceleration ramp of the previous move and
  * the acceleration ramp of the current move are shortened, resulting in a
  * non-zero speed at that point. The target speed at the corner is already to
- * be found in dda->crossF. See dda_find_corner_speed().
+ * be found in current->crossF. See dda_find_corner_speed().
  *
  * Ideally, both ramps can be reduced to actually have Fcorner at the corner,
  * but the surrounding movements might no be long enough to achieve this speed.
