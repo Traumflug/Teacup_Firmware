@@ -676,12 +676,14 @@ void dda_step(DDA *dda) {
   //
   // TODO: with ACCELERATION_TEMPORAL this duplicates some code. See where
   //       dda->live is zero'd, about 10 lines above.
-  if ((move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
-       move_state.steps[Z] == 0 && move_state.steps[E] == 0)
-    #ifdef ACCELERATION_RAMPING
-      || (move_state.endstop_stop && dda->n <= 0)
-    #endif
-      ) {
+  #if ! defined ACCELERATION_TEMPORAL
+    if (move_state.step_no >= dda->total_steps ||
+        (move_state.endstop_stop && dda->n <= 0))
+  #else
+    if (move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
+        move_state.steps[Z] == 0 && move_state.steps[E] == 0)
+  #endif
+  {
 		dda->live = 0;
     dda->done = 1;
     #ifdef LOOKAHEAD
