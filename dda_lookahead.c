@@ -395,17 +395,11 @@ void dda_join_moves(DDA *prev, DDA *current) {
       prev_rampdown += extra;
     }
     prev_rampdown = prev_total_steps - prev_rampdown;
-    prev_F_end_in_steps = crossF_in_steps;
 
     // Build ramps for current move.
-    if (crossF_in_steps == this_F_in_steps) {
-      this_rampup = 0;
-      this_rampdown = crossF_in_steps;
-    }
-    else {
-      this_rampup = 0;
-      this_rampdown = crossF_in_steps;
-
+    this_rampup = 0;
+    this_rampdown = crossF_in_steps;
+    if (crossF_in_steps != this_F_in_steps) {
       uint32_t extra = (this_total_steps - this_rampdown) >> 1;
       uint32_t limit = this_F_in_steps - crossF_in_steps;
       extra = MIN(extra, limit);
@@ -414,7 +408,6 @@ void dda_join_moves(DDA *prev, DDA *current) {
       this_rampdown += extra;
     }
     this_rampdown = this_total_steps - this_rampdown;
-    this_F_start_in_steps = crossF_in_steps;
 
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
       sersendf_P(PSTR("prev_F_start: %lu\n"), prev_F_start_in_steps);
@@ -443,13 +436,13 @@ void dda_join_moves(DDA *prev, DDA *current) {
       // Note: to test if the previous move was already executed and replaced by a new
       // move, we compare the DDA id.
       if(prev->live == 0 && prev->id == prev_id && current->live == 0 && current->id == this_id) {
-        prev->end_steps = prev_F_end_in_steps;
+        prev->end_steps = crossF_in_steps;
         prev->rampup_steps = prev_rampup;
         prev->rampdown_steps = prev_rampdown;
         current->rampup_steps = this_rampup;
         current->rampdown_steps = this_rampdown;
         current->end_steps = 0;
-        current->start_steps = this_F_start_in_steps;
+        current->start_steps = crossF_in_steps;
         #ifdef LOOKAHEAD_DEBUG
           la_cnt++;
         #endif
