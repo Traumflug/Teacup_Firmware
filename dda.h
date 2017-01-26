@@ -38,6 +38,8 @@ typedef int32_t axes_int32_t[AXIS_COUNT];
 // Normalized to q8.24; allows up to 2^8=256 in mantissa (steps per quantum)
 #define ACCEL_P_SHIFT 24
 
+extern const axes_uint32_t PROGMEM accel_P ;
+
 /**
 	\struct TARGET
 	\brief target is simply a point in space/time
@@ -160,10 +162,36 @@ typedef struct {
   uint32_t          start_steps; ///< would be required to reach start feedrate
   uint32_t          end_steps; ///< would be required to stop from end feedrate
 
-  /// Start velocity in steps/QUANTUM; 8.24 fixed point value
-  uint32_t          start_v;
-  /// End velocity in steps/QUANTUM; 8.24 fixed point value
-  uint32_t          end_v;
+  // /// Start velocity in steps/QUANTUM; 8.24 fixed point value
+  // uint32_t          start_v;
+  // /// End velocity in steps/QUANTUM; 8.24 fixed point value
+  // uint32_t          end_v;
+  /// Max safe start velocity respecting Jerk (calculated once between this and prev move)
+  uint32_t          v_jerk;
+  /// Max start velocity which still allows me to decelerate to v_end (calc between this and next move)
+  /// During move, this is set to MIN(v_limit, v_jerk) so we have just one value to consider
+  uint32_t          v_start;
+  /// Max end velocity which matches v_start of next move, but for our fast-axis instead of theirs
+  uint32_t          v_end;
+  // v_limit = sqrt(2*accel_per_tick*total_steps + v_end * v_end)
+
+  //uint32_t          v_start = MIN(v_limit, v_jerk);
+  //uint32_t          v_end=next->v_start, or 0 if no next
+  // Calc v_end in dda_start
+  // Recalc v_start when v_limit changes
+  // Recalc v_limit when next->v_start changes
+  // Strategy: Calculate deceleration from v_limit for every move.  When f(v_limit, t) < velocity, begin deceleration to match.
+  //   Problem: calculating v_limit involves sqrt.  We don't need perfect accuracy, but slow (sqrt) and must eat extra steps (accuracy)
+  //   Alternatives:
+  //       1. Calculate rampdown_steps(v_start-v_end) and iteratively cut speed {in half, by accel_per_tick} until steps <= total_steps
+  //       2. Calc A=steps_per_quantum(v_end), B=steps_per_quantum(v_jerk), C=(v_end-v_jerk)/accel;
+  //               if (A+B)*C/2 < total_steps,then use v_jerk
+  //               else calculate B' which satisfies inequality and use that to determine speed for v_limit
+  //               ** Not accurate for small A values **
+  //       3. Keep track of accel_steps = "accel steps to reach current velocity"
+  //          if v_start < v_end, then { record accel_steps when velocity==v_end; begin decel when accel_steps-accel_steps(v_end) == total_steps-step_no
+  //          else if accel_steps <= total_steps, then { ??? }
+  //       4. Pre-calculate steps required to reach several velocities and use these granular velocities as our cross-v places
   #endif
   // Number the moves to be able to test at the end of lookahead if the moves
   // are the same. Note: we do not need a lot of granularity here: more than

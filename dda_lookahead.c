@@ -84,8 +84,8 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   v >>= (ACCEL_P_SHIFT - JERK_P_SHIFT);
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-    sersendf_P(PSTR("Distance: %lu, then %lu\n"),
-               prev->distance, current->distance);
+    sersendf_P(PSTR("Distance: %lu, then %lu;  F=%lu  v=%lu\n"),
+               prev->distance, current->distance, F, v);
 
   // Find individual axis speeds.
   // TODO: this is eight expensive muldiv()s. It should be possible to store
@@ -99,8 +99,8 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   }
 
   for (i = X; i < AXIS_COUNT; i++) {
-    prevV[i] = i==fast_axis? v : muldiv(prev->delta[i], v, prev->delta[prev->fast_axis]);
-    currV[i] = i==fast_axis? v : muldiv(current->delta[i], v, current->delta[current->fast_axis]);
+    prevV[i] = i==prev->fast_axis? v : muldiv(prev->delta[i], v, prev->delta[prev->fast_axis]);
+    currV[i] = i==current->fast_axis? v : muldiv(current->delta[i], v, current->delta[current->fast_axis]);
   }
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
@@ -134,7 +134,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
    *
    * See also: https://github.com/Traumflug/Teacup_Firmware/issues/45
    */
-  max_speed_factor = (uint32_t)2 << 8;
+  max_speed_factor = (uint32_t)2 << JERK_P_SHIFT;
 
   for (i = X; i < AXIS_COUNT; i++) {
     if (get_direction(prev, i) == get_direction(current, i))
@@ -143,20 +143,20 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
       dv = currF[i] + prevF[i];
 
     if (dv) {
-      speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[i]) << 8) / dv;
+      speed_factor = ((uint32_t)pgm_read_dword(&maximum_jerk_P[i]) << JERK_P_SHIFT) / dv;
       if (speed_factor < max_speed_factor)
         max_speed_factor = speed_factor;
       if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
         sersendf_P(PSTR("%c: dv %lu of %lu   factor %lu of %lu\n"),
                    'X' + i, dv, (uint32_t)pgm_read_dword(&maximum_jerk_P[i]),
-                   speed_factor, (uint32_t)1 << 8);
+                   speed_factor, (uint32_t)1 << JERK_P_SHIFT);
     }
   }
 
-  if (max_speed_factor >= ((uint32_t)1 << 8))
+  if (max_speed_factor >= ((uint32_t)1 << JERK_P_SHIFT))
     current->crossF = F;
   else
-    current->crossF = (F * max_speed_factor) >> 8;
+    current->crossF = (F * max_speed_factor) >> JERK_P_SHIFT;
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Cross speed reduction from %lu to %lu\n"),
@@ -182,13 +182,13 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   }
 
   if (max_speed_factor >= ((uint32_t)1 << JERK_P_SHIFT))
-    current->start_v = v;
+    current->v_jerk = v;
   else
-    current->start_v = (v * max_speed_factor) >> JERK_P_SHIFT;
+    current->v_jerk = (v * max_speed_factor) >> JERK_P_SHIFT;
 
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Cross speed reduction from %lu to %lu\n"),
-            v, current->start_v);
+            v, current->v_jerk);
 
   return;
 }
@@ -222,15 +222,18 @@ void dda_join_moves(DDA *prev, DDA *current) {
   // Calculating the look-ahead settings can take a while; before modifying
   // the previous move, we need to locally store any values and write them
   // when we are done (and the previous move is not already active).
-  uint32_t prev_F, prev_F_in_steps, prev_F_start_in_steps, prev_F_end_in_steps;
+  uint32_t prev_F, prev_F_in_steps, prev_F_start_in_steps;
   uint32_t prev_rampup, prev_rampdown, prev_total_steps;
   uint32_t crossF, crossF_in_steps;
+  uint32_t prev_V, prev_V_in_steps, prev_V_start_in_steps;
+  uint32_t crossV, crossV_in_steps;
   uint8_t prev_id;
   // Similarly, we only want to modify the current move if we have the results of the calculations;
   // until then, we do not want to touch the current move settings.
   // Note: we assume 'current' will not be dispatched while this function runs, so we do not to
   // back up the move settings: they will remain constant.
-  uint32_t this_F, this_F_in_steps, this_F_start_in_steps, this_rampup, this_rampdown, this_total_steps, this_fast_axis;
+  uint32_t this_F, this_F_in_steps, this_rampup, this_rampdown, this_total_steps, this_fast_axis;
+  uint32_t this_V, this_V_in_steps;
   uint8_t this_id;
   #ifdef LOOKAHEAD_DEBUG
   static uint32_t la_cnt = 0;     // Counter: how many moves did we join?
@@ -245,6 +248,8 @@ void dda_join_moves(DDA *prev, DDA *current) {
     // Show the proposed crossing speed - this might get adjusted below.
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
       sersendf_P(PSTR("Initial crossing speed: %lu\n"), current->crossF);
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+      sersendf_P(PSTR("Initial crossing speed (v): %lu\n"), current->v_jerk);
 
   // Make sure we have 2 moves and the previous move is not already active
   if (prev->live == 0) {
@@ -260,6 +265,11 @@ void dda_join_moves(DDA *prev, DDA *current) {
     crossF = current->crossF;
     this_total_steps = current->total_steps;
     this_fast_axis = current->fast_axis;
+
+    this_V = current->vmax;
+    prev_V = prev->vmax;
+    prev_V_start_in_steps = prev->start_steps;
+    crossV = current->v_jerk;
 
     // Here we have to distinguish between feedrate along the movement
     // direction and feedrate of the fast axis. They can differ by a factor
@@ -277,9 +287,76 @@ void dda_join_moves(DDA *prev, DDA *current) {
     this_F_in_steps = acc_ramp_len(this_F, this_fast_axis);
     crossF_in_steps = acc_ramp_len(crossF, this_fast_axis);
 
+    // During the movement we will know almost all we need to know, regardless of total_steps
+    // But there are two basic conditions we must consider:
+    //
+    // 1. start speed is less than end speed
+    //    In this case we know we can achieve the required delta-v if
+    //    we have enough total_steps.  We must reduce end speed if we can not.
+    //
+    // 2. start speed is greater than or equal to end speed
+    //    We know we can achieve this because we previously decided start speed
+    //    was ok even though we had to end at zero.  But our planner needs to know
+    //    how many extra steps it takes to decelerate to the target speed.
+
+    uint32_t prev_dv, prev_dv_steps, this_dv_steps, this_accel, prev_accel;
+    this_accel = pgm_read_dword(&accel_P[this_fast_axis]);
+    this_dv_steps = muldiv(crossV, crossV, 2*this_accel);
+
+    if (this_dv_steps > this_total_steps) {
+      if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+        sersendf_P(PSTR("CrossV reduction because this_dx=%lu, total_steps=%lu\n"),
+               this_dv_steps, this_total_steps);
+      }
+      // We have dx=v^2/2a which is too big.  We must adjust v by some ratio < 1
+      // to get dx == total_steps.  That is, find r where total_steps = v^2/2a/r.
+      // This is just r = v^2/2a/total_steps. But this_dv_steps = v^2/2a, so
+      // r = this_dv_steps / total_steps.  Then our adjusted V to satisfy our
+      // original equation is V=v/sqrt(r), then total_steps=V^2/2a
+      uint32_t orig = crossV;
+      uint32_t ratio = muldiv(this_dv_steps, 65536, this_total_steps); // get r in 16.16 fixed-point
+      crossV = muldiv(crossV, 256, int_sqrt(ratio));
+      if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+        this_dv_steps = muldiv(crossV, crossV, 2*this_accel);
+        sersendf_P(PSTR("CrossV reduced by ratio %lu/65536 from %lu to %lu;   dx=%lu, total_steps=%lu\n"),
+                ratio, orig, crossV, this_dv_steps, this_total_steps);
+        }
+    }
+
+    prev_accel = pgm_read_dword(&accel_P[prev->fast_axis]);
+    prev_dv = prev->v_start > crossV ? prev->v_start - crossV : crossV - prev->v_start ;
+    prev_dv_steps = muldiv(prev->v_start + crossV, prev_dv, 2*prev_accel);
+
+    if (prev->v_start < crossV) {
+      if (prev_dv_steps > prev_total_steps) {
+        // Must reduce crossV further make prev->v_end sane
+        if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+          sersendf_P(PSTR("CrossV reduction because prev_dx=%lu, total_steps=%lu\n"),
+                 prev_dv_steps, prev_total_steps);
+        }
+        // We have dx=(vs^2-ve^2)/2a which is too big.  We must adjust ve by some ratio < 1
+        // to get dx == total_steps.  That is, find r where total_steps = (ve^2/r-vs^2)/2a.
+        // total_steps = ve^2/2a/r-vs^2/2a
+        // total_steps + vs^2/2a = ve^2/2a/r
+        // r = ve^2/2a/(total_steps + vs^2/2a)
+        //   because prev_ve = this_vs, ve^2/2a = this_dv_steps
+        // r = this_dv_steps/(total_steps + vs^2/2a)
+        // Then our adjusted V to satisfy our original equation is V=v/sqrt(r)
+        uint32_t orig = crossV;
+        uint32_t denom = muldiv(prev->v_start, prev->v_start, 2*prev_accel) + prev->total_steps;
+        uint32_t ratio = muldiv(this_dv_steps, 65536, denom); // get r in 16.16 fixed-point
+        crossV = muldiv(crossV, 256, int_sqrt(ratio));
+        if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+          prev_dv_steps = muldiv(crossV, crossV, 2*this_accel);
+          sersendf_P(PSTR("CrossV reduced again by ratio %lu/65536 from %lu to %lu;   dx=%lu, total_steps=%lu\n"),
+                  ratio, orig, crossV, prev_dv_steps, prev_total_steps);
+          }
+      }
+    }
+
     // Show the proposed crossing speed - this might get adjusted below
     if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR("Initial crossing speed: %lu\n"), crossF_in_steps);
+      sersendf_P(PSTR("Initial crossing speed in steps: %lu\n"), crossF_in_steps);
 
     // Compute the maximum speed we can reach for crossing.
     crossF_in_steps = MIN(crossF_in_steps, this_total_steps);

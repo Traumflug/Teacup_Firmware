@@ -75,7 +75,7 @@ static const axes_uint32_t PROGMEM c0_P = {
 //         ACCELERATION * QUANTUM/F_CPU * QUANTUM/F_CPU * STEPS_PER_M / 1000
 //         ACCELERATION * QUANTUM * QUANTUM * STEPS_PER_M / F_CPU / F_CPU / 1000
 // Normalized to q8.24; allows up to 2^8=256 in mantissa (steps per quantum)
-static const axes_uint32_t PROGMEM accel_P = {
+const axes_uint32_t PROGMEM accel_P = {
   (uint32_t)((((double)ACCELERATION * STEPS_PER_M_X) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
   (uint32_t)((((double)ACCELERATION * STEPS_PER_M_Y) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
   (uint32_t)((((double)ACCELERATION * STEPS_PER_M_Z) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
@@ -200,7 +200,7 @@ void dda_create(DDA *dda, const TARGET *target) {
     dda->crossF = 0;
     dda->start_steps = 0;
     dda->end_steps = 0;
-    dda->start_v = dda->end_v = 0 ;
+    dda->v_start = dda->v_end = 0 ;
   #endif
   #ifdef ACCELERATION_RAMPING
     // Give this move an identifier.
@@ -411,7 +411,7 @@ void dda_create(DDA *dda, const TARGET *target) {
         dda->endpoint.F = 65535;
 
       dda->vmax = muldiv(QUANTUM, 1UL << ACCEL_P_SHIFT, dda->c_min);
-      dda->rampup_steps = muldiv(dda->vmax + dda->start_v, dda->vmax - dda->start_v, pgm_read_dword(&accel_P[dda->fast_axis])*2);
+      dda->rampup_steps = muldiv(dda->vmax + dda->v_start, dda->vmax - dda->v_start, pgm_read_dword(&accel_P[dda->fast_axis])*2);
       if (dda->rampup_steps > dda->total_steps )
         dda->rampup_steps = dda->total_steps ;
       dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
@@ -565,6 +565,13 @@ void dda_start(DDA *dda) {
     dx = (vstart + vmax) * (vmax - vstart) / 2a
     dx = (vmax^2 - vstart^2) / 2a
     dx = (vmax^2/a - vstart^2/a)/2
+    dx = vmax^2/2a - vstart^2/2a
+
+    dx = (vmax^2 - vstart^2) / 2a
+    2a*dx = vmax^2 - vstart^2
+    2a*dx + vstart^2 = vmax^2
+    vmax = sqrt(2a*dx + vstart^2)
+
 */
 
     // dda->rampup_steps = muldiv(dda->vmax + dda->vstart, dda->vmax - dda->vstart, move_state.accel_per_tick*2);
@@ -584,7 +591,7 @@ void dda_start(DDA *dda) {
             move_state.next_dc[move_state.head] = 1;  // FIXME: Find actual slope
             // FIXME: Velocity calculated wrong here?  In triangle.gcode we abruptly change direction
             //   Also, we don't compensate for end velocity correctly yet.  Is this what I'm seeing?
-            printf("dda_start: dda->start_steps=%u\n", dda->start_steps);
+        //     printf("dda_start: dda->start_steps=%u\n", dda->start_steps);
     }
 
     move_state.step_no = 0;
