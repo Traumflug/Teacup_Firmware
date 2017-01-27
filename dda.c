@@ -311,7 +311,7 @@ void dda_create(DDA *dda, const TARGET *target) {
         if (md_candidate > move_duration)
           move_duration = md_candidate;
       }
-		#else
+    #else
 			// pre-calculate move speed in millimeter microseconds per step minute for less math in interrupt context
 			// mm (distance) * 60000000 us/min / step (total_steps) = mm.us per step.min
 			//   note: um (distance) * 60000 == mm * 60000000
@@ -328,7 +328,7 @@ void dda_create(DDA *dda, const TARGET *target) {
 			// changed distance * 6000 .. * F_CPU / 100000 to
 			//         distance * 2400 .. * F_CPU / 40000 so we can move a distance of up to 1800mm without overflowing
 			uint32_t move_duration = ((distance * 2400) / dda->total_steps) * (F_CPU / 40000);
-		#endif
+    #endif
 
 		// similarly, find out how fast we can run our axes.
 		// do this for each axis individually, as the combined speed of two or more axes can be higher than the capabilities of a single one.
@@ -346,60 +346,8 @@ void dda_create(DDA *dda, const TARGET *target) {
     }
     c_limit = c_limit / dda->total_steps * (F_CPU / 40000);
 
-		#ifdef ACCELERATION_REPRAP
-		// c is initial step time in IOclk ticks
-    dda->c = move_duration / startpoint.F;
-    if (dda->c < c_limit)
-      dda->c = c_limit;
-    dda->end_c = move_duration / dda->endpoint.F;
-    if (dda->end_c < c_limit)
-      dda->end_c = c_limit;
-
-		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-      sersendf_P(PSTR(",md:%lu,c:%lu"), move_duration, dda->c);
-
-    if (dda->c != dda->end_c) {
-			uint32_t stF = startpoint.F / 4;
-			uint32_t enF = dda->endpoint.F / 4;
-			// now some constant acceleration stuff, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
-			uint32_t ssq = (stF * stF);
-			uint32_t esq = (enF * enF);
-			int32_t dsq = (int32_t) (esq - ssq) / 4;
-
-			uint8_t msb_ssq = msbloc(ssq);
-			uint8_t msb_tot = msbloc(dda->total_steps);
-
-			// the raw equation WILL overflow at high step rates, but 64 bit math routines take waay too much space
-			// at 65536 mm/min (1092mm/s), ssq/esq overflows, and dsq is also close to overflowing if esq/ssq is small
-			// but if ssq-esq is small, ssq/dsq is only a few bits
-			// we'll have to do it a few different ways depending on the msb locations of each
-			if ((msb_tot + msb_ssq) <= 30) {
-				// we have room to do all the multiplies first
-				if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-					serial_writechar('A');
-				dda->n = ((int32_t) (dda->total_steps * ssq) / dsq) + 1;
-			}
-			else if (msb_tot >= msb_ssq) {
-				// total steps has more precision
-				if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-					serial_writechar('B');
-				dda->n = (((int32_t) dda->total_steps / dsq) * (int32_t) ssq) + 1;
-			}
-			else {
-				// otherwise
-				if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-					serial_writechar('C');
-				dda->n = (((int32_t) ssq / dsq) * (int32_t) dda->total_steps) + 1;
-			}
-
-			if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-        sersendf_P(PSTR("\n{DDA:CA end_c:%lu, n:%ld, md:%lu, ssq:%lu, esq:%lu, dsq:%lu, msbssq:%u, msbtot:%u}\n"), dda->end_c, dda->n, move_duration, ssq, esq, dsq, msb_ssq, msb_tot);
-
-			dda->accel = 1;
-		}
-		else
-			dda->accel = 0;
-		#elif defined ACCELERATION_RAMPING
+    #ifdef ACCELERATION_REPRAP
+    #elif defined ACCELERATION_RAMPING
       dda->c_min = move_duration / dda->endpoint.F;
       if (dda->c_min < c_limit) {
         dda->c_min = c_limit;
@@ -457,7 +405,7 @@ void dda_create(DDA *dda, const TARGET *target) {
         dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
       #endif
 
-		#elif defined ACCELERATION_TEMPORAL
+    #elif defined ACCELERATION_TEMPORAL
 			// TODO: calculate acceleration/deceleration for each axis
       for (i = X; i < AXIS_COUNT; i++) {
         dda->step_interval[i] = 0xFFFFFFFF;
@@ -478,7 +426,7 @@ void dda_create(DDA *dda, const TARGET *target) {
       dda->c = move_duration / dda->endpoint.F;
       if (dda->c < c_limit)
         dda->c = c_limit;
-		#endif
+    #endif
 
     // next dda starts where we finish
     memcpy(&startpoint, &dda->endpoint, sizeof(TARGET));
@@ -577,18 +525,23 @@ void dda_start(DDA *dda) {
     // dda->rampup_steps = muldiv(dda->vmax + dda->vstart, dda->vmax - dda->vstart, move_state.accel_per_tick*2);
 
     // uint32_t accel_time = (dda->vmax - dda->vstart) /
-    if (dda->n < 1 ) {
+    if (!dda->v_start) {
             // Calculate velocity at first step: v = v0 + a * t
             move_state.velocity = muldiv(move_state.accel_per_tick, dda->c, QUANTUM);
             move_state.position = 1;
             move_state.next_n[move_state.head] = 1;
             move_state.next_dc[move_state.head] = 1;
     } else {
+            sersendf_P(PSTR("   move_state.velocity  prev=%u  new=%u\n"),
+                move_state.velocity, dda->v_start);
             // Calculate velocity at C:  (2 * QUANTUM / C) << ACCEL_P_SHIFT
-            move_state.velocity = muldiv(QUANTUM, 1ULL << ACCEL_P_SHIFT, dda->c);
-            move_state.position = QUANTUM/dda->c + 1;
-            move_state.next_n[move_state.head] = move_state.position;
-            move_state.next_dc[move_state.head] = 1;  // FIXME: Find actual slope
+            move_state.velocity = dda->v_start;
+
+            // FIXME: Position?  next_n?
+            move_state.position = 0;
+        //     move_state.next_n[move_state.head] = move_state.position;
+        //     move_state.next_dc[move_state.head] = 1;  // FIXME: Find actual slope
+
             // FIXME: Velocity calculated wrong here?  In triangle.gcode we abruptly change direction
             //   Also, we don't compensate for end velocity correctly yet.  Is this what I'm seeing?
         //     printf("dda_start: dda->start_steps=%u\n", dda->start_steps);
@@ -822,6 +775,8 @@ void dda_step(DDA *dda) {
     if (--move_state.next_n[move_state.head] == 0) {
       if (++move_state.head == SUB_MOVE_QUEUE_SIZE)
         move_state.head = 0;
+      sersendf_P(PSTR("\n<< DDA %u. c=%lu  dc=%ld  n=%lu\n"),
+        move_state.head, dda->c, move_state.next_dc[move_state.head], move_state.next_n[move_state.head]);
     } else {
       // Minimize the "cruise" motion if endstop is triggered
       if (move_state.endstop_stop && move_state.next_dc[move_state.head] == 0)
@@ -985,7 +940,7 @@ void dda_clock() {
       #endif
 
       while ( dx==0 ) {
-
+        // ACCELERATING
         if (move_state.accel) {
         //   uint32_t old_rem = remainder;
           remainder += velocity;
@@ -999,9 +954,11 @@ void dda_clock() {
           //    to store this somewhere in the move_state.  Seems wasteful.
 
           // Almost reached mid-point of move or max velocity; time to cruise
-          if (step_no*2 + dx*2 + dda->n >= dda->total_steps || velocity > dda->vmax) {
+          if (step_no*2 + dx*2 + dda->n >= dda->total_steps - dda->extra_decel_steps ||
+                  velocity > dda->vmax) {
+            // CRUISING
             move_state.accel = 0;
-            dx = dda->total_steps - 2*step_no - dda->n ;
+            dx = dda->total_steps - 2*step_no - dda->n - dda->extra_decel_steps;
             // Undo speed change for this step
             velocity -= move_state.accel_per_tick;
             remainder -= velocity;
@@ -1013,24 +970,32 @@ void dda_clock() {
           }
         }
         else {
+          // DECELERATING
+
           remainder -= velocity;
           remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
 
         //   sersendf_P(PSTR(" $$< vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, (remainder + velocity) , dx, step_no);
 
-          if (velocity > move_state.accel_per_tick)
-            velocity -= move_state.accel_per_tick;
+          if (velocity < dda->v_end + move_state.accel_per_tick) {
+            // We hit our min velocity, so stop decelerating
+            dx = dda->total_steps - step_no;
+          } else {
 
-          dx = (remainder + velocity) >> ACCEL_P_SHIFT ;
-          while (remainder >= velocity && velocity > move_state.accel_per_tick) {
+            if (velocity > move_state.accel_per_tick)
+              velocity -= move_state.accel_per_tick;
+
+            dx = (remainder + velocity) >> ACCEL_P_SHIFT ;
+            while (remainder >= velocity && velocity > move_state.accel_per_tick) {
                   #ifdef SIMULATOR
                     sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
                       ++i, velocity, dda->vmax, dx, step_no, dda->total_steps, remainder);
                   #endif
-            remainder -= velocity;
-            remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
-            velocity -= move_state.accel_per_tick;
-          }
+              remainder -= velocity;
+              remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
+              velocity -= move_state.accel_per_tick;
+            }
+          }  
         }
 
         step_no += dx;
@@ -1077,7 +1042,7 @@ void dda_clock() {
           move_state.next_dc[tail] = move_dc;
           move_state.next_n[tail] = dx;
           move_state.curr_c = curr_c;
-          // sersendf_P(PSTR("\n>> DDA %u. c=%lu  dc=%ld  n=%lu\n"), tail, curr_c, move_dc, dx);
+          sersendf_P(PSTR("\n>> DDA %u. c=%lu  dc=%ld  n=%lu\n"), tail, curr_c, move_dc, dx);
           move_state.velocity = velocity;
 
           move_state.remainder = remainder;

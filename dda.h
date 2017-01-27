@@ -36,8 +36,7 @@ typedef int32_t axes_int32_t[AXIS_COUNT];
 
 // Acceleration per QUANTUM.
 // Normalized to q8.24; allows up to 2^8=256 in mantissa (steps per quantum)
-#define ACCEL_P_SHIFT 24
-
+#define ACCEL_P_SHIFT 16 // 24
 extern const axes_uint32_t PROGMEM accel_P ;
 
 /**
@@ -168,18 +167,13 @@ typedef struct {
   // uint32_t          end_v;
   /// Max safe start velocity respecting Jerk (calculated once between this and prev move)
   uint32_t          v_jerk;
-  /// Max start velocity which still allows me to decelerate to v_end (calc between this and next move)
-  /// During move, this is set to MIN(v_limit, v_jerk) so we have just one value to consider
+  /// Max start velocity which respects Jerk and also allows us to decelerate to v_end
   uint32_t          v_start;
   /// Max end velocity which matches v_start of next move, but for our fast-axis instead of theirs
   uint32_t          v_end;
-  // v_limit = sqrt(2*accel_per_tick*total_steps + v_end * v_end)
+  /// Steps required to decelerate from v_start to v_end, negative when v_start < v_end
+  int32_t           extra_decel_steps; ///< would be required to stop from end feedrate
 
-  //uint32_t          v_start = MIN(v_limit, v_jerk);
-  //uint32_t          v_end=next->v_start, or 0 if no next
-  // Calc v_end in dda_start
-  // Recalc v_start when v_limit changes
-  // Recalc v_limit when next->v_start changes
   // Strategy: Calculate deceleration from v_limit for every move.  When f(v_limit, t) < velocity, begin deceleration to match.
   //   Problem: calculating v_limit involves sqrt.  We don't need perfect accuracy, but slow (sqrt) and must eat extra steps (accuracy)
   //   Alternatives:
