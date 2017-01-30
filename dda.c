@@ -482,86 +482,9 @@ void dda_start(DDA *dda) {
     move_state.counter[E] = -(dda->total_steps >> 1);
   move_state.endstop_stop = 0;
   memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
-  #ifdef ACCELERATION_RAMPING
-    // This is constant and we could read it directly in dda_clock every time,
-    // but we intend to make acceleration a non-constant function someday. This
-    // is why we keep the current accel value in the dda.
-    planner.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
 
-    planner.head = 0;
-    planner.tail = 1;
-    for (int i = 1; i < SUB_MOVE_QUEUE_SIZE; i++)
-      planner.next_n[i] = 0;
+  dda_plan(dda);
 
-    planner.curr_c = dda->c;
-
-    // TODO: Reset this every time or only when we come to a stop?
-    planner.remainder = 0;
-
-/*
-    // For constant acceleration only
-    dv = vmax - vstart;
-    v = v0 + at;
-    vmax = vstart + at;
-    vmax - vstart = at;
-    dv = at;
-    t = dv/a;
-    x = x0 + v0*t + a*t^2 / 2
-    dx = v0*t + at^2/2
-    dx = ( vstart + a*t/2 ) * t
-    // For accel ramps, substitute t=dv/a, and we get
-    dx = ( vstart + a*(dv/a)/2 ) * (dv/a)
-    dx = ( vstart + (vmax-vstart)/2) * (vmax-vstart)/a
-    dx = (vstart + vmax/2 - vstart/2) * (vmax - vstart) / a
-    dx = (vstart/2 + vmax/2) * (vmax - vstart) / a
-    dx = (vstart + vmax) * (vmax - vstart) / 2a
-    dx = (vmax^2 - vstart^2) / 2a
-    dx = (vmax^2/a - vstart^2/a)/2
-    dx = vmax^2/2a - vstart^2/2a
-
-    dx = (vmax^2 - vstart^2) / 2a
-    2a*dx = vmax^2 - vstart^2
-    2a*dx + vstart^2 = vmax^2
-    vmax = sqrt(2a*dx + vstart^2)
-
-*/
-
-    // dda->rampup_steps = muldiv(dda->vmax + dda->vstart, dda->vmax - dda->vstart, planner.accel_per_tick*2);
-
-    // uint32_t accel_time = (dda->vmax - dda->vstart) /
-    if (!dda->v_start) {
-            // Calculate velocity at first step: v = v0 + a * t
-            planner.velocity = planner.accel_per_tick;
-            planner.position = 1;
-            planner.next_n[planner.head] = 1;
-            planner.next_dc[planner.head] = 1;
-    } else {
-            sersendf_P(PSTR("   planner.velocity  prev=%u  new=%u\n"),
-                planner.velocity, dda->v_start);
-            // Calculate velocity at C:  (2 * QUANTUM / C) << ACCEL_P_SHIFT
-
-            planner.velocity = dda->v_start;
-
-            // FIXME: Position?  next_n?
-            planner.position = 0;
-
-        //     planner.next_n[planner.head] = planner.position;
-        //     planner.next_dc[planner.head] = 1;  // FIXME: Find actual slope
-            // FIXME: Velocity calculated wrong here?  In triangle.gcode we abruptly change direction
-            //   Also, we don't compensate for end velocity correctly yet.  Is this what I'm seeing?
-        //     printf("dda_start: dda->start_steps=%u\n", dda->start_steps);
-    }
-
-    move_state.step_no = 0;
-    planner.accel = 1;
-
-    // if (dda->c > QUANTUM) {
-    //   uint32_t n = dda->c / QUANTUM;
-    //   planner.velocity = planner.accel_per_tick * n;
-    //   planner.remainder = planner.accel_per_tick * (n * (n+1) ) / 2;
-    //   move_state.step_no = planner.position = dda->steps;
-    // }
-  #endif
   #ifdef ACCELERATION_TEMPORAL
     move_state.time[X] = move_state.time[Y] = \
       move_state.time[Z] = move_state.time[E] = 0UL;
@@ -799,6 +722,116 @@ void dda_step(DDA *dda) {
 	// we also hope that we don't step before the drivers register the low- limit maximum speed if you think this is a problem.
 	unstep();
 }
+
+
+/** Activate a dda for planning purposes
+
+  \param *dda Pointer to entry in the movement queue to plan
+
+  This function prepares the movement planner to begin following the next dda.
+  It does not affect the hardware at all. It includes the dda in the maths
+  calculations the planner uses for future movements. The previous dda is no
+  longer used for movement planning, but it is still alive for the purposes of
+  actual movement tracking. The dda passed in is marked "live" and the motion it
+  represents should not be further modified (i.e. by dda lookahead).
+*/
+void dda_plan(DDA *dda) {
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("Plan: X %lq  Y %lq  Z %lq  F %lu\n"),
+               dda->endpoint.axis[X], dda->endpoint.axis[Y],
+               dda->endpoint.axis[Z], dda->endpoint.F);
+
+  #ifdef ACCELERATION_RAMPING
+    dda->live = 1;
+
+    // This is constant and we could read it directly in dda_clock every time,
+    // but we intend to make acceleration a non-constant function someday. This
+    // is why we keep the current accel value in the dda.
+    planner.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
+
+    planner.head = 0;
+    planner.tail = 1;
+    for (int i = 1; i < SUB_MOVE_QUEUE_SIZE; i++)
+      planner.next_n[i] = 0;
+
+    planner.curr_c = dda->c;
+
+    // TODO: Reset this every time or only when we come to a stop?
+    planner.remainder = 0;
+
+/*
+    // For constant acceleration only
+    dv = vmax - vstart;
+    v = v0 + at;
+    vmax = vstart + at;
+    vmax - vstart = at;
+    dv = at;
+    t = dv/a;
+    x = x0 + v0*t + a*t^2 / 2
+    dx = v0*t + at^2/2
+    dx = ( vstart + a*t/2 ) * t
+    // For accel ramps, substitute t=dv/a, and we get
+    dx = ( vstart + a*(dv/a)/2 ) * (dv/a)
+    dx = ( vstart + (vmax-vstart)/2) * (vmax-vstart)/a
+    dx = (vstart + vmax/2 - vstart/2) * (vmax - vstart) / a
+    dx = (vstart/2 + vmax/2) * (vmax - vstart) / a
+    dx = (vstart + vmax) * (vmax - vstart) / 2a
+    dx = (vmax^2 - vstart^2) / 2a
+    dx = (vmax^2/a - vstart^2/a)/2
+    dx = vmax^2/2a - vstart^2/2a
+
+    dx = (vmax^2 - vstart^2) / 2a
+    2a*dx = vmax^2 - vstart^2
+    2a*dx + vstart^2 = vmax^2
+    vmax = sqrt(2a*dx + vstart^2)
+
+*/
+
+    // dda->rampup_steps = muldiv(dda->vmax + dda->vstart, dda->vmax - dda->vstart, planner.accel_per_tick*2);
+
+    // uint32_t accel_time = (dda->vmax - dda->vstart) /
+    if (!dda->v_start && !planner.next_n[planner.head]) {
+      sersendf_P(PSTR("   planner.velocity  prev=%u  new=%u  STOPPED\n"),
+          planner.velocity, planner.accel_per_tick);
+      // Calculate velocity at first step: v = v0 + a * t
+      planner.velocity = planner.accel_per_tick;
+      planner.position = 1;
+      planner.next_n[planner.head] = 1;
+      planner.next_dc[planner.head] = 1;
+    } else {
+      sersendf_P(PSTR("   planner.velocity  prev=%u  new=%u\n"),
+          planner.velocity, dda->v_start);
+      // Calculate velocity at C:  (2 * QUANTUM / C) << ACCEL_P_SHIFT
+
+      // FIXME: This should be unnecessary?
+      planner.velocity = dda->v_start;
+
+      // FIXME: Position?  next_n?
+      planner.position = 0;
+
+      if (planner.velocity)
+        dda->c = muldiv(QUANTUM , 2*1UL<<ACCEL_P_SHIFT, planner.velocity);
+
+      //     planner.next_n[planner.head] = planner.position;
+      //     planner.next_dc[planner.head] = 1;  // FIXME: Find actual slope
+
+      // FIXME: Velocity calculated wrong here?  In triangle.gcode we abruptly change direction
+      //   Also, we don't compensate for end velocity correctly yet.  Is this what I'm seeing?
+      //     printf("dda_start: dda->start_steps=%u\n", dda->start_steps);
+    }
+
+    move_state.step_no = 0;
+    planner.accel = 1;
+
+    // if (dda->c > QUANTUM) {
+    //   uint32_t n = dda->c / QUANTUM;
+    //   planner.velocity = planner.accel_per_tick * n;
+    //   planner.remainder = planner.accel_per_tick * (n * (n+1) ) / 2;
+    //   move_state.step_no = planner.position = dda->steps;
+    // }
+  #endif
+}
+
 
 /*! Do regular movement maintenance.
 

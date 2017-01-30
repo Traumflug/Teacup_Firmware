@@ -256,6 +256,9 @@ void dda_start(DDA *dda);
 // DDA takes one step (called from timer interrupt)
 void dda_step(DDA *dda);
 
+// Incorporate next dda into the movement planner
+void dda_plan(DDA *dda);
+
 // regular movement maintenance
 void dda_clock(void);
 
