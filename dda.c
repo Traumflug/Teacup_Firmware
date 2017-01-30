@@ -106,6 +106,8 @@ void dda_init(void) {
     startpoint.e_multiplier = next_target.target.e_multiplier = 256;
   if (startpoint.f_multiplier == 0)
     startpoint.f_multiplier = next_target.target.f_multiplier = 256;
+
+  planner_init();
 }
 
 /*! Distribute a new startpoint to DDA's internal structures without any movement.
@@ -466,7 +468,7 @@ void dda_start(DDA *dda) {
   move_state.endstop_stop = 0;
   memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
 
-  dda_plan(dda);
+  planner_begin_dda(dda);
 
   #ifdef ACCELERATION_TEMPORAL
     move_state.time[X] = move_state.time[Y] = \
@@ -676,27 +678,22 @@ void dda_step(DDA *dda) {
   else {
 		psu_timeout = 0;
 
-    // Check for movement underflow
-    if (planner.next_n[planner.head] == 0) {
-      // This is bad.  It means we will idle at the last commanded speed and send more steps than commanded.
-      sersendf_P(PSTR("\n-- DDA underflow @ %u with %lu steps remaining\n"), planner.head, dda->total_steps - move_state.  step_no);
-      planner.next_n[planner.head]++;
-    }
+    // Get next step from planner; skip cruise-periods if endstop was triggered
+    dda->c = planner_get(move_state.endstop_stop);
 
-    if (--planner.next_n[planner.head] == 0) {
-      if (++planner.head == SUB_MOVE_QUEUE_SIZE)
-        planner.head = 0;
-      sersendf_P(PSTR("\n<< DDA %u. c=%lu  dc=%ld  n=%lu\n"),
-        planner.head, dda->c, planner.next_dc[planner.head], planner.next_n[planner.head]);
-    } else {
-      // Minimize the "cruise" motion if endstop is triggered
-      if (move_state.endstop_stop && planner.next_dc[planner.head] == 0)
-        planner.next_n[planner.head] = 1;
-    }
-    dda->c += planner.next_dc[planner.head];
+    if (!dda->c) {
+      // This is bad.  We expected more steps but the planner doesn't have any.
+      sersendf_P(PSTR("\n-- DDA underflow with %lu steps remaining\n"),
+        dda->total_steps - move_state.step_no);
 
+      // Failure: Kill this DDA and try to get on with life
+      dda->live = 0;
+      dda->done = 1;
+      dda->id--;
+    }
     #ifndef ACCELERATION_TEMPORAL
-      timer_set(dda->c, 0);
+    else
+        timer_set(dda->c, 0);
     #endif
   }
 
@@ -837,7 +834,7 @@ void dda_clock() {
            current_id == dda->id &&
            planner.next_n[planner.tail] == 0) {
       uint8_t tail = planner.tail;
-      uint32_t move_c, curr_c;
+      uint32_t move_c, end_c;
       int32_t move_dc;
       uint32_t velocity = planner.velocity;
       uint32_t remainder;
@@ -930,9 +927,9 @@ void dda_clock() {
       if (move_c < dda->c_min) {
         move_c = dda->c_min;
       }
-      move_dc = move_c - planner.curr_c + dx/2;
+      move_dc = move_c - planner.end_c + dx/2;
       move_dc /= (int32_t)dx;
-      curr_c = planner.curr_c + move_dc * dx;
+      end_c = planner.end_c + move_dc * dx;
 
       #ifdef SIMULATOR
         sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  vel=%lu (%lu,%lu)  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
@@ -952,8 +949,8 @@ void dda_clock() {
         if (current_id == dda->id) {
           planner.next_dc[tail] = move_dc;
           planner.next_n[tail] = dx;
-          planner.curr_c = curr_c;
-          sersendf_P(PSTR("\n>> DDA %u. c=%lu  dc=%ld  n=%lu\n"), tail, curr_c, move_dc, dx);
+          planner.end_c = end_c;
+          sersendf_P(PSTR("\n>> DDA %u. c=%lu  dc=%ld  n=%lu\n"), tail, end_c, move_dc, dx);
           planner.velocity = velocity;
 
           planner.remainder = remainder;

@@ -30,7 +30,8 @@ typedef struct {
 
   uint32_t          accel_per_tick;     // fast axis acceleration per TICK_TIME, 8.24 fixed point
   #define SUB_MOVE_QUEUE_SIZE 4
-  uint32_t          curr_c;                         // Speed at end of current queue
+  uint32_t          curr_c;                         // Current speed
+  uint32_t          end_c;                          // Planned speed at end of current queue
   int32_t           next_dc[SUB_MOVE_QUEUE_SIZE];   // delta speed of next steps
   uint32_t          next_n[SUB_MOVE_QUEUE_SIZE];    // Number of steps in the next movement; 0 when taken by dda
   uint8_t           head;                           // Index of next movement queue
@@ -40,7 +41,19 @@ typedef struct {
 
 extern MOVE_PLANNER BSS planner;
 
+
+// Initialize movement planner structures
+void planner_init(void);
+
 // Incorporate next dda into the movement planner
-void dda_plan(DDA *dda);
+void planner_begin_dda(DDA *dda);
+
+// Get the next step time from the movement planner
+uint32_t planner_get(bool clip_cruise);
+
+// Check for no more moves in planner queue
+inline bool planner_empty(void) {
+  return planner.next_n[planner.head] == 0;
+}
 
 #endif	/* DDA_PLANNER_H */

@@ -31,17 +31,6 @@ extern MOVE_STATE BSS move_state;
 /// \brief movement planner math which precedes actual movement
 MOVE_PLANNER BSS planner;
 
-/// \var c0_P
-/// \brief Initialization constant for the ramping algorithm. Timer cycles for
-///        first step interval.
-// FIXME: Duplicated in dda
-static const axes_uint32_t PROGMEM c0_P = {
-  (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_X * ACCELERATION / 2000.)),
-  (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_Y * ACCELERATION / 2000.)),
-  (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_Z * ACCELERATION / 2000.)),
-  (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_E * ACCELERATION / 2000.))
-};
-
 // Acceleration per QUANTUM.
 //           mm/s^2     * (s/QUANTUM)^2            *   steps/m   * 1m/1000mm = steps/QUANTUM^2
 // Accel = ACCELERATION * QUANTUM(s)^2 * STEPS_PER_M / 1000
@@ -50,12 +39,32 @@ static const axes_uint32_t PROGMEM c0_P = {
 //         ACCELERATION * QUANTUM * QUANTUM * STEPS_PER_M / F_CPU / F_CPU / 1000
 // Normalized to q8.24; allows up to 2^8=256 in mantissa (steps per quantum)
 const axes_uint32_t PROGMEM accel_P = {
-  (uint32_t)((((double)ACCELERATION * STEPS_PER_M_X) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
-  (uint32_t)((((double)ACCELERATION * STEPS_PER_M_Y) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
-  (uint32_t)((((double)ACCELERATION * STEPS_PER_M_Z) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
-  (uint32_t)((((double)ACCELERATION * STEPS_PER_M_E) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2
+  ((((double)ACCELERATION * STEPS_PER_M_X) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
+  ((((double)ACCELERATION * STEPS_PER_M_Y) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
+  ((((double)ACCELERATION * STEPS_PER_M_Z) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2,
+  ((((double)ACCELERATION * STEPS_PER_M_E) *(2ULL<<ACCEL_P_SHIFT)) * QUANTUM / F_CPU * QUANTUM / F_CPU / 1000 + 1)/2
 };
 
+
+/** Initialize movement planner queue
+
+  It is safe to call this function between moves to reset the planner state.
+*/
+void planner_init(void)
+{
+  planner.curr_c = 0;
+  planner.end_c = 0;
+
+  planner.position = 0;
+  planner.accel_per_tick = 0;
+  planner.velocity = 0;
+  planner.remainder = 0;
+
+  // queue is empty
+  planner.head = 0;
+  planner.tail = 0;
+  planner.next_n[0] = 0;
+}
 
 /** Activate a dda for planning purposes
 
@@ -68,7 +77,8 @@ const axes_uint32_t PROGMEM accel_P = {
   actual movement tracking. The dda passed in is marked "live" and the motion it
   represents should not be further modified (i.e. by dda lookahead).
 */
-void dda_plan(DDA *dda) {
+void planner_begin_dda(DDA *dda)
+{
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR("Plan: X %lq  Y %lq  Z %lq  F %lu\n"),
                dda->endpoint.axis[X], dda->endpoint.axis[Y],
@@ -82,16 +92,15 @@ void dda_plan(DDA *dda) {
     // is why we keep the current accel value in the dda.
     planner.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
 
+    // TODO: Reset this every time or only when we come to a stop?
+    planner.remainder = 0;
+
+    // FIXME: Don't set this directly; insert into plan queue instead, or ignore if we're running
+    planner.end_c = planner.curr_c = dda->c;
     planner.head = 0;
     planner.tail = 1;
     for (int i = 1; i < SUB_MOVE_QUEUE_SIZE; i++)
       planner.next_n[i] = 0;
-
-    planner.curr_c = dda->c;
-
-    // TODO: Reset this every time or only when we come to a stop?
-    planner.remainder = 0;
-
 /*
     // For constant acceleration only
     dv = vmax - vstart;
@@ -163,4 +172,34 @@ void dda_plan(DDA *dda) {
     //   move_state.step_no = planner.position = dda->steps;
     // }
   #endif
+}
+
+/**
+  Get next step time based on queued plan steps.
+
+  \param clip_cruise skip over cruise periods where speed does not change
+
+  Called at interrupt time from dda_step.  Use clip_cruise to end constant-velocity
+  cruise regions, for example when endstop is triggered during home.
+*/
+uint32_t planner_get(bool clip_cruise)
+{
+  // Movement underflow (tragedy!)
+  if (planner_empty()) {
+    sersendf_P(PSTR("\n-- PLANNER underflow @ %u\n"), planner.head);
+    return 0;
+  }
+
+  if (--planner.next_n[planner.head] == 0) {
+    if (++planner.head == SUB_MOVE_QUEUE_SIZE)
+      planner.head = 0;
+    sersendf_P(PSTR("\n<< PLANNER %u. c=%lu  dc=%ld  n=%lu\n"),
+      planner.head, planner.curr_c+planner.next_dc[planner.head],
+      planner.next_dc[planner.head], planner.next_n[planner.head]);
+  } else {
+    // Clip the "cruise" motion if requested
+    if (clip_cruise && planner.next_dc[planner.head] == 0)
+      planner.next_n[planner.head] = 1;
+  }
+  return planner.curr_c += planner.next_dc[planner.head];
 }
