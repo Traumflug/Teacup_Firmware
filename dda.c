@@ -479,6 +479,9 @@ void dda_start(DDA *dda) {
   // Ensure this DDA starts.
   dda->live = 1;
 
+  if (planner_empty()) {
+    planner_fill_queue();
+  }
   // Set timeout for first step.
   timer_set(dda->c, 0);
 }
@@ -817,117 +820,7 @@ void dda_clock() {
   } /* ! move_state.endstop_stop */
 
   #ifdef ACCELERATION_RAMPING
-
-    // For maths about stepper speed profiles, see
-    // http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
-    // and http://www.atmel.com/images/doc8017.pdf (Atmel app note AVR446)
-
-    // Plan ahead until the movement queue is full
-    while (planner.position < dda->total_steps &&
-           !planner_full()) {
-      uint32_t move_c;
-      uint32_t velocity = planner.velocity;
-      uint32_t remainder;
-      uint32_t dx = 0;
-
-      remainder = planner.remainder;
-      uint32_t step_no = planner.position;
-      uint32_t v0 = velocity;
-      #ifdef SIMULATOR
-        uint32_t i = 0;
-      #endif
-
-      while ( dx==0 ) {
-        // ACCELERATING
-        if (planner.accel) {
-        //   uint32_t old_rem = remainder;
-          remainder += velocity;
-          velocity += planner.accel_per_tick;
-          dx = remainder >> ACCEL_P_SHIFT ;
-
-        //   sersendf_P(PSTR(" $$> vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, old_rem, dx, step_no);
-
-          // FIXME: Calculate step when we cross vmax and then limit dx to that.  But then we need to use
-          //    the same dx on the way down.  We don't have room to store three motions, so we would need
-          //    to store this somewhere in the move_state.  Seems wasteful.
-
-          // Almost reached mid-point of move or max velocity; time to cruise
-          if (step_no*2 + dx*2 + dda->n >= dda->total_steps - dda->extra_decel_steps ||
-                  velocity > dda->vmax) {
-            // CRUISING
-            planner.accel = 0;
-            dx = dda->total_steps - 2*step_no - dda->n - dda->extra_decel_steps;
-            // Undo speed change for this step
-            velocity -= planner.accel_per_tick;
-            remainder -= velocity;
-
-            // Squash overflow because we went too far
-            if (dx+step_no > dda->total_steps) {
-              dx = 0;
-            }
-          }
-        }
-        else {
-          // DECELERATING
-
-          remainder -= velocity;
-          remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
-
-        //   sersendf_P(PSTR(" $$< vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, (remainder + velocity) , dx, step_no);
-
-          if (velocity < dda->v_end + planner.accel_per_tick) {
-            // We hit our min velocity, so stop decelerating
-            dx = dda->total_steps - step_no;
-          } else {
-
-            if (velocity > planner.accel_per_tick)
-              velocity -= planner.accel_per_tick;
-
-            dx = (remainder + velocity) >> ACCEL_P_SHIFT ;
-            while (remainder >= velocity && velocity > planner.accel_per_tick) {
-                  #ifdef SIMULATOR
-                    sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-                      ++i, velocity, dda->vmax, dx, step_no, dda->total_steps, remainder);
-                  #endif
-              remainder -= velocity;
-              remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
-              velocity -= planner.accel_per_tick;
-            }
-          }
-        }
-
-        step_no += dx;
-        #ifdef SIMULATOR
-          sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-             ++i, velocity, dda->vmax, dx, step_no, dda->total_steps, remainder);
-        #endif
-      }
-
-      // Mask off mantissa
-      remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
-
-      // Average velocity since the last movement (v0).
-      // FIXME: The "mul" is constant here; can't we make this a simple division?
-      move_c = muldiv(QUANTUM , 2*1UL<<ACCEL_P_SHIFT, velocity+v0);
-
-      // TODO: This shouldn't happen, ideally.  How can we prevent it?
-      if (move_c > pgm_read_dword(&c0_P[dda->fast_axis]))
-        move_c = pgm_read_dword(&c0_P[dda->fast_axis]);
-
-      if (move_c < dda->c_min) {
-        move_c = dda->c_min;
-      }
-
-      planner_put(dx, move_c);
-
-      #ifdef SIMULATOR
-        sersendf_P(PSTR("  %lu  S#=%lu, State=%d  vel=%lu (%lu,%lu)  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-          move_c, step_no, planner.accel, (v0+velocity)/2, v0,velocity, move_c, dda->vmax, dx, step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
-      #endif
-
-      planner.velocity = velocity;
-      planner.remainder = remainder;
-    }
+  planner_fill_queue();
   #endif
 }
 

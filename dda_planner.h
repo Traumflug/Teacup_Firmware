@@ -14,6 +14,7 @@
 #define ACCEL_P_SHIFT 16 // 24
 extern const axes_uint32_t PROGMEM accel_P ;
 
+#define PLANNER_QUEUE_SIZE 4
 /**
   \struct MOVE_PLANNER
   \brief path planner for future movements
@@ -28,12 +29,13 @@ typedef struct {
   uint32_t          velocity;     // fast axis velocity updated on each dda_clock call
   uint32_t          remainder;    // calculated fractional position between dda_clock intervals
 
+  DDA *             dda;          // Pointer to currently active dda (HACK)
+
   uint32_t          accel_per_tick;     // fast axis acceleration per TICK_TIME, 8.24 fixed point
-  #define SUB_MOVE_QUEUE_SIZE 4
   uint32_t          curr_c;                         // Current speed
   uint32_t          end_c;                          // Planned speed at end of current queue
-  int32_t           next_dc[SUB_MOVE_QUEUE_SIZE];   // delta speed of next steps
-  uint32_t          next_n[SUB_MOVE_QUEUE_SIZE];    // Number of steps in the next movement; 0 when taken by dda
+  int32_t           next_dc[PLANNER_QUEUE_SIZE];   // delta speed of next steps
+  uint32_t          next_n[PLANNER_QUEUE_SIZE];    // Number of steps in the next movement; 0 when taken by dda
   uint8_t           head;                           // Index of next movement queue
   uint8_t           tail;                           // Index of last movement queue
   uint8_t           accel    :1 ;                   // bool: accel or decel/cruise
@@ -44,9 +46,6 @@ extern MOVE_PLANNER BSS planner;
 
 // Initialize movement planner structures
 void planner_init(void);
-
-// Incorporate next dda into the movement planner
-void planner_begin_dda(DDA *dda);
 
 // Get the next step time from the movement planner
 uint32_t planner_get(bool clip_cruise);
@@ -63,5 +62,11 @@ inline bool planner_empty(void) {
 inline bool planner_full(void) {
   return planner.next_n[planner.tail] != 0;
 }
+
+// Incorporate next dda into the movement planner
+void planner_begin_dda(DDA *dda);
+
+// Fill planner queue with calculated step motions
+void planner_fill_queue(void);
 
 #endif	/* DDA_PLANNER_H */
