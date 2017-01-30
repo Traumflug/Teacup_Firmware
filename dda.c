@@ -49,6 +49,10 @@ TARGET BSS current_position;
 /// \brief numbers for tracking the current state of movement
 MOVE_STATE BSS move_state;
 
+/// \var planner
+/// \brief movement planner math which precedes actual movement
+MOVE_PLANNER BSS planner;
+
 /// \var maximum_feedrate_P
 /// \brief maximum allowed feedrate on each axis
 static const axes_uint32_t PROGMEM maximum_feedrate_P = {
@@ -482,17 +486,17 @@ void dda_start(DDA *dda) {
     // This is constant and we could read it directly in dda_clock every time,
     // but we intend to make acceleration a non-constant function someday. This
     // is why we keep the current accel value in the dda.
-    move_state.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
+    planner.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
 
-    move_state.head = 0;
-    move_state.tail = 1;
+    planner.head = 0;
+    planner.tail = 1;
     for (int i = 1; i < SUB_MOVE_QUEUE_SIZE; i++)
-      move_state.next_n[i] = 0;
+      planner.next_n[i] = 0;
 
-    move_state.curr_c = dda->c;
+    planner.curr_c = dda->c;
 
     // TODO: Reset this every time or only when we come to a stop?
-    move_state.remainder = 0;
+    planner.remainder = 0;
 
 /*
     // For constant acceleration only
@@ -522,39 +526,40 @@ void dda_start(DDA *dda) {
 
 */
 
-    // dda->rampup_steps = muldiv(dda->vmax + dda->vstart, dda->vmax - dda->vstart, move_state.accel_per_tick*2);
+    // dda->rampup_steps = muldiv(dda->vmax + dda->vstart, dda->vmax - dda->vstart, planner.accel_per_tick*2);
 
     // uint32_t accel_time = (dda->vmax - dda->vstart) /
     if (!dda->v_start) {
             // Calculate velocity at first step: v = v0 + a * t
-            move_state.velocity = muldiv(move_state.accel_per_tick, dda->c, QUANTUM);
-            move_state.position = 1;
-            move_state.next_n[move_state.head] = 1;
-            move_state.next_dc[move_state.head] = 1;
+            planner.velocity = planner.accel_per_tick;
+            planner.position = 1;
+            planner.next_n[planner.head] = 1;
+            planner.next_dc[planner.head] = 1;
     } else {
-            sersendf_P(PSTR("   move_state.velocity  prev=%u  new=%u\n"),
-                move_state.velocity, dda->v_start);
+            sersendf_P(PSTR("   planner.velocity  prev=%u  new=%u\n"),
+                planner.velocity, dda->v_start);
             // Calculate velocity at C:  (2 * QUANTUM / C) << ACCEL_P_SHIFT
-            move_state.velocity = dda->v_start;
+
+            planner.velocity = dda->v_start;
 
             // FIXME: Position?  next_n?
-            move_state.position = 0;
-        //     move_state.next_n[move_state.head] = move_state.position;
-        //     move_state.next_dc[move_state.head] = 1;  // FIXME: Find actual slope
+            planner.position = 0;
 
+        //     planner.next_n[planner.head] = planner.position;
+        //     planner.next_dc[planner.head] = 1;  // FIXME: Find actual slope
             // FIXME: Velocity calculated wrong here?  In triangle.gcode we abruptly change direction
             //   Also, we don't compensate for end velocity correctly yet.  Is this what I'm seeing?
         //     printf("dda_start: dda->start_steps=%u\n", dda->start_steps);
     }
 
     move_state.step_no = 0;
-    move_state.accel = 1;
+    planner.accel = 1;
 
     // if (dda->c > QUANTUM) {
     //   uint32_t n = dda->c / QUANTUM;
-    //   move_state.velocity = move_state.accel_per_tick * n;
-    //   move_state.remainder = move_state.accel_per_tick * (n * (n+1) ) / 2;
-    //   move_state.step_no = move_state.position = dda->steps;
+    //   planner.velocity = planner.accel_per_tick * n;
+    //   planner.remainder = planner.accel_per_tick * (n * (n+1) ) / 2;
+    //   move_state.step_no = planner.position = dda->steps;
     // }
   #endif
   #ifdef ACCELERATION_TEMPORAL
@@ -591,7 +596,7 @@ void dda_start(DDA *dda) {
 */
 void dda_step(DDA *dda) {
 
-  // sersendf_P(PSTR("   DDA_STEP   head=%u  tail=%u   id=%u\n"), move_state.head, move_state.tail, dda->id);
+  // sersendf_P(PSTR("   DDA_STEP   head=%u  tail=%u   id=%u\n"), planner.head, planner.tail, dda->id);
   #if ! defined ACCELERATION_TEMPORAL
     if (move_state.steps[X]) {
       move_state.counter[X] -= dda->delta[X];
@@ -743,8 +748,8 @@ void dda_step(DDA *dda) {
   {
 		dda->live = 0;
     dda->done = 1;
-    if (move_state.next_n[move_state.head]) {
-      sersendf_P(PSTR("\n-- DDA has %lu leftover steps in its todo list.\n"), move_state.next_n[move_state.head]);
+    if (planner.next_n[planner.head]) {
+      sersendf_P(PSTR("\n-- DDA has %lu leftover steps in its todo list.\n"), planner.next_n[planner.head]);
     }
     #ifdef LOOKAHEAD
     // If look-ahead was using this move, it could have missed our activation:
@@ -766,23 +771,23 @@ void dda_step(DDA *dda) {
 		psu_timeout = 0;
 
     // Check for movement underflow
-    if (move_state.next_n[move_state.head] == 0) {
+    if (planner.next_n[planner.head] == 0) {
       // This is bad.  It means we will idle at the last commanded speed and send more steps than commanded.
-      sersendf_P(PSTR("\n-- DDA underflow @ %u with %lu steps remaining\n"), move_state.head, dda->total_steps - move_state.  step_no);
-      move_state.next_n[move_state.head]++;
+      sersendf_P(PSTR("\n-- DDA underflow @ %u with %lu steps remaining\n"), planner.head, dda->total_steps - move_state.  step_no);
+      planner.next_n[planner.head]++;
     }
 
-    if (--move_state.next_n[move_state.head] == 0) {
-      if (++move_state.head == SUB_MOVE_QUEUE_SIZE)
-        move_state.head = 0;
+    if (--planner.next_n[planner.head] == 0) {
+      if (++planner.head == SUB_MOVE_QUEUE_SIZE)
+        planner.head = 0;
       sersendf_P(PSTR("\n<< DDA %u. c=%lu  dc=%ld  n=%lu\n"),
-        move_state.head, dda->c, move_state.next_dc[move_state.head], move_state.next_n[move_state.head]);
+        planner.head, dda->c, planner.next_dc[planner.head], planner.next_n[planner.head]);
     } else {
       // Minimize the "cruise" motion if endstop is triggered
-      if (move_state.endstop_stop && move_state.next_dc[move_state.head] == 0)
-        move_state.next_n[move_state.head] = 1;
+      if (move_state.endstop_stop && planner.next_dc[planner.head] == 0)
+        planner.next_n[planner.head] = 1;
     }
-    dda->c += move_state.next_dc[move_state.head];
+    dda->c += planner.next_dc[planner.head];
 
     #ifndef ACCELERATION_TEMPORAL
       timer_set(dda->c, 0);
@@ -899,8 +904,8 @@ void dda_clock() {
         // but start deceleration here.
         ATOMIC_START
           move_state.endstop_stop = 1;
-          if (move_state.accel)  // still accelerating
-            dda->total_steps = move_state.position * 2;
+          if (planner.accel)  // still accelerating
+            dda->total_steps = planner.position * 2;
         ATOMIC_END
       #else
         dda->live = 0;
@@ -922,18 +927,18 @@ void dda_clock() {
     ATOMIC_END
 
     // Plan ahead until the movement queue is full
-    while (move_state.position < dda->total_steps &&
+    while (planner.position < dda->total_steps &&
            current_id == dda->id &&
-           move_state.next_n[move_state.tail] == 0) {
-      uint8_t tail = move_state.tail;
+           planner.next_n[planner.tail] == 0) {
+      uint8_t tail = planner.tail;
       uint32_t move_c, curr_c;
       int32_t move_dc;
-      uint32_t velocity = move_state.velocity;
+      uint32_t velocity = planner.velocity;
       uint32_t remainder;
       uint32_t dx = 0;
 
-      remainder = move_state.remainder;
-      uint32_t step_no = move_state.position;
+      remainder = planner.remainder;
+      uint32_t step_no = planner.position;
       uint32_t v0 = velocity;
       #ifdef SIMULATOR
         uint32_t i = 0;
@@ -941,10 +946,10 @@ void dda_clock() {
 
       while ( dx==0 ) {
         // ACCELERATING
-        if (move_state.accel) {
+        if (planner.accel) {
         //   uint32_t old_rem = remainder;
           remainder += velocity;
-          velocity += move_state.accel_per_tick;
+          velocity += planner.accel_per_tick;
           dx = remainder >> ACCEL_P_SHIFT ;
 
         //   sersendf_P(PSTR(" $$> vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, old_rem, dx, step_no);
@@ -957,10 +962,10 @@ void dda_clock() {
           if (step_no*2 + dx*2 + dda->n >= dda->total_steps - dda->extra_decel_steps ||
                   velocity > dda->vmax) {
             // CRUISING
-            move_state.accel = 0;
+            planner.accel = 0;
             dx = dda->total_steps - 2*step_no - dda->n - dda->extra_decel_steps;
             // Undo speed change for this step
-            velocity -= move_state.accel_per_tick;
+            velocity -= planner.accel_per_tick;
             remainder -= velocity;
 
             // Squash overflow because we went too far
@@ -977,25 +982,25 @@ void dda_clock() {
 
         //   sersendf_P(PSTR(" $$< vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, (remainder + velocity) , dx, step_no);
 
-          if (velocity < dda->v_end + move_state.accel_per_tick) {
+          if (velocity < dda->v_end + planner.accel_per_tick) {
             // We hit our min velocity, so stop decelerating
             dx = dda->total_steps - step_no;
           } else {
 
-            if (velocity > move_state.accel_per_tick)
-              velocity -= move_state.accel_per_tick;
+            if (velocity > planner.accel_per_tick)
+              velocity -= planner.accel_per_tick;
 
             dx = (remainder + velocity) >> ACCEL_P_SHIFT ;
-            while (remainder >= velocity && velocity > move_state.accel_per_tick) {
+            while (remainder >= velocity && velocity > planner.accel_per_tick) {
                   #ifdef SIMULATOR
                     sersendf_P(PSTR("   %u. vel=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
                       ++i, velocity, dda->vmax, dx, step_no, dda->total_steps, remainder);
                   #endif
               remainder -= velocity;
               remainder &= (1ULL<<ACCEL_P_SHIFT) - 1;
-              velocity -= move_state.accel_per_tick;
+              velocity -= planner.accel_per_tick;
             }
-          }  
+          }
         }
 
         step_no += dx;
@@ -1019,13 +1024,13 @@ void dda_clock() {
       if (move_c < dda->c_min) {
         move_c = dda->c_min;
       }
-      move_dc = move_c - move_state.curr_c + dx/2;
+      move_dc = move_c - planner.curr_c + dx/2;
       move_dc /= (int32_t)dx;
-      curr_c = move_state.curr_c + move_dc * dx;
+      curr_c = planner.curr_c + move_dc * dx;
 
       #ifdef SIMULATOR
         sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  vel=%lu (%lu,%lu)  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-          move_c, step_no, tail, move_state.accel, (v0+velocity)/2, v0,velocity, move_c, dda->vmax, dx, step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
+          move_c, step_no, tail, planner.accel, (v0+velocity)/2, v0,velocity, move_c, dda->vmax, dx, step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
       #endif
 
       // Write results.
@@ -1039,20 +1044,20 @@ void dda_clock() {
           recent than our calculation here, anyways.
         */
         if (current_id == dda->id) {
-          move_state.next_dc[tail] = move_dc;
-          move_state.next_n[tail] = dx;
-          move_state.curr_c = curr_c;
+          planner.next_dc[tail] = move_dc;
+          planner.next_n[tail] = dx;
+          planner.curr_c = curr_c;
           sersendf_P(PSTR("\n>> DDA %u. c=%lu  dc=%ld  n=%lu\n"), tail, curr_c, move_dc, dx);
-          move_state.velocity = velocity;
+          planner.velocity = velocity;
 
-          move_state.remainder = remainder;
-          move_state.position += dx;
+          planner.remainder = remainder;
+          planner.position += dx;
         }
 
       ATOMIC_END
 
       if (++tail == SUB_MOVE_QUEUE_SIZE) tail = 0;
-      move_state.tail = tail;
+      planner.tail = tail;
     }
   #endif
 }
