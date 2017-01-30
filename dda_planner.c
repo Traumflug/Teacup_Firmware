@@ -25,8 +25,6 @@
 //#include "graycode.c"
 
 
-extern MOVE_STATE BSS move_state;
-
 /// \var planner
 /// \brief movement planner math which precedes actual movement
 MOVE_PLANNER BSS planner;
@@ -63,7 +61,8 @@ void planner_init(void)
   // queue is empty
   planner.head = 0;
   planner.tail = 0;
-  planner.next_n[0] = 0;
+  for (int i = 1; i < SUB_MOVE_QUEUE_SIZE; i++)
+    planner.next_n[i] = 0;
 }
 
 /** Activate a dda for planning purposes
@@ -162,7 +161,6 @@ void planner_begin_dda(DDA *dda)
       //     printf("dda_start: dda->start_steps=%u\n", dda->start_steps);
     }
 
-    move_state.step_no = 0;
     planner.accel = 1;
 
     // if (dda->c > QUANTUM) {
@@ -202,4 +200,27 @@ uint32_t planner_get(bool clip_cruise)
       planner.next_n[planner.head] = 1;
   }
   return planner.curr_c += planner.next_dc[planner.head];
+}
+
+/**
+  Insert a movement into the planner queue_wait
+
+  \param steps number of steps in this movement
+  \param speed (timer-based) velocity at the end of this movement
+*/
+void planner_put(uint32_t steps, uint32_t speed)
+{
+  if (!steps || planner_full()) return;
+
+  int32_t dc = speed - planner.end_c + steps/2;
+  dc /= (int32_t)steps;
+  planner.end_c += dc * steps;
+  planner.position += steps;
+
+  ATOMIC_START
+    planner.next_dc[planner.tail] = dc;
+    planner.next_n[planner.tail] = steps;
+    if (++planner.tail == SUB_MOVE_QUEUE_SIZE) planner.tail = 0;
+  ATOMIC_END
+  sersendf_P(PSTR("\n>> PLANNER %u. c=%lu  dc=%ld  n=%lu\n"), planner.tail, planner.end_c, dc, steps);
 }

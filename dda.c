@@ -466,6 +466,7 @@ void dda_start(DDA *dda) {
   move_state.counter[X] = move_state.counter[Y] = move_state.counter[Z] = \
     move_state.counter[E] = -(dda->total_steps >> 1);
   move_state.endstop_stop = 0;
+  move_state.step_no = 0;
   memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
 
   planner_begin_dda(dda);
@@ -721,9 +722,6 @@ void dda_clock() {
   DDA *dda;
   static DDA *last_dda = NULL;
   uint8_t endstop_trigger = 0;
-  #ifdef ACCELERATION_RAMPING
-  uint8_t current_id ;
-  #endif
 
   ATOMIC_START
     dda = mb_tail_dda;
@@ -823,19 +821,11 @@ void dda_clock() {
     // For maths about stepper speed profiles, see
     // http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
     // and http://www.atmel.com/images/doc8017.pdf (Atmel app note AVR446)
-    ATOMIC_START
-      current_id = dda->id;
-      // All other variables are read-only or unused in dda_step(),
-      // so no need for atomic operations.
-    ATOMIC_END
 
     // Plan ahead until the movement queue is full
     while (planner.position < dda->total_steps &&
-           current_id == dda->id &&
-           planner.next_n[planner.tail] == 0) {
-      uint8_t tail = planner.tail;
-      uint32_t move_c, end_c;
-      int32_t move_dc;
+           !planner_full()) {
+      uint32_t move_c;
       uint32_t velocity = planner.velocity;
       uint32_t remainder;
       uint32_t dx = 0;
@@ -927,40 +917,16 @@ void dda_clock() {
       if (move_c < dda->c_min) {
         move_c = dda->c_min;
       }
-      move_dc = move_c - planner.end_c + dx/2;
-      move_dc /= (int32_t)dx;
-      end_c = planner.end_c + move_dc * dx;
+
+      planner_put(dx, move_c);
 
       #ifdef SIMULATOR
-        sersendf_P(PSTR("  %lu  S#=%lu, q=%u  State=%d  vel=%lu (%lu,%lu)  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
-          move_c, step_no, tail, planner.accel, (v0+velocity)/2, v0,velocity, move_c, dda->vmax, dx, step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
+        sersendf_P(PSTR("  %lu  S#=%lu, State=%d  vel=%lu (%lu,%lu)  c=%lu  vmax=%lu  dx=%lu (%lu)  tsteps=%lu  rem=%lu\n"),
+          move_c, step_no, planner.accel, (v0+velocity)/2, v0,velocity, move_c, dda->vmax, dx, step_no, dda->total_steps, (1000*remainder)>>ACCEL_P_SHIFT);
       #endif
 
-      // Write results.
-      ATOMIC_START
-        /**
-          Apply new n & c values only if dda didn't change underneath us. It
-          is possible for dda to be modified since fetching values in the
-          ATOMIC above, e.g. when a new dda becomes live.
-
-          In case such a change happened, values in the new dda are more
-          recent than our calculation here, anyways.
-        */
-        if (current_id == dda->id) {
-          planner.next_dc[tail] = move_dc;
-          planner.next_n[tail] = dx;
-          planner.end_c = end_c;
-          sersendf_P(PSTR("\n>> DDA %u. c=%lu  dc=%ld  n=%lu\n"), tail, end_c, move_dc, dx);
-          planner.velocity = velocity;
-
-          planner.remainder = remainder;
-          planner.position += dx;
-        }
-
-      ATOMIC_END
-
-      if (++tail == SUB_MOVE_QUEUE_SIZE) tail = 0;
-      planner.tail = tail;
+      planner.velocity = velocity;
+      planner.remainder = remainder;
     }
   #endif
 }
