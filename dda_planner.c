@@ -1,25 +1,25 @@
-#include	"dda.h"
-#include	"dda_planner.h"
+#include "dda.h"
+#include "dda_planner.h"
 
 /** \file
   \brief Advance planner for the step-times of movements
 */
 
-#include	<string.h>
-#include	<stdlib.h>
-#include	<math.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 
-#include	"dda_maths.h"
+#include "dda_maths.h"
 #include "preprocessor_math.h"
 // #include "dda_kinematics.h"
-#include	"dda_lookahead.h"
+#include "dda_lookahead.h"
 // #include "cpu.h"
 // #include	"timer.h"
-#include	"serial.h"
+#include "serial.h"
 // #include	"gcode_parse.h"
-#include	"dda_queue.h"
-#include	"debug.h"
-#include	"sersendf.h"
+#include "dda_queue.h"
+#include "debug.h"
+#include "sersendf.h"
 // #include	"pinio.h"
 #include "memory_barrier.h"
 //#include "graycode.c"
@@ -65,35 +65,12 @@ void planner_init(void)
     planner.next_n[i] = 0;
 }
 
-/** Activate a dda for planning purposes
 
-  \param *dda Pointer to entry in the movement queue to plan
-
-  This function prepares the movement planner to begin following the next dda.
-  It does not affect the hardware at all. It includes the dda in the maths
-  calculations the planner uses for future movements. The previous dda is no
-  longer used for movement planning, but it is still alive for the purposes of
-  actual movement tracking. The dda passed in is marked "live" and the motion it
-  represents should not be further modified (i.e. by dda lookahead).
-*/
-void planner_begin_dda(DDA *dda)
-{
-  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-    sersendf_P(PSTR("Plan: X %lq  Y %lq  Z %lq  F %lu\n"),
-               dda->endpoint.axis[X], dda->endpoint.axis[Y],
-               dda->endpoint.axis[Z], dda->endpoint.F);
-
-  #ifdef ACCELERATION_RAMPING
-    dda->live = 1;
-    planner.dda = dda;
-
-    // This is constant and we could read it directly in dda_clock every time,
-    // but we intend to make acceleration a non-constant function someday. This
-    // is why we keep the current accel value in the dda.
-    planner.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
-
+//___________________________________________________________________
+//                                              CONSTANT ACCELERATION
+//
 /*
-    // For constant acceleration only
+    // Constant acceleration math
     dv = vmax - vstart;
     v = v0 + at;
     vmax = vstart + at;
@@ -118,11 +95,39 @@ void planner_begin_dda(DDA *dda)
     2a*dx + vstart^2 = vmax^2
     vmax = sqrt(2a*dx + vstart^2)
 
+    dda->rampup_steps = muldiv(dda->vmax + dda->vstart, dda->vmax - dda->vstart, planner.accel_per_tick*2);
 */
 
-    // dda->rampup_steps = muldiv(dda->vmax + dda->vstart, dda->vmax - dda->vstart, planner.accel_per_tick*2);
+
+/** Activate a dda for planning purposes
+
+  \param *dda Pointer to entry in the movement queue to plan
+
+  This function prepares the movement planner to begin following the next dda.
+  It does not affect the hardware at all. It includes the dda in the maths
+  calculations the planner uses for future movements. The previous dda is no
+  longer used for movement planning, but it is still alive for the purposes of
+  actual movement tracking. The dda passed in is marked "live" and the motion it
+  represents should not be further modified (i.e. by dda lookahead).
+*/
+void planner_begin_dda(DDA *dda)
+{
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
+    sersendf_P(PSTR("Plan: X %lq  Y %lq  Z %lq  F %lu  start_steps=%lu velocity=%lu\n"),
+               dda->endpoint.axis[X], dda->endpoint.axis[Y],
+               dda->endpoint.axis[Z], dda->endpoint.F, dda->n, dda->vmax);
+
+  #ifdef ACCELERATION_RAMPING
+    dda->live = 1;
+    planner.dda = dda;
+
+    // This is constant and we could read it directly in dda_clock every time,
+    // but we intend to make acceleration a non-constant function someday. This
+    // is why we keep the current accel value in the dda.
+    planner.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
 
     planner.accel = 1;
+    planner.position = 0;
 
     // uint32_t accel_time = (dda->vmax - dda->vstart) /
     if (!dda->v_start && planner_empty()) {
@@ -133,29 +138,14 @@ void planner_begin_dda(DDA *dda)
     } else {
       sersendf_P(PSTR("   planner.velocity  prev=%u  new=%u\n"),
           planner.velocity, dda->v_start);
-      // Calculate velocity at C:  (2 * QUANTUM / C) << ACCEL_P_SHIFT
 
       // FIXME: This should be unnecessary?
       planner.velocity = dda->v_start;
-
-      planner.position = 0;
-
-
-      //     planner.next_n[planner.head] = planner.position;
-      //     planner.next_dc[planner.head] = 1;  // FIXME: Find actual slope
 
       // FIXME: Velocity calculated wrong here?  In triangle.gcode we abruptly change direction
       //   Also, we don't compensate for end velocity correctly yet.  Is this what I'm seeing?
       //     printf("dda_start: dda->start_steps=%u\n", dda->start_steps);
     }
-
-
-    // if (dda->c > QUANTUM) {
-    //   uint32_t n = dda->c / QUANTUM;
-    //   planner.velocity = planner.accel_per_tick * n;
-    //   planner.remainder = planner.accel_per_tick * (n * (n+1) ) / 2;
-    //   move_state.step_no = planner.position = dda->steps;
-    // }
   #endif
 }
 
@@ -221,8 +211,14 @@ void planner_fill_queue(void)
   const DDA *dda = planner.dda;
 
   // Plan ahead until the movement queue is full
-  while (planner.position < dda->total_steps &&
-         !planner_full()) {
+  while (!planner_full()) {
+    if (planner.position >= dda->total_steps) {
+      // Finished planning current DDA; go on to next one
+      dda = queue_get_next(dda);
+      if (!dda) return;
+      planner_begin_dda((DDA *)dda);
+    }
+
     uint32_t move_c;
     uint32_t velocity = planner.velocity;
     uint32_t remainder;

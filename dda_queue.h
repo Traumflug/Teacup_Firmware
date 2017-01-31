@@ -23,6 +23,9 @@ extern DDA *mb_tail_dda;
 // queue status methods
 uint8_t queue_full(void);
 
+// get the next movement in the queue
+DDA * queue_get_next(const DDA *dda);
+
 // take one step
 void queue_step(void);
 

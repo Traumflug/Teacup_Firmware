@@ -79,6 +79,15 @@ void queue_step() {
   }
 }
 
+/// Return the next dda in the queue if it exists
+/// dda must be ptr to element of movebuffer[], or else &movebuffer[0] is
+///    probably returned
+DDA * queue_get_next(const DDA *dda) {
+  uint8_t mb_next = dda - movebuffer;
+  if (mb_next == mb_head) return NULL;
+  return &(movebuffer[MB_NEXT(mb_next)]);
+}
+
 /// add a move to the movebuffer
 /// \note this function waits for space to be available if necessary, check queue_full() first if waiting is a problem
 /// This is the only function that modifies mb_head and it always called from outside an interrupt.
