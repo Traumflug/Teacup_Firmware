@@ -92,25 +92,6 @@ void planner_begin_dda(DDA *dda)
     // is why we keep the current accel value in the dda.
     planner.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
 
-    // TODO: Reset this every time or only when we come to a stop?
-    planner.remainder = 0;
-
-    // FIXME: Don't set this directly; insert into plan queue instead, or ignore if we're running
-    if (planner_empty()) {
-      planner.end_c = planner.curr_c = 0;
-      planner.head = 0;
-      planner.tail = 0;
-      for (int i = 1; i < PLANNER_QUEUE_SIZE; i++)
-        planner.next_n[i] = 0;
-
-      // TODO: Reset this every time or only when we come to a stop?
-      planner.remainder = 0;
-    }
-    planner.end_c = planner.curr_c = dda->c;
-    planner.head = 0;
-    planner.tail = 1;
-    for (int i = 1; i < PLANNER_QUEUE_SIZE; i++)
-      planner.next_n[i] = 0;
 /*
     // For constant acceleration only
     dv = vmax - vstart;
@@ -141,15 +122,14 @@ void planner_begin_dda(DDA *dda)
 
     // dda->rampup_steps = muldiv(dda->vmax + dda->vstart, dda->vmax - dda->vstart, planner.accel_per_tick*2);
 
+    planner.accel = 1;
+
     // uint32_t accel_time = (dda->vmax - dda->vstart) /
     if (!dda->v_start && planner_empty()) {
-      sersendf_P(PSTR("   planner.velocity  prev=%u  new=%u  STOPPED\n"),
+      sersendf_P(PSTR("   planner.velocity  prev=%lu  new=%lu  STOPPED\n"),
           planner.velocity, planner.accel_per_tick);
-      // Calculate velocity at first step: v = v0 + a * t
       planner.velocity = planner.accel_per_tick;
-      planner.position = 1;
-      planner.next_n[planner.head] = 1;
-      planner.next_dc[planner.head] = 1;
+      planner_fill_queue();
     } else {
       sersendf_P(PSTR("   planner.velocity  prev=%u  new=%u\n"),
           planner.velocity, dda->v_start);
@@ -158,11 +138,8 @@ void planner_begin_dda(DDA *dda)
       // FIXME: This should be unnecessary?
       planner.velocity = dda->v_start;
 
-      // FIXME: Position?  next_n?
       planner.position = 0;
 
-      if (planner.velocity)
-        dda->c = muldiv(QUANTUM , 2*1UL<<ACCEL_P_SHIFT, planner.velocity);
 
       //     planner.next_n[planner.head] = planner.position;
       //     planner.next_dc[planner.head] = 1;  // FIXME: Find actual slope
@@ -172,7 +149,6 @@ void planner_begin_dda(DDA *dda)
       //     printf("dda_start: dda->start_steps=%u\n", dda->start_steps);
     }
 
-    planner.accel = 1;
 
     // if (dda->c > QUANTUM) {
     //   uint32_t n = dda->c / QUANTUM;
@@ -199,18 +175,19 @@ uint32_t planner_get(bool clip_cruise)
     return 0;
   }
 
+  planner.curr_c += planner.next_dc[planner.head];
+
   if (--planner.next_n[planner.head] == 0) {
+    sersendf_P(PSTR("\n<< PLANNER %u. c=%lu  dc=%ld  n=%lu\n"),
+      planner.head, planner.curr_c, planner.next_dc[planner.head], planner.next_n[planner.head]+1);
     if (++planner.head == PLANNER_QUEUE_SIZE)
       planner.head = 0;
-    sersendf_P(PSTR("\n<< PLANNER %u. c=%lu  dc=%ld  n=%lu\n"),
-      planner.head, planner.curr_c+planner.next_dc[planner.head],
-      planner.next_dc[planner.head], planner.next_n[planner.head]);
   } else {
     // Clip the "cruise" motion if requested
     if (clip_cruise && planner.next_dc[planner.head] == 0)
       planner.next_n[planner.head] = 1;
   }
-  return planner.curr_c += planner.next_dc[planner.head];
+  return planner.curr_c;
 }
 
 /**
@@ -228,12 +205,12 @@ void planner_put(uint32_t steps, uint32_t speed)
   planner.end_c += dc * steps;
   planner.position += steps;
 
+  sersendf_P(PSTR("\n>> PLANNER %u. c=%lu  dc=%ld  n=%lu\n"), planner.tail, planner.end_c, dc, steps);
   ATOMIC_START
     planner.next_dc[planner.tail] = dc;
     planner.next_n[planner.tail] = steps;
     if (++planner.tail == PLANNER_QUEUE_SIZE) planner.tail = 0;
   ATOMIC_END
-  sersendf_P(PSTR("\n>> PLANNER %u. c=%lu  dc=%ld  n=%lu\n"), planner.tail, planner.end_c, dc, steps);
 }
 
 /**
