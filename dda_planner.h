@@ -31,11 +31,11 @@ typedef struct {
 
   DDA *             dda;          // Pointer to currently active dda (HACK)
 
-  uint32_t          accel_per_tick;     // fast axis acceleration per TICK_TIME, 8.24 fixed point
+  uint32_t          accel_per_tick;                 // fast axis acceleration per TICK_TIME, 8.24 fixed point
   uint32_t          curr_c;                         // Current speed
   uint32_t          end_c;                          // Planned speed at end of current queue
-  int32_t           next_dc[PLANNER_QUEUE_SIZE];   // delta speed of next steps
-  uint32_t          next_n[PLANNER_QUEUE_SIZE];    // Number of steps in the next movement; 0 when taken by dda
+  int32_t           next_dc[PLANNER_QUEUE_SIZE];    // delta speed of next steps
+  uint32_t          next_n[PLANNER_QUEUE_SIZE];     // Number of steps in the next movement; 0 when taken by dda
   uint8_t           head;                           // Index of next movement queue
   uint8_t           tail;                           // Index of last movement queue
   uint8_t           accel    :1 ;                   // bool: accel or decel/cruise

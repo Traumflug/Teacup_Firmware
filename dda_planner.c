@@ -139,12 +139,8 @@ void planner_begin_dda(DDA *dda)
       sersendf_P(PSTR("   planner.velocity  prev=%u  new=%u\n"),
           planner.velocity, dda->v_start);
 
-      // FIXME: This should be unnecessary?
+      // TODO: Report a warning if JERK is exceeded here; requires compensation for different fast_axis
       planner.velocity = dda->v_start;
-
-      // FIXME: Velocity calculated wrong here?  In triangle.gcode we abruptly change direction
-      //   Also, we don't compensate for end velocity correctly yet.  Is this what I'm seeing?
-      //     printf("dda_start: dda->start_steps=%u\n", dda->start_steps);
     }
   #endif
 }
@@ -246,11 +242,11 @@ void planner_fill_queue(void)
         //    to store this somewhere in the move_state.  Seems wasteful.
 
         // Almost reached mid-point of move or max velocity; time to cruise
-        if (step_no*2 + dx*2 + dda->n >= dda->total_steps - dda->extra_decel_steps ||
+        if (step_no*2 + dx*2 >= dda->total_steps - dda->extra_decel_steps ||
                 velocity > dda->vmax) {
           // CRUISING
           planner.accel = 0;
-          dx = dda->total_steps - 2*step_no - dda->n - dda->extra_decel_steps;
+          dx = dda->total_steps - 2*step_no - dda->extra_decel_steps;
           // Undo speed change for this step
           velocity -= planner.accel_per_tick;
           remainder -= velocity;

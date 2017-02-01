@@ -352,7 +352,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
       crossV = muldiv(crossV, 256, int_sqrt(ratio));
 
       prev_dv = prev->v_start > crossV ? prev->v_start - crossV : crossV - prev->v_start ;
-      prev_dv_steps = muldiv(prev->v_start + crossV, prev_dv, 2*prev_accel);
+      prev_dv_steps = muldiv((prev->v_start + crossV)>>(ACCEL_P_SHIFT/2), prev_dv>>(ACCEL_P_SHIFT/2), 2*prev_accel);
       this_dv_steps = muldiv(crossV>>(ACCEL_P_SHIFT/2), crossV>>(ACCEL_P_SHIFT/2), 2*this_accel);
 
       if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
@@ -365,6 +365,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
       }
     }
     int32_t prev_extra_steps = prev->v_start > crossV ? prev_dv_steps : -prev_dv_steps;
+    int32_t this_extra_steps = this_dv_steps;
 
     // // Show the proposed crossing speed - this might get adjusted below
     // if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
@@ -459,6 +460,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
         prev->extra_decel_steps = prev_extra_steps;
         prev->v_end = crossV;
         current->v_start = crossV;
+        current->extra_decel_steps = this_extra_steps;
         #ifdef LOOKAHEAD_DEBUG
           la_cnt++;
         #endif
