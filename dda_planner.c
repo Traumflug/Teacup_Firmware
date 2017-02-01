@@ -96,6 +96,27 @@ void planner_init(void)
     vmax = sqrt(2a*dx + vstart^2)
 
     dda->rampup_steps = muldiv(dda->vmax + dda->vstart, dda->vmax - dda->vstart, planner.accel_per_tick*2);
+
+    // // vmax = v0 + a*t
+    // // a*t = vmax - v0
+    // // t = (vmax - v0)/a
+    // const uint32_t v0 = 0; // TODO: real start value
+    // uint32_t ts = (dda->vmax - v0 + (1UL<<(ACCEL_P_SHIFT))/2)/dda->accel_per_tick;
+    //
+    // // x(t) = (v0 + a*t/2)*t
+    // uint32_t x = (v0 + dda->accel_per_tick * ts / 2) * ts;
+    //
+    // // actual vmax is limited to min(dx/2, x(t))
+    // if (x*2 > dda->total_steps) {
+    //   x = dda->total_steps/2;
+    //   // only works for v0=0
+    //   // x = a*t*t/2
+    //   // t = sqrt(2x/a)
+    //   // vmax = a*sqrt(2x/a)
+    //   // vmax = sqrt(2xa/a)
+    //   dda->vmax = sqrt(2*x*dda->accel_per_tick)
+    // }
+
 */
 
 
@@ -112,36 +133,25 @@ void planner_init(void)
 */
 void planner_begin_dda(DDA *dda)
 {
+  planner.dda = dda;
+  if (!dda) return;
+
   if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-    sersendf_P(PSTR("Plan: X %lq  Y %lq  Z %lq  F %lu  start_steps=%lu velocity=%lu\n"),
+    sersendf_P(PSTR("Plan: X %lq  Y %lq  Z %lq  F %lu  velocity=%lu\n"),
                dda->endpoint.axis[X], dda->endpoint.axis[Y],
-               dda->endpoint.axis[Z], dda->endpoint.F, dda->n, dda->vmax);
+               dda->endpoint.axis[Z], dda->endpoint.F, dda->vmax);
 
   #ifdef ACCELERATION_RAMPING
     dda->live = 1;
-    planner.dda = dda;
 
     // This is constant and we could read it directly in dda_clock every time,
-    // but we intend to make acceleration a non-constant function someday. This
-    // is why we keep the current accel value in the dda.
+    // but we intend to make acceleration a non-constant function someday.
     planner.accel_per_tick = pgm_read_dword(&accel_P[dda->fast_axis]);
-
     planner.accel = 1;
     planner.position = 0;
 
-    // uint32_t accel_time = (dda->vmax - dda->vstart) /
-    if (!dda->v_start && planner_empty()) {
-      sersendf_P(PSTR("   planner.velocity  prev=%lu  new=%lu  STOPPED\n"),
-          planner.velocity, planner.accel_per_tick);
-      planner.velocity = planner.accel_per_tick;
-      planner_fill_queue();
-    } else {
-      sersendf_P(PSTR("   planner.velocity  prev=%u  new=%u\n"),
-          planner.velocity, dda->v_start);
-
-      // TODO: Report a warning if JERK is exceeded here; requires compensation for different fast_axis
-      planner.velocity = dda->v_start;
-    }
+    // TODO: Report a warning if JERK is exceeded here; requires compensation for different fast_axis
+    planner.velocity = MIN(dda->v_start, planner.accel_per_tick);
   #endif
 }
 
@@ -211,8 +221,8 @@ void planner_fill_queue(void)
     if (planner.position >= dda->total_steps) {
       // Finished planning current DDA; go on to next one
       dda = queue_get_next(dda);
-      if (!dda) return;
       planner_begin_dda((DDA *)dda);
+      if (!dda) return;
     }
 
     uint32_t move_c;

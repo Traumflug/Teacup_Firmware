@@ -353,25 +353,6 @@ void dda_create(DDA *dda, const TARGET *target) {
         dda->rampup_steps = dda->total_steps ;
       dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
 
-      // // vmax = v0 + a*t
-      // // a*t = vmax - v0
-      // // t = (vmax - v0)/a
-      // const uint32_t v0 = 0; // TODO: real start value
-      // uint32_t ts = (dda->vmax - v0 + (1UL<<(ACCEL_P_SHIFT))/2)/dda->accel_per_tick;
-      //
-      // // x(t) = (v0 + a*t/2)*t
-      // uint32_t x = (v0 + dda->accel_per_tick * ts / 2) * ts;
-      //
-      // // actual vmax is limited to min(dx/2, x(t))
-      // if (x*2 > dda->total_steps) {
-      //   x = dda->total_steps/2;
-      //   // only works for v0=0
-      //   // x = a*t*t/2
-      //   // t = sqrt(2x/a)
-      //   // vmax = a*sqrt(2x/a)
-      //   // vmax = sqrt(2xa/a)
-      //   dda->vmax = sqrt(2*x*dda->accel_per_tick)
-      // }
 
       #ifdef LOOKAHEAD
         dda->distance = distance;
@@ -469,8 +450,6 @@ void dda_start(DDA *dda) {
   move_state.step_no = 0;
   memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
 
-  planner_begin_dda(dda);
-
   #ifdef ACCELERATION_TEMPORAL
     move_state.time[X] = move_state.time[Y] = \
       move_state.time[Z] = move_state.time[E] = 0UL;
@@ -480,10 +459,11 @@ void dda_start(DDA *dda) {
   dda->live = 1;
 
   if (planner_empty()) {
+    planner_begin_dda(dda);
     planner_fill_queue();
   }
   // Set timeout for first step.
-  timer_set(dda->c, 0);
+  timer_set(planner_get(false), 0);
 }
 
 /**
@@ -660,9 +640,6 @@ void dda_step(DDA *dda) {
   {
 		dda->live = 0;
     dda->done = 1;
-    if (planner.next_n[planner.head]) {
-      sersendf_P(PSTR("\n-- DDA has %lu leftover steps in its todo list.\n"), planner.next_n[planner.head]);
-    }
     #ifdef LOOKAHEAD
     // If look-ahead was using this move, it could have missed our activation:
     // make sure the ids do not match.
