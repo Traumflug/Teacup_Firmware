@@ -154,9 +154,11 @@ void dda_create(DDA *dda, const TARGET *target) {
   axes_int32_t steps;
 	uint32_t	distance, c_limit, c_limit_calc;
   enum axis_e i;
-  #ifdef LOOKAHEAD
+  #ifdef ACCELERATION_RAMPING
   // Number the moves to identify them; allowed to overflow.
   static uint8_t idcnt = 0;
+  #endif
+  #ifdef LOOKAHEAD
   static DDA* prev_dda = NULL;
 
   if (prev_dda && prev_dda->done)
@@ -184,6 +186,8 @@ void dda_create(DDA *dda, const TARGET *target) {
     dda->crossF = 0;
     dda->start_steps = 0;
     dda->end_steps = 0;
+  #endif
+  #ifdef ACCELERATION_RAMPING
     // Give this move an identifier.
     dda->id = idcnt++;
   #endif
