@@ -48,18 +48,18 @@ extern MOVE_PLANNER BSS planner;
 void planner_init(void);
 
 // Get the next step time from the movement planner
-uint32_t planner_get(bool clip_cruise);
+uint32_t planner_get(uint8_t clip_cruise);
 
 // Put a movement into the movement planner
 void planner_put(uint32_t steps, uint32_t speed);
 
 // Check for no more moves in planner queue
-inline bool planner_empty(void) {
+inline uint8_t planner_empty(void) {
   return planner.next_n[planner.head] == 0;
 }
 
 // Check for planner queue full
-inline bool planner_full(void) {
+inline uint8_t planner_full(void) {
   return planner.next_n[planner.tail] != 0;
 }
 

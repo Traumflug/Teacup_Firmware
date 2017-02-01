@@ -428,7 +428,7 @@ void dda_start(DDA *dda) {
     planner_fill_queue();
   }
   // Set timeout for first step.
-  timer_set(planner_get(false), 0);
+  timer_set(planner_get(0), 0);
 }
 
 /**

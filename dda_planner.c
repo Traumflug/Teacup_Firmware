@@ -163,7 +163,7 @@ void planner_begin_dda(DDA *dda)
   Called at interrupt time from dda_step.  Use clip_cruise to end constant-velocity
   cruise regions, for example when endstop is triggered during home.
 */
-uint32_t planner_get(bool clip_cruise)
+uint32_t planner_get(uint8_t clip_cruise)
 {
   // Movement underflow (tragedy!)
   if (planner_empty()) {
@@ -183,7 +183,7 @@ uint32_t planner_get(bool clip_cruise)
     if (clip_cruise && planner.next_dc[planner.head] == 0)
       planner.next_n[planner.head] = 1;
   }
-  return planner.curr_c;
+  return !!planner.curr_c;
 }
 
 /**
