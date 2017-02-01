@@ -620,7 +620,7 @@ void process_gcode_command() {
                        #ifdef ACCELERATION_REPRAP
                          mb_tail_dda->end_c
                        #else
-                         mb_tail_dda->c
+                         mb_tail_dda->c_min
                        #endif
             );
           }

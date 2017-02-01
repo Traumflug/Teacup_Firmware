@@ -59,16 +59,6 @@ static const axes_uint32_t PROGMEM maximum_feedrate_P = {
   MAXIMUM_FEEDRATE_E
 };
 
-/// \var c0_P
-/// \brief Initialization constant for the ramping algorithm. Timer cycles for
-///        first step interval.
-static const axes_uint32_t PROGMEM c0_P = {
-  (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_X * ACCELERATION / 2000.)),
-  (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_Y * ACCELERATION / 2000.)),
-  (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_Z * ACCELERATION / 2000.)),
-  (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_E * ACCELERATION / 2000.))
-};
-
 /*! Set the direction of the 'n' axis
 */
 static void set_direction(DDA *dda, enum axis_e n, int32_t delta) {
@@ -186,9 +176,6 @@ void dda_create(DDA *dda, const TARGET *target) {
   #ifdef LOOKAHEAD
     // Set the start and stop speeds to zero for now = full stops between
     // moves. Also fallback if lookahead calculations fail to finish in time.
-    dda->crossF = 0;
-    dda->start_steps = 0;
-    dda->end_steps = 0;
     dda->v_start = dda->v_end = 0 ;
   #endif
   #ifdef ACCELERATION_RAMPING
@@ -250,7 +237,6 @@ void dda_create(DDA *dda, const TARGET *target) {
   for (i = X; i < AXIS_COUNT; i++) {
     if (i == X || dda->delta[i] > dda->total_steps) {
       dda->total_steps = dda->delta[i];
-      dda->fast_um = delta_um[i];
       dda->fast_axis = i;
     }
   }
@@ -348,31 +334,13 @@ void dda_create(DDA *dda, const TARGET *target) {
         dda->endpoint.F = 65535;
 
       dda->vmax = muldiv(QUANTUM, 1UL << ACCEL_P_SHIFT, dda->c_min);
-      dda->rampup_steps = muldiv(dda->vmax + dda->v_start, dda->vmax - dda->v_start, pgm_read_dword(&accel_P[dda->fast_axis])*2);
-      if (dda->rampup_steps > dda->total_steps )
-        dda->rampup_steps = dda->total_steps ;
-      dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
-
 
       #ifdef LOOKAHEAD
-        dda->distance = distance;
         dda_find_crossing_speed(prev_dda, dda);
         // TODO: this should become a reverse-stepping through the existing
         //       movement queue to allow higher speeds for short moves.
         //       dda_find_crossing_speed() is required only once.
         dda_join_moves(prev_dda, dda);
-        dda->n = dda->start_steps;
-        if (dda->n == 0)
-          dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
-        else
-          dda->c = ((pgm_read_dword(&c0_P[dda->fast_axis])>>2) *
-                    int_inv_sqrt(dda->n)) >> 11;
-        if (dda->c < dda->c_min)
-          dda->c = dda->c_min;
-        dda->vmax = muldiv(QUANTUM, 1UL << ACCEL_P_SHIFT, dda->c_min);
-      #else
-        dda->n = 0;
-        dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
       #endif
 
     #elif defined ACCELERATION_TEMPORAL
@@ -393,9 +361,6 @@ void dda_create(DDA *dda, const TARGET *target) {
       }
 
 		#else
-      dda->c = move_duration / dda->endpoint.F;
-      if (dda->c < c_limit)
-        dda->c = c_limit;
     #endif
 
     // next dda starts where we finish
@@ -657,12 +622,12 @@ void dda_step(DDA *dda) {
     // After having finished, dda_start() will do it.
 	}
   else {
-		psu_timeout = 0;
-
     // Get next step from planner; skip cruise-periods if endstop was triggered
-    dda->c = planner_get(move_state.endstop_stop);
+    uint32_t c = planner_get(move_state.endstop_stop);
 
-    if (!dda->c) {
+    psu_timeout = 0;
+
+    if (!c) {
       // This is bad.  We expected more steps but the planner doesn't have any.
       sersendf_P(PSTR("\n-- DDA underflow with %lu steps remaining\n"),
         dda->total_steps - move_state.step_no);
@@ -672,10 +637,8 @@ void dda_step(DDA *dda) {
       dda->done = 1;
       dda->id--;
     }
-    #ifndef ACCELERATION_TEMPORAL
     else
-        timer_set(dda->c, 0);
-    #endif
+      timer_set(c, 0);
   }
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers

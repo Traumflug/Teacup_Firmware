@@ -120,22 +120,12 @@ typedef struct {
 
   // uint8_t        fast_axis;   (see below)
   uint32_t          total_steps; ///< steps of the "fast" axis
-  uint32_t          fast_um;     ///< movement length of this fast axis
-
-	uint32_t					c; ///< time until next step, 24.8 fixed point
-
 
 	#ifdef ACCELERATION_REPRAP
 	uint32_t					end_c; ///< time between 2nd last step and last step
 	int32_t						n;     ///< precalculated step time offset variable
 	#endif
 	#ifdef ACCELERATION_RAMPING
-  /// precalculated step time offset variable
-  int32_t           n;
-	/// number of steps accelerating
-	uint32_t					rampup_steps;
-	/// number of last step before decelerating
-	uint32_t					rampdown_steps;
 	/// 24.8 fixed point timer value, maximum speed
 	uint32_t					c_min;
   /// Maximum velocity in steps/QUANTUM; 8.24 fixed point value
@@ -144,16 +134,7 @@ typedef struct {
   // With the look-ahead functionality, it is possible to retain physical
   // movement between G1 moves. These variables keep track of the entry and
   // exit speeds between moves.
-  uint32_t          distance;
-  uint32_t          crossF;
-  // These two are based on the "fast" axis, the axis with the most steps.
-  uint32_t          start_steps; ///< would be required to reach start feedrate
-  uint32_t          end_steps; ///< would be required to stop from end feedrate
 
-  // /// Start velocity in steps/QUANTUM; 8.24 fixed point value
-  // uint32_t          start_v;
-  // /// End velocity in steps/QUANTUM; 8.24 fixed point value
-  // uint32_t          end_v;
   /// Max safe start velocity respecting Jerk (calculated once between this and prev move)
   uint32_t          v_jerk;
   /// Max start velocity which respects Jerk and also allows us to decelerate to v_end
@@ -161,7 +142,7 @@ typedef struct {
   /// Max end velocity which matches v_start of next move, but for our fast-axis instead of theirs
   uint32_t          v_end;
   /// Steps required to decelerate from v_start to v_end, negative when v_start < v_end
-  int32_t           extra_decel_steps; ///< would be required to stop from end feedrate
+  int32_t           extra_decel_steps;
 
   // Strategy: Calculate deceleration from v_limit for every move.  When f(v_limit, t) < velocity, begin deceleration to match.
   //   Problem: calculating v_limit involves sqrt.  We don't need perfect accuracy, but slow (sqrt) and must eat extra steps (accuracy)
