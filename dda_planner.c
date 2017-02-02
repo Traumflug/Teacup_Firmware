@@ -218,11 +218,12 @@ void planner_fill_queue(void)
 
   // Plan ahead until the movement queue is full
   while (!planner_full()) {
+    if (!dda) return;
     if (planner.position >= dda->total_steps) {
       // Finished planning current DDA; go on to next one
       dda = queue_get_next(dda);
       planner_begin_dda((DDA *)dda);
-      if (!dda) return;
+      continue;
     }
 
     uint32_t move_c;
@@ -245,11 +246,7 @@ void planner_fill_queue(void)
         velocity += planner.accel_per_tick;
         dx = remainder >> ACCEL_P_SHIFT ;
 
-      //   sersendf_P(PSTR(" $$> vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, old_rem, dx, step_no);
-
-        // FIXME: Calculate step when we cross vmax and then limit dx to that.  But then we need to use
-        //    the same dx on the way down.  We don't have room to store three motions, so we would need
-        //    to store this somewhere in the move_state.  Seems wasteful.
+        //   sersendf_P(PSTR(" $$> vel=%lu  rem=%lu (%lu)  dx=%lu (%lu)\n"), velocity, remainder, old_rem, dx, step_no);
 
         // Almost reached mid-point of move or max velocity; time to cruise
         if (step_no*2 + dx*2 >= dda->total_steps - dda->extra_decel_steps ||
@@ -308,7 +305,12 @@ void planner_fill_queue(void)
 
     // Average velocity since the last movement (v0).
     // FIXME: The "mul" is constant here; can't we make this a simple division?
-    move_c = muldiv(QUANTUM , 2*1UL<<ACCEL_P_SHIFT, velocity+v0);
+    if (velocity+v0 >= planner.accel_per_tick)
+      move_c = muldiv(QUANTUM , 2*1UL<<ACCEL_P_SHIFT, velocity+v0);
+    else
+      // FIXME: Presumably we get here because we had too many steps during decel
+      //        This shouldn't happen, but it seems to
+      move_c = planner.end_c;
 
     // TODO: This shouldn't happen, ideally.  How can we prevent it?
     // if (move_c > pgm_read_dword(&c0_P[dda->fast_axis]))
