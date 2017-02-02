@@ -54,12 +54,14 @@ uint32_t planner_get(uint8_t clip_cruise);
 void planner_put(uint32_t steps, uint32_t speed);
 
 // Check for no more moves in planner queue
-inline uint8_t planner_empty(void) {
+static inline uint8_t planner_empty(void) __attribute__((always_inline));
+static inline uint8_t planner_empty(void) {
   return planner.next_n[planner.head] == 0;
 }
 
 // Check for planner queue full
-inline uint8_t planner_full(void) {
+static inline uint8_t planner_full(void) __attribute__((always_inline));
+static inline uint8_t planner_full(void) {
   return planner.next_n[planner.tail] != 0;
 }
 
