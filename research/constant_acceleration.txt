@@ -1,0 +1,47 @@
+### CONSTANT ACCELERATION MATH
+
+dv = vmax - vstart;
+v = v0 + at;
+vmax = vstart + at;
+vmax - vstart = at;
+dv = at;
+t = dv/a;
+x = x0 + v0*t + a*t^2 / 2
+dx = v0*t + at^2/2
+dx = ( vstart + a*t/2 ) * t
+// For accel ramps, substitute t=dv/a, and we get
+dx = ( vstart + a*(dv/a)/2 ) * (dv/a)
+dx = ( vstart + (vmax-vstart)/2) * (vmax-vstart)/a
+dx = (vstart + vmax/2 - vstart/2) * (vmax - vstart) / a
+dx = (vstart/2 + vmax/2) * (vmax - vstart) / a
+dx = (vstart + vmax) * (vmax - vstart) / 2a
+dx = (vmax^2 - vstart^2) / 2a
+dx = (vmax^2/a - vstart^2/a)/2
+dx = vmax^2/2a - vstart^2/2a
+
+dx = (vmax^2 - vstart^2) / 2a
+2a*dx = vmax^2 - vstart^2
+2a*dx + vstart^2 = vmax^2
+vmax = sqrt(2a*dx + vstart^2)
+
+Steps required to safely accel/decel from v0 to v1 at a given acceleration:
+rampup_steps = (v0 + v1) * (v0 - v1) / (accel*2)
+
+Other old stuff of questionable worth:
+  vmax = v0 + a*t
+  a*t = vmax - v0
+  t = (vmax - v0)/a
+
+ uint32_t ts = (dda->vmax - v0 + (1UL<<(ACCEL_P_SHIFT))/2)/dda->accel_per_tick;
+
+  x(t) = (v0 + a*t/2)*t
+ uint32_t x = (v0 + dda->accel_per_tick * ts / 2) * ts;
+
+ //  actual vmax is limited to min(dx/2, x(t))
+ if (x*2 > total_steps) {
+   x = total_steps/2;
+    // only works for v0=0
+    x = a*t*t/2
+    t = sqrt(2x/a)
+    vmax = sqrt(2*x*dda->accel_per_tick)
+ }

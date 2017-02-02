@@ -61,8 +61,6 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   axes_int32_t prevV, currV;
   enum axis_e i;
 
-  debug_flags |= DEBUG_DDA;
-
   // Bail out if there's nothing to join (e.g. first movement after a pause).
   if ( ! prev)
     return;
