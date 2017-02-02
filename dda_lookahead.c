@@ -35,10 +35,10 @@
 /// mm/min * 1min/60s * (QUANTUM/F_CPU)s * (steps/m * m/1000mm) = steps / QUANTUM
 #define JERK_P_SHIFT 16
 static const axes_uint32_t PROGMEM maximum_jerk_steps_P = {
-  (uint32_t)((((double)MAX_JERK_X * STEPS_PER_M_X) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2,
-  (uint32_t)((((double)MAX_JERK_Y * STEPS_PER_M_Y) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2,
-  (uint32_t)((((double)MAX_JERK_Z * STEPS_PER_M_Z) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2,
-  (uint32_t)((((double)MAX_JERK_E * STEPS_PER_M_E) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2
+  ((((double)MAX_JERK_X * STEPS_PER_M_X) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2,
+  ((((double)MAX_JERK_Y * STEPS_PER_M_Y) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2,
+  ((((double)MAX_JERK_Z * STEPS_PER_M_Z) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2,
+  ((((double)MAX_JERK_E * STEPS_PER_M_E) *(2ULL<<JERK_P_SHIFT)) * QUANTUM / F_CPU / 60 / 1000 + 1)/2
 };
 
 
@@ -281,18 +281,15 @@ void dda_join_moves(DDA *prev, DDA *current) {
     int32_t prev_extra_steps = prev->v_start > crossV ? prev_dv_steps : -prev_dv_steps;
     int32_t this_extra_steps = this_dv_steps;
 
-    // if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
-    //   sersendf_P(PSTR("prev_F_start: %lu\n"), prev_F_start_in_steps);
-    //   sersendf_P(PSTR("prev_F: %lu\n"), prev_F_in_steps);
-    //   sersendf_P(PSTR("prev_rampup: %lu\n"), prev_rampup);
-    //   sersendf_P(PSTR("prev_rampdown: %lu\n"),
-    //              prev->total_steps - prev_rampdown);
-    //   sersendf_P(PSTR("crossF: %lu\n"), crossF_in_steps);
-    //   sersendf_P(PSTR("this_rampup: %lu\n"), this_rampup);
-    //   sersendf_P(PSTR("this_rampdown: %lu\n"),
-    //              current->total_steps - this_rampdown);
-    //   sersendf_P(PSTR("this_F: %lu\n"), this_F_in_steps);
-    // }
+    if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+      sersendf_P(PSTR("    prev_v_start: %lu\n"), prev->v_start);
+      sersendf_P(PSTR("      prev_v_end: %lu\n"), crossV);
+      sersendf_P(PSTR("prev_total_steps: %lu\n"), prev->total_steps);
+      sersendf_P(PSTR("prev_extra_steps: %ld\n"), prev_extra_steps);
+      sersendf_P(PSTR("    this_v_start: %lu\n"), crossV);
+      sersendf_P(PSTR("this_total_steps: %lu\n"), current->total_steps);
+      sersendf_P(PSTR("this_extra_steps: %ld\n"), this_extra_steps);
+    }
 
     #ifdef DEBUG
       uint8_t timeout = 0;

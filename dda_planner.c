@@ -176,7 +176,7 @@ void planner_begin_dda(DDA *dda)
     planner.position = 0;
 
     // TODO: Report a warning if JERK is exceeded here; requires compensation for different fast_axis
-    planner.velocity = MIN(dda->v_start, planner.accel_per_tick);
+    planner.velocity = dda->v_start;
   #endif
 }
 
