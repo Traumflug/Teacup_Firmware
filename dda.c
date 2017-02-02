@@ -173,6 +173,7 @@ void dda_create(DDA *dda, const TARGET *target) {
     dda->endpoint.F /= 256;
   }
 
+  dda->extra_decel_steps = 0;
   #ifdef LOOKAHEAD
     // Set the start and stop speeds to zero for now = full stops between
     // moves. Also fallback if lookahead calculations fail to finish in time.
@@ -423,12 +424,14 @@ void dda_start(DDA *dda) {
   // Ensure this DDA starts.
   dda->live = 1;
 
+  // If we were stopped wake up the timer
   if (planner_empty()) {
     planner_begin_dda(dda);
     planner_fill_queue();
+
+    // Set timeout for first step.
+    timer_set(planner_get(0), 0);
   }
-  // Set timeout for first step.
-  timer_set(planner_get(0), 0);
 }
 
 /**
@@ -617,28 +620,23 @@ void dda_step(DDA *dda) {
       // Z stepper is only enabled while moving.
       z_disable();
     #endif
-
-    // No need to restart timer here.
-    // After having finished, dda_start() will do it.
 	}
   else {
+    psu_timeout = 0;
+  }
+
+  {
     // Get next step from planner; skip cruise-periods if endstop was triggered
     uint32_t c = planner_get(move_state.endstop_stop);
 
-    psu_timeout = 0;
-
-    if (!c) {
+    if (c)
+      timer_set(c, 0);
+    else if (dda->total_steps > move_state.step_no)
+    {
       // This is bad.  We expected more steps but the planner doesn't have any.
       sersendf_P(PSTR("\n-- DDA underflow with %lu steps remaining\n"),
         dda->total_steps - move_state.step_no);
-
-      // Failure: Kill this DDA and try to get on with life
-      dda->live = 0;
-      dda->done = 1;
-      dda->id--;
     }
-    else
-      timer_set(c, 0);
   }
 
 	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers

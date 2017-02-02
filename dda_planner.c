@@ -119,6 +119,31 @@ void planner_init(void)
 
 */
 
+void planner_dump(void)
+{
+  // Show the current planner contents
+  uint32_t c = planner.curr_c;
+  uint32_t total=0, count=0;
+  uint8_t q=0;
+
+  int i;
+  sersendf_P(PSTR("PLANNER dump: %u:%u"), planner.head, planner.tail);
+
+  i=planner.head;
+  do {
+    int32_t dc = planner.next_dc[i];
+    uint32_t n = planner.next_n[i];
+    if (!n) break;
+    count += n;
+    total += ((c+dc)*n + c+dc*(int32_t)n)*n/2;
+    c += dc*n;
+    sersendf_P(PSTR("  (c:%lu(%ld) n:%lu)"), c, dc, n);
+    ++q;
+    if (++i == PLANNER_QUEUE_SIZE) i=0;
+  } while (i != planner.tail);
+
+  sersendf_P(PSTR("  ==> size:%u  dx:%lu dt:%lu\n"), q, count, total);
+}
 
 /** Activate a dda for planning purposes
 
@@ -183,7 +208,7 @@ uint32_t planner_get(uint8_t clip_cruise)
     if (clip_cruise && planner.next_dc[planner.head] == 0)
       planner.next_n[planner.head] = 1;
   }
-  return !!planner.curr_c;
+  return planner.curr_c;
 }
 
 /**
@@ -308,13 +333,8 @@ void planner_fill_queue(void)
     if (velocity+v0 >= planner.accel_per_tick)
       move_c = muldiv(QUANTUM , 2*1UL<<ACCEL_P_SHIFT, velocity+v0);
     else
-      // FIXME: Presumably we get here because we had too many steps during decel
-      //        This shouldn't happen, but it seems to
+      // Avoid dividing by velocity=0 (should never happen)
       move_c = planner.end_c;
-
-    // TODO: This shouldn't happen, ideally.  How can we prevent it?
-    // if (move_c > pgm_read_dword(&c0_P[dda->fast_axis]))
-    //   move_c = pgm_read_dword(&c0_P[dda->fast_axis]);
 
     if (move_c < dda->c_min) {
       move_c = dda->c_min;

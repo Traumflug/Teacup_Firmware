@@ -31,14 +31,6 @@ typedef uint32_t axes_uint32_t[AXIS_COUNT];
 */
 typedef int32_t axes_int32_t[AXIS_COUNT];
 
-// Period over which we calculate new velocity; should be at least TICK_TIME/2
-#define QUANTUM (TICK_TIME*2)
-
-// Acceleration per QUANTUM.
-// Normalized to q8.24; allows up to 2^8=256 in mantissa (steps per quantum)
-#define ACCEL_P_SHIFT 16 // 24
-extern const axes_uint32_t PROGMEM accel_P ;
-
 /**
 	\struct TARGET
 	\brief target is simply a point in space/time

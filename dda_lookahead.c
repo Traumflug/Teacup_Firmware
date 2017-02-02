@@ -4,6 +4,7 @@
 */
 
 #include "dda_lookahead.h"
+#include "dda_planner.h"
 
 #ifdef LOOKAHEAD
 
@@ -229,7 +230,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
       // original equation is V=v/sqrt(r), then total_steps=V^2/2a
       this_ratio = muldiv(this_dv_steps, 65536, current->total_steps); // get r in 16.16 fixed-point
       if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
-        sersendf_P(PSTR("CrossV reduction because this_dx=%lu, prev->total_steps=%lu:  this_ratio=%lu/65536\n"),
+        sersendf_P(PSTR("CrossV reduction because this_dx=%lu, this->total_steps=%lu:  this_ratio=%lu/65536\n"),
                this_dv_steps, current->total_steps, this_ratio);
       }
     }
@@ -252,7 +253,8 @@ void dda_join_moves(DDA *prev, DDA *current) {
         uint32_t denom = muldiv(prev->v_start, prev->v_start, 2*prev_accel) + prev->total_steps;
         prev_ratio = muldiv(this_dv_steps, 65536, denom); // get r in 16.16 fixed-point
         if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
-          sersendf_P(PSTR("CrossV reduction because prev_dx=%lu, prev->total_steps=%lu:  prev_ratio=%lu/65536\n"),
+          if (prev_ratio > this_ratio && prev_ratio > 65536)
+            sersendf_P(PSTR("CrossV reduction because prev_dx=%lu, prev->total_steps=%lu:  prev_ratio=%lu/65536\n"),
                  prev_dv_steps, prev->total_steps, prev_ratio);
         }
       }
