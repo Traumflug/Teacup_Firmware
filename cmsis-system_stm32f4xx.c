@@ -78,17 +78,6 @@
   - Rebuild SystemInit() and SetSysClock() to get rid of most mbed-files. Please take a look into history.
 */
 
-/** @addtogroup CMSIS
-  * @{
-  */
-
-/** @addtogroup stm32f4xx_system
-  * @{
-  */
-  
-/** @addtogroup STM32F4xx_System_Private_Includes
-  * @{
-  */
 #ifdef __ARM_STM32F411__
 
 #include "cmsis-stm32f4xx.h"
@@ -101,22 +90,6 @@
   #define HSI_VALUE    ((uint32_t)16000000) /*!< Value of the Internal oscillator in Hz*/
 #endif /* HSI_VALUE */
 
-/**
-  * @}
-  */
-
-/** @addtogroup STM32F4xx_System_Private_TypesDefinitions
-  * @{
-  */
-
-/**
-  * @}
-  */
-
-/** @addtogroup STM32F4xx_System_Private_Defines
-  * @{
-  */
-
 /*!< Uncomment the following line if you need to relocate your vector Table in
      Internal SRAM. */
 /* #define VECT_TAB_SRAM */
@@ -124,21 +97,9 @@
                                    This value must be a multiple of 0x200. */
 /******************************************************************************/
 
-/**
-  * @}
-  */
-
-/** @addtogroup STM32F4xx_System_Private_Macros
-  * @{
-  */
-
 /* Select the clock sources (other than HSI) to start with (0=OFF, 1=ON) */
 #define USE_PLL_HSE_EXTC (1) /* Use external clock */
 #define USE_PLL_HSE_XTAL (1) /* Use external xtal */
-
-/**
-  * @}
-  */
 
 /** @addtogroup STM32F4xx_System_Private_Variables
   * @{
@@ -155,24 +116,6 @@ uint32_t SystemCoreClock = 16000000;
 const uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
 
 /**
-  * @}
-  */
-
-/** @addtogroup STM32F4xx_System_Private_FunctionPrototypes
-  * @{
-  */
-
-uint8_t SetSysClock_PLL_HSE(uint8_t bypass);
-
-/**
-  * @}
-  */
-
-/** @addtogroup STM32F4xx_System_Private_Functions
-  * @{
-  */
-
-/**
   * @brief  Setup the microcontroller system
   *         Initialize the FPU setting, vector table location and External memory
   *         configuration.
@@ -187,19 +130,21 @@ void SystemInit(void)
   #endif
   /* Reset the RCC clock configuration to the default reset state ------------*/
   /* Set HSION bit */
-  RCC->CR |= (uint32_t)0x00000001;
+  RCC->CR |= RCC_CR_HSION;
 
   /* Reset CFGR register */
   RCC->CFGR = 0x00000000;
 
   /* Reset HSEON, CSSON and PLLON bits */
-  RCC->CR &= (uint32_t)0xFEF6FFFF;
+  RCC->CR &= ~(RCC_CR_HSEON |
+               RCC_CR_CSSON |
+               RCC_CR_PLLON);
 
   /* Reset PLLCFGR register */
   RCC->PLLCFGR = 0x24003010;
 
   /* Reset HSEBYP bit */
-  RCC->CR &= (uint32_t)0xFFFBFFFF;
+  RCC->CR &= ~(RCC_CR_HSEBYP);
 
   /* Disable all interrupts */
   RCC->CIR = 0x00000000;
@@ -209,7 +154,6 @@ void SystemInit(void)
   /* Configure the System clock source, PLL Multiplier and Divider factors,
      AHB/APBx prescalers and Flash settings */
   SetSysClock();
- 
 }
 
 /**
@@ -257,13 +201,13 @@ void SystemCoreClockUpdate(void)
 
   switch (tmp)
   {
-    case 0x00:  /* HSI used as system clock source */
+    case RCC_CFGR_SWS_HSI:  /* HSI used as system clock source */
       SystemCoreClock = HSI_VALUE;
       break;
-    case 0x04:  /* HSE used as system clock source */
+    case RCC_CFGR_SWS_HSE:  /* HSE used as system clock source */
       SystemCoreClock = HSE_VALUE;
       break;
-    case 0x08:  /* PLL used as system clock source */
+    case RCC_CFGR_SWS_PLL:  /* PLL used as system clock source */
 
       /* PLL_VCO = (HSE_VALUE or HSI_VALUE / PLL_M) * PLL_N
          SYSCLK = PLL_VCO / PLL_P
@@ -312,57 +256,61 @@ void SetSysClock(void)
      regarding system frequency refer to product datasheet. */
   RCC->APB1ENR |= RCC_APB1ENR_PWREN;
 
-  MODIFY_REG(PWR->CR, PWR_CR_VOS, PWR_CR_VOS_1);
+  PWR->CR |= PWR_CR_VOS;
   
   /* Enable HSE oscillator and activate PLL with HSE as source */
   /*------------------------------- HSE Configuration ------------------------*/
 
   /* Reset HSEON and HSEBYP bits before configuring the HSE --------------*/
   RCC->CR &= ~(RCC_CR_HSEON);
-  //__HAL_RCC_HSE_CONFIG(RCC_HSE_OFF);
-
-  /* Wait till HSE is disabled */
   while(RCC->CR & RCC_CR_HSERDY);
   
   /* Set the new HSE configuration ---------------------------------------*/
   RCC->CR |= RCC_CR_HSEON;
-  
-  /* Wait till HSE is ready */
   while(!(RCC->CR & RCC_CR_HSERDY));
 
   /*-------------------------------- PLL Configuration -----------------------*/
   /* Disable the main PLL. */
   RCC->CR &= ~(RCC_CR_PLLON);
-  
-  /* Wait till PLL is ready */
   while(RCC->CR & RCC_CR_PLLRDY);
 
   /* Configure the main PLL clock source, multiplication and division factors. */
-  // PLLM_2:      VCO input clock = 2 MHz (8 MHz / 4)
-  // PLLN_6/7:    VCO output clock = 384 MHz (2 MHz * 192)
-  // PLLP_0:      PLLCLK = 96 MHz (384 MHz / 4)
-  // PLLQ_3:      USB clock = 48 MHz (384 MHz / 8) --> 48MHz is best choice for USB
+  // PLLM:      VCO input clock = 2 MHz (8 MHz / 4)
+  // PLLN:      VCO output clock = 384 MHz (2 MHz * 192)
+  // PLLP:      PLLCLK = 96 MHz (384 MHz / 4)
+  // PLLQ:      USB clock = 48 MHz (384 MHz / 8) --> 48MHz is best choice for USB
   #if __SYSTEM_CLOCK == 96000000
-  RCC->PLLCFGR =  RCC_PLLCFGR_PLLSRC_HSE | RCC_PLLCFGR_PLLM_2 | \
-                  RCC_PLLCFGR_PLLN_6 | RCC_PLLCFGR_PLLN_7 | \
-                  RCC_PLLCFGR_PLLP_0 | \
-                  RCC_PLLCFGR_PLLQ_3;
+    #define PLLM 4
+    #define PLLN 192
+    #define PLLP 4
+    #define PLLQ 8
   #elif __SYSTEM_CLOCK == 100000000
-  RCC->PLLCFGR =  RCC_PLLCFGR_PLLSRC_HSE | RCC_PLLCFGR_PLLM_2 | \
-                  RCC_PLLCFGR_PLLN_3 | RCC_PLLCFGR_PLLN_6 | RCC_PLLCFGR_PLLN_7 | \
-                  RCC_PLLCFGR_PLLP_0 | \
-                  RCC_PLLCFGR_PLLQ_3;
+    #define PLLM 4
+    #define PLLN 200
+    #define PLLP 4
+    #define PLLQ 8
   #elif __SYSTEM_CLOCK == 108000000
-  RCC->PLLCFGR =  RCC_PLLCFGR_PLLSRC_HSE | RCC_PLLCFGR_PLLM_2 | \
-                  RCC_PLLCFGR_PLLN_3 | RCC_PLLCFGR_PLLN_4 | RCC_PLLCFGR_PLLN_6 | RCC_PLLCFGR_PLLN_7 | \
-                  RCC_PLLCFGR_PLLP_0 | \
-                  RCC_PLLCFGR_PLLQ_0 | RCC_PLLCFGR_PLLQ_3;
+    #warning You are running the controller out of specification!
+    #define PLLM 4
+    #define PLLN 216
+    #define PLLP 4
+    #define PLLQ 9
+  #elif __SYSTEM_CLOCK == 125000000
+    #warning You are running the controller out of specification!
+    #define PLLM 4
+    #define PLLN 250
+    #define PLLP 4
+    #define PLLQ 10
   #endif
+
+  RCC->PLLCFGR =  RCC_PLLCFGR_PLLSRC_HSE |
+                  ((PLLM << 0) & RCC_PLLCFGR_PLLM) |
+                  ((PLLN << 6) & RCC_PLLCFGR_PLLN) |
+                  (((PLLP/2 - 1) << 16) & RCC_PLLCFGR_PLLP) |
+                  ((PLLQ << 24) & RCC_PLLCFGR_PLLQ);
 
   /* Enable the main PLL. */
   RCC->CR |= RCC_CR_PLLON;
-  
-  /* Wait till PLL is ready */
   while(!(RCC->CR & RCC_CR_PLLRDY));
 
   /* To correctly read data from FLASH memory, the number of wait states (LATENCY)
@@ -373,39 +321,26 @@ void SetSysClock(void)
   if(FLASH_ACR_LATENCY_3WS > (FLASH->ACR & FLASH_ACR_LATENCY))
   {
     /* Program the new number of wait states to the LATENCY bits in the FLASH_ACR register */
-    MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, FLASH_ACR_LATENCY_3WS);
-    /*-------------------------- HCLK Configuration --------------------------*/
-    MODIFY_REG(RCC->CFGR, RCC_CFGR_HPRE, RCC_CFGR_HPRE_DIV1);
-    /*------------------------- SYSCLK Configuration ---------------------------*/
-    MODIFY_REG(RCC->CFGR, RCC_CFGR_SW, RCC_CFGR_SW_PLL);
+    FLASH->ACR &= ~(FLASH_ACR_LATENCY);
+    FLASH->ACR |= FLASH_ACR_LATENCY_3WS;
+
+    RCC->CFGR &= ~(RCC_CFGR_HPRE | RCC_CFGR_SW);
+    RCC->CFGR |= RCC_CFGR_HPRE_DIV1 | RCC_CFGR_SW_PLL;
   }
   /* Decreasing the CPU frequency */
   else
   {
-    /*-------------------------- HCLK Configuration --------------------------*/
-    MODIFY_REG(RCC->CFGR, RCC_CFGR_HPRE, RCC_CFGR_HPRE_DIV1);
-    /*------------------------- SYSCLK Configuration -------------------------*/
-    MODIFY_REG(RCC->CFGR, RCC_CFGR_SW, RCC_CFGR_SW_PLL);
+    RCC->CFGR &= ~(RCC_CFGR_HPRE | RCC_CFGR_SW);
+    RCC->CFGR |= RCC_CFGR_HPRE_DIV1 | RCC_CFGR_SW_PLL;
+
     /* Program the new number of wait states to the LATENCY bits in the FLASH_ACR register */
-    MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, FLASH_ACR_LATENCY_3WS);
+    FLASH->ACR &= ~(FLASH_ACR_LATENCY);
+    FLASH->ACR |= FLASH_ACR_LATENCY_3WS;
   }
 
-  /*-------------------------- PCLK1 Configuration ---------------------------*/
-  MODIFY_REG(RCC->CFGR, RCC_CFGR_PPRE1, RCC_CFGR_PPRE1_DIV2);
-  /*-------------------------- PCLK2 Configuration ---------------------------*/
-  MODIFY_REG(RCC->CFGR, RCC_CFGR_PPRE2, RCC_CFGR_PPRE2_DIV1);
+  RCC->CFGR &= ~(RCC_CFGR_PPRE1 | RCC_CFGR_PPRE2);
+  RCC->CFGR |= RCC_CFGR_PPRE1_DIV2 | RCC_CFGR_PPRE2_DIV1;
 }
 
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-  
-/**
-  * @}
-  */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 #endif

@@ -145,6 +145,7 @@ else ifeq ($(MCU), stm32f411)
   CFLAGS += -mfloat-abi=hard
   CFLAGS += -mlittle-endian
   CFLAGS += -D__FPU_PRESENT=1
+  CFLAGS += -fomit-frame-pointer
 endif
 # Other options ...
 CFLAGS += -Wall

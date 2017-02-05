@@ -43,14 +43,6 @@
     copies in the Teacup repo.
 
 */
-
-/** @addtogroup CMSIS
-  * @{
-  */
-
-/** @addtogroup stm32f4xx_system
-  * @{
-  */
   
 /**
   * @brief Define to prevent recursive inclusion
@@ -62,62 +54,19 @@
  extern "C" {
 #endif
 
+// #include "cmsis-stm32f4xx.h"
 // #define __SYSTEM_CLOCK 96000000
 #define __SYSTEM_CLOCK 100000000
 // #define __SYSTEM_CLOCK 108000000 // Overclocking is not recommended!
-/** @addtogroup STM32F4xx_System_Includes
-  * @{
-  */
 
-/**
-  * @}
-  */
-
-
-/** @addtogroup STM32F4xx_System_Exported_types
-  * @{
-  */
-  /* This variable is updated in three ways:
-      1) by calling CMSIS function SystemCoreClockUpdate()
-      2) by calling HAL API function HAL_RCC_GetSysClockFreq()
-      3) each time HAL_RCC_ClockConfig() is called to configure the system clock frequency
-         Note: If you use this function to configure the system clock; then there
-               is no need to call the 2 first functions listed above, since SystemCoreClock
-               variable is updated automatically.
-  */
+/* 
+  This variable is updated in by calling CMSIS function SystemCoreClockUpdate()
+*/
 extern uint32_t SystemCoreClock;          /*!< System Clock Frequency (Core Clock) */
 
-
-/**
-  * @}
-  */
-
-/** @addtogroup STM32F4xx_System_Exported_Constants
-  * @{
-  */
-
-/**
-  * @}
-  */
-
-/** @addtogroup STM32F4xx_System_Exported_Macros
-  * @{
-  */
-
-/**
-  * @}
-  */
-
-/** @addtogroup STM32F4xx_System_Exported_Functions
-  * @{
-  */
-  
 extern void SystemInit(void);
 extern void SystemCoreClockUpdate(void);
 extern void SetSysClock(void);
-/**
-  * @}
-  */
 
 #ifdef __cplusplus
 }
@@ -125,11 +74,4 @@ extern void SetSysClock(void);
 
 #endif /*__SYSTEM_STM32F4XX_H */
 
-/**
-  * @}
-  */
-  
-/**
-  * @}
-  */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

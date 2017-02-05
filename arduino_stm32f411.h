@@ -22,6 +22,23 @@
 
 #define F_CPU __SYSTEM_CLOCK
 
+#define PPRE1_DIV (RCC_CFGR_PPRE1_DIV2) // 0x1000
+#define PPRE2_DIV (RCC_CFGR_PPRE2_DIV1) // 0x0000
+
+#if PPRE1_DIV > 0
+  #define APB1_DIV (1 << ((PPRE1_DIV >> 10) - 3))
+#else
+  #define APB1_DIV (1)
+#endif
+#if PPRE2_DIV > 0
+  #define APB2_DIV (1 << ((PPRE2_DIV >> 13) - 3))
+#else
+  #define APB2_DIV (1)
+#endif
+
+#define _APB1_CLOCK (__SYSTEM_CLOCK/APB1_DIV)
+#define _APB2_CLOCK (__SYSTEM_CLOCK/APB2_DIV)
+
 /** Pins for UART, the serial port.
 */
 #define RXD             PA_3
