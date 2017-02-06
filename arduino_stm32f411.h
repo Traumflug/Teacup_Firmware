@@ -41,6 +41,8 @@
 
 /** Pins for UART, the serial port.
 */
+#define RX_UART1            PA_10
+#define TX_UART1            PA_9
 #define RX_UART2             PA_3
 #define TX_UART2             PA_2
 #define RX_UART6            PA_12
