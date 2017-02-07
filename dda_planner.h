@@ -29,8 +29,6 @@ typedef struct {
   uint32_t          velocity;     // fast axis velocity updated on each dda_clock call
   uint32_t          remainder;    // calculated fractional position between dda_clock intervals
 
-  DDA *             dda;          // Pointer to currently active dda (HACK)
-
   uint32_t          accel_per_tick;                 // fast axis acceleration per TICK_TIME, 8.24 fixed point
   uint32_t          curr_c;                         // Current speed
   uint32_t          end_c;                          // Planned speed at end of current queue
@@ -69,6 +67,6 @@ static inline uint8_t planner_full(void) {
 void planner_begin_dda(DDA *dda);
 
 // Fill planner queue with calculated step motions
-void planner_fill_queue(void);
+uint8_t planner_fill_queue(DDA *dda);
 
 #endif	/* DDA_PLANNER_H */

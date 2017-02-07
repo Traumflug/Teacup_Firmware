@@ -65,7 +65,7 @@ void planner_dump(void)
     uint8_t q=0;
 
     int i;
-    sersendf_P(PSTR("PLANNER dump: %u:%u"), planner.head, planner.tail);
+    sersendf_P(PSTR("PLAN dump: %u:%u"), planner.head, planner.tail);
 
     i=planner.head;
     do {
@@ -97,13 +97,14 @@ void planner_dump(void)
 */
 void planner_begin_dda(DDA *dda)
 {
-  planner.dda = dda;
-  if (!dda) return;
+  SIM_ASSERT(dda->planning == UNPLANNED, "dda not unplanned");
+  dda->planning = PLANNING_IN_PROGRESS;
 
-  if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-    sersendf_P(PSTR("Plan: X %lq  Y %lq  Z %lq  F %lu  velocity=%lu\n"),
-               dda->endpoint.axis[X], dda->endpoint.axis[Y],
-               dda->endpoint.axis[Z], dda->endpoint.F, dda->vmax);
+  // TODO: Assert that planner is not still processing previous move
+
+  if (DEBUG_PLANNER && (debug_flags & DEBUG_PLANNER))
+    sersendf_P(PSTR("\nPLAN: steps=%lu velocity=%lu\n"),
+               dda->total_steps, dda->vmax);
 
   #ifdef ACCELERATION_RAMPING
     dda->live = 1;
@@ -134,7 +135,7 @@ uint32_t planner_get(uint8_t clip_cruise)
   // Movement underflow (tragedy!)
   if (planner_empty()) {
     if (DEBUG_PLANNER && (debug_flags & DEBUG_PLANNER))
-      sersendf_P(PSTR("\n-- PLANNER underflow @ %u\n"), planner.head);
+      sersendf_P(PSTR("\n-- PLAN underflow @ %u\n"), planner.head);
     return 0;
   }
 
@@ -142,7 +143,7 @@ uint32_t planner_get(uint8_t clip_cruise)
 
   if (--planner.next_n[planner.head] == 0) {
     if (DEBUG_PLANNER && (debug_flags & DEBUG_PLANNER))
-      sersendf_P(PSTR("\n<< PLANNER %u. c=%lu  dc=%ld  n=%lu\n"),
+      sersendf_P(PSTR("\nPLAN << %u. c=%lu  dc=%ld  n=%lu\n"),
         planner.head, planner.curr_c, planner.next_dc[planner.head], planner.next_n[planner.head]+1);
     if (++planner.head == PLANNER_QUEUE_SIZE)
       planner.head = 0;
@@ -170,7 +171,7 @@ void planner_put(uint32_t steps, uint32_t speed)
   planner.position += steps;
 
   if (DEBUG_PLANNER && (debug_flags & DEBUG_PLANNER))
-    sersendf_P(PSTR("\n>> PLANNER %u. c=%lu  dc=%ld  n=%lu\n"),
+    sersendf_P(PSTR("\nPLAN >> %u. c=%lu  dc=%ld  n=%lu\n"),
       planner.tail, planner.end_c, dc, steps);
   ATOMIC_START
     planner.next_dc[planner.tail] = dc;
@@ -182,18 +183,18 @@ void planner_put(uint32_t steps, uint32_t speed)
 /**
   Insert step plans into the planner using last dda given and constant acceleration
 */
-void planner_fill_queue(void)
+uint8_t planner_fill_queue(DDA *dda)
 {
-  const DDA *dda = planner.dda;
+
+  SIM_ASSERT(dda->planning == PLANNING_IN_PROGRESS, "dda is not PLANNING_IN_PROGRESS");
 
   // Plan ahead until the movement queue is full
   while (!planner_full()) {
-    if (!dda) return;
+    SIM_ASSERT(planner.position <= dda->total_steps, "Planner position already exceeds dda->total_steps");
+
     if (planner.position >= dda->total_steps) {
-      // Finished planning current DDA; go on to next one
-      dda = queue_get_next(dda);
-      planner_begin_dda((DDA *)dda);
-      continue;
+      dda->planning = PLANNING_DONE;
+      break;
     }
 
     uint32_t move_c;
@@ -273,8 +274,14 @@ void planner_fill_queue(void)
     }
 
     planner_put(dx, move_c);
+    if (DEBUG_PLANNER && (debug_flags & DEBUG_PLANNER)) {
+      sersendf_P(PSTR("\nPLAN vel=%lu  steps=%lu/%lu\n"),
+        velocity, step_no, dda->total_steps);
+      planner_dump();
+    }
 
     planner.velocity = velocity;
     planner.remainder = remainder;
   }
+  return !planner_full();
 }

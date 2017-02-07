@@ -15,6 +15,7 @@
 #include	"clock.h"
 #include "cpu.h"
 #include	"memory_barrier.h"
+#include "dda_planner.h"
 
 /**
   Movebuffer head pointer. Points to the last move in the queue. This variable
@@ -26,6 +27,9 @@ static uint8_t mb_head = 0;
 /// movebuffer tail pointer. Points to the currently executing move
 /// this variable is read/written both in and out of interrupts.
 uint8_t	mb_tail = 0;
+
+/// movebuffer planner pointer. Points to the move currently being planned.
+static uint8_t mb_plan = 0;
 
 /// move buffer.
 /// holds move queue
@@ -69,6 +73,9 @@ void queue_step() {
   */
   if (mb_tail_dda == NULL || ! mb_tail_dda->live) {
     if (mb_tail != mb_head) {
+
+      SIM_ASSERT(mb_tail != mb_plan, "Advancing tail past plan");
+
       mb_tail = MB_NEXT(mb_tail);
       mb_tail_dda = &(movebuffer[mb_tail]);
       dda_start(mb_tail_dda);
@@ -79,13 +86,30 @@ void queue_step() {
   }
 }
 
-/// Return the next dda in the queue if it exists
-/// dda must be ptr to element of movebuffer[], or else &movebuffer[0] is
-///    probably returned
-DDA * queue_get_next(const DDA *dda) {
-  uint8_t mb_next = dda - movebuffer;
-  if (mb_next == mb_head) return NULL;
-  return &(movebuffer[MB_NEXT(mb_next)]);
+// Run the dda planner for the next unplanned dda in the queue.
+void queue_plan() {
+  // Advance mb_plan if it is finished planning
+  do {
+    print_queue();
+    DDA *dda = &movebuffer[mb_plan];
+    if (dda->planning == UNPLANNED) {
+      planner_begin_dda(dda);
+    }
+    // Run planner_fill_queue if mb_plan needs planning
+    if (dda->planning == PLANNING_IN_PROGRESS) {
+      if (planner_fill_queue(dda))
+        dda->planning = PLANNING_DONE;
+      else
+        break;  // Exit when planner is full
+    }
+    if (dda->planning == PLANNING_DONE) {
+      if (mb_plan != mb_head) {
+        mb_plan = MB_NEXT(mb_plan);
+      }
+      else
+        break;
+    }
+  } while (1);
 }
 
 /// add a move to the movebuffer
@@ -129,9 +153,11 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
         This is the version used from outside interrupts. The in-interrupt
         version is inlined (and simplified) in queue_step().
       */
-      timer_reset();
       mb_tail = mb_head;  // Valid ONLY if the queue was empty before!
-      mb_tail_dda = new_movebuffer; // Dito!
+      mb_plan = mb_head;
+      mb_tail_dda = new_movebuffer; // Ditto!
+
+      queue_plan();
       dda_start(mb_tail_dda);
       // Compensate for the cli() in timer_set().
       sei();
@@ -154,7 +180,7 @@ void queue_flush() {
 
   // if the timer were running, this would require
   // wrapping in ATOMIC_START ... ATOMIC_END.
-  mb_tail = mb_head;
+  mb_plan = mb_tail = mb_head;
   mb_tail_dda = NULL;
 }
 

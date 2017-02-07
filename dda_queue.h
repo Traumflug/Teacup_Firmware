@@ -47,4 +47,7 @@ void queue_flush(void);
 // wait for queue to empty
 void queue_wait(void);
 
+// Run the planner for the next queued move
+void queue_plan(void);
+
 #endif /* _DDA_QUEUE */

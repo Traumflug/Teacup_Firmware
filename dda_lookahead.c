@@ -184,6 +184,8 @@ void dda_join_moves(DDA *prev, DDA *current) {
   moveno++;
   #endif
 
+  // TODO: run single-step moves at current speed always
+
   // Bail out if there's nothing to join.
   if ( ! prev || current->v_jerk == 0)
     return;

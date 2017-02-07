@@ -59,6 +59,20 @@ static const axes_uint32_t PROGMEM maximum_feedrate_P = {
   MAXIMUM_FEEDRATE_E
 };
 
+// Identifies when DDA is idle and needs a kick
+static uint8_t dda_idle = 1;
+
+void dda_kick(void) {
+  if (dda_idle) {
+    uint32_t c = planner_get(0);
+    if (c) {
+      dda_idle = 0;
+      timer_reset();
+      timer_set(c, 0);
+    }
+  }
+}
+
 /*! Set the direction of the 'n' axis
 */
 static void set_direction(DDA *dda, enum axis_e n, int32_t delta) {
@@ -424,14 +438,8 @@ void dda_start(DDA *dda) {
   // Ensure this DDA starts.
   dda->live = 1;
 
-  // If we were stopped wake up the timer
-  if (planner_empty()) {
-    planner_begin_dda(dda);
-    planner_fill_queue();
-
-    // Set timeout for first step.
-    timer_set(planner_get(0), 0);
-  }
+  // Begin step timer if not already alive
+  dda_kick();
 }
 
 /**
@@ -456,7 +464,6 @@ void dda_start(DDA *dda) {
 */
 void dda_step(DDA *dda) {
 
-  // sersendf_P(PSTR("   DDA_STEP   head=%u  tail=%u   id=%u\n"), planner.head, planner.tail, dda->id);
   #if ! defined ACCELERATION_TEMPORAL
     if (move_state.steps[X]) {
       move_state.counter[X] -= dda->delta[X];
@@ -626,16 +633,19 @@ void dda_step(DDA *dda) {
   }
 
   {
-    // Get next step from planner; skip cruise-periods if endstop was triggered
+    // Get next step from planner
     uint32_t c = planner_get(move_state.endstop_stop);
 
     if (c)
       timer_set(c, 0);
-    else if (dda->total_steps > move_state.step_no)
-    {
-      // This is bad.  We expected more steps but the planner doesn't have any.
-      sersendf_P(PSTR("\n-- DDA underflow with %lu steps remaining\n"),
-        dda->total_steps - move_state.step_no);
+    else {
+      dda_idle = 1;
+      if (!dda->done)
+      {
+        // This is bad.  We expected more steps but the planner doesn't have any.
+        sersendf_P(PSTR("\n-- DDA underflow with %lu steps remaining\n"),
+          dda->total_steps - move_state.step_no);
+      }
     }
   }
 
@@ -745,6 +755,10 @@ void dda_clock() {
         // For always smooth operations, don't halt apruptly,
         // but start deceleration here.
         ATOMIC_START
+          // FIXME: If planner queue is long enough and acceleration is short enough, we might
+          // be looking at the wrong "accel" here.  We should skip the rampup some other way,
+          // like if (dc>0) eat steps until c comes back down to current level.  At least this
+          // should become a function in planner.c
           move_state.endstop_stop = 1;
           if (planner.accel)  // still accelerating
             dda->total_steps = planner.position * 2;
@@ -758,7 +772,8 @@ void dda_clock() {
   } /* ! move_state.endstop_stop */
 
   #ifdef ACCELERATION_RAMPING
-  planner_fill_queue();
+  // Run the planner
+  queue_plan();
   #endif
 }
 

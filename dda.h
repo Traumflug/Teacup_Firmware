@@ -73,6 +73,11 @@ typedef struct {
   uint8_t debounce_count_x, debounce_count_y, debounce_count_z;
 } MOVE_STATE;
 
+typedef enum planning_state {
+  UNPLANNED             = 0,
+  PLANNING_IN_PROGRESS  = 1,
+  PLANNING_DONE         = 2,
+} planning_state;
 
 /**
 	\struct DDA
@@ -91,6 +96,7 @@ typedef struct {
 			uint8_t						nullmove			:1; ///< bool: no axes move, maybe we wait for temperatures or change speed
 			volatile uint8_t  live          :1; ///< bool: this DDA is running and still has steps to do
       uint8_t           done          :1; ///< bool: this DDA is done.
+      uint8_t           planning      :2; ///< planning_state[0-2]: {Unplanned, PlanningInProgress, PlanningDone}
 			#ifdef ACCELERATION_REPRAP
 			uint8_t						accel					:1; ///< bool: speed changes during this move, run accel code
 			#endif
