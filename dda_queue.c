@@ -71,7 +71,12 @@ void queue_step() {
 
     This needs no atomic protection, because we're in an interrupt already.
   */
-  if (mb_tail_dda == NULL || ! mb_tail_dda->live) {
+  // Prev fix to this line ignores weird condition that got us here.
+  //  We are called in a step_timer but there is no DDA to step.  wtf?
+  //  We know this happened because mb_tail_dda was NULL when we got here.
+  SIM_ASSERT(mb_tail_dda, "Found no DDA to step in queue_step");
+
+  if (! mb_tail_dda->live) {
     if (mb_tail != mb_head) {
 
       SIM_ASSERT(mb_tail_dda->planning == PLANNING_DONE || mb_tail != mb_plan, "Advancing tail past plan");
