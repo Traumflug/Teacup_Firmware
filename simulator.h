@@ -155,6 +155,10 @@ void sim_gcode_ch(char ch);
 void sim_gcode(const char msg[]);
 void sim_report_temptables(int sensor) ;
 
+// Weird trick needed to stringize the __LINE__ directive
+#define STRINGIZE(x) #x
+#define LOC(file,x) file ":" STRINGIZE(x)
+#define SIM_ASSERT(cond, msg) sim_assert(cond, LOC(__FILE__ , __LINE__) ": assert(" #cond ") failed; " msg )
 /**
  * Initialize simulator timer and set time scale.
  *
@@ -171,4 +175,6 @@ void sim_time_warp(void); ///< skip ahead to next timer interrupt, when time_sca
 #define DIO0_PIN "proof of life"
 
 #endif /* _SIMULATOR_H */
+#else
+#define SIM_ASSERT(cond, msg) (void) 0
 #endif /* SIMULATOR */
