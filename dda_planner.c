@@ -252,6 +252,9 @@ void planner_fill_queue(void)
         }
       }
 
+      if (dx + step_no > dda->total_steps)
+        dx = dda->total_steps - step_no;
+
       step_no += dx;
     }
 
