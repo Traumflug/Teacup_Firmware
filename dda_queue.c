@@ -74,11 +74,18 @@ void queue_step() {
   if (mb_tail_dda == NULL || ! mb_tail_dda->live) {
     if (mb_tail != mb_head) {
 
-      SIM_ASSERT(mb_tail != mb_plan, "Advancing tail past plan");
+      SIM_ASSERT(mb_tail_dda->planning == PLANNING_DONE || mb_tail != mb_plan, "Advancing tail past plan");
 
+      if (mb_plan == mb_tail)
+        mb_plan = MB_NEXT(mb_tail);
       mb_tail = MB_NEXT(mb_tail);
       mb_tail_dda = &(movebuffer[mb_tail]);
-      dda_start(mb_tail_dda);
+      if (mb_tail_dda->planning == UNPLANNED) {
+        SIM_ASSERT(mb_tail == mb_plan, "mb_tail is unplanned and planner isn't looking at it next");
+        mb_tail_dda = NULL; // We can't start an unplanned move
+      }
+      else
+        dda_start(mb_tail_dda);
     }
     else {
       mb_tail_dda = NULL;
