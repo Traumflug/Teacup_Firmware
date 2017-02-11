@@ -46,7 +46,7 @@ echo "Taking Teacup binary ${TEACUP_ELF}."
 
 # Prepare statistics.
 echo                             > ${STATISTICS_FILE}
-(cd .. && make USER_CONFIG="testcases/${USER_CONFIG}" size) | \
+(cd .. && make USER_CONFIG="testcases/${CONFIG}" size) | \
   tail -5 | head -4             >> ${STATISTICS_FILE}
 
 
