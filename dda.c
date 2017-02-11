@@ -324,12 +324,11 @@ void dda_create(DDA *dda, const TARGET *target) {
     c_limit = 0;
     for (i = X; i < AXIS_COUNT; i++) {
       c_limit_calc = (delta_um[i] * 2400L) /
-                     // dda->total_steps * (F_CPU / 40000) /
+                     dda->total_steps * (F_CPU / 40000) /
                      pgm_read_dword(&maximum_feedrate_P[i]);
       if (c_limit_calc > c_limit)
         c_limit = c_limit_calc;
     }
-    c_limit = c_limit / dda->total_steps * (F_CPU / 40000);
 
 		#ifdef ACCELERATION_REPRAP
 		// c is initial step time in IOclk ticks
