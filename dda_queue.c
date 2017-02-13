@@ -160,6 +160,8 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
         This is the version used from outside interrupts. The in-interrupt
         version is inlined (and simplified) in queue_step().
       */
+      SIM_ASSERT(MB_NEXT(mb_tail) == mb_head, "Empty queue and head != tail");
+      SIM_ASSERT(MB_NEXT(mb_plan) == mb_head, "Empty queue and head != plan");
       mb_tail = mb_head;  // Valid ONLY if the queue was empty before!
       mb_plan = mb_head;
       mb_tail_dda = new_movebuffer; // Ditto!
@@ -169,6 +171,8 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
       // Compensate for the cli() in timer_set().
       sei();
     }
+    else
+      queue_plan();
 	}
 }
 
