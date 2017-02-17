@@ -49,8 +49,13 @@ OBJDUMP = $(TOOLCHAIN)objdump
 OBJCOPY = $(TOOLCHAIN)objcopy
 SIZE    = $(TOOLCHAIN)size
 
+CPU_OBJ = $(patsubst $(CPU_SOURCE_FOLDER)/%.c,$(BUILDDIR)/%.o,$(wildcard $(CPU_SOURCE_FOLDER)/*.c))
+CPU_OBJ := $(patsubst %.c,%.o,$(CPU_OBJ))
 
-OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES))
+STD_OBJ = $(filter-out $(wildcard $(CPU_SOURCE_FOLDER)/*.c),$(SOURCES))
+STD_OBJ := $(patsubst %.c,$(BUILDDIR)/%.o,$(STD_OBJ))
+
+OBJ := $(CPU_OBJ) $(STD_OBJ)
 
 .PHONY: all clean doc functionsbysize
 .PRECIOUS: %.o %.elf
@@ -85,6 +90,11 @@ define CCPOST
 endef
 
 $(BUILDDIR)/%.o: %.c | $(BUILDDIR)
+	@echo "  CC        $@"
+	@$(CC) -c $(CFLAGS) -MMD -o $@ $<
+	@$(call CCPOST)
+
+$(BUILDDIR)/%.o: $(CPU_SOURCE_FOLDER)/%.c | $(BUILDDIR)
 	@echo "  CC        $@"
 	@$(CC) -c $(CFLAGS) -MMD -o $@ $<
 	@$(call CCPOST)

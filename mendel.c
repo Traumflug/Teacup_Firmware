@@ -39,7 +39,7 @@
 #include	"watchdog.h"
 #include	"debug.h"
 #include	"heater.h"
-#include	"analog.h"
+#include	"src/analog.h"
 #include	"pinio.h"
 #include	"clock.h"
 #include	"intercom.h"

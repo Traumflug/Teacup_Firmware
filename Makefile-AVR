@@ -111,7 +111,8 @@ TARGET = $(PROGRAM).hex
 
 # Arduino IDE takes the "compile everything available"-approach, so we have
 # to keep this working and can take a shortcut:
-SOURCES = $(wildcard *.c)
+CPU_SOURCE_FOLDER = src/AVR
+SOURCES = $(wildcard *.c) $(wildcard $(CPU_SOURCE_FOLDER)/*.c)
 
 CFLAGS  = $(EXTRA_CFLAGS)
 CFLAGS += -DF_CPU=$(F_CPU)

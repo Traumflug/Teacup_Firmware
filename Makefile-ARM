@@ -116,7 +116,13 @@ TARGET = $(PROGRAM).hex
 
 # Arduino IDE takes the "compile everything available"-approach, so we have
 # to keep this working and can take a shortcut:
-SOURCES = $(wildcard *.c)
+ifeq ($(MCU), lpc1114)
+	CPU_SOURCE_FOLDER = src/LPC
+else ifeq ($(MCU), stm32f411)
+	CPU_SOURCE_FOLDER = src/STM
+endif
+
+SOURCES = $(wildcard *.c) $(wildcard $(CPU_SOURCE_FOLDER)/*.c)
 
 ifeq ($(MCU), lpc1114)
   SOURCES += cmsis-system_lpc11xx.c

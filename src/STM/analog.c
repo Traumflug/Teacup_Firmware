@@ -5,13 +5,14 @@
   each channel. We are using DMA instead.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
+#ifdef __ARM_STM32F411__
 
-#include "cmsis-stm32f4xx.h"
-#include "arduino.h"
-#include "pinio.h"
-#include "delay.h"
-#include "temp.h"
+#include "../analog.h"
+#include "../../cmsis-stm32f4xx.h"
+#include "../../arduino.h"
+#include "../../pinio.h"
+#include "../../delay.h"
+#include "../../temp.h"
 
 // DMA ADC-buffer
 #define OVERSAMPLE 6
@@ -53,7 +54,7 @@ void init_analog() {
     SET_MODE(pin, 0x3);   \
     PULL_OFF(pin);        \
     SET_OSPEED(pin, 0x3);
-  #include "config_wrapper.h"
+  #include "../../config_wrapper.h"
   #undef DEFINE_TEMP_SENSOR
 
   /* Set ADC parameters */
@@ -94,7 +95,7 @@ void init_analog() {
       ADC1->SQR1 |= pin ## _ADC << (5 * (TEMP_SENSOR_ ## name - subt)); \
     } \
   }
-  #include "config_wrapper.h"
+  #include "../../config_wrapper.h"
   #undef DEFINE_TEMP_SENSOR
   ADC1->CR2 |= ADC_CR2_CONT;
   ADC1->CR2 |= ADC_CR2_ADON;         // A/D Converter ON / OFF
@@ -215,4 +216,4 @@ void start_adc() {
                ADC_CR2_SWSTART;
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
+#endif /* __ARM_STM32F411__ */

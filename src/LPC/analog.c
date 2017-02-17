@@ -11,11 +11,34 @@
   always compares against Vdd. This is the equivalent of REFERENCE_AVCC on AVR.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARM_LPC1114__
+#ifdef __ARM_LPC1114__
 
-#include "cmsis-lpc11xx.h"
-#include "arduino.h"
+#include "../analog.h"
+#include "../../temp.h"
+#include "../../cmsis-lpc11xx.h"
+#include "../../arduino.h"
 
+#define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
+  | (((type == TT_THERMISTOR) || (type == TT_AD595)) ? (1 << (pin ## _ADC)) : 0)
+#if defined(AIO8_PIN)
+  static const uint16_t analog_mask = 0
+#else
+  static const uint8_t analog_mask = 0
+#endif
+#include "../../config_wrapper.h"
+;
+#undef DEFINE_TEMP_SENSOR
+
+/**
+  A map of the ADC channels of the defined sensors.
+*/
+#undef DEFINE_TEMP_SENSOR
+#define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
+  ((type == TT_THERMISTOR) || (type == TT_AD595)) ? (pin ## _ADC) : 255,
+static uint8_t adc_channel[NUM_TEMP_SENSORS] = {
+  #include "../../config_wrapper.h"
+};
+#undef DEFINE_TEMP_SENSOR
 
 /** Inititalise the analog subsystem.
 
@@ -61,7 +84,7 @@ void analog_init() {
                                | (0 << 3)         /* Pullup inactive.    */ \
                                | (0 << 7))        /* Analog input mode.  */ \
           : LPC_IOCON->pin ## _CMSIS;
-    #include "config_wrapper.h"
+    #include "../../config_wrapper.h"
     #undef DEFINE_TEMP_SENSOR
   } /* analog_mask */
 }
@@ -85,4 +108,4 @@ uint16_t analog_read(uint8_t index) {
   return result;
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
+#endif /* __ARM_LPC1114__ */
