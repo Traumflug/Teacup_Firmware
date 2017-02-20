@@ -44,12 +44,12 @@
 #endif
 
 #ifdef	TEMP_THERMISTOR
-#include	"src/analog.h"
+#include	"analog.h"
 #include	"thermistortable.h"
 #endif
 
 #ifdef	TEMP_AD595
-#include	"src/analog.h"
+#include	"analog.h"
 #endif
 
 /// holds metadata for each temperature sensor

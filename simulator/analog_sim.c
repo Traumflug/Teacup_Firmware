@@ -1,5 +1,5 @@
 #include "temp.h"
-#include "src/analog.h"
+#include "analog.h"
 #include "simulator.h"
 #include <stdio.h>
 

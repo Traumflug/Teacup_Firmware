@@ -43,6 +43,7 @@ BUILDDIR := $(BUILDDIR)/$(USER_CONFIG:.h=)
 endif
 
 CFLAGS += -save-temps=obj -DUSER_CONFIG='"$(USER_CONFIG)"'
+CFLAGS += $(addprefix -I, $(SOURCETREE))
 
 CC = $(TOOLCHAIN)gcc
 OBJDUMP = $(TOOLCHAIN)objdump
@@ -52,6 +53,7 @@ SIZE    = $(TOOLCHAIN)size
 
 OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES))
 BUILDTREE = $(sort $(dir $(OBJ)))
+SOURCETREE = $(sort ./ src/ $(dir $(SOURCES)))
 
 .PHONY: all clean doc functionsbysize
 .PRECIOUS: %.o %.elf

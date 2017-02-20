@@ -5,10 +5,10 @@
 
 #ifdef __AVR__
 
-#include "../analog.h"
-#include "../../temp.h"
-#include "../../pinio.h"
-#include "../../memory_barrier.h"
+#include "analog.h"
+#include "temp.h"
+#include "pinio.h"
+#include "memory_barrier.h"
 
   // TODO: these reference selectors should go away. A nice feature, but
   //       none of the RepRap controllers has use for it.
