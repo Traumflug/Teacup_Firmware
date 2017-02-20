@@ -49,18 +49,14 @@ OBJDUMP = $(TOOLCHAIN)objdump
 OBJCOPY = $(TOOLCHAIN)objcopy
 SIZE    = $(TOOLCHAIN)size
 
-CPU_OBJ = $(patsubst $(CPU_SOURCE_FOLDER)/%.c,$(BUILDDIR)/%.o,$(wildcard $(CPU_SOURCE_FOLDER)/*.c))
-CPU_OBJ := $(patsubst %.c,%.o,$(CPU_OBJ))
 
-STD_OBJ = $(filter-out $(wildcard $(CPU_SOURCE_FOLDER)/*.c),$(SOURCES))
-STD_OBJ := $(patsubst %.c,$(BUILDDIR)/%.o,$(STD_OBJ))
-
-OBJ := $(CPU_OBJ) $(STD_OBJ)
+OBJ = $(patsubst %.c,$(BUILDDIR)/%.o,$(SOURCES))
+BUILDTREE = $(sort $(dir $(OBJ)))
 
 .PHONY: all clean doc functionsbysize
 .PRECIOUS: %.o %.elf
 
-all: $(BUILDDIR) $(TARGET)
+all: $(TARGET)
 
 clean:
 	rm -rf $(BUILDDIR) $(TARGET) *~
@@ -71,8 +67,8 @@ doc: Doxyfile *.c *.h
 functionsbysize: $(OBJ)
 	@$(OBJDUMP) -h $^ | grep '\.text\.' | perl -ne '/\.text\.(\S+)\s+([0-9a-f]+)/ && printf "%u\t%s\n", eval("0x$$2"), $$1;' | sort -n
 
-$(BUILDDIR):
-	mkdir -p $(BUILDDIR)
+$(BUILDTREE):
+	mkdir -p $@
 
 # pull in dependency info
 -include $(OBJ:%.o=%.P)
@@ -89,12 +85,7 @@ define CCPOST
 	rm -f $(df).d
 endef
 
-$(BUILDDIR)/%.o: %.c | $(BUILDDIR)
-	@echo "  CC        $@"
-	@$(CC) -c $(CFLAGS) -MMD -o $@ $<
-	@$(call CCPOST)
-
-$(BUILDDIR)/%.o: $(CPU_SOURCE_FOLDER)/%.c | $(BUILDDIR)
+$(BUILDDIR)/%.o: %.c | $(BUILDTREE)
 	@echo "  CC        $@"
 	@$(CC) -c $(CFLAGS) -MMD -o $@ $<
 	@$(call CCPOST)
