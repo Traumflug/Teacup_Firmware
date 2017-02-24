@@ -122,13 +122,7 @@ else ifeq ($(MCU), stm32f411)
 	CPU_SOURCE_FOLDER = src/STM
 endif
 
-SOURCES = $(wildcard *.c) $(wildcard $(CPU_SOURCE_FOLDER)/*.c)
-
-ifeq ($(MCU), lpc1114)
-  SOURCES += cmsis-system_lpc11xx.c
-else ifeq ($(MCU), stm32f411)
-  SOURCES += cmsis-system_stm32f4xx.c
-endif
+SOURCES = $(wildcard *.c) $(wildcard $(CPU_SOURCE_FOLDER)/*.c) 
 
 # Other target MCU specific adjustments:
 ifeq ($(MCU), lpc1114)
@@ -160,14 +154,15 @@ CFLAGS += -Os
 CFLAGS += -flto
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
+CFLAGS += -I src/CMSIS
 #CFLAGS += -dM -E # To list all predefined macros into the .o file.
 
 LDFLAGS  = --specs=nano.specs
 LDFLAGS += --specs=nosys.specs
 ifeq ($(MCU), lpc1114)
-  LDFLAGS += -T cmsis-lpc1114.ld
+  LDFLAGS += -T $(CPU_SOURCE_FOLDER)/cmsis-lpc1114.ld
 else ifeq ($(MCU), stm32f411)
-  LDFLAGS += -T cmsis-stm32f411xe.ld
+  LDFLAGS += -T $(CPU_SOURCE_FOLDER)/cmsis-stm32f411xe.ld
 endif
 LDFLAGS += -Wl,--as-needed
 LDFLAGS += -Wl,--gc-sections
@@ -209,7 +204,7 @@ program: $(UPLOAD_FILE) config.h
 
 $(BUILDDIR)/teacup.elf: $(BUILDDIR)/startup.o
 
-$(BUILDDIR)/startup.o: $(STARTUP_FILE) | $(BUILDDIR)
+$(BUILDDIR)/startup.o: $(CPU_SOURCE_FOLDER)/$(STARTUP_FILE) | $(BUILDDIR)
 	@echo "  CC        $@"
 	@$(CC) -c $(CFLAGS) -o $@ $<
 
