@@ -1,3 +1,4 @@
+#ifdef SIMULATOR
 
 #include "heater.h"
 
@@ -28,3 +29,5 @@ void heater_save_settings(void) {
 void heater_print(uint16_t i) {
   sim_info("heater not implemented in simulator.");
 }
+
+#endif

@@ -5,8 +5,9 @@
   For test cases see the intro comment in heater.c.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARM_LPC1114__
+#ifdef __ARM_LPC1114__
 
+#include "heater.h"
 #include "cmsis-lpc11xx.h"
 #include <stddef.h>
 #include "pinio.h"
@@ -216,4 +217,4 @@ void heater_set(heater_t index, uint8_t value) {
   }
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
+#endif /* __ARM_LPC1114__ */

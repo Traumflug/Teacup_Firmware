@@ -5,8 +5,9 @@
   For test cases see the intro comment in heater.c.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __AVR__
+#ifdef __AVR__
 
+#include "heater.h"
 #include	<stdlib.h>
 #include "pinio.h"
 #include	"crc.h"
@@ -235,4 +236,4 @@ void heater_set(heater_t index, uint8_t value) {
     power_on();
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __AVR__ */
+#endif /* __AVR__ */

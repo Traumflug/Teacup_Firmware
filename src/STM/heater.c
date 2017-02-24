@@ -3,8 +3,9 @@
   \brief Manage heaters, including PID and PWM, ARM specific part.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
+#if __ARM_STM32F411__
 
+#include "heater.h"
 #include "cmsis-stm32f4xx.h"
 #include "pinio.h"
 #include "sersendf.h"
@@ -245,4 +246,4 @@ void heater_set(heater_t index, uint8_t value) {
   }
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
+#endif /* __ARM_STM32F411__ */

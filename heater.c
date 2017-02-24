@@ -21,13 +21,9 @@
      of the M106 command.
 */
 
-#include "heater.h"
+#ifndef SIMULATOR
 
-#define TEACUP_C_INCLUDE
-#include "heater-avr.c"
-#include "heater-arm_lpc11xx.c"
-#include "heater-arm_stm32f4xx.c"
-#undef TEACUP_C_INCLUDE
+#include "heater.h"
 
 #include	<stdlib.h>
 #include	"arduino.h"
@@ -336,4 +332,6 @@ void heater_save_settings() {
 void heater_print(uint16_t i) {
 	sersendf_P(PSTR("P:%ld I:%ld D:%ld Ilim:%u crc:%u\n"), heaters_pid[i].p_factor, heaters_pid[i].i_factor, heaters_pid[i].d_factor, heaters_pid[i].i_limit, crc_block(&heaters_pid[i].p_factor, 14));
 }
+#endif
+
 #endif
