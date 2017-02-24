@@ -1,3 +1,5 @@
+#ifdef SIMULATOR
+
 #include "temp.h"
 #include "analog.h"
 #include "simulator.h"
@@ -39,3 +41,5 @@ void sim_report_temptables(int sensor) {
     }
   }
 }
+
+#endif
