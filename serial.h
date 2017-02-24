@@ -35,6 +35,7 @@
 
 #endif /* USB_SERIAL */
 
+#ifndef SIMULATOR
 void writestr(void (*writechar)(uint8_t), uint8_t *data, ...);
 
 // write from flash
@@ -49,6 +50,11 @@ void writestr_P(void (*writechar)(uint8_t), PGM_P data_P, ...);
 #else
   #define debug_writestr(...) writestr(serial_writechar, __VA_ARGS__)
   #define debug_writestr_P(...) writestr_P(serial_writechar, __VA_ARGS__)
+#endif
+
+#else /* simulator */
+void serial_writestr(uint8_t *data);
+void serial_writestr_P(PGM_P data_P);
 #endif
 
 #endif	/* _SERIAL_H */
