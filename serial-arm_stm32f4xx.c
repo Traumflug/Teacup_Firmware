@@ -219,6 +219,7 @@ void serial_writechar(uint8_t data) {
   uartx_writechar(USART2, data);
 }
 
+#ifdef SERIAL_DEBUG
 uint8_t debug_rxchars(void) {
   return uartx_rxchars(USART6);
 }
@@ -231,5 +232,6 @@ uint8_t debug_txchars(void) {
 void debug_writechar(uint8_t data) {
   uartx_writechar(USART6, data);
 }
+#endif
 
 #endif /* defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__ */
