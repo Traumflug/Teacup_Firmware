@@ -3,8 +3,9 @@
   \brief Delay routines, AVR specific part.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __AVR__
+#ifdef __AVR__
 
+#include "delay.h"
 #include <util/delay_basic.h>
 
 #if F_CPU < 4000000UL
@@ -50,4 +51,4 @@ void delay_us(uint16_t delay) {
     _delay_loop_2(delay * (F_CPU / 4000000L));
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __AVR__ */
+#endif /* __AVR__ */

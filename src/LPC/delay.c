@@ -3,9 +3,9 @@
   \brief Delay routines, ARM specific part.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
+#ifdef __ARM_LPC1114__
 
-#include "cmsis-stm32f4xx.h"  // For __ASM() and ...
+#include "cmsis-lpc11xx.h"  // For __ASM() and __SYSTEM_CLOCK.
 
 
 /** Delay in microseconds.
@@ -22,19 +22,21 @@
   Nevertheless, calibrated on the oscilloscope. Measured accuracy:
 
              delay_us(10)    ...(100)   ...(1000)  ...(10000)  ...(65000)
-    96 MHz       10.23 us    99.3 us    0.994 ms    9.93 ms    64.5 ms
+    48 MHz       10.82 us    100.9 us    1.002 ms    10.01 ms    65.10 ms
 
-  CAUTION: this currently works for a 96 MHz clock, only! As other clock rates
+  CAUTION: this currently works for a 48 MHz clock, only! As other clock rates
            appear, there's more math neccessary, see the AVR version. Or simply
            a second implementation.
 */
 void delay_us(uint16_t delay) {
 
+  #if __SYSTEM_CLOCK == 48000000UL
     __ASM (".balign 16");  // No gambling with the prefetch engine.
     while (delay) {
       __ASM volatile (
         "   nop               \n\t"  // One nop before the loop slows about 2%.
-        "   movs  r7, #9      \n\t"  // One more loop round slows about 20%
+        "   nop               \n\t"
+        "   movs  r7, #4      \n\t"  // One more loop round slows about 20%
         "1: nop               \n\t"
         "   sub   r7, #1      \n\t"
         "   cmp   r7, #0      \n\t"
@@ -45,6 +47,9 @@ void delay_us(uint16_t delay) {
       );
       delay--;
     }
+  #else
+    #error No delay_us() implementation for this CPU clock frequency.
+  #endif
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __ARMEL__ */
+#endif /* __ARM_LPC1114__ */

@@ -4,13 +4,6 @@
 	\brief Delay routines
 */
 
-#define TEACUP_C_INCLUDE
-#include "delay-avr.c"
-// Each ARM needs it's own file
-#include "delay-arm_lpc11xx.c"
-#include "delay-arm_stm32f4xx.c"
-#undef TEACUP_C_INCLUDE
-
 #include "watchdog.h"
 
 
