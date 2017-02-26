@@ -21,11 +21,11 @@
   is used both in and out of interrupts, but is only written outside of
   interrupts.
 */
-static uint8_t mb_head = 0;
+static uint_fast8_t mb_head = 0;
 
 /// movebuffer tail pointer. Points to the currently executing move
 /// this variable is read/written both in and out of interrupts.
-uint8_t	mb_tail = 0;
+uint_fast8_t	mb_tail = 0;
 
 /// move buffer.
 /// holds move queue
@@ -46,7 +46,7 @@ DDA *mb_tail_dda;
 #define MB_NEXT(x) ((x) < MOVEBUFFER_SIZE - 1 ? (x) + 1 : 0)
 
 /// check if the queue is completely full
-uint8_t queue_full() {
+uint_fast8_t queue_full() {
 	MEMORY_BARRIER();
   return MB_NEXT(mb_head) == mb_tail;
 }
@@ -87,7 +87,7 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond) {
 	while (queue_full())
 		delay_us(100);
 
-  uint8_t h = MB_NEXT(mb_head);
+  uint_fast8_t h = MB_NEXT(mb_head);
 
 	DDA* new_movebuffer = &(movebuffer[h]);
 

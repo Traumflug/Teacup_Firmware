@@ -78,7 +78,7 @@ void init_analog() {
   // subt line is to keep compiler happy
   #define DEFINE_TEMP_SENSOR(name, type, pin, additional) \
   if (NUM_TEMP_SENSORS) { \
-    uint8_t subt = (pin ## _ADC >= 10) ? 10 : 0; \
+    uint32_t subt = (pin ## _ADC >= 10) ? 10 : 0; \
     if (pin ## _ADC >= 10) { \
       ADC1->SMPR1 |= (uint32_t)0x06 << (3 * ((pin ## _ADC) - subt)); \
     } else { \
@@ -186,8 +186,8 @@ uint16_t analog_read(uint8_t index) {
   if (NUM_TEMP_SENSORS > 0) {
     uint16_t r = 0;
     uint16_t temp;
-    uint16_t max_temp = 0;
-    uint16_t min_temp = 0xffff;
+    uint32_t max_temp = 0;
+    uint32_t min_temp = UINT32_MAX;
 
     for (uint8_t i = 0; i < OVERSAMPLE; i++) {
       temp = adc_buffer[i][index];

@@ -11,7 +11,7 @@
 */
 
 // this is the ringbuffer that holds the current and pending moves.
-extern uint8_t mb_tail;
+extern uint_fast8_t mb_tail;
 extern DDA movebuffer[MOVEBUFFER_SIZE];
 extern DDA *mb_tail_dda;
 
@@ -21,7 +21,7 @@ extern DDA *mb_tail_dda;
 */
 
 // queue status methods
-uint8_t queue_full(void);
+uint_fast8_t queue_full(void);
 
 // take one step
 void queue_step(void);

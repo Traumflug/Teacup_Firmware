@@ -75,12 +75,12 @@ static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
 
 /// this struct holds the runtime sensor data- read temperatures, targets, etc
 static struct {
-	uint16_t					last_read_temp; ///< last received reading
-	uint16_t					target_temp;		///< manipulate attached heater to attempt to achieve this value
+  uint_fast16_t         last_read_temp; ///< last received reading
+  uint_fast16_t         target_temp;    ///< manipulate attached heater to attempt to achieve this value
 
-	uint16_t					temp_residency; ///< how long have we been close to target temperature in temp ticks?
+  uint_fast16_t         temp_residency; ///< how long have we been close to target temperature in temp ticks?
 
-  uint8_t  active;          ///< State machine tracker for readers that need it.
+  uint_fast8_t  active;          ///< State machine tracker for readers that need it.
 } temp_sensors_runtime[NUM_TEMP_SENSORS];
 
 /** \def TEMP_EWMA

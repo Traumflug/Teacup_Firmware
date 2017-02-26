@@ -30,16 +30,16 @@
   Every time our clock fires we increment this,
   so we know when 10ms/250ms/1s has elapsed.
 */
-static uint8_t clock_counter_10ms = 0;
-static uint8_t clock_counter_250ms = 0;
-static uint8_t clock_counter_1s = 0;
+static uint_fast8_t clock_counter_10ms = 0;
+static uint_fast8_t clock_counter_250ms = 0;
+static uint_fast8_t clock_counter_1s = 0;
 
 /**
   Flags to tell clock() when above have elapsed.
 */
-static volatile uint8_t clock_flag_10ms = 0;
-static volatile uint8_t clock_flag_250ms = 0;
-static volatile uint8_t clock_flag_1s = 0;
+static volatile uint_fast8_t clock_flag_10ms = 0;
+static volatile uint_fast8_t clock_flag_250ms = 0;
+static volatile uint_fast8_t clock_flag_1s = 0;
 
 
 /** Advance our clock by a tick.
