@@ -5,7 +5,7 @@ from configtool.data import BSIZESMALL, offsetChLabel, offsetTcLabel
 
 class AddHeaterDlg(wx.Dialog):
   def __init__(self, parent, names, pins, font,
-               name = "", pin = "", invert = "0", pwm = "1"):
+               name = "", pin = "", invert = "0", pwm = "1", max_pwm = "100"):
     wx.Dialog.__init__(self, parent, wx.ID_ANY, "Add heater", size = (400, 204))
     self.SetFont(font)
     self.Bind(wx.EVT_CLOSE, self.onCancel)
@@ -14,6 +14,7 @@ class AddHeaterDlg(wx.Dialog):
     self.choices = pins
 
     self.nameValid = (name != "")
+    self.maxPWMValid = (max_pwm != "")
 
     sz = wx.BoxSizer(wx.VERTICAL)
     gsz = wx.GridBagSizer()
@@ -50,9 +51,25 @@ class AddHeaterDlg(wx.Dialog):
     else:
       self.chPin.SetSelection(i)
     lsz.Add(self.chPin)
-    self.chPin.SetToolTipString("Choose a pin for this heater.")
+    self.chPin.SetToolTipString("Choose a pin for this heater.")    
 
     gsz.Add(lsz, pos = (3, 1))
+
+    lsz = wx.BoxSizer(wx.HORIZONTAL)
+    st = wx.StaticText(self, wx.ID_ANY, "Max PWM:", size = (80, -1),
+                       style = wx.ALIGN_RIGHT)
+    st.SetFont(font)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
+
+    self.tcMaxPWM = wx.TextCtrl(self, wx.ID_ANY, max_pwm)
+    self.tcMaxPWM.SetFont(font)
+    self.tcMaxPWM.Bind(wx.EVT_TEXT, self.onMaxPWM)
+    lsz.Add(self.tcMaxPWM)
+    self.tcMaxPWM.SetToolTipString("Enter max. PWM value in [%]. Typically \n"
+                                      "between 40 and 100. Standard is 100.\n"
+                                      "Valid values 1 to 100.")
+
+    gsz.Add(lsz, pos = (5, 1))
 
     self.cbInv = wx.CheckBox(self, wx.ID_ANY, "Invert")
     self.cbInv.SetFont(font)
@@ -118,8 +135,29 @@ class AddHeaterDlg(wx.Dialog):
   def onChoice(self, evt):
     pass
 
+  def onMaxPWM(self, evt):
+    tc = evt.GetEventObject()
+    w = tc.GetValue().strip()
+    if w == "":
+      self.maxPWMValid = False
+    else:
+      if int(w) > 0 and int(w) <= 100:
+        self.maxPWMValid = True
+      else:
+        self.maxPWMValid = False
+
+    if self.maxPWMValid:
+      tc.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+    else:
+      tc.SetBackgroundColour("pink")
+    tc.Refresh()
+
+    self.checkDlgValidity()
+    if evt is not None:
+      evt.Skip()
+
   def checkDlgValidity(self):
-    if self.nameValid:
+    if (self.nameValid and self.maxPWMValid):
       self.bSave.Enable(True)
     else:
       self.bSave.Enable(False)
@@ -138,7 +176,9 @@ class AddHeaterDlg(wx.Dialog):
     else:
       pwm = "0"
 
-    return (nm, pin, invert, pwm)
+    max_pwm = self.tcMaxPWM.GetValue()
+
+    return (nm, pin, invert, pwm, max_pwm)
 
   def onSave(self, evt):
     self.EndModal(wx.ID_OK)

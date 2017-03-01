@@ -233,6 +233,18 @@
   with slow switches, like solid state relays. PWM frequency can be
   influenced globally with FAST_PWM, see below.
 */
+
+/** \def MAX_PWM_ACTIVE
+  Enable max_pwm value.
+
+  When you have a heater which has very huge power, you can reduce it.
+  For example you have a 40W 12V heater and want to use it at 24V. At 24V
+  the heater has 120W. To reduce it again to 40W set the max_pwm to 25%.
+  
+  max_pwm values are allowed between 1 and 100.
+*/
+#define MAX_PWM_ACTIVE
+
 //DEFINE_HEATERS_START
 //DEFINE_HEATERS_END
 

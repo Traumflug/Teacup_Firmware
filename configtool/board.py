@@ -12,7 +12,7 @@ from configtool.data import (defineValueFormat,
                              reDefine, reDefineBL, reDefQS, reDefQSm,
                              reDefQSm2, reDefBool, reDefBoolBL, reDefHT,
                              reDefTS, reDefTT, reSensor, reHeater3, reHeater4,
-                             reTempTable4, reTempTable7)
+                             reHeater5, reTempTable4, reTempTable7)
 
 class Board:
   def __init__(self, settings):
@@ -303,11 +303,19 @@ class Board:
     return None
 
   def parseHeater(self, s):
+    m = reHeater5.search(s)
+    if m:
+      t = m.groups()
+      if len(t) == 5:
+        return list(t)
+    # reHeater4 deprecated, for compatibility with old config files only.
     m = reHeater4.search(s)
     if m:
       t = m.groups()
       if len(t) == 4:
-        return list(t)
+        t = list(t)
+        t.insert(5, '100')
+        return t
     # reHeater3 deprecated, for compatibility with old config files only.
     m = reHeater3.search(s)
     if m:
@@ -315,6 +323,7 @@ class Board:
       if len(t) == 3:
         t = list(t)
         t.insert(2, '0')
+        t.insert(5, '100')
         return t
     # End of deprecated part.
     return None
@@ -392,10 +401,10 @@ class Board:
       m = reStartHeaters.match(ln)
       if m:
         fp.write(ln)
-        fp.write("//            name      pin      invert  pwm\n")
+        fp.write("//            name      pin      invert  pwm     max_pwm\n")
         for s in self.heaters:
-          sstr = "%-10s%-9s%-8s%s" % ((s[0] + ","), (s[1] + ","),
-                                      (s[2] + ","), s[3])
+          sstr = "%-10s%-9s%-8s%-7s%s" % ((s[0] + ","), (s[1] + ","),
+                                      (s[2] + ","), s[3] + ",", s[4])
           fp.write("DEFINE_HEATER(%s)\n" % sstr)
         fp.write("\n")
         for s in self.heaters:

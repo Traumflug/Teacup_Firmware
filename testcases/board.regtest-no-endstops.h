@@ -67,8 +67,8 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO2,  THERMISTOR_BED)
   #define DEFINE_HEATER(...)
 #endif
 
-DEFINE_HEATER(extruder, DIO4,    0,      1)
-DEFINE_HEATER(bed,      DIO3,    0,      1)
+DEFINE_HEATER(extruder, DIO4,    0,      1,     100)
+DEFINE_HEATER(bed,      DIO3,    0,      1,     100)
 
 #define HEATER_EXTRUDER HEATER_extruder
 #define HEATER_BED HEATER_bed

@@ -7,7 +7,7 @@ class HeaterList(wx.ListCtrl):
     self.parent = parent
     self.currentItem = None
     wx.ListCtrl.__init__(self, parent, wx.ID_ANY,
-                         size = (95 + 75 + 55 + 55 + 4, 100),
+                         size = (95 + 75 + 55 + 55 + 95 + 4, 100),
                          style = wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_HRULES |
                          wx.LC_VRULES)
     self.SetFont(font)
@@ -19,10 +19,12 @@ class HeaterList(wx.ListCtrl):
     self.InsertColumn(1, "Pin")
     self.InsertColumn(2, "Invert")
     self.InsertColumn(3, "PWM")
+    self.InsertColumn(4, "Max PWM [%]")
     self.SetColumnWidth(0, 95)
     self.SetColumnWidth(1, 75)
     self.SetColumnWidth(2, 55)
     self.SetColumnWidth(3, 55)
+    self.SetColumnWidth(4, 95)
 
     self.SetItemCount(0)
 
@@ -84,3 +86,5 @@ class HeaterList(wx.ListCtrl):
         return "True"
       else:
         return "False"
+    elif col == 4:
+      return s[4]

@@ -235,8 +235,8 @@ DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PB_0,  THERMISTOR_EXTRUDER)
   influenced globally with FAST_PWM, see below.
 */
 //DEFINE_HEATERS_START
-//            name      pin      invert  pwm
-DEFINE_HEATER(extruder, PA_5,    0,      10000)
+//            name      pin      invert  pwm      max_pwm
+DEFINE_HEATER(extruder, PA_5,    0,      10000,   100)
 
 #define HEATER_EXTRUDER HEATER_extruder
 //DEFINE_HEATERS_END

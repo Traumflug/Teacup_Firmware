@@ -239,10 +239,23 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO6,  THERMISTOR_BED)
   with slow switches, like solid state relays. PWM frequency can be
   influenced globally with FAST_PWM, see below.
 */
+
+/** \def MAX_PWM_ACTIVE
+  Enable max_pwm value.
+
+  When you have a heater which has very huge power, you can reduce it.
+  For example you have a 40W 12V heater and want to use it at 24V. At 24V
+  the heater has 120W. To reduce it again to 40W set the max_pwm to 25%.
+  
+  max_pwm values are allowed between 1 and 100.
+*/
+// #define MAX_PWM_ACTIVE
+
 //DEFINE_HEATERS_START
-//            name      pin      invert  pwm
-DEFINE_HEATER(extruder, DIO12,   0,      1)
-DEFINE_HEATER(bed,      DIO13,   0,      1)
+
+//            name      pin      invert  pwm      max_pwm
+DEFINE_HEATER(extruder, DIO12,   0,      1,       100)
+DEFINE_HEATER(bed,      DIO13,   0,      1,       100)
 
 #define HEATER_EXTRUDER HEATER_extruder
 #define HEATER_BED HEATER_bed

@@ -30,7 +30,7 @@
 
 
 #undef DEFINE_HEATER
-#define DEFINE_HEATER(name, pin, invert, pwm) HEATER_ ## name,
+#define DEFINE_HEATER(name, pin, invert, pwm, ...) HEATER_ ## name,
 typedef enum
 {
 	#include "config_wrapper.h"

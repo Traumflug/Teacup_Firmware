@@ -541,9 +541,22 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO0,      THERMISTOR_EXTRUDER)
 */
 //#define HEATER_PIN xxxx
 
+/** \def HEATER_MAX_ACTIVE
+  Enable heater_max value.
+
+  When you have a heater which has very huge power, you can reduce it.
+  For example you have a 40W 12V heater and want to use it at 24V. At 24V
+  the heater has 120W. To reduce it again to 40W set the heater_max to 25%.
+  
+  heater_max values are allowed between 1 and 100.
+*/
+
+//DEFINE_HEATERS_START
+// #define HEATER_MAX_ACTIVE
+
 //            name      pin      invert  pwm
-DEFINE_HEATER(extruder, DIO4,    0,      1)
-DEFINE_HEATER(bed,      DIO3,    0,      1)
+DEFINE_HEATER(extruder, DIO4,    0,      1,     100)
+DEFINE_HEATER(bed,      DIO3,    0,      1,     100)
 
 /// and now because the c preprocessor isn't as smart as it could be,
 /// uncomment the ones you've listed above and comment the rest.

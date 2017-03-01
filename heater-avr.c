@@ -21,12 +21,26 @@ typedef struct {
   /// Wether the heater pin signal needs to be inverted.
   uint8_t          invert;
 	volatile uint8_t *heater_pwm;  ///< pointer to 8-bit PWM register, eg OCR0A (8-bit) or ORC3L (low byte, 16-bit)
+  #ifdef MAX_PWM_ACTIVE
+    uint16_t max_value;
+  #endif
 } heater_definition_t;
+
+#ifdef MAX_PWM_ACTIVE
+  #define HEATER_MAX_VALUE(max_value) (max_value * 64 + 12) / 25) /* scale 100% = 256 */
+#else
+  #define HEATER_MAX_VALUE(dummy)
+#endif
 
 #undef DEFINE_HEATER
 /// \brief helper macro to fill heater definition struct from config.h
-#define	DEFINE_HEATER(name, pin, invert, pwm) { \
-  &(pin ## _WPORT), pin ## _PIN, invert ? 1 : 0, pwm ? (pin ## _PWM) : NULL},
+#define	DEFINE_HEATER(name, pin, invert, pwm, max_value) { \
+  &(pin ## _WPORT), \
+  pin ## _PIN, \
+  invert ? 1 : 0, \
+  pwm ? (pin ## _PWM) : NULL, \
+  HEATER_MAX_VALUE(max_value)\
+  },
 static const heater_definition_t heaters[NUM_HEATERS] =
 {
 	#include	"config_wrapper.h"
@@ -195,7 +209,7 @@ void heater_init() {
 
 	// set all heater pins to output
   #undef DEFINE_HEATER
-  #define DEFINE_HEATER(name, pin, invert, pwm) \
+  #define DEFINE_HEATER(name, pin, invert, pwm, max_value) \
     SET_OUTPUT(pin);                            \
     WRITE(pin, invert ? 1 : 0);
   #include "config_wrapper.h"
@@ -214,6 +228,9 @@ void heater_set(heater_t index, uint8_t value) {
 	if (index >= NUM_HEATERS)
 		return;
 
+  #ifdef MAX_PWM_ACTIVE
+    value = (uint8_t)((heaters[index].max_value * value + 128) / 256);
+  #endif
 	heaters_runtime[index].heater_output = value;
 
 	if (heaters[index].heater_pwm) {

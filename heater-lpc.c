@@ -51,7 +51,11 @@
   frequency, so you should bother about PWM_SCALE only of you need frequencies
   below 3 Hz.
 */
-#define PWM_SCALE 255
+#ifndef MAX_PWM_ACTIVE
+  #define PWM_SCALE 255
+#else
+  #define PWM_SCALE 1020
+#endif
 
 /** \struct heater_definition_t
 
@@ -66,17 +70,26 @@ typedef struct {
     /// Pointer to the port for non-PWM pins.
     __IO uint32_t* masked_port;
   };
+  #ifdef MAX_PWM_ACTIVE
+    uint16_t max_value;
+  #endif
   uint8_t uses_pwm;
   uint8_t invert;
 } heater_definition_t;
 
+#ifdef MAX_PWM_ACTIVE
+  #define HEATER_MAX_VALUE(max_value) (max_value * 64 + 12) / 25), /* scale 100% = 256 */
+#else
+  #define HEATER_MAX_VALUE(dummy)
+#endif
 
 #undef DEFINE_HEATER
-#define DEFINE_HEATER(name, pin, invert, pwm) \
+#define DEFINE_HEATER(name, pin, invert, pwm, max_value) \
   { \
     { pwm && pin ## _TIMER ? \
       &(pin ## _TIMER->MR[pin ## _MATCH]) : \
       &(pin ## _PORT->MASKED_ACCESS[MASK(pin ## _PIN)]) }, \
+    HEATER_MAX_VALUE(max_value) /*no comma here!*/ \
     pwm && pin ## _TIMER, \
     invert ? 1 : 0 \
   },
@@ -131,7 +144,7 @@ void heater_init() {
   */
   // Auto-generate pin setup.
   #undef DEFINE_HEATER
-  #define DEFINE_HEATER(name, pin, invert, pwm) \
+  #define DEFINE_HEATER(name, pin, invert, pwm, max_value) \
     if (pwm && pin ## _TIMER) {                                             \
       uint32_t freq;                                                        \
                                                                             \
@@ -196,7 +209,11 @@ void heater_set(heater_t index, uint8_t value) {
       uint32_t pwm_value;
 
       // Remember, we scale, and the timer inverts already.
+      #ifdef MAX_PWM_ACTIVE
+        pwm_value = (uint32_t)((heaters[index].max_value * value) * (PWM_SCALE / 255) / 256);
+      #else
       pwm_value = (uint32_t)value * (PWM_SCALE / 255);
+      #endif
       if ( ! heaters[index].invert)
         pwm_value = PWM_SCALE - pwm_value;
       *heaters[index].match = pwm_value;
