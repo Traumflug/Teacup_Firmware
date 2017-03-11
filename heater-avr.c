@@ -21,16 +21,8 @@ typedef struct {
   /// Wether the heater pin signal needs to be inverted.
   uint8_t          invert;
 	volatile uint8_t *heater_pwm;  ///< pointer to 8-bit PWM register, eg OCR0A (8-bit) or ORC3L (low byte, 16-bit)
-  #ifdef MAX_PWM_ACTIVE
-    uint16_t max_value;
-  #endif
+  uint16_t max_value;
 } heater_definition_t;
-
-#ifdef MAX_PWM_ACTIVE
-  #define HEATER_MAX_VALUE(max_value) (max_value * 64 + 12) / 25) /* scale 100% = 256 */
-#else
-  #define HEATER_MAX_VALUE(dummy)
-#endif
 
 #undef DEFINE_HEATER_ACTUAL
 /// \brief helper macro to fill heater definition struct from config.h
@@ -39,7 +31,7 @@ typedef struct {
   pin ## _PIN, \
   invert ? 1 : 0, \
   pwm ? (pin ## _PWM) : NULL, \
-  HEATER_MAX_VALUE(max_value)\
+  ((max_value * 64 + 12) / 25) \
   },
 static const heater_definition_t heaters[NUM_HEATERS] =
 {
@@ -225,31 +217,31 @@ void heater_init() {
 	anything done by this function is overwritten by heater_tick above if the heater has an associated temp sensor
 */
 void heater_set(heater_t index, uint8_t value) {
-	if (index >= NUM_HEATERS)
-		return;
+  if (index < NUM_HEATERS) {
 
-  #ifdef MAX_PWM_ACTIVE
-    value = (uint8_t)((heaters[index].max_value * value + 128) / 256);
-  #endif
-	heaters_runtime[index].heater_output = value;
+    heaters_runtime[index].heater_output = value;
 
-	if (heaters[index].heater_pwm) {
-    *(heaters[index].heater_pwm) = heaters[index].invert ?
-      (255 - value) : value;
+    if (heaters[index].heater_pwm) {
+   
+      value = (uint8_t)((heaters[index].max_value * value) / 256);
 
-		if (DEBUG_PID && (debug_flags & DEBUG_PID))
-			sersendf_P(PSTR("PWM{%u = %u}\n"), index, *heaters[index].heater_pwm);
-	}
-	else {
-    if ((value >= HEATER_THRESHOLD && ! heaters[index].invert) ||
-        (value < HEATER_THRESHOLD && heaters[index].invert))
-			*(heaters[index].heater_port) |= MASK(heaters[index].heater_pin);
-		else
-			*(heaters[index].heater_port) &= ~MASK(heaters[index].heater_pin);
-	}
+      *(heaters[index].heater_pwm) = heaters[index].invert ?
+        (255 - value) : value;
 
-  if (value)
-    power_on();
+      if (DEBUG_PID && (debug_flags & DEBUG_PID))
+        sersendf_P(PSTR("PWM{%u = %u}\n"), index, *heaters[index].heater_pwm);
+    }
+    else {
+      if ((value >= HEATER_THRESHOLD && ! heaters[index].invert) ||
+          (value < HEATER_THRESHOLD && heaters[index].invert))
+        *(heaters[index].heater_port) |= MASK(heaters[index].heater_pin);
+      else
+        *(heaters[index].heater_port) &= ~MASK(heaters[index].heater_pin);
+    }
+
+    if (value)
+      power_on();
+  }
 }
 
 #endif /* defined TEACUP_C_INCLUDE && defined __AVR__ */

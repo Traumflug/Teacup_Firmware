@@ -14,8 +14,6 @@ class HeatersPage(wx.Panel, Page):
     self.font = font
     self.id = idPg
 
-    self.labels = {'MAX_PWM_ACTIVE':"Activate max. PWM [%]"}
-
     sz = wx.GridBagSizer()
     sz.AddSpacer((30, 30), pos = (0, 0))
 
@@ -25,13 +23,6 @@ class HeatersPage(wx.Panel, Page):
     self.lb = HeaterList(self, font)
     sz.Add(self.lb, pos = (1, 1))
     sz.AddSpacer((20, 20), pos = (1, 2))
-
-    k = 'MAX_PWM_ACTIVE'
-    cb = self.addCheckBox(k, self.onCheckBox)
-    cb.SetToolTipString("Enable all max. PWM [%] values.")
-
-    sz.Add(cb, pos = (2, 1))
-    sz.AddSpacer((20, 20), pos = (2, 2))
 
     bsz = wx.BoxSizer(wx.VERTICAL)
 
