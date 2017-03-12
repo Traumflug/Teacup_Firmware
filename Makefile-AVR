@@ -151,13 +151,15 @@ endif
 
 LIBS  = -lm
 
+SIZE_INFO = 
+
 -include Makefile-common
 
 # Architecture specific targets
 
 .PHONY: all program size
 
-all: $(PROGRAM).hex $(BUILDDIR)/$(PROGRAM).lst $(BUILDDIR)/$(PROGRAM).sym size
+all: $(PROGRAM).hex $(BUILDDIR)/$(PROGRAM).lst $(BUILDDIR)/$(PROGRAM).sym size size_info
 
 program: $(PROGRAM).hex config.h
 	$(UPLOADER) $(UPLOADER_FLAGS) -U flash:w:$(PROGRAM).hex
@@ -173,6 +175,13 @@ define show_size
 	         ($$2 * 100 / ($4 * 1024)) + 1, \
 	         ($$2 * 100 / ($5 * 1024)) + 1); }'
 endef
+
+size_info: $(BUILDDIR)/$(PROGRAM).elf
+	@echo "$(USER_CONFIG)" 																								>> $(SIZE_INFO)
+	@echo "ATmega sizes               '168   '328(P)   '644(P)     '1280" >> $(SIZE_INFO)
+	$(call show_size,Program,14,30,62,126) 																>> $(SIZE_INFO)
+	$(call show_size,Data,1,2,4,8) 																				>> $(SIZE_INFO)
+	$(call show_size,EEPROM,1,2,2,4)																			>> $(SIZE_INFO)
 
 size: $(BUILDDIR)/$(PROGRAM).elf
 	@echo "ATmega sizes               '168   '328(P)   '644(P)     '1280"

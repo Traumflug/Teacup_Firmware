@@ -168,7 +168,7 @@ LIBS  = -lm
 
 .PHONY: all program size
 
-all: $(PROGRAM).hex $(BUILDDIR)/$(PROGRAM).lst $(BUILDDIR)/$(PROGRAM).sym size
+all: $(PROGRAM).hex $(BUILDDIR)/$(PROGRAM).lst $(BUILDDIR)/$(PROGRAM).sym size size_info
 
 # TODO: The echo is only for Gen7-ARM LPC1114. The stm flashes don't need this. 
 # This message could confuse someone. Remove this message for stm or write some 
@@ -211,6 +211,13 @@ define show_size
 			ceil($$a * 100 / ($3 * 1024)), \
 		}'
 endef
+
+size_info: $(BUILDDIR)/$(PROGRAM).elf
+	@echo "$(USER_CONFIG)"												>> $(SIZE_INFO)
+	@echo "    SIZES          ARM...     lpc1114"	>> $(SIZE_INFO)
+	$(call show_size,FLASH,text,32)								>> $(SIZE_INFO)
+	$(call show_size,RAM,data|bss,4)							>> $(SIZE_INFO)
+	$(call show_size,EEPROM,eeprom,0.0001)				>> $(SIZE_INFO)
 
 size: $(BUILDDIR)/$(PROGRAM).elf
 	@echo "    SIZES          ARM...     $(MCU)"
