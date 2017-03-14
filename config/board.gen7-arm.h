@@ -225,14 +225,13 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, PIO1_0,THERMISTOR_BED)
   for this pin, e.g. for a MOSFET with a driver.
 
   Set 'pwm' to ...
-    frequency  in Hertz (Hz) on ARM based controllers to set PWM frequency of
-               this pin's output. Frequency isn't always accurate, Teacup
-               will choose the closest possible one. FAST_PWM is ignored
-               on such controllers. Valid range is 2 to 200'000 Hz.
-    1          on AVR based controllers for using Pulse Width Modulation (PWM)
-               on a pin supporting it. PWM frequency can be influenced only
-               somewhat and only globally with FAST_PWM.
-    0          for using a PWM-able pin in on/off mode.
+    >=2             in Hertz (Hz) on ARM based controllers to set PWM frequency of
+                    this pin's output. Frequency isn't always accurate, Teacup
+                    will choose the closest possible one. FAST_PWM is ignored
+                    on such controllers. Valid range is 2 to 200'000 Hz.
+                    It will force to 1 on none-PWM-able pins.
+    1  for using software emulated PWM at 100Hz.
+    0  for using on/off on a PWM-able pin, too.
 
   Using PWM usually gives smoother temperature control but can conflict
   with slow switches, like solid state relays. A too high frequency can

@@ -64,6 +64,17 @@ typedef struct {
   uint8_t heater_output;
 } heater_runtime_t;
 
+typedef struct {
+  /// sigma delta values for software pwm
+  int16_t sd_accu;
+  int16_t sd_dir;
+} soft_pwm_runtime_t;
+
+typedef enum {
+  NO_PWM = 0,
+  SOFTWARE_PWM = 1,
+  HARDWARE_PWM = 2
+} pwm_type_t;
 
 extern heater_runtime_t heaters_runtime[];
 
@@ -72,6 +83,8 @@ void pid_init(void);
 
 void heater_set(heater_t index, uint8_t value);
 void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t target_temp);
+
+void soft_pwm_tick(void);
 
 uint8_t heaters_all_zero(void);
 

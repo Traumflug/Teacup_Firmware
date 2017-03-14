@@ -11,6 +11,9 @@ void heater_set(heater_t index, uint8_t value) {
 void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t target_temp) {
 }
 
+void soft_pwm_tick() {
+}
+
 uint8_t heaters_all_zero(void) {
   return 1;
 }

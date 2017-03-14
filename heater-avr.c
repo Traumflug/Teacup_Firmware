@@ -15,12 +15,14 @@
 
 /// \struct heater_definition_t
 /// \brief simply holds pinout data- port, pin, pwm channel if used
+#define U8_HEATER_PWM uint8_t *
+
 typedef struct {
 	volatile uint8_t *heater_port; ///< pointer to port. DDR is inferred from this pointer too
 	uint8_t						heater_pin;  ///< heater pin, not masked. eg for PB3 enter '3' here, or PB3_PIN or similar
   /// Wether the heater pin signal needs to be inverted.
   uint8_t          invert;
-	volatile uint8_t *heater_pwm;  ///< pointer to 8-bit PWM register, eg OCR0A (8-bit) or ORC3L (low byte, 16-bit)
+	volatile U8_HEATER_PWM heater_pwm;  ///< pointer to 8-bit PWM register, eg OCR0A (8-bit) or ORC3L (low byte, 16-bit)
   uint16_t max_value;
 } heater_definition_t;
 
@@ -30,13 +32,21 @@ typedef struct {
   &(pin ## _WPORT), \
   pin ## _PIN, \
   invert ? 1 : 0, \
-  pwm ? (pin ## _PWM) : NULL, \
-  ((max_value * 64 + 12) / 25) \
+  (pwm >= HARDWARE_PWM) ? ((pin ## _PWM) ? (pin ## _PWM) : (U8_HEATER_PWM)SOFTWARE_PWM) : (U8_HEATER_PWM)pwm, \
+  ((max_value * 64 + 12) / 25), \
   },
 static const heater_definition_t heaters[NUM_HEATERS] =
 {
 	#include	"config_wrapper.h"
 };
+#undef DEFINE_HEATER_ACTUAL
+
+// We test any heater if we need software-pwm
+#define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
+  | (((pwm >= HARDWARE_PWM) ? ((pin ## _PWM) ? HARDWARE_PWM : SOFTWARE_PWM) : pwm) == SOFTWARE_PWM)
+static const uint8_t software_pwm_needed = 0
+  #include "config_wrapper.h"
+;
 #undef DEFINE_HEATER_ACTUAL
 
 
@@ -126,7 +136,7 @@ void heater_init() {
 
 	// setup pins
 	for (i = 0; i < NUM_HEATERS; i++) {
-		if (heaters[i].heater_pwm) {
+		if (heaters[i].heater_pwm >= (U8_HEATER_PWM)HARDWARE_PWM) {
 			*heaters[i].heater_pwm = heaters[i].invert ? 255 : 0;
 			// this is somewhat ugly too, but switch() won't accept pointers for reasons unknown
 			switch((uint16_t) heaters[i].heater_pwm) {
@@ -216,17 +226,17 @@ void heater_init() {
 
 	anything done by this function is overwritten by heater_tick above if the heater has an associated temp sensor
 */
-void heater_set(heater_t index, uint8_t value) {
+void do_heater(heater_t index, uint8_t value) {
   if (index < NUM_HEATERS) {
 
-    heaters_runtime[index].heater_output = value;
+    if (heaters[index].heater_pwm >= (U8_HEATER_PWM)HARDWARE_PWM) {
+      uint8_t pwm_value;
 
-    if (heaters[index].heater_pwm) {
-   
-      value = (uint8_t)((heaters[index].max_value * value) / 256);
+      // Remember, we scale, and the timer inverts already.
+      pwm_value = (uint8_t)((heaters[index].max_value * value) / 256);
 
       *(heaters[index].heater_pwm) = heaters[index].invert ?
-        (255 - value) : value;
+        (255 - pwm_value) : pwm_value;
 
       if (DEBUG_PID && (debug_flags & DEBUG_PID))
         sersendf_P(PSTR("PWM{%u = %u}\n"), index, *heaters[index].heater_pwm);

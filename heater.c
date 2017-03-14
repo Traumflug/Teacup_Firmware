@@ -74,6 +74,7 @@ EE_factor EEMEM EE_factors[NUM_HEATERS];
 
 
 heater_runtime_t heaters_runtime[NUM_HEATERS];
+soft_pwm_runtime_t soft_pwm_runtime[NUM_HEATERS];
 
 /** Inititalise PID data structures.
 
@@ -247,6 +248,60 @@ void heater_tick(heater_t h, temp_type_t type, uint16_t current_temp, uint16_t t
 	#endif /* HEATER_SANITY_CHECK */
 
 	heater_set(h, pid_output);
+}
+
+/** \brief software PWM routine
+*/
+#define PWM_MAX 255
+
+void heater_soft_pwm(heater_t index) {
+  if (software_pwm_needed) {
+    int16_t pwm;
+    pwm = heaters_runtime[index].heater_output;
+
+    // full off? then put it just off
+    if (pwm == 0) {
+      do_heater(index, 0);
+      return;
+    }
+
+    // here we are doing a small trick. normally this is
+    // sd_accu += pwm - (sd_dir * PWM_MAX)
+    // here we scale the (sd_dir * PWM_MAX) -part with the max_value.
+    // so we get a smooth PWM also for downscaled heaters. the "pwm"-value
+    // is from 0 to 255 in any case, but the sd_accu becomes bigger with
+    // smaller max_values.
+    soft_pwm_runtime[index].sd_accu += pwm - soft_pwm_runtime[index].sd_dir;
+
+    if (soft_pwm_runtime[index].sd_accu > 0) {
+      soft_pwm_runtime[index].sd_dir = PWM_MAX * 256 / heaters[index].max_value;
+      do_heater(index, 255);
+    }
+    else {
+      soft_pwm_runtime[index].sd_dir = 0;
+      do_heater(index, 0);
+    }
+  }
+}
+
+/**
+  Called every 10ms from clock.c. Tick the softPWM procedure when the heater needs it.
+*/
+void soft_pwm_tick() {
+  if (software_pwm_needed) {
+    uint8_t i;
+    for (i = 0; i < NUM_HEATERS; i++) {
+      if (heaters[i].heater_pwm == (U8_HEATER_PWM)SOFTWARE_PWM)
+        heater_soft_pwm(i);
+    }
+  }
+}
+
+/** \brief set heater value and execute it
+*/
+void heater_set(heater_t index, uint8_t value) {
+  heaters_runtime[index].heater_output = value;
+  do_heater(index, value);
 }
 
 /** \brief check whether all heaters are off

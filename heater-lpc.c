@@ -51,7 +51,7 @@
   frequency, so you should bother about PWM_SCALE only of you need frequencies
   below 3 Hz.
 */
-#define PWM_SCALE 255
+#define PWM_SCALE 1020
 
 /** \struct heater_definition_t
 
@@ -59,6 +59,8 @@
   pin, PWM channel if used. After inititalisation we can no longer do the
   #include "config_wrapper.h" trick.
 */
+#define U8_HEATER_PWM uint8_t
+
 typedef struct {
   union {
     /// Pointer to the match register which changes PWM duty.
@@ -67,7 +69,7 @@ typedef struct {
     __IO uint32_t* masked_port;
   };
     uint16_t max_value;
-  uint8_t uses_pwm;
+  U8_HEATER_PWM heater_pwm;;
   uint8_t invert;
 } heater_definition_t;
 
@@ -78,12 +80,20 @@ typedef struct {
       &(pin ## _TIMER->MR[pin ## _MATCH]) : \
       &(pin ## _PORT->MASKED_ACCESS[MASK(pin ## _PIN)]) }, \
     ((max_value * 64 + 12) / 25), \
-    pwm && pin ## _TIMER, \
+    ((pwm >= HARDWARE_PWM) ? ((pin ## _TIMER) ? HARDWARE_PWM : SOFTWARE_PWM) : pwm), \
     invert ? 1 : 0 \
   },
 static const heater_definition_t heaters[NUM_HEATERS] = {
   #include "config_wrapper.h"
 };
+#undef DEFINE_HEATER_ACTUAL
+
+// We test any heater if we need software-pwm
+#define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
+  | (((pwm >= HARDWARE_PWM) ? ((pin ## _TIMER) ? HARDWARE_PWM : SOFTWARE_PWM) : pwm) == SOFTWARE_PWM)
+static const uint8_t software_pwm_needed = 0
+  #include "config_wrapper.h"
+;
 #undef DEFINE_HEATER_ACTUAL
 
 /** Initialise heater subsystem.
@@ -133,7 +143,7 @@ void heater_init() {
   // Auto-generate pin setup.
   #undef DEFINE_HEATER_ACTUAL
   #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
-    if (pwm && pin ## _TIMER) {                                             \
+    if ((pwm >= HARDWARE_PWM) && pin ## _TIMER) {                                             \
       uint32_t freq;                                                        \
                                                                             \
       if (pin ## _TIMER == LPC_TMR16B0) {                                   \
@@ -187,13 +197,11 @@ void heater_init() {
   heater, every few milliseconds by its PID handler. Using M106 on an output
   with a sensor changes its setting only for a short moment.
 */
-void heater_set(heater_t index, uint8_t value) {
+void do_heater(heater_t index, uint8_t value) {
 
   if (index < NUM_HEATERS) {
 
-    heaters_runtime[index].heater_output = value;
-
-    if (heaters[index].uses_pwm) {
+    if (heaters[index].heater_pwm == HARDWARE_PWM) {
       uint32_t pwm_value;
 
       // Remember, we scale, and the timer inverts already.

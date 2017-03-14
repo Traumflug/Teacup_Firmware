@@ -147,6 +147,8 @@ static void clock_10ms(void) {
 
 	temp_sensor_tick();
 
+  soft_pwm_tick();
+
 	ifclock(clock_flag_250ms) {
 		clock_250ms();
 	}
