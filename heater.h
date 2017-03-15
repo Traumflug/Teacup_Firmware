@@ -76,8 +76,6 @@ typedef enum {
   HARDWARE_PWM = 2
 } pwm_type_t;
 
-extern heater_runtime_t heaters_runtime[];
-
 void heater_init(void);
 void pid_init(void);
 
