@@ -26,14 +26,16 @@ typedef struct {
   uint16_t max_value;
 } heater_definition_t;
 
+#define PWM_TYPE(pwm, pin) (((pwm) >= HARDWARE_PWM) ? ((pin ## _PWM) ? (pin ## _PWM) : (U8_HEATER_PWM)SOFTWARE_PWM) : (U8_HEATER_PWM)(pwm))
+
 #undef DEFINE_HEATER_ACTUAL
 /// \brief helper macro to fill heater definition struct from config.h
 #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_value) { \
   &(pin ## _WPORT), \
   pin ## _PIN, \
   invert ? 1 : 0, \
-  (pwm >= HARDWARE_PWM) ? ((pin ## _PWM) ? (pin ## _PWM) : (U8_HEATER_PWM)SOFTWARE_PWM) : (U8_HEATER_PWM)pwm, \
-  ((max_value * 64 + 12) / 25), \
+  PWM_TYPE(pwm, pin), \
+  (PWM_TYPE(pwm, pin) != (U8_HEATER_PWM)SOFTWARE_PWM) ? (((max_value) * 64 + 12) / 25) : (uint16_t)(255UL * 100 / (max_value)), \
   },
 static const heater_definition_t heaters[NUM_HEATERS] =
 {
@@ -43,7 +45,7 @@ static const heater_definition_t heaters[NUM_HEATERS] =
 
 // We test any heater if we need software-pwm
 #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
-  | (((pwm >= HARDWARE_PWM) ? ((pin ## _PWM) ? HARDWARE_PWM : SOFTWARE_PWM) : pwm) == SOFTWARE_PWM)
+  | (PWM_TYPE(pwm, pin) == (U8_HEATER_PWM)SOFTWARE_PWM)
 static const uint8_t software_pwm_needed = 0
   #include "config_wrapper.h"
 ;

@@ -73,14 +73,16 @@ typedef struct {
   uint8_t invert;
 } heater_definition_t;
 
+#define PWM_TYPE(pwm, pin) (((pwm) >= HARDWARE_PWM) ? ((pin ## _TIMER) ? HARDWARE_PWM : SOFTWARE_PWM) : (pwm))
+
 #undef DEFINE_HEATER_ACTUAL
 #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_value) \
   { \
-    { pwm && pin ## _TIMER ? \
+    { (PWM_TYPE(pwm, pin) == HARDWARE_PWM ? \
       &(pin ## _TIMER->MR[pin ## _MATCH]) : \
       &(pin ## _PORT->MASKED_ACCESS[MASK(pin ## _PIN)]) }, \
-    ((max_value * 64 + 12) / 25), \
-    ((pwm >= HARDWARE_PWM) ? ((pin ## _TIMER) ? HARDWARE_PWM : SOFTWARE_PWM) : pwm), \
+    (PWM_TYPE(pwm, pin) != SOFTWARE_PWM) ? ((max_value * 64 + 12) / 25) : (uint16_t)(255UL * 100 / max_value), \
+    PWM_TYPE(pwm, pin), \
     invert ? 1 : 0 \
   },
 static const heater_definition_t heaters[NUM_HEATERS] = {
@@ -90,7 +92,7 @@ static const heater_definition_t heaters[NUM_HEATERS] = {
 
 // We test any heater if we need software-pwm
 #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
-  | (((pwm >= HARDWARE_PWM) ? ((pin ## _TIMER) ? HARDWARE_PWM : SOFTWARE_PWM) : pwm) == SOFTWARE_PWM)
+  | (PWM_TYPE(pwm, pin) == SOFTWARE_PWM)
 static const uint8_t software_pwm_needed = 0
   #include "config_wrapper.h"
 ;
@@ -143,7 +145,7 @@ void heater_init() {
   // Auto-generate pin setup.
   #undef DEFINE_HEATER_ACTUAL
   #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
-    if ((pwm >= HARDWARE_PWM) && pin ## _TIMER) {                                             \
+    if (PWM_TYPE(pwm, pin) == HARDWARE_PWM) {                               \
       uint32_t freq;                                                        \
                                                                             \
       if (pin ## _TIMER == LPC_TMR16B0) {                                   \
