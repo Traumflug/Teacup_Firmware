@@ -33,14 +33,16 @@ typedef struct {
 #undef DEFINE_HEATER_ACTUAL
 /// \brief helper macro to fill heater definition struct from config.h
 #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_value) { \
-  {(PWM_TYPE(pwm, pin) == HARDWARE_PWM) ? \
-    (pin ## _PWM) : \
-    &(pin ## _WPORT), \
-  }, \
-  pin ## _PIN, \
-  (PWM_TYPE(pwm, pin) != SOFTWARE_PWM) ? (((max_value) * 64 + 12) / 25) : (uint16_t)(255UL * 100 / (max_value)), \
-  PWM_TYPE(pwm, pin), \
-  invert ? 1 : 0 \
+  {(PWM_TYPE(pwm, pin) == HARDWARE_PWM) ?                         \
+    (pin ## _PWM) :                                               \
+    &(pin ## _WPORT),                                             \
+  },                                                              \
+  pin ## _PIN,                                                    \
+  (PWM_TYPE(pwm, pin) != SOFTWARE_PWM) ?                          \
+    (((max_value) * 64 + 12) / 25) :                              \
+    (uint16_t)(255UL * 100 / (max_value)),                        \
+  PWM_TYPE(pwm, pin),                                             \
+  invert ? 1 : 0                                                  \
   },
 static const heater_definition_t heaters[NUM_HEATERS] =
 {
@@ -60,7 +62,6 @@ static const uint8_t software_pwm_needed = 0
 /// \brief initialise heater subsystem
 /// Set directions, initialise PWM timers, read PID factors from eeprom, etc
 void heater_init() {
-	heater_t i;
 
 	// setup PWM timers: fast PWM
 	// Warning 2012-01-11: these are not consistent across all AVRs
@@ -129,97 +130,19 @@ void heater_init() {
 		OCR5B = 0;
 	#endif
 
-  /**
-    - - TODO - - - TODO - - - TODO - - - TODO - -
-
-    This produces a lot of initialisation code for setting up just 2 or 3
-    pins. Can't be optimized out, because heaters[] could have been changed
-    since initialisation.
-
-    A much better strategy for this is the one found in heaters-arm.c: use
-    the config_wrapper.h magic to initialise only what's needed. The needed
-    values are likely already in arduino_xxx.h.
-  */
-
 	// setup pins
-	for (i = 0; i < NUM_HEATERS; i++) {
-		if (heaters[i].pwm_type >= HARDWARE_PWM) {
-			*heaters[i].heater_pwm = heaters[i].invert ? 255 : 0;
-			// this is somewhat ugly too, but switch() won't accept pointers for reasons unknown
-			switch((uint16_t) heaters[i].heater_pwm) {
-				case (uint16_t) &OCR0A:
-					TCCR0A |= MASK(COM0A1);
-					break;
-				case (uint16_t) &OCR0B:
-					TCCR0A |= MASK(COM0B1);
-					break;
-        #ifdef TCCR2A
-				case (uint16_t) &OCR2A:
-					TCCR2A |= MASK(COM2A1);
-					break;
-				case (uint16_t) &OCR2B:
-					TCCR2A |= MASK(COM2B1);
-					break;
-        #endif
-				#ifdef TCCR3A
-				case (uint16_t) &OCR3AL:
-					TCCR3A |= MASK(COM3A1);
-					break;
-				case (uint16_t) &OCR3BL:
-					TCCR3A |= MASK(COM3B1);
-					break;
-				#ifdef COM3C1
-				case (uint16_t) &OCR3CL:
-					TCCR3A |= MASK(COM3C1);
-					break;
-				#endif
-				#endif
-				#ifdef	TCCR4A
-					#if defined (OCR4AL)
-					case (uint16_t) &OCR4AL:
-						TCCR4A |= MASK(COM4A1);
-						break;
-					case (uint16_t) &OCR4BL:
-						TCCR4A |= MASK(COM4B1);
-						break;
-					case (uint16_t) &OCR4CL:
-						TCCR4A |= MASK(COM4C1);
-						break;
-					#else
-					// 10 bit timer
-					case (uint16_t) &OCR4A:
-						TCCR4A |= MASK(COM4A1);
-						break;
-					case (uint16_t) &OCR4B:
-						TCCR4A |= MASK(COM4B1);
-						break;
-					#ifdef OCR4D
-						case (uint16_t) &OCR4D:
-							TCCR4C |= MASK(COM4D1);
-							break;
-					#endif
-					#endif
-				#endif
-				#ifdef	TCCR5A
-				case (uint16_t) &OCR5AL:
-					TCCR5A |= MASK(COM5A1);
-					break;
-				case (uint16_t) &OCR5BL:
-					TCCR5A |= MASK(COM5B1);
-					break;
-				case (uint16_t) &OCR5CL:
-					TCCR5A |= MASK(COM5C1);
-					break;
-				#endif
-			}
-		}
-
-	}
-
-	// set all heater pins to output
   #undef DEFINE_HEATER_ACTUAL
-  #define DEFINE_HEATER_ACTUAL(name, pin, invert, ...) \
-    SET_OUTPUT(pin);                            \
+  #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
+    if (PWM_TYPE(pwm, pin) == HARDWARE_PWM) {               \
+      *pin ## _PWM = (invert) ? 255 : 0;                    \
+      pin ## _TCCR |= MASK(pin ## _COM);                    \
+    }
+  #include "config_wrapper.h"
+  #undef DEFINE_HEATER_ACTUAL
+
+  // set all heater pins to output
+  #define DEFINE_HEATER_ACTUAL(name, pin, invert, ...)  \
+    SET_OUTPUT(pin);                                    \
     WRITE(pin, invert ? 1 : 0);
   #include "config_wrapper.h"
   #undef DEFINE_HEATER_ACTUAL
