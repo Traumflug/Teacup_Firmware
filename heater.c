@@ -291,7 +291,7 @@ void soft_pwm_tick() {
   if (software_pwm_needed) {
     uint8_t i;
     for (i = 0; i < NUM_HEATERS; i++) {
-      if (heaters[i].heater_pwm == (U8_HEATER_PWM)SOFTWARE_PWM)
+      if (heaters[i].pwm_type == SOFTWARE_PWM)
         heater_soft_pwm(i);
     }
   }

@@ -59,7 +59,6 @@
   pin, PWM channel if used. After inititalisation we can no longer do the
   #include "config_wrapper.h" trick.
 */
-#define U8_HEATER_PWM uint8_t
 
 typedef struct {
   union {
@@ -68,9 +67,10 @@ typedef struct {
     /// Pointer to the port for non-PWM pins.
     __IO uint32_t* masked_port;
   };
-    uint16_t max_value;
-  U8_HEATER_PWM heater_pwm;;
-  uint8_t invert;
+  
+  uint16_t    max_value;    ///< max value for the heater, for PWM in percent * 256
+  pwm_type_t  pwm_type;     ///< saves the pwm-type: NO_PWM, SOFTWARE_PWM, HARDWARE_PWM
+  uint8_t     invert;       ///< Wether the heater pin signal needs to be inverted.
 } heater_definition_t;
 
 #define PWM_TYPE(pwm, pin) (((pwm) >= HARDWARE_PWM) ? ((pin ## _TIMER) ? HARDWARE_PWM : SOFTWARE_PWM) : (pwm))
@@ -203,7 +203,7 @@ void do_heater(heater_t index, uint8_t value) {
 
   if (index < NUM_HEATERS) {
 
-    if (heaters[index].heater_pwm == HARDWARE_PWM) {
+    if (heaters[index].pwm_type == HARDWARE_PWM) {
       uint32_t pwm_value;
 
       // Remember, we scale, and the timer inverts already.
