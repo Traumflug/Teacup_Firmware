@@ -21,7 +21,7 @@ typedef struct {
     volatile uint8_t *heater_port;  ///< pointer to port. DDR is inferred from this pointer too
     volatile uint8_t *heater_pwm;   ///< pointer to 8-bit PWM register, eg OCR0A (8-bit) or ORC3L (low byte, 16-bit)
   };
-  uint8_t     heater_pin;    ///< heater pin, not masked. eg for PB3 enter '3' here, or PB3_PIN or similar
+  uint8_t     masked_pin;    ///< heater pin, masked. eg for PB3 enter '1 << 3' here, or 1 << PB3_PIN or similar
   
   uint16_t    max_value;     ///< max value for the heater, for PWM in percent * 256
   pwm_type_t  pwm_type;      ///< saves the pwm-type: NO_PWM, SOFTWARE_PWM, HARDWARE_PWM
@@ -37,7 +37,7 @@ typedef struct {
     (pin ## _PWM) :                                               \
     &(pin ## _WPORT),                                             \
   },                                                              \
-  pin ## _PIN,                                                    \
+  MASK(pin ## _PIN),                                              \
   (PWM_TYPE(pwm, pin) != SOFTWARE_PWM) ?                          \
     (((max_value) * 64 + 12) / 25) :                              \
     (uint16_t)(255UL * 100 / (max_value)),                        \
@@ -174,9 +174,9 @@ void do_heater(heater_t index, uint8_t value) {
     else {
       if ((value >= HEATER_THRESHOLD && ! heaters[index].invert) ||
           (value < HEATER_THRESHOLD && heaters[index].invert))
-        *(heaters[index].heater_port) |= MASK(heaters[index].heater_pin);
+        *(heaters[index].heater_port) |= heaters[index].masked_pin;
       else
-        *(heaters[index].heater_port) &= ~MASK(heaters[index].heater_pin);
+        *(heaters[index].heater_port) &= ~heaters[index].masked_pin;
     }
 
     if (value)
