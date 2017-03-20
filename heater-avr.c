@@ -28,6 +28,10 @@ typedef struct {
   uint8_t     invert;        ///< Wether the heater pin signal needs to be inverted.
 } heater_definition_t;
 
+// When pwm >= 2 it's hardware pwm, if the pin has hardware pwm.
+// When pwm == 1 it's software pwm.
+// pwm == 0 is no pwm at all.
+// Use this macro only in DEFINE_HEATER_ACTUAL-macros.
 #define PWM_TYPE(pwm, pin) (((pwm) >= HARDWARE_PWM) ? ((pin ## _PWM) ? HARDWARE_PWM : SOFTWARE_PWM) : (pwm))
 
 #undef DEFINE_HEATER_ACTUAL

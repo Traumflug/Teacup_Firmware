@@ -73,17 +73,24 @@ typedef struct {
   uint8_t     invert;       ///< Wether the heater pin signal needs to be inverted.
 } heater_definition_t;
 
+// When pwm >= 2 it's hardware pwm, if the pin has hardware pwm.
+// When pwm == 1 it's software pwm.
+// pwm == 0 is no pwm at all.
+// Use this macro only in DEFINE_HEATER_ACTUAL-macros.
 #define PWM_TYPE(pwm, pin) (((pwm) >= HARDWARE_PWM) ? ((pin ## _TIMER) ? HARDWARE_PWM : SOFTWARE_PWM) : (pwm))
 
 #undef DEFINE_HEATER_ACTUAL
 #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_value) \
-  { \
-    { (PWM_TYPE(pwm, pin) == HARDWARE_PWM ? \
-      &(pin ## _TIMER->MR[pin ## _MATCH]) : \
-      &(pin ## _PORT->MASKED_ACCESS[MASK(pin ## _PIN)]) }, \
-    (PWM_TYPE(pwm, pin) != SOFTWARE_PWM) ? ((max_value * 64 + 12) / 25) : (uint16_t)(255UL * 100 / max_value), \
-    PWM_TYPE(pwm, pin), \
-    invert ? 1 : 0 \
+  {                                                             \
+    { (PWM_TYPE(pwm, pin) == HARDWARE_PWM) ?                    \
+      &(pin ## _TIMER->MR[pin ## _MATCH]) :                     \
+      &(pin ## _PORT->MASKED_ACCESS[MASK(pin ## _PIN)])         \
+    },                                                          \
+    (PWM_TYPE(pwm, pin) != SOFTWARE_PWM) ?                      \
+      ((max_value * 64 + 12) / 25) :                            \
+      (uint16_t)(255UL * 100 / max_value),                      \
+    PWM_TYPE(pwm, pin),                                         \
+    invert ? 1 : 0                                              \
   },
 static const heater_definition_t heaters[NUM_HEATERS] = {
   #include "config_wrapper.h"
