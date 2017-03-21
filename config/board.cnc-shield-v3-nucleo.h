@@ -193,15 +193,19 @@ DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PB_0,  THERMISTOR_EXTRUDER)
 *                                                                           *
 \***************************************************************************/
 
-#ifndef DEFINE_HEATER
-  #define DEFINE_HEATER(...)
-#endif
+/** \def FORCE_SOFTWARE_PWM
+  Force software pwm when pwm is sets to 1.
+
+  Normally any pwm value >= 1 will set the pin to hardware pwm, if available.
+  When FORCE_SOFTWARE_PWM is defined, pwm = 1 is always set to software pwm.
+*/
+// #define FORCE_SOFTWARE_PWM
 
 /** \def HEATER_PIN
   Heater pins a user should be able to choose from in configtool. All
   commented out.
 */
-//#define HEATER_PIN AIO2
+//#define HEATER_PIN PA_5
 
 /** \def DEFINE_HEATER
   Define your heaters and devices here.
@@ -227,14 +231,25 @@ DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, PB_0,  THERMISTOR_EXTRUDER)
   for this pin, e.g. for a MOSFET with a driver.
 
   Set 'pwm' to ...
-    1  for using PWM on a PWM-able pin and on/off on other pins.
-    0  for using on/off on a PWM-able pin, too.
+    frequency  in Hertz (Hz) on ARM based controllers to set PWM frequency of
+               this pin's output. Frequency isn't always accurate, Teacup
+               will choose the closest possible one. FAST_PWM is ignored
+               on such controllers. Valid range is 2 to 200'000 Hz.
+    1          on AVR based controllers for using Pulse Width Modulation (PWM)
+               on a pin supporting it. PWM frequency can be influenced only
+               somewhat and only globally with FAST_PWM.
+    0          for using a PWM-able pin in on/off mode.
 
   Using PWM usually gives smoother temperature control but can conflict
-  with slow switches, like solid state relays. PWM frequency can be
-  influenced globally with FAST_PWM, see below.
+  with slow switches, like solid state relays. A too high frequency can
+  overheat MOSFETs; a too low frequency can make your heater to emit audible
+  noise; so choose wisely.
+
+  Pins which don't allow PWM are operated in software pwm mode.
 */
+
 //DEFINE_HEATERS_START
+
 //            name      pin      invert  pwm      max_pwm
 DEFINE_HEATER(extruder, PA_5,    0,      10000,   100)
 

@@ -247,7 +247,7 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, PIO1_0,THERMISTOR_BED)
   overheat MOSFETs; a too low frequency can make your heater to emit audible
   noise; so choose wisely.
 
-  Pins which don't allow PWM are always operated in on/off mode.
+  Pins which don't allow PWM are operated in software pwm mode.
 */
 
 //DEFINE_HEATERS_START

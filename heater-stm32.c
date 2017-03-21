@@ -48,7 +48,7 @@
   frequency, so you should bother about PWM_SCALE only of you need frequencies
   below 6 Hz.
 */
-#define PWM_SCALE 255
+#define PWM_SCALE 1020
 
 // some helper macros
 #define _EXPANDER(pre, val, post) pre ## val ## post
@@ -68,21 +68,42 @@ typedef struct {
     __IO uint32_t* bsrr;
   };
   uint16_t masked_pin;
-  uint8_t uses_pwm;
+
+  uint16_t    max_value;    ///< max value for the heater, for PWM in percent * 256
+  pwm_type_t  pwm_type;     ///< saves the pwm-type: NO_PWM, SOFTWARE_PWM, HARDWARE_PWM
+  uint8_t     invert;       ///< Wether the heater pin signal needs to be inverted.
 } heater_definition_t;
 
+// When pwm >= 2 it's hardware pwm, if the pin has hardware pwm.
+// When pwm == 1 it's software pwm.
+// pwm == 0 is no pwm at all.
+// Use this macro only in DEFINE_HEATER_ACTUAL-macros.
+#define PWM_TYPE(pwm, pin) (((pwm) >= HARDWARE_PWM_START) ? ((pin ## _TIMER) ? HARDWARE_PWM : SOFTWARE_PWM) : (pwm))
+
 #undef DEFINE_HEATER_ACTUAL
-#define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
-  { \
-    { pwm && pin ## _TIMER ? \
-      &(pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,)) : \
-      &(pin ## _PORT->BSRR) }, \
-    MASK(pin ## _PIN), \
-    pwm && pin ## _TIMER \
+#define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_value) \
+  {                                                             \
+    { (PWM_TYPE(pwm, pin) == HARDWARE_PWM) ?                    \
+      &(pin ## _TIMER-> EXPANDER(CCR, pin ## _CHANNEL,)) :      \
+      &(pin ## _PORT->BSRR) },                                  \
+    MASK(pin ## _PIN),                                          \
+    (PWM_TYPE(pwm, pin) != SOFTWARE_PWM) ?                      \
+      ((max_value * 64 + 12) / 25) :                            \
+      (uint16_t)(255UL * 100 / max_value),                      \
+    PWM_TYPE(pwm, pin),                                         \
+    invert ? 1 : 0                                              \
   },
 static const heater_definition_t heaters[NUM_HEATERS] = {
   #include "config_wrapper.h"
 };
+#undef DEFINE_HEATER_ACTUAL
+
+// We test any heater if we need software-pwm
+#define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
+  | (PWM_TYPE(pwm, pin) == SOFTWARE_PWM)
+static const uint8_t software_pwm_needed = 0
+  #include "config_wrapper.h"
+;
 #undef DEFINE_HEATER_ACTUAL
 
 /** Initialise heater subsystem.
@@ -156,7 +177,7 @@ void heater_init() {
   // Auto-generate pin setup.
   #undef DEFINE_HEATER_ACTUAL 
   #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
-    if (pwm && pin ## _TIMER) {                                                          \
+    if (PWM_TYPE(pwm, pin) == HARDWARE_PWM) {                                                          \
       uint32_t freq;                                                                     \
       uint8_t macro_mask;                                                                \
       if (pin ## _TIMER == TIM1) {                                                       \
@@ -223,22 +244,22 @@ void heater_init() {
   heater, every few milliseconds by its PID handler. Using M106 on an output
   with a sensor changes its setting only for a short moment.
 */
-void heater_set(heater_t index, uint8_t value) {
+void do_heater(heater_t index, uint8_t value) {
 
   if (index < NUM_HEATERS) {
 
-    heaters_runtime[index].heater_output = value;
-
-    if (heaters[index].uses_pwm) {
+    if (heaters[index].pwm_type == HARDWARE_PWM) {
       // Remember, we scale, and duty cycle is inverted.
-      *heaters[index].ccr = (uint32_t)value * (PWM_SCALE / 255);
+      *heaters[index].ccr = (uint32_t)((heaters[index].max_value * value) * (PWM_SCALE / 255) / 256);
 
       if (DEBUG_PID && (debug_flags & DEBUG_PID))
         sersendf_P(PSTR("PWM %su = %lu\n"), index, *heaters[index].ccr);
     }
     else {
       *(heaters[index].bsrr) =
-        heaters[index].masked_pin << ((value >= HEATER_THRESHOLD) ? 0 : 16);
+        heaters[index].masked_pin << 
+          ((value >= HEATER_THRESHOLD && ! heaters[index].invert) ? 
+          0 : 16);
     }
     if (value)
       power_on();
