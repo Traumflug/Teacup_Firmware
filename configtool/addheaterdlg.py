@@ -15,6 +15,7 @@ class AddHeaterDlg(wx.Dialog):
 
     self.nameValid = (name != "")
     self.maxPWMValid = (max_pwm != "")
+    self.pwmValid = (pwm != "")
 
     sz = wx.BoxSizer(wx.VERTICAL)
     gsz = wx.GridBagSizer()
@@ -78,14 +79,24 @@ class AddHeaterDlg(wx.Dialog):
 
     gsz.Add(self.cbInv, pos = (3, 3))
 
-    self.cbPwm = wx.CheckBox(self, wx.ID_ANY, "PWM")
-    self.cbPwm.SetFont(font)
-    self.cbPwm.SetValue(int(pwm) != 0)
-    self.cbPwm.SetToolTipString("Use Pulse Width Modulation in case the "
-                                "choosen pin allows to do so.")
+    lsz = wx.BoxSizer(wx.HORIZONTAL)
+    st = wx.StaticText(self, wx.ID_ANY, "PWM:", size = (60, -1),
+                       style = wx.ALIGN_RIGHT)
+    st.SetFont(font)
+    lsz.Add(st, 1, wx.TOP, offsetChLabel)
+
+    self.tcPwm = wx.TextCtrl(self, wx.ID_ANY, pwm, size=(60, -1))
+    self.tcPwm.SetFont(font)
+    self.tcPwm.Bind(wx.EVT_TEXT, self.onPWM)
+    lsz.Add(self.tcPwm)
+    self.tcPwm.SetToolTipString("Use Pulse Width Modulation. "
+                                "Hardware PWM if available or "
+                                "Software PWM. When FORCE_SOFTWARE_PWM "
+                                "is set, always software PWM for 1 and "
+                                "hardware PWM for >= 2.")
 
     gsz.AddSpacer((50, 15), pos = (1, 2))
-    gsz.Add(self.cbPwm, pos = (1, 3))
+    gsz.Add(lsz, pos = (1, 3))
     gsz.AddSpacer((20, 20), pos = (4, 4))
 
     sz.Add(gsz)
@@ -156,8 +167,29 @@ class AddHeaterDlg(wx.Dialog):
     if evt is not None:
       evt.Skip()
 
+  def onPWM(self, evt):
+    tc = evt.GetEventObject()
+    w = tc.GetValue().strip()
+    if w == "":
+      self.pwmValid = False
+    else:
+      if int(w) >= 0:
+        self.pwmValid = True
+      else:
+        self.pwmValid = False
+
+    if self.pwmValid:
+      tc.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+    else:
+      tc.SetBackgroundColour("pink")
+    tc.Refresh()
+
+    self.checkDlgValidity()
+    if evt is not None:
+      evt.Skip()    
+
   def checkDlgValidity(self):
-    if (self.nameValid and self.maxPWMValid):
+    if (self.nameValid and self.maxPWMValid and self.pwmValid):
       self.bSave.Enable(True)
     else:
       self.bSave.Enable(False)
@@ -170,11 +202,8 @@ class AddHeaterDlg(wx.Dialog):
       invert = "1"
     else:
       invert = "0"
-
-    if self.cbPwm.IsChecked():
-      pwm = "1"
-    else:
-      pwm = "0"
+    
+    pwm = self.tcPwm.GetValue()
 
     max_pwm = self.tcMaxPWM.GetValue()
 

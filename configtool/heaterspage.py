@@ -14,6 +14,8 @@ class HeatersPage(wx.Panel, Page):
     self.font = font
     self.id = idPg
 
+    self.labels = {'FORCE_SOFTWARE_PWM':"Force software PWM"}
+
     sz = wx.GridBagSizer()
     sz.AddSpacer((30, 30), pos = (0, 0))
 
@@ -23,6 +25,12 @@ class HeatersPage(wx.Panel, Page):
     self.lb = HeaterList(self, font)
     sz.Add(self.lb, pos = (1, 1))
     sz.AddSpacer((20, 20), pos = (1, 2))
+
+    k = 'FORCE_SOFTWARE_PWM'
+    cb = self.addCheckBox(k, self.onCheckBox)
+
+    sz.Add(cb, pos = (2, 1))
+    sz.AddSpacer((20, 20), pos = (2, 2))
 
     bsz = wx.BoxSizer(wx.VERTICAL)
 

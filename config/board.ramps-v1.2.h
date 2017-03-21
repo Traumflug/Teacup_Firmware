@@ -195,6 +195,14 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO1,  THERMISTOR_BED)
 *                                                                           *
 \***************************************************************************/
 
+/** \def FORCE_SOFTWARE_PWM
+  Force software pwm when pwm is sets to 1.
+
+  Normally any pwm value >= 1 will set the pin to hardware pwm, if available.
+  When FORCE_SOFTWARE_PWM is defined, pwm = 1 is always set to software pwm.
+*/
+// #define FORCE_SOFTWARE_PWM
+
 /** \def HEATER_PIN
   Heater pins a user should be able to choose from in configtool. All
   commented out.

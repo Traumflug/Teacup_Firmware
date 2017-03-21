@@ -82,9 +82,6 @@ class HeaterList(wx.ListCtrl):
       else:
         return "False"
     elif col == 3:
-      if int(s[3]):
-        return "True"
-      else:
-        return "False"
+      return s[3]
     elif col == 4:
       return s[4]
