@@ -230,10 +230,8 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO2,  THERMISTOR_BED)
   for this pin, e.g. for a MOSFET with a driver.
 
   Set 'pwm' to ...
-    2  for using PWM on a PWM-able pin. It will force to 1 on none-PWM-able pins.
-    1  for using software emulated PWM.
+    1  for using hardware PWM on a PWM-able pin and software PWM on other pins.
     0  for using on/off on a PWM-able pin, too.
-
 
   Using PWM usually gives smoother temperature control but can conflict
   with slow switches, like solid state relays. PWM frequency can be
@@ -243,8 +241,8 @@ DEFINE_TEMP_SENSOR(bed,      TT_THERMISTOR, AIO2,  THERMISTOR_BED)
 //DEFINE_HEATERS_START
 
 //            name      pin      invert  pwm      max_pwm
-DEFINE_HEATER(extruder, DIO4,    0,      2,       100)
-DEFINE_HEATER(bed,      DIO3,    0,      2,       100)
+DEFINE_HEATER(extruder, DIO4,    0,      1,       100)
+DEFINE_HEATER(bed,      DIO3,    0,      1,       100)
 
 #define HEATER_EXTRUDER HEATER_extruder
 #define HEATER_BED HEATER_bed

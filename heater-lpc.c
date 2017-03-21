@@ -77,7 +77,7 @@ typedef struct {
 // When pwm == 1 it's software pwm.
 // pwm == 0 is no pwm at all.
 // Use this macro only in DEFINE_HEATER_ACTUAL-macros.
-#define PWM_TYPE(pwm, pin) (((pwm) >= HARDWARE_PWM) ? ((pin ## _TIMER) ? HARDWARE_PWM : SOFTWARE_PWM) : (pwm))
+#define PWM_TYPE(pwm, pin) (((pwm) >= HARDWARE_PWM_START) ? ((pin ## _TIMER) ? HARDWARE_PWM : SOFTWARE_PWM) : (pwm))
 
 #undef DEFINE_HEATER_ACTUAL
 #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_value) \

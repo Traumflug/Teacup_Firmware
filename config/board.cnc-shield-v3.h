@@ -226,8 +226,7 @@ DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, AIO3,  THERMISTOR_EXTRUDER)
   for this pin, e.g. for a MOSFET with a driver.
 
   Set 'pwm' to ...
-    2  for using PWM on a PWM-able pin. It will force to 1 on none-PWM-able pins.
-    1  for using software emulated PWM.
+    1  for using hardware PWM on a PWM-able pin and software PWM on other pins.
     0  for using on/off on a PWM-able pin, too.
 
   Using PWM usually gives smoother temperature control but can conflict
@@ -238,7 +237,7 @@ DEFINE_TEMP_SENSOR(extruder, TT_THERMISTOR, AIO3,  THERMISTOR_EXTRUDER)
 //DEFINE_HEATERS_START
 
 //            name      pin      invert  pwm      max_pwm
-DEFINE_HEATER(extruder, AIO2,    0,      2,       100)
+DEFINE_HEATER(extruder, AIO2,    0,      1,       100)
 
 #define HEATER_EXTRUDER HEATER_extruder
 //DEFINE_HEATERS_END

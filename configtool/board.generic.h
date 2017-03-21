@@ -222,7 +222,7 @@
   for this pin, e.g. for a MOSFET with a driver.
 
   Set 'pwm' to ...
-    1  for using PWM on a PWM-able pin and on/off on other pins.
+    1  for using hardware PWM on a PWM-able pin and software PWM on other pins.
     0  for using on/off on a PWM-able pin, too.
 
   Using PWM usually gives smoother temperature control but can conflict

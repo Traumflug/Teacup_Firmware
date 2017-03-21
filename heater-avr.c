@@ -22,7 +22,7 @@ typedef struct {
     volatile uint8_t *heater_pwm;   ///< pointer to 8-bit PWM register, eg OCR0A (8-bit) or ORC3L (low byte, 16-bit)
   };
   uint8_t     masked_pin;    ///< heater pin, masked. eg for PB3 enter '1 << 3' here, or 1 << PB3_PIN or similar
-  
+
   uint16_t    max_value;     ///< max value for the heater, for PWM in percent * 256
   pwm_type_t  pwm_type;      ///< saves the pwm-type: NO_PWM, SOFTWARE_PWM, HARDWARE_PWM
   uint8_t     invert;        ///< Wether the heater pin signal needs to be inverted.
@@ -32,7 +32,7 @@ typedef struct {
 // When pwm == 1 it's software pwm.
 // pwm == 0 is no pwm at all.
 // Use this macro only in DEFINE_HEATER_ACTUAL-macros.
-#define PWM_TYPE(pwm, pin) (((pwm) >= HARDWARE_PWM) ? ((pin ## _PWM) ? HARDWARE_PWM : SOFTWARE_PWM) : (pwm))
+#define PWM_TYPE(pwm, pin) (((pwm) >= HARDWARE_PWM_START) ? ((pin ## _PWM) ? HARDWARE_PWM : SOFTWARE_PWM) : pwm)
 
 #undef DEFINE_HEATER_ACTUAL
 /// \brief helper macro to fill heater definition struct from config.h
@@ -163,7 +163,7 @@ void heater_init() {
 void do_heater(heater_t index, uint8_t value) {
   if (index < NUM_HEATERS) {
 
-    if (heaters[index].pwm_type >= HARDWARE_PWM) {
+    if (heaters[index].pwm_type == HARDWARE_PWM) {
       uint8_t pwm_value;
 
       // Remember, we scale, and the timer inverts already.

@@ -76,6 +76,9 @@ typedef enum {
   HARDWARE_PWM = 2
 } pwm_type_t;
 
+// Force hardware PWM if available.
+#define HARDWARE_PWM_START SOFTWARE_PWM
+
 void heater_init(void);
 void pid_init(void);
 

@@ -523,7 +523,7 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO0,      THERMISTOR_EXTRUDER)
 * signal for this pin, e.g. for a MOSFET with a driver.                     *
 *                                                                           *
 * Set 'pwm' to ...                                                          *
-*  1  for using PWM on a PWM-able pin and on/off on other pins.             *
+*  1  for using hardware PWM on a PWM-able pin and software PWM on other pins.             *
 *  0  for using on/off on a PWM-able pin, too.                              *
 * Using PWM usually gives smoother temperature control but can conflict     *
 * with slow switches, like solid state relays. PWM frequency can be         *
@@ -551,8 +551,8 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO0,      THERMISTOR_EXTRUDER)
 // #define HEATER_MAX_ACTIVE
 
 //            name      pin      invert  pwm
-DEFINE_HEATER(extruder, DIO4,    0,      2,     100)
-DEFINE_HEATER(bed,      DIO3,    0,      2,     100)
+DEFINE_HEATER(extruder, DIO4,    0,      1,     100)
+DEFINE_HEATER(bed,      DIO3,    0,      1,     100)
 
 /// and now because the c preprocessor isn't as smart as it could be,
 /// uncomment the ones you've listed above and comment the rest.
