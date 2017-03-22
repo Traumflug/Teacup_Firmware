@@ -134,7 +134,7 @@ static const uint8_t software_pwm_needed = 0
 void heater_init() {
   /**
     Pins on the STM32F411RE are usable as following, N are negated pin (active low)
-    some pins are commented out (-) because they are shared. You can change this 
+    some pins are commented out (-) because they are shared. You can change this
     in arduino_stm32f4xx. But take care! You could pwm two pins simultanious or disable
     other important functions (serial connection).
     PWM5 = TIM5 = Stepper timer.
@@ -153,7 +153,7 @@ void heater_init() {
       PIOA_10  PWM1/3             01                MOSI5, RX1
       PIOA_11  PWM1/4             01                TX6, MISO4
       - PIOA_15  PWM2/1             01                NSS1, TX1
-      
+
       PIOB_0   PWM1/2N, 3/3       01, 02            SCK5, CK5, AD8
       PIOB_1   PWM1/3N, 3/4       01, 02            NSS4, WS5, AD9
       - PIOB_3   PWM2/2             01                SDA2, SCK3
@@ -172,14 +172,13 @@ void heater_init() {
       - PIOC_7   PWM3/2             02                SCK2, RX6
       - PIOC_8   PWM3/3             02                SDA3
       - PIOC_9   PWM3/4             02                SDA3
-      
+
   */
   // Auto-generate pin setup.
-  #undef DEFINE_HEATER_ACTUAL 
+  #undef DEFINE_HEATER_ACTUAL
   #define DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, ...) \
-    if (PWM_TYPE(pwm, pin) == HARDWARE_PWM) {                                                          \
+    if (PWM_TYPE(pwm, pin) == HARDWARE_PWM) {                                            \
       uint32_t freq;                                                                     \
-      uint8_t macro_mask;                                                                \
       if (pin ## _TIMER == TIM1) {                                                       \
         RCC->APB2ENR |= RCC_APB2ENR_TIM1EN; }                     /* turn on TIM1     */ \
       else if (pin ## _TIMER == TIM2) {                                                  \
@@ -203,21 +202,18 @@ void heater_init() {
       if (freq < 1)                                                                      \
         freq = 1;                                                                        \
       pin ## _TIMER->PSC = freq - 1;                          /* 1kHz                 */ \
-      macro_mask = pin ## _CHANNEL > 2 ? 2 : 1;                                          \
-      if (macro_mask == 1) {                                                             \
-        pin ## _TIMER->CCMR1 |= 0x0D << (3 + (8 * (pin ## _CHANNEL / macro_mask - 1)));  \
-        /* ch 2 / mm 1 - 1 = 1, ch 1 / mm 1 - 1 = 0*/                                    \
-      } else {                                                                           \
-        pin ## _TIMER->CCMR2 |= 0x0D << (3 + (8 * (pin ## _CHANNEL / macro_mask - 1)));  \
-        /* ch 4 / mm 2 - 1 = 1, ch 3 / mm 2 - 1 = 0*/                                    \
-      }                                                                                  \
+      if (pin ## _CHANNEL <= 2)                                                          \
+        pin ## _TIMER->CCMR1 |= 0x68UL << (8 * (pin ## _CHANNEL && 2));                  \
+      else                                                                               \
+        pin ## _TIMER->CCMR2 |= 0x68UL << (8 * (pin ## _CHANNEL && 4));                  \
+                                                                                         \
       pin ## _TIMER->CCER |= EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, E);                  \
       /* output enable */                                                                \
-      if (pin ## _INVERT ^ invert) {                                                     \
+      if (pin ## _INVERT ^ invert)                                                       \
         pin ## _TIMER->CCER |= EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, P);                \
-      } else {                                                                           \
-      pin ## _TIMER->CCER &= ~(EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, P));               \
-      }                                                                                  \
+      else                                                                               \
+        pin ## _TIMER->CCER &= ~(EXPANDER(TIM_CCER_CC, pin ## _CHANNEL, P));             \
+                                                                                         \
       /* invert the signal for negated timers*/                                          \
       /* also with a XOR for inverted heaters                                         */ \
       pin ## _TIMER->EGR |= TIM_EGR_UG;                   /* update generation        */ \
@@ -257,8 +253,8 @@ void do_heater(heater_t index, uint8_t value) {
     }
     else {
       *(heaters[index].bsrr) =
-        heaters[index].masked_pin << 
-          ((value >= HEATER_THRESHOLD && ! heaters[index].invert) ? 
+        heaters[index].masked_pin <<
+          ((value >= HEATER_THRESHOLD && ! heaters[index].invert) ?
           0 : 16);
     }
     if (value)
