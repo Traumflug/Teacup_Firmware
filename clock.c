@@ -67,26 +67,26 @@ void clock_tick(void) {
   }
 }
 
-/*!	do stuff every 1/4 second
+/*! do stuff every 1/4 second
 
-	called from clock_10ms(), do not call directly
+  called from clock_10ms(), do not call directly
 */
 static void clock_250ms(void) {
 
   if (heaters_all_zero()) {
-		if (psu_timeout > (30 * 4)) {
-			power_off();
+    if (psu_timeout > (30 * 4)) {
+      power_off();
     }
     else {
       ATOMIC_START
         psu_timeout++;
       ATOMIC_END
-		}
-	}
+    }
+  }
 
   temp_heater_tick();
 
-	ifclock(clock_flag_1s) {
+  ifclock(clock_flag_1s) {
     static uint8_t wait_for_temp = 0;
 
     #ifdef DISPLAY
@@ -106,15 +106,15 @@ static void clock_250ms(void) {
       }
     }
 
-		if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
-			// current position
-			update_current_position();
+    if (DEBUG_POSITION && (debug_flags & DEBUG_POSITION)) {
+      // current position
+      update_current_position();
       sersendf_P(PSTR("Pos: %lq,%lq,%lq,%lq,%lu\n"),
                  current_position.axis[X], current_position.axis[Y],
                  current_position.axis[Z], current_position.axis[E],
                  current_position.F);
 
-			// target position
+      // target position
       sersendf_P(PSTR("Dst: %lq,%lq,%lq,%lq,%lu\n"),
                  mb_tail_dda->endpoint.axis[X],
                  mb_tail_dda->endpoint.axis[Y],
@@ -122,19 +122,16 @@ static void clock_250ms(void) {
                  mb_tail_dda->endpoint.axis[E],
                  mb_tail_dda->endpoint.F);
 
-			// Queue
-			print_queue();
+      // Queue
+      print_queue();
 
-			// newline
-			serial_writechar('\n');
-		}
-		// temperature
-		/*		if (temp_get_target())
-		temp_print();*/
-	}
-	#ifdef	TEMP_INTERCOM
-	start_send();
-	#endif
+      // newline
+      serial_writechar('\n');
+    }
+  }
+  #ifdef  TEMP_INTERCOM
+  start_send();
+  #endif
 }
 
 /*! do stuff every 10 milliseconds
