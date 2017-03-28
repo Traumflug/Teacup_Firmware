@@ -1,6 +1,5 @@
 
 /** \file
-
   \brief Display broker.
 
   Here we map generic display calls to calls to the actually used display.
@@ -11,62 +10,38 @@
 
 #include <stdint.h>
 #include "config_wrapper.h"
-#include "displaybus.h"
 
-#ifdef DISPLAY_BUS
+#define DISPLAY_BUFFER_SIZE 128	// Defines a display queue. 
 
-  #if defined DISPLAY_TYPE_SSD1306
+// Meta commands - we're hijacking the below characters to send LCD clear & SET CURSOR commands via 
+//					display queue
+#define LCD_CLEAR 		0xFE
+#define LCD_SET_CURSOR 	0xFD
 
-    #define DISPLAY_I2C_ADDRESS         0x78
-    #define DISPLAY_LINES               4
-    #define DISPLAY_SYMBOLS_PER_LINE    32
-
-    #define DISPLAY
-
-  #elif defined DISPLAY_TYPE_HD44780
-
-    #define DISPLAY_LINES               2
-    #define DISPLAY_SYMBOLS_PER_LINE    16
-
-    #define DISPLAY
-
-  #else
-
-    #error Display type not yet supported.
-
-  #endif /* DISPLAY_TYPE_... */
-
-#endif /* DISPLAY_BUS */
+// Custom characters defined in the first 8 characters of the LCD
+// directly from ultralcd_implementation_hitachi_HD44780.h in Marlin - thank you!
+#define LCD_STR_REFRESH     0x00			// Do not use in strings. Only as a char by itself!!!
+#define LCD_STR_BEDTEMP     0x01
+#define LCD_STR_DEGREE      0x02
+#define LCD_STR_THERMOMETER 0x03
+#define LCD_STR_UPLEVEL     0x04
+#define LCD_STR_FOLDER      0x05
+#define LCD_STR_FEEDRATE    0x06
+#define LCD_STR_CLOCK       0x07
+#define LCD_STR_ARROW_RIGHT 0x7E  /* from the default character set */
 
 
-#define DISPLAY_BUFFER_SIZE 128
+//void display_clock(void);					// this used to be the screen refresh - now it is in lcd_menu
+//void display_tick(void);					// also moved to lcd_menu
 
-/**
-  Printable ASCII characters and our embedded fonts start at 0x20, so we can
-  use 0x00..0x1F for storing control commands in the character queue. That's
-  what genuine ASCII does, too, we just use our own code set.
+void display_init(void);					// display init - calls device speciffic init
+void display_greeting(void);				// very spartan greeting
 
-  Queueing up actions together with actual characters not only postpones
-  these actions to idle time, it's also necessary to keep them in the right
-  order. Without it, writing a few characters, moving the cursor elsewhere and
-  writing even more characters would result in all characters being written to
-  the second position, because characters would wait in the queue while cursor
-  movements were executed immediately.
-*/
-enum display_low_code {
-  low_code_clear = 0x01,
-  low_code_set_cursor
-};
+void display_writechar(uint8_t data); 		// enqueues a char/cmd into the display queue
+void display_putchar(void);					// de-queues the char/cmds from the queue to the display 
 
-void display_init(void);
-void display_tick(void);
-void display_clear(void);
-
-void display_greeting(void);
-void display_clock(void);
-void display_set_cursor(uint8_t line, uint8_t column);
-void display_writechar(uint8_t data);
-
-void display_writestr_P(PGM_P data_P);
+void display_clear(void);					// try to avoid when possible - expensive command. requires 2ms blocking delay
+void display_set_cursor(uint8_t line, uint8_t column);// set display cursor
+void display_writestr_P(PGM_P data_P);		// writes a string from FLASH to the queue
 
 #endif /* _DISPLAY_H */
