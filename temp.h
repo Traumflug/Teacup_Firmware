@@ -48,6 +48,7 @@ void temp_wait(void);
 
 void temp_set(temp_sensor_t index, uint16_t temperature);
 uint16_t temp_get(temp_sensor_t index);
+uint16_t tgt_temp_get(temp_sensor_t index);
 
 void temp_print(temp_sensor_t index);
 

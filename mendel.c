@@ -45,7 +45,8 @@
 #include	"intercom.h"
 #include "spi.h"
 #include "sd.h"
-#include "display.h"
+//#include "display.h"
+#include 	"lcd_menu.h"	// moved display and menu init from display.h
 
 #ifdef SIMINFO
   #include "../simulavr/src/simulavr_info.h"
@@ -116,8 +117,10 @@ void init(void) {
   power_init();
 
   #ifdef DISPLAY
-    display_init();
-    display_greeting();
+  //  display_init();
+  //  display_greeting();
+  
+      lcd_menu_init();
   #endif
 
 	// say hi to host

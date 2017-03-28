@@ -13,7 +13,8 @@
 #include	"debug.h"
 #include	"heater.h"
 #include	"serial.h"
-#include "display.h"
+//#include "display.h"
+#include 	"lcd_menu.h"
 #ifdef	TEMP_INTERCOM
 	#include	"intercom.h"
 #endif
@@ -85,13 +86,18 @@ static void clock_250ms(void) {
 	}
 
   temp_heater_tick();
+  
+  
+  #ifdef DISPLAY
+    display_clock();
+  #endif
 
-	ifclock(clock_flag_1s) {
+  ifclock(clock_flag_1s) {
     static uint8_t wait_for_temp = 0;
 
-    #ifdef DISPLAY
-      display_clock();
-    #endif
+ //   #ifdef DISPLAY
+ //     display_clock();
+ //   #endif
 
     temp_residency_tick();
 

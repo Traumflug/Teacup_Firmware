@@ -614,6 +614,15 @@ uint16_t temp_get(temp_sensor_t index) {
 	return temp_sensors_runtime[index].last_read_temp;
 }
 
+// Added to get Target Temp (for status screen and such)
+/// \param index sensor to read
+uint16_t tgt_temp_get(temp_sensor_t index) {
+	if (index >= NUM_TEMP_SENSORS)
+		return 0;
+		
+	return temp_sensors_runtime[index].target_temp;
+}
+
 // extruder doesn't have sersendf_P
 #ifndef	EXTRUDER
 static void single_temp_print(temp_sensor_t index) {
