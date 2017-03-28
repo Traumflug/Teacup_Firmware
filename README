@@ -35,3 +35,23 @@ http://reprap.org/wiki/Teacup_Firmware
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA #
 #                                                                            #
 ##############################################################################
+
+
+- This branch is about adding a menu for a 4x20 LCD display + rotary encoder input mechanism, aiming to have an independent 
+printer that can be used without a PC host program.
+
+It is currently in beta, the functionality currently implemented is:
+LCD Menu with the following:
+- System status page (similar to Marlin/Repetier sysinfo screen)
+- Set Extruder/Bed temperatures
+- Home machine (all axes)
+- Move axis (only 10mm increments supported on X&Y, only 1mm on Z and E) - in progress
+- SD File select&print
+- SD print pause
+- SD print cancel
+- Fan menu (to be implemented)
+
+
+
+
+
