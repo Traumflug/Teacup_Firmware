@@ -1,30 +1,30 @@
-#include	"dda.h"
+#include "dda.h"
 
 /** \file
 	\brief Digital differential analyser - this is where we figure out which steppers need to move, and when they need to move
 */
 
-#include	<string.h>
-#include	<stdlib.h>
-#include	<math.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 
-#include	"dda_maths.h"
+#include "dda_maths.h"
 #include "preprocessor_math.h"
 #include "dda_kinematics.h"
-#include	"dda_lookahead.h"
+#include "dda_lookahead.h"
 #include "cpu.h"
-#include	"timer.h"
-#include	"serial.h"
-#include	"gcode_parse.h"
-#include	"dda_queue.h"
-#include	"debug.h"
-#include	"sersendf.h"
-#include	"pinio.h"
+#include "timer.h"
+#include "serial.h"
+#include "gcode_parse.h"
+#include "dda_queue.h"
+#include "debug.h"
+#include "sersendf.h"
+#include "pinio.h"
 #include "memory_barrier.h"
 //#include "graycode.c"
 
 #ifdef	DC_EXTRUDER
-	#include	"heater.h"
+	#include "heater.h"
 #endif
 
 
