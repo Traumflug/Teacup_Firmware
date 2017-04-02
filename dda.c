@@ -292,10 +292,14 @@ void dda_create(DDA *dda, const TARGET *target) {
       // 60 * 16 MHz * 5 mm is > 32 bits
       uint32_t move_duration, md_candidate;
 
-      move_duration = distance * ((60 * F_CPU) / (dda->endpoint.F * 1000UL));
+      // md = um * (60s/min) * (ticks/s) / (1000um/mm) / (mm/min)
+      //    = um * (mm/1000um) * (min/mm) * (60s/min) * (ticks/s)
+      //    =      (mm/1000)   * (   /mm) * (60s)     * (ticks/s)
+      //    =      (1/1000              ) * (60       *  ticks  ) 
+      move_duration = distance * (60UL * (F_CPU / 1000) / dda->endpoint.F);
       for (i = X; i < AXIS_COUNT; i++) {
-        md_candidate = delta_um[i] * ((60 * F_CPU) /
-                       (pgm_read_dword(&maximum_feedrate_P[i]) * 1000UL));
+        md_candidate = delta_um[i] * (60UL * (F_CPU / 1000) /
+                       pgm_read_dword(&maximum_feedrate_P[i]));
         if (md_candidate > move_duration)
           move_duration = md_candidate;
       }
