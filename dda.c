@@ -507,9 +507,6 @@ void dda_start(DDA *dda) {
     move_state.counter[E] = -(dda->total_steps >> 1);
   move_state.endstop_stop = 0;
   memcpy(&move_state.steps[X], &dda->delta[X], sizeof(uint32_t) * 4);
-  #ifdef ACCELERATION_RAMPING
-    move_state.step_no = 0;
-  #endif
   #ifdef ACCELERATION_TEMPORAL
     move_state.time[X] = move_state.time[Y] = \
       move_state.time[Z] = move_state.time[E] = 0UL;
@@ -552,7 +549,7 @@ void dda_step(DDA *dda) {
         x_step();
         move_state.steps[X]--;
       }
-		}
+    }
     if (move_state.steps[Y]) {
       move_state.counter[Y] -= dda->delta[Y];
       if (move_state.counter[Y] < 0) {
@@ -560,7 +557,7 @@ void dda_step(DDA *dda) {
         y_step();
         move_state.steps[Y]--;
       }
-		}
+    }
     if (move_state.steps[Z]) {
       move_state.counter[Z] -= dda->delta[Z];
       if (move_state.counter[Z] < 0) {
@@ -568,7 +565,7 @@ void dda_step(DDA *dda) {
         z_step();
         move_state.steps[Z]--;
       }
-		}
+    }
     if (move_state.steps[E]) {
       move_state.counter[E] -= dda->delta[E];
       if (move_state.counter[E] < 0) {
@@ -576,8 +573,7 @@ void dda_step(DDA *dda) {
         e_step();
         move_state.steps[E]--;
       }
-		}
-    move_state.step_no++;
+    }
   #endif
 
 	#ifdef ACCELERATION_REPRAP
@@ -687,7 +683,7 @@ void dda_step(DDA *dda) {
   // TODO: with ACCELERATION_TEMPORAL this duplicates some code. See where
   //       dda->live is zero'd, about 10 lines above.
   #if ! defined ACCELERATION_TEMPORAL
-    if (move_state.step_no >= dda->total_steps ||
+    if (move_state.steps[dda->fast_axis] == 0 ||
         (move_state.endstop_stop && dda->n <= 0))
   #else
     if (move_state.steps[X] == 0 && move_state.steps[Y] == 0 &&
@@ -831,14 +827,16 @@ void dda_clock() {
         // For always smooth operations, don't halt apruptly,
         // but start deceleration here.
         ATOMIC_START
+          move_step_no = dda->total_steps - move_state.steps[dda->fast_axis];
+
           move_state.endstop_stop = 1;
-          if (move_state.step_no < dda->rampup_steps)  // still accelerating
-            dda->total_steps = move_state.step_no * 2;
+          if (move_step_no < dda->rampup_steps)  // still accelerating
+            dda->total_steps = move_step_no * 2;
           else
             // A "-=" would overflow earlier.
             dda->total_steps = dda->total_steps - dda->rampdown_steps +
-                               move_state.step_no;
-          dda->rampdown_steps = move_state.step_no;
+                               move_step_no;
+          dda->rampdown_steps = move_step_no;
         ATOMIC_END
         // Not atomic, because not used in dda_step().
         dda->rampup_steps = 0; // in case we're still accelerating
@@ -856,7 +854,7 @@ void dda_clock() {
     // and http://www.atmel.com/images/doc8017.pdf (Atmel app note AVR446)
     ATOMIC_START
       current_id = dda->id;
-      move_step_no = move_state.step_no;
+      move_step_no = dda->total_steps - move_state.steps[dda->fast_axis];
       // All other variables are read-only or unused in dda_step(),
       // so no need for atomic operations.
     ATOMIC_END
@@ -951,16 +949,13 @@ void update_current_position() {
   };
 
   if (dda != NULL) {
-    uint32_t axis_steps, axis_um;
+    uint32_t axis_um;
 
     for (i = X; i < AXIS_COUNT; i++) {
-      #if ! defined ACCELERATION_TEMPORAL
-        axis_steps = muldiv(dda->total_steps - move_state.step_no,
-                            dda->delta[i], dda->total_steps);
-      #else
-        axis_steps = move_state.steps[i];
-      #endif
-      axis_um = muldiv(axis_steps, 1000000, pgm_read_dword(&steps_per_m_P[i]));
+      axis_um = muldiv(move_state.steps[i], 
+                       1000000, 
+                       pgm_read_dword(&steps_per_m_P[i]));
+
       current_position.axis[i] =
         dda->endpoint.axis[i] - (int32_t)get_direction(dda, i) * axis_um;
     }
