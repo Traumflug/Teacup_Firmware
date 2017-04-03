@@ -241,7 +241,7 @@
 #define PB_5_PORT     GPIOB
 #define PB_5_AF       2
 #define PB_5_TIMER    TIM3
-#define PB_5_CHANNEL  1
+#define PB_5_CHANNEL  2
 #define PB_5_INVERT   0
 
 #define PB_6_PIN      6
