@@ -740,7 +740,7 @@ void dda_clock() {
   static DDA *last_dda = NULL;
   uint8_t endstop_trigger = 0;
   #ifdef ACCELERATION_RAMPING
-  uint32_t move_step_no, move_c;
+  uint32_t move_step_no, move_step, move_c;
   int32_t move_n;
   uint8_t recalc_speed;
   uint8_t current_id ;
@@ -854,10 +854,12 @@ void dda_clock() {
     // and http://www.atmel.com/images/doc8017.pdf (Atmel app note AVR446)
     ATOMIC_START
       current_id = dda->id;
-      move_step_no = dda->total_steps - move_state.steps[dda->fast_axis];
+      move_step = move_state.steps[dda->fast_axis];
       // All other variables are read-only or unused in dda_step(),
       // so no need for atomic operations.
     ATOMIC_END
+
+    move_step_no = dda->total_steps - move_step;
 
     recalc_speed = 0;
     if (move_step_no < dda->rampup_steps) {
@@ -870,9 +872,9 @@ void dda_clock() {
     }
     else if (move_step_no >= dda->rampdown_steps) {
       #ifdef LOOKAHEAD
-        move_n = dda->total_steps - move_step_no + dda->end_steps;
+        move_n = move_step + dda->end_steps;
       #else
-        move_n = dda->total_steps - move_step_no;
+        move_n = move_step;
       #endif
       recalc_speed = 1;
     }
