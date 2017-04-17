@@ -52,4 +52,22 @@ inline void axes_um_to_steps(const axes_int32_t um, axes_int32_t steps) {
   #endif
 }
 
+void delta_to_axes_cartesian(const axes_int32_t delta_um, axes_int32_t um);
+void delta_to_axes_corexy(const axes_int32_t delta_um, axes_int32_t um);
+// void delta_to_axes_scara(const axes_int32_t delta_um, axes_int32_t um);
+
+static void delta_to_axes(const axes_int32_t, axes_int32_t)
+                                        __attribute__ ((always_inline));
+inline void delta_to_axes(const axes_int32_t delta_um, axes_int32_t um) {
+  #if defined KINEMATICS_STRAIGHT
+    delta_to_axes_cartesian(delta_um, um);
+  #elif defined KINEMATICS_COREXY
+    delta_to_axes_corexy(delta_um, um);
+//  #elif defined KINEMATICS_SCARA
+//    delta_to_axes_scara(delta_um, um);
+  #else
+    #error KINEMATICS not defined or unknown, edit your config.h.
+  #endif
+}
+
 #endif /* _DDA_KINEMATICS_H */
