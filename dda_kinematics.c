@@ -56,16 +56,15 @@ void axes_um_to_steps_corexy(const axes_int32_t um, axes_int32_t steps) {
   steps[Z] = um_to_steps(um[Z], Z);
 }
 
-void delta_to_axes_cartesian(const axes_int32_t delta_um, axes_int32_t um) {
-  enum axis_e i;
-
-  for (i = X; i < E; i++) {
-    um[i] = delta_um[i];
-  }
+void delta_to_axes_cartesian(axes_int32_t delta) {
+  // nothing to do for cartesian
 }
 
-void delta_to_axes_corexy(const axes_int32_t delta_um, axes_int32_t um) {
-  um[X] = (delta_um[X] + delta_um[Y]) / 2;
-  um[Y] = (delta_um[X] - delta_um[Y]) / 2;
-  um[Z] = delta_um[Z];
+void delta_to_axes_corexy(axes_int32_t delta) {
+  // recalculate only dedicated axes
+  int32_t x_axis, y_axis;
+  x_axis = (delta[X] + delta[Y]) / 2;
+  y_axis = (delta[X] - delta[Y]) / 2;
+  delta[X] = x_axis;
+  delta[Y] = y_axis;
 }

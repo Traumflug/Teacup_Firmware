@@ -952,7 +952,7 @@ void update_current_position() {
 
   if (dda != NULL) {
     uint32_t axis_um;
-    axes_int32_t delta_um, um;
+    axes_int32_t delta_um;
 
     for (i = X; i < AXIS_COUNT; i++) {
       axis_um = muldiv(move_state.steps[i], 
@@ -962,11 +962,10 @@ void update_current_position() {
       delta_um[i] = (int32_t)get_direction(dda, i) * axis_um;
     }
 
-    delta_to_axes(delta_um, um);
-    um[E] = delta_um[E];
+    delta_to_axes(delta_um);
 
     for (i = X; i < AXIS_COUNT; i++) {
-      current_position.axis[i] = dda->endpoint.axis[i] - um[i];
+      current_position.axis[i] = dda->endpoint.axis[i] - delta_um[i];
     }
 
     if (dda->endpoint.e_relative) {
