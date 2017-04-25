@@ -54,10 +54,9 @@ wait_count 5
 
 while [ ${PARENTS} -ge 0 ]; do
   echo "Next:"
-  #echo git rebase -X ignore-all-space --whitespace=fix ${BASE_BRANCH}~${PARENTS} # hält script bei Fehlern nicht an
-  echo git rebase -X ignore-all-space ${BASE_BRANCH}~${PARENTS}
+  echo git rebase -X ignore-all-space --whitespace=fix ${BASE_BRANCH}~${PARENTS}
   sleep 1
-  if ! git rebase -X ignore-all-space ${BASE_BRANCH}~${PARENTS}; then
+  if ! git rebase -X ignore-all-space --whitespace=fix ${BASE_BRANCH}~${PARENTS}; then
     exit
   fi
   let PARENTS=${PARENTS}-1
