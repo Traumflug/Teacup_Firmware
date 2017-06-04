@@ -54,7 +54,6 @@ wait_count 5
 
 while [ ${PARENTS} -ge 0 ]; do
   echo -e "Next: rebasing to \033[1m${BASE_BRANCH}~${PARENTS}\033[0m"
-  sleep 1
   if ! git rebase --rerere-autoupdate --whitespace=fix ${BASE_BRANCH}~${PARENTS}; then
     echo
     echo "Standard rebase failed."
