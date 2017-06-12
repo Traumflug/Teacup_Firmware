@@ -24,6 +24,7 @@
   #define DEBUG_PID       16
   #define DEBUG_DDA       32
   #define DEBUG_POSITION  64
+  #define DEBUG_DELTA    128
 #else
 	// by setting these to zero, the compiler should optimise the relevant code out
 	#define		DEBUG_PID				0
@@ -32,6 +33,7 @@
 	#define		DEBUG_ECHO			0
   #define DEBUG_INFO       0
   #define DEBUG_DRYRUN     0
+  #define DEBUG_DELTA      0
 #endif
 
 

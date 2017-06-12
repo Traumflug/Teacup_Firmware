@@ -6,8 +6,8 @@
 #include "dda.h"
 #include "debug.h"
 
+extern axes_uint32_t maximum_jerk_P;
 #ifdef LOOKAHEAD
-
 // Sanity: make sure the defines are in place
 #if ! defined MAX_JERK_X || ! defined MAX_JERK_Y || \
     ! defined MAX_JERK_Z || ! defined MAX_JERK_E

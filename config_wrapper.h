@@ -21,6 +21,15 @@
 
 #include "simulator.h"
 
+#if defined KINEMATICS_DELTA
+#define DELTA_PRINTER
+#define DEFAULT_DELTA_DIAGONAL_ROD_2 DEFAULT_DELTA_DIAGONAL_ROD * DEFAULT_DELTA_DIAGONAL_ROD
+#endif
+#define DELTA_DISTANCE_SEGMENTS
+//#define DELTA_TIME_SEGMENTS
+//#define DELTA_SEGMENTS_PER_SECOND 200
+//#define DELTA_SEGMENT_UM 500 //instead of segmenting on move time, it segments based on maximum um per segment
+
 /**
   Give users a hint in case they obviously forgot to read instructions.
 */

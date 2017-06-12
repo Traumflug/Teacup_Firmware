@@ -10,6 +10,7 @@
 
 #include "cpu.h"
 #include	"dda.h"
+#include	"dda_maths.h"
 #include	"dda_queue.h"
 #include	"watchdog.h"
 #include	"delay.h"
@@ -31,7 +32,7 @@ uint8_t tool;
 
 /// the tool to be changed when we get an M6
 uint8_t next_tool;
-
+extern axes_uint32_t  maximum_feedrate_P;
 /************************************************************************//**
 
   \brief Processes command stored in global \ref next_target.
@@ -41,6 +42,7 @@ uint8_t next_tool;
 
 
 *//*************************************************************************/
+
 
 void process_gcode_command() {
 	uint32_t	backup_f;
@@ -81,8 +83,9 @@ void process_gcode_command() {
       next_target.target.axis[Z] = (int32_t)(Z_MIN * 1000.);
 	#endif
 	#ifdef	Z_MAX
-    if (next_target.target.axis[Z] > (int32_t)(Z_MAX * 1000.))
-      next_target.target.axis[Z] = (int32_t)(Z_MAX * 1000.);
+    int32_t zmax=eeprom_read_dword ((uint32_t *) &EE_real_zmax);
+    if (next_target.target.axis[Z] > (int32_t)(zmax))
+      next_target.target.axis[Z] = (int32_t)(zmax);
 	#endif
 
 	// The GCode documentation was taken from http://reprap.org/wiki/Gcode .
@@ -99,7 +102,7 @@ void process_gcode_command() {
 
 	if (next_target.seen_G) {
 		uint8_t axisSelected = 0;
-
+        //sersendf_P(PSTR("Gcode %su \n"),next_target.G);
 		switch (next_target.G) {
 			case 0:
 				//? G0: Rapid Linear Motion
@@ -109,11 +112,15 @@ void process_gcode_command() {
 				//? In this case move rapidly to X = 12 mm.  In fact, the RepRap firmware uses exactly the same code for rapid as it uses for controlled moves (see G1 below), as - for the RepRap machine - this is just as efficient as not doing so.  (The distinction comes from some old machine tools that used to move faster if the axes were not driven in a straight line.  For them G0 allowed any movement in space to get to the destination as fast as possible.)
 				//?
         temp_wait();
-				backup_f = next_target.target.F;
-				next_target.target.F = MAXIMUM_FEEDRATE_X * 2L;
+                if (!next_target.seen_F) {
+				//backup_f = next_target.target.F;
+				//next_target.target.F = maximum_feedrate_P[X] * 2L;
+                //next_target.target.axis[E]=0;
+                if (next_target.target.F>maximum_feedrate_P[X]) next_target.target.F=maximum_feedrate_P[X];
 				enqueue(&next_target.target);
-				next_target.target.F = backup_f;
-				break;
+				//next_target.target.F = backup_f;
+				} else enqueue(&next_target.target);
+                break;
 
 			case 1:
 				//? --- G1: Linear Motion at Feed Rate ---
@@ -123,14 +130,28 @@ void process_gcode_command() {
 				//? Go in a straight line from the current (X, Y) point to the point (90.6, 13.8), extruding material as the move happens from the current extruded length to a length of 22.4 mm.
 				//?
         temp_wait();
+                //next_target.target.axis[E]=0;
+				if (next_target.target.F>maximum_feedrate_P[X]) next_target.target.F=maximum_feedrate_P[X];
 				enqueue(&next_target.target);
 				break;
 
 				//	G2 - Arc Clockwise
-				// unimplemented
-
-				//	G3 - Arc Counter-clockwise
-				// unimplemented
+				//	G3 - Arc anti Clockwise
+            case 2:
+            case 3:
+                // we havent immplement R
+                ///*
+#ifdef ARC_SUPPORT                
+                temp_wait();
+                
+                if (!next_target.seen_I) next_target.I=0;
+                if (!next_target.seen_J) next_target.J=0;
+                //if (DEBUG_ECHO && (debug_flags & DEBUG_ECHO))
+                    
+                draw_arc(&next_target.target,next_target.I,next_target.J, next_target.G==2);
+#endif                
+                 //*/
+                break;
 
 			case 4:
 				//? --- G4: Dwell ---
@@ -148,7 +169,8 @@ void process_gcode_command() {
 					}
 				}
 				break;
-
+            #ifdef INCH_SUPPORT
+					
 			case 20:
 				//? --- G20: Set Units to Inches ---
 				//?
@@ -168,7 +190,7 @@ void process_gcode_command() {
 				//?
 				next_target.option_inches = 0;
 				break;
-
+            #endif
 			case 28:
 				//? --- G28: Home ---
 				//?
@@ -217,8 +239,28 @@ void process_gcode_command() {
 				// there's no point in moving E, as E has no endstops
 
 				if (!axisSelected) {
-					home();
+                    temp_wait();
+                     #ifdef DELTA_PRINTER
+                     home();
+                     #else
+				/*backup_f = next_target.target.F;
+				next_target.target.F = MAXIMUM_FEEDRATE_X * 2L;
+				next_target.target.axis[X]=0;
+                next_target.target.axis[Y]=0;
+                
+ 
+                enqueue(&next_target.target);
+				next_target.target.F = backup_f;
+				*/	
+                    home();
+                    #endif
 				}
+                update_current_position();
+				sersendf_P(PSTR("X:%lq Y:%lq Z:%lq E:%lq F:%lu\n"),
+                        current_position.axis[X], current_position.axis[Y],
+                        current_position.axis[Z], current_position.axis[E],
+				                current_position.F);
+                
 				break;
 
 			case 90:
@@ -333,7 +375,7 @@ void process_gcode_command() {
 		}
 	}
 	else if (next_target.seen_M) {
-		uint8_t i;
+		//uint8_t i;
 
 		switch (next_target.M) {
 			case 0:
@@ -354,8 +396,7 @@ void process_gcode_command() {
 				//? http://linuxcnc.org/handbook/RS274NGC_3/RS274NGC_33a.html#1002379
 				//?
 				queue_wait();
-				for (i = 0; i < NUM_HEATERS; i++)
-					temp_set(i, 0);
+				//for (i = 0; i < NUM_HEATERS; i++)temp_set(i, 0);
 				power_off();
         serial_writestr_P(PSTR("\nstop\n"));
 				break;
@@ -509,9 +550,14 @@ void process_gcode_command() {
 				if ( ! next_target.seen_P)
 					next_target.P = TEMP_SENSOR_none;
 				temp_print(next_target.P);
+                sersendf_P(PSTR("FlowMultiply: %d\n"), (next_target.target.f_multiplier*100)>>8);
+                sersendf_P(PSTR("SpeedMultiply: %d\n"), (next_target.target.f_multiplier*100)>>8);
+                
 				break;
 
 			case 7:
+            case 107:
+                heater_set(HEATER_FAN, 128);
 			case 106:
 				//? --- M106: Set Fan Speed / Set Device Power ---
 				//?
@@ -537,7 +583,25 @@ void process_gcode_command() {
 					break;
         heater_set(next_target.P, next_target.S);
 				break;
-
+			case 109:
+				//? --- M116: Wait ---
+				//?
+				//? Example: M116
+				//?
+				//? Wait for temperatures and other slowly-changing variables to arrive at their set values.
+                if ( ! next_target.seen_S)
+					break;
+        if ( ! next_target.seen_P)
+          #ifdef HEATER_EXTRUDER
+            next_target.P = HEATER_EXTRUDER;
+          #else
+            next_target.P = 0;
+          #endif
+                uint32_t adjt=eeprom_read_dword((uint32_t *) &EE_adjust_temp)*4;
+                if ((adjt<-70*4) && (adjt>70*4)) adjt=0; 
+				temp_set(next_target.P, next_target.S+adjt);
+       temp_set_wait();
+				break;
 			case 110:
 				//? --- M110: Set Current Line Number ---
 				//?
@@ -604,7 +668,7 @@ void process_gcode_command() {
 					queue_wait();
 				#endif
 				update_current_position();
-				sersendf_P(PSTR("X:%lq,Y:%lq,Z:%lq,E:%lq,F:%lu\n"),
+				sersendf_P(PSTR("X:%lq Y:%lq Z:%lq E:%lq F:%lu\n"),
                         current_position.axis[X], current_position.axis[Y],
                         current_position.axis[Z], current_position.axis[E],
 				                current_position.F);
@@ -641,8 +705,23 @@ void process_gcode_command() {
 				//?  FIRMWARE_NAME:Teacup FIRMWARE_URL:http://github.com/traumflug/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:1 TEMP_SENSOR_COUNT:1 HEATER_COUNT:1
 				//?
 
-				sersendf_P(PSTR("FIRMWARE_NAME:Teacup FIRMWARE_URL:http://github.com/traumflug/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d\n"), 1, NUM_TEMP_SENSORS, NUM_HEATERS);
-				break;
+				//sersendf_P(PSTR("FIRMWARE_NAME:Teacup FIRMWARE_URL:http://github.com/traumflug/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d\n"), 1, NUM_TEMP_SENSORS, NUM_HEATERS);
+///*
+#ifdef KINEMATICS_DELTA
+#define MACHINE_TYPE "Delta"
+#endif
+#ifdef KINEMATICS_STRAIGHT
+#define MACHINE_TYPE "Cartesian"
+#endif
+#ifdef KINEMATICS_COREXY
+#define MACHINE_TYPE "Corexy"
+#endif
+
+#define FIRMWARE_URL "https://github.com/repetier/Repetier-Firmware/"
+
+                sersendf_P(PSTR("FIRMWARE_NAME:Repetier_1.9 FIRMWARE_URL:null PROTOCOL_VERSION:1.0 MACHINE_TYPE:teacup EXTRUDER_COUNT:1 REPETIER_PROTOCOL:\n"));
+//*/
+                break;
 
 			case 116:
 				//? --- M116: Wait ---
@@ -760,6 +839,110 @@ void process_gcode_command() {
 				//? Undocumented.
 				heater_save_settings();
 				break;
+            case 502:
+                
+                 reset_eeprom();
+             case 205:
+                sersendf_P(PSTR("EPR:3 153 %lq Zmax\n"),eeprom_read_dword((uint32_t *) &EE_real_zmax));
+                sersendf_P(PSTR("EPR:3 1048 %d ADJTmp\n"),eeprom_read_dword((uint32_t *) &EE_adjust_temp));
+                sersendf_P(PSTR("EPR:3 3 %lq StepX\n"),eeprom_read_dword((uint32_t *) &EE_stepx));
+                sersendf_P(PSTR("EPR:3 7 %lq StepY\n"),eeprom_read_dword((uint32_t *) &EE_stepy));
+                sersendf_P(PSTR("EPR:3 11 %lq StepZ\n"),eeprom_read_dword((uint32_t *) &EE_stepz));
+                sersendf_P(PSTR("EPR:3 0 %lq StepE\n"),eeprom_read_dword((uint32_t *) &EE_stepe));
+
+                sersendf_P(PSTR("EPR:2 15 %lu MFX\n"),eeprom_read_dword((uint32_t *) &EE_mfx));
+                sersendf_P(PSTR("EPR:2 19 %lu MFY\n"),eeprom_read_dword((uint32_t *) &EE_mfy));
+                sersendf_P(PSTR("EPR:2 23 %lu MFZ\n"),eeprom_read_dword((uint32_t *) &EE_mfz));
+                sersendf_P(PSTR("EPR:2 27 %lu MFE\n"),eeprom_read_dword((uint32_t *) &EE_mfe));
+                
+                
+                sersendf_P(PSTR("EPR:2 39 %lu XYJerk\n"),eeprom_read_dword((uint32_t *) &EE_jerkx));
+                sersendf_P(PSTR("EPR:2 47 %lu Zjerk\n"),eeprom_read_dword((uint32_t *) &EE_jerkz));
+                sersendf_P(PSTR("EPR:3 51 %lq Accel\n"),eeprom_read_dword((uint32_t *) &EE_accel));
+
+                #ifdef DELTA_PRINTER
+                sersendf_P(PSTR("EPR:3 133 %lq OfX\n"),eeprom_read_dword((uint32_t *) &EE_x_endstop_adj));
+                sersendf_P(PSTR("EPR:3 137 %lq OfY\n"),eeprom_read_dword((uint32_t *) &EE_y_endstop_adj));
+                sersendf_P(PSTR("EPR:3 141 %lq OfZ\n"),eeprom_read_dword((uint32_t *) &EE_z_endstop_adj));
+                sersendf_P(PSTR("EPR:3 881 %lq RodLen\n"),eeprom_read_dword((uint32_t *) &EE_delta_diagonal_rod));
+                sersendf_P(PSTR("EPR:3 885 %lq HorRad\n"),eeprom_read_dword((uint32_t *) &EE_delta_radius));
+                sersendf_P(PSTR("EPR:3 889 %lq Segment\n"),eeprom_read_dword((uint32_t *) &EE_deltasegment));
+                #endif
+                
+                recalc_acceleration(1);
+                break;
+             case 206:
+             if (next_target.seen_X)next_target.S=next_target.target.axis[X];
+             if (next_target.seen_P)
+                switch (next_target.P) {
+                    case 153:
+                        if (next_target.seen_Y) {
+                                home_set_zmax(next_target.target.axis[Y],1);
+                        }
+                        if (next_target.seen_S) {
+                                home_set_zmax(next_target.S,0);
+                        }
+                    break;
+                    case 1048:
+                        eeprom_write_dword((uint32_t *) &EE_adjust_temp,next_target.S/1000);
+                        break;
+                    case 0:
+                        eeprom_write_dword((uint32_t *) &EE_stepe,next_target.S);
+                        break;
+                    case 3:
+                        eeprom_write_dword((uint32_t *) &EE_stepx,next_target.S);
+                        break;
+                    case 7:
+                        eeprom_write_dword((uint32_t *) &EE_stepy,next_target.S);
+                        break;
+                    case 11:
+                        eeprom_write_dword((uint32_t *) &EE_stepz,next_target.S);
+                        break;
+                    case 15:
+                        eeprom_write_dword((uint32_t *) &EE_mfx,next_target.S/1000);
+                        break;
+                    case 19:
+                        eeprom_write_dword((uint32_t *) &EE_mfy,next_target.S/1000);
+                        break;
+                    case 23:
+                        eeprom_write_dword((uint32_t *) &EE_mfz,next_target.S/1000);
+                        break;
+                    case 27:
+                        eeprom_write_dword((uint32_t *) &EE_mfe,next_target.S/1000);
+                        break;    
+                    case 39:
+                        eeprom_write_dword((uint32_t *) &EE_jerkx,next_target.S/1000);
+                        break;
+                    case 47:
+                        eeprom_write_dword((uint32_t *) &EE_jerkz,next_target.S/1000);
+                        break;
+                    case 51:
+                        eeprom_write_dword((uint32_t *) &EE_accel,next_target.S);
+                        break;
+                    #ifdef DELTA_PRINTER
+                    case 133:
+                        eeprom_write_dword((uint32_t *) &EE_x_endstop_adj,next_target.S);
+                        break;
+                    case 137:
+                        eeprom_write_dword((uint32_t *) &EE_y_endstop_adj,next_target.S);
+                        break;
+                    case 141:
+                        eeprom_write_dword((uint32_t *) &EE_z_endstop_adj,next_target.S);
+                        break;
+                    case 881:
+                        eeprom_write_dword((uint32_t *) &EE_delta_diagonal_rod,next_target.S);
+                        break;
+                    case 885:
+                        eeprom_write_dword((uint32_t *) &EE_delta_radius,next_target.S);
+                        break;
+                    case 889:
+                        eeprom_write_dword((uint32_t *) &EE_deltasegment,next_target.S);
+                        break;
+                    #endif
+                    }
+                recalc_acceleration(1);
+                
+                break;
       #endif /* EECONFIG */
 
       #ifdef DEBUG

@@ -113,7 +113,7 @@ static void clock_250ms(void) {
                  current_position.axis[X], current_position.axis[Y],
                  current_position.axis[Z], current_position.axis[E],
                  current_position.F);
-
+        
 			// target position
       sersendf_P(PSTR("Dst: %lq,%lq,%lq,%lq,%lu\n"),
                  mb_tail_dda->endpoint.axis[X],

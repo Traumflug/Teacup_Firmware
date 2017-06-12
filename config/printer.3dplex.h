@@ -10,14 +10,14 @@
   For G2 and G3, inkscape gcode contain lots of this. Usually slicer 3D never use this feature, save memory
 */
 
-#define ARC_SUPPORT
+//#define ARC_SUPPORT
 
 /** \def INCH_SUPPORT
 
   Might reduce code a little bit
 */
 
-#define INCH_SUPPORT
+//#define INCH_SUPPORT
 
 /** \def KINEMATICS_STRAIGHT KINEMATICS_COREXY
 
@@ -43,12 +43,12 @@
  */
 
 #define KINEMATICS_STRAIGHT
-#define KINEMATICS_COREXY
-#define KINEMATICS_DELTA
+//#define KINEMATICS_COREXY
+//#define KINEMATICS_DELTA
 /** \def DELTA_DISTANCE_SEGMENTS DELTA_TIME_SEGMENTS
  */
 
-#define DELTASEGMENTS_DISTANCE
+//#define DELTASEGMENTS_DISTANCE
 #define DELTASEGMENTS_TIME
 
 /** \def DEFAULT_DELTA_DIAGONAL_ROD
@@ -59,7 +59,7 @@
 */
 #define DEFAULT_DELTA_DIAGONAL_ROD 210000
 #define DELTA_SEGMENTS_PER_SECOND 200
-#define DELTA_SEGMENT_UM 500 
+#define DELTA_SEGMENT_UM         500
 
 /** \def DEFAULT_DELTA_RADIUS
   Or alternatively called horizontal radius. Basically it's diagonal
@@ -91,26 +91,26 @@
 
     Valid range: 20 to 4'0960'000 (0.02 to 40960 steps/mm)
 */
-#define STEPS_PER_M_X            1280000
-#define STEPS_PER_M_Y            1280000
-#define STEPS_PER_M_Z            1280000
-#define STEPS_PER_M_E            96271
+#define STEPS_PER_M_X            197044
+#define STEPS_PER_M_Y            175150
+#define STEPS_PER_M_Z            1010000
+#define STEPS_PER_M_E            760000
 
 /** \def MAXIMUM_FEEDRATE_X MAXIMUM_FEEDRATE_Y MAXIMUM_FEEDRATE_Z MAXIMUM_FEEDRATE_E
   Used for G0 rapid moves and as a cap for all other feedrates.
 */
-#define MAXIMUM_FEEDRATE_X       600
-#define MAXIMUM_FEEDRATE_Y       600
+#define MAXIMUM_FEEDRATE_X       6000
+#define MAXIMUM_FEEDRATE_Y       6000
 #define MAXIMUM_FEEDRATE_Z       600
-#define MAXIMUM_FEEDRATE_E       2000
+#define MAXIMUM_FEEDRATE_E       360
 
 /** \def SEARCH_FEEDRATE_X SEARCH_FEEDRATE_Y SEARCH_FEEDRATE_Z
   Used when doing precision endstop search and as default feedrate. No
   SEARCH_FEEDRATE_E, as E can't be searched.
 */
-#define SEARCH_FEEDRATE_X        50
-#define SEARCH_FEEDRATE_Y        50
-#define SEARCH_FEEDRATE_Z        50
+#define SEARCH_FEEDRATE_X        1800
+#define SEARCH_FEEDRATE_Y        1800
+#define SEARCH_FEEDRATE_Z        120
 
 /** \def ENDSTOP_CLEARANCE_X ENDSTOP_CLEARANCE_Y ENDSTOP_CLEARANCE_Z
 
@@ -132,9 +132,9 @@
     Sane values: 0 to 20000   (0 to 20 mm)
     Valid range: 0 to 1000000
 */
-#define ENDSTOP_CLEARANCE_X      1000
-#define ENDSTOP_CLEARANCE_Y      1000
-#define ENDSTOP_CLEARANCE_Z      100
+#define ENDSTOP_CLEARANCE_X      2000
+#define ENDSTOP_CLEARANCE_Y      2000
+#define ENDSTOP_CLEARANCE_Z      2000
 
 /** \def X_MIN X_MAX Y_MIN Y_MAX Z_MIN Z_MAX
   Soft axis limits. Define them to your machine's size relative to what your
@@ -151,14 +151,14 @@
     Sane values: according to printer build room size
     Valid range: -1000.0 to 1000.0
 */
-#define X_MIN                    0.0
-#define X_MAX                    200.0
+//#define X_MIN                    0.0
+//#define X_MAX                    200.0
 
-#define Y_MIN                    0.0
-#define Y_MAX                    200.0
+//#define Y_MIN                    0.0
+//#define Y_MAX                    200.0
 
-#define Z_MIN                    0.0
-#define Z_MAX                    140.0
+//#define Z_MIN                    0.0
+#define Z_MAX                    85
 
 /** \def E_ABSOLUTE
   Some G-code creators produce relative length commands for the extruder,
@@ -175,9 +175,9 @@
   ACCELERATION_TEMPORAL. With none of them defined, movements are done
   without acceleration. Recommended is ACCELERATION_RAMPING.
 */
-#define ACCELERATION_REPRAP
+//#define ACCELERATION_REPRAP
 #define ACCELERATION_RAMPING
-#define ACCELERATION_TEMPORAL
+//#define ACCELERATION_TEMPORAL
 
 /** \def ACCELERATION
   How fast to accelerate when using ACCELERATION_RAMPING. Start with 10 for
@@ -186,14 +186,14 @@
     Units: mm/s^2
     Useful range: 1 to 10'000
 */
-#define ACCELERATION             100
+#define ACCELERATION             1000
 
 /** \def LOOKAHEAD
   Define this to enable look-ahead during *ramping* acceleration to smoothly
   transition between moves instead of performing a dead stop every move.
   Enabling look-ahead requires about 3600 bytes of flash memory.
 */
-#define LOOKAHEAD
+//#define LOOKAHEAD
 
 /** \def MAX_JERK_X MAX_JERK_Y MAX_JERK_Z MAX_JERK_E
   When performing look-ahead, we need to decide what an acceptable jerk to the
@@ -217,9 +217,9 @@
     Sane values: 0 to 400
     Valid range: 0 to 65535
 */
-#define MAX_JERK_X               20
-#define MAX_JERK_Y               20
-#define MAX_JERK_Z               0
+#define MAX_JERK_X               1200
+#define MAX_JERK_Y               1200
+#define MAX_JERK_Z               200
 #define MAX_JERK_E               200
 
 
@@ -280,7 +280,7 @@
 
     Unit: seconds
 */
-#define TEMP_RESIDENCY_TIME      60
+#define TEMP_RESIDENCY_TIME      5
 
 /** \def TEMP_EWMA
 
@@ -302,14 +302,14 @@
   With this disabled, only temps will be returned: ok T:xxx.x B:xxx.x
   Enabling adds 78 bytes to the image.
 */
-#define REPORT_TARGET_TEMPS
+//#define REPORT_TARGET_TEMPS
 
 /** \def HEATER_SANITY_CHECK
   Check if heater responds to changes in target temperature, disable and spit
   errors if not largely untested, please comment in forum if this works, or
   doesn't work for you!
 */
-#define HEATER_SANITY_CHECK
+//#define HEATER_SANITY_CHECK
 
 /** \def EECONFIG
   Enable EEPROM configuration storage.
@@ -324,7 +324,7 @@
   Drops PID loop from heater control, reduces code size significantly
   (1300 bytes!).
 */
-#define BANG_BANG
+//#define BANG_BANG
 
 /** \def BANG_BANG_ON
   PWM value for Bang Bang 'on'.
@@ -334,7 +334,7 @@
 /** \def BANG_BANG_OFF
   PWM value for Bang Bang 'off'.
 */
-#define BANG_BANG_OFF            45
+#define BANG_BANG_OFF            100
 
 /** \def MOVEBUFFER_SIZE
   Move buffer size, in number of moves.
@@ -345,15 +345,15 @@
   math (hence time) to set up so a longer buffer allows more of the math to
   be done during preceding longer moves.
 */
-#define MOVEBUFFER_SIZE          20
+#define MOVEBUFFER_SIZE          8
 
 /** \def DC_EXTRUDER DC_EXTRUDER_PWM
   If you have a DC motor extruder, configure it as a "heater" above and define
   this value as the index or name. You probably also want to comment out
   E_STEP_PIN and E_DIR_PIN in the Pinouts section above.
 */
-#define DC_EXTRUDER              HEATER_motor
-#define DC_EXTRUDER_PWM          180
+//#define DC_EXTRUDER              HEATER_motor
+//#define DC_EXTRUDER_PWM          180
 
 /** \def USE_WATCHDOG
   Teacup implements a watchdog, which has to be reset every 250ms or it will
@@ -362,7 +362,7 @@
   is probably even worse than just hanging, and there is no better restore
   code in place, this is disabled for now.
 */
-#define USE_WATCHDOG
+//#define USE_WATCHDOG
 
 /** \def TH_COUNT
   Temperature history count. This is how many temperature readings to keep in
@@ -382,7 +382,7 @@
 
   See also: http://reprap.org/wiki/Gen7_Research#MOSFET_heat_and_PWM
 */
-#define FAST_PWM
+//#define FAST_PWM
 
 /** \def PID_SCALE
   This is the scaling of internally stored PID values. 1024L is a good value.

@@ -3,6 +3,7 @@
 
 #include	"config_wrapper.h"
 #include	<stdint.h>
+#include	<avr/eeprom.h>
 
 /*
 NOTES
@@ -31,7 +32,7 @@ typedef enum {
 	TT_DUMMY,
 } temp_type_t;
 
-
+extern uint32_t EEMEM EE_adjust_temp;
 void temp_init(void);
 
 void temp_sensor_tick(void);

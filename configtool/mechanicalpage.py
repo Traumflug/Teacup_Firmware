@@ -28,7 +28,8 @@ class MechanicalPage(wx.Panel, Page):
 
     self.minmaxKeys = ['X_MIN', 'X_MAX', 'Y_MIN', 'Y_MAX', 'Z_MIN', 'Z_MAX']
 
-    self.kinematicsKeys = ['KINEMATICS_STRAIGHT', 'KINEMATICS_COREXY']
+    self.kinematicsKeys = ['KINEMATICS_STRAIGHT', 'KINEMATICS_COREXY', 'KINEMATICS_DELTA']
+    self.segmentKeys = ['DELTASEGMENTS_DISTANCE', 'DELTASEGMENTS_TIME']
 
     self.labels = {'STEPS_PER_M_X': "X:", 'STEPS_PER_M_Y': "Y:",
                    'STEPS_PER_M_Z': "Z:", 'STEPS_PER_M_E' : "E:",
@@ -41,8 +42,11 @@ class MechanicalPage(wx.Panel, Page):
                    'X_MIN': "Min X:", 'X_MAX': "Max X:", 'Y_MIN': "Min Y:",
                    'Y_MAX': "Max Y:", 'Z_MIN': "Min Z:", 'Z_MAX': "Max Z:",
                    'E_ABSOLUTE': "Absolute E Coordinates",
+				   'DELTASEGMENTS_DISTANCE':'by Distance',
+				   'DELTASEGMENTS_TIME':'by Time',
                    'KINEMATICS_STRAIGHT': "Straight",
-                   'KINEMATICS_COREXY': "CoreXY"}
+                   'KINEMATICS_COREXY': "CoreXY",
+				   'KINEMATICS_DELTA': "Delta"}
 
     labelWidth = 40;
 
@@ -118,12 +122,25 @@ class MechanicalPage(wx.Panel, Page):
 
       sbox.Add(rb, 1, wx.LEFT + wx.RIGHT, 16)
       sbox.AddSpacer((5, 5))
+    vsz.Add(sbox, 1, wx.LEFT, 0)
+	
+    b = wx.StaticBox(self, wx.ID_ANY, "Delta Segment")
+    b.SetFont(font)
+    sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
+    sbox.AddSpacer((5, 5))
+    style = wx.RB_GROUP
+    for k in self.segmentKeys:
+      rb = self.addRadioButton(k, style, self.onKinematicsSelect, b)
+      style = 0
 
-    vsz.Add(sbox, 1, wx.LEFT, 40)
+      sbox.Add(rb, 1, wx.LEFT + wx.RIGHT, 16)
+      sbox.AddSpacer((5, 5))
+
+    vsz.Add(sbox, 1, wx.LEFT, 0)
 
     cb = self.addCheckBox('E_ABSOLUTE', self.onCheckBox)
 
-    vsz.Add(cb, 1, wx.LEFT, 40)
+    vsz.Add(cb, 1, wx.LEFT, 0)
 
     sz.Add(vsz, pos = (3, 1))
 
@@ -180,11 +197,13 @@ class MechanicalPage(wx.Panel, Page):
     if 'KINEMATICS' in ht.keys():
       for k in self.kinematicsKeys:
         self.radioButtons[k].SetToolTipString(ht['KINEMATICS'])
-
   def insertValues(self, cfgValues):
     Page.insertValues(self, cfgValues)
 
     for tag in self.kinematicsKeys:
+      if tag in cfgValues.keys() and cfgValues[tag]:
+        self.radioButtons[tag].SetValue(True)
+    for tag in self.segmentKeys:
       if tag in cfgValues.keys() and cfgValues[tag]:
         self.radioButtons[tag].SetValue(True)
 
@@ -192,6 +211,8 @@ class MechanicalPage(wx.Panel, Page):
     result = Page.getValues(self)
 
     for tag in self.kinematicsKeys:
+      result[tag] = self.radioButtons[tag].GetValue()
+    for tag in self.segmentKeys:
       result[tag] = self.radioButtons[tag].GetValue()
 
     return result

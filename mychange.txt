@@ -1,0 +1,3 @@
+//change  decfloat_to_int(&read_digit, 1000) to decfloat_to_int1000(&read_digit)
+//decfloat_to_int(&read_digit, 1) to decfloat_to_int1(&read_digit);
+need to change inches to a conditional compilation

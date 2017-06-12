@@ -5,7 +5,7 @@
 #include "dda.h"
 #include "timer.h"
 
-
+#include        "dda_delta_segments.h"
 /*
   variables
 */
@@ -14,7 +14,6 @@
 extern uint8_t mb_tail;
 extern DDA movebuffer[MOVEBUFFER_SIZE];
 extern DDA *mb_tail_dda;
-
 
 /*
   methods
@@ -32,7 +31,11 @@ void enqueue_home(TARGET *t, uint8_t endstop_check, uint8_t endstop_stop_cond);
 
 static void enqueue(TARGET *) __attribute__ ((always_inline));
 inline void enqueue(TARGET *t) {
-  enqueue_home(t, 0, 0);
+  #ifdef DELTA_PRINTER
+     delta_segments_create(t);
+  #else
+     enqueue_home(t, 0, 0);
+  #endif
 }
 
 // print queue status

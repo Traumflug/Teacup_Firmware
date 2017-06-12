@@ -6,6 +6,8 @@
 
 #include	<string.h>
 #include	<stdlib.h>
+#include	<avr/eeprom.h>
+#include	<avr/pgmspace.h>
 #include	<math.h>
 
 #include	"dda_maths.h"
@@ -17,14 +19,39 @@
 #include	"serial.h"
 #include	"gcode_parse.h"
 #include	"dda_queue.h"
+#include	"home.h"
 #include	"debug.h"
 #include	"sersendf.h"
 #include	"pinio.h"
 #include "memory_barrier.h"
+#include "heater.h"
 //#include "graycode.c"
 
 #ifdef	DC_EXTRUDER
 	#include	"heater.h"
+#endif
+
+
+#ifdef DELTA_PRINTER
+//Must scale by 16 because 2^32 = 4,294,967,296 - giving a maximum squareroot of 65536
+//If scaled by 8, maximum movement is 65,536 * 8 = 524,288um, 65,536 * 16 = 1,048,576um
+
+ uint32_t delta_diagonal_rod   = (DEFAULT_DELTA_DIAGONAL_ROD >> 4);
+ uint32_t DELTA_DIAGONAL_ROD_2 = (DEFAULT_DELTA_DIAGONAL_ROD >> 4) * (DEFAULT_DELTA_DIAGONAL_ROD >> 4);
+
+ int32_t delta_tower1_x       = (int32_t)(COS(DegToRad(TOWER_X_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
+ int32_t delta_tower1_y       = (int32_t)(SIN(DegToRad(TOWER_X_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
+ int32_t delta_tower2_x       = (int32_t)(COS(DegToRad(TOWER_Y_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
+ int32_t delta_tower2_y       = (int32_t)(SIN(DegToRad(TOWER_Y_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
+ int32_t delta_tower3_x       = (int32_t)(COS(DegToRad(TOWER_Z_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
+ int32_t delta_tower3_y       = (int32_t)(SIN(DegToRad(TOWER_Z_ANGLE_DEG)) * DEFAULT_DELTA_RADIUS) >> 4;
+ 
+int32_t delta_radius         = (DEFAULT_DELTA_RADIUS >> 4);
+int32_t delta_height = Z_MAX * 1000;
+int32_t endstop_adj_x;
+int32_t endstop_adj_y;
+int32_t endstop_adj_z;
+uint8_t bypass_delta;
 #endif
 
 
@@ -51,22 +78,150 @@ MOVE_STATE BSS move_state;
 
 /// \var maximum_feedrate_P
 /// \brief maximum allowed feedrate on each axis
-static const axes_uint32_t PROGMEM maximum_feedrate_P = {
+axes_uint32_t  maximum_feedrate_P = {
   MAXIMUM_FEEDRATE_X,
   MAXIMUM_FEEDRATE_Y,
   MAXIMUM_FEEDRATE_Z,
   MAXIMUM_FEEDRATE_E
 };
 
+/// \var Accelerations
+/// \brief lets make it adjustable
+int32_t _ACCELERATION=ACCELERATION;
+axes_uint32_t _STEPS_PER_M = {
+    STEPS_PER_M_X,
+    STEPS_PER_M_Y,
+    STEPS_PER_M_Z,
+    STEPS_PER_M_E
+};
+
+
 /// \var c0_P
 /// \brief Initialization constant for the ramping algorithm. Timer cycles for
 ///        first step interval.
-static const axes_uint32_t PROGMEM c0_P = {
+/// lets make it adjustable
+
+//static const axes_uint32_t PROGMEM c0_P = {
+axes_uint32_t c0_P = {
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_X * ACCELERATION / 2000.)),
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_Y * ACCELERATION / 2000.)),
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_Z * ACCELERATION / 2000.)),
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_E * ACCELERATION / 2000.))
 };
+
+
+
+int32_t EEMEM EE_stepx;
+int32_t EEMEM EE_stepy;
+int32_t EEMEM EE_stepz;
+int32_t EEMEM EE_stepe;
+int32_t EEMEM EE_mfx;
+int32_t EEMEM EE_mfy;
+int32_t EEMEM EE_mfz;
+int32_t EEMEM EE_mfe;
+
+int32_t EEMEM EE_jerkx;
+int32_t EEMEM EE_jerkz;
+
+int32_t EEMEM EE_accel;
+#ifdef DELTA_PRINTER
+int32_t EEMEM EE_x_endstop_adj;
+int32_t EEMEM EE_y_endstop_adj;
+int32_t EEMEM EE_z_endstop_adj;
+int32_t EEMEM EE_delta_diagonal_rod;
+int32_t EEMEM EE_delta_radius;
+#endif
+
+void reload_acceleration_eeprom(void){
+    _STEPS_PER_M[X]=(uint32_t)eeprom_read_dword(&EE_stepx);
+    _STEPS_PER_M[Y]=(uint32_t)eeprom_read_dword(&EE_stepy);
+    _STEPS_PER_M[Z]=(uint32_t)eeprom_read_dword(&EE_stepz);
+    _STEPS_PER_M[E]=(uint32_t)eeprom_read_dword(&EE_stepe);
+    
+    maximum_feedrate_P[X]=(uint32_t)eeprom_read_dword(&EE_mfx);
+    maximum_feedrate_P[Y]=(uint32_t)eeprom_read_dword(&EE_mfy);
+    maximum_feedrate_P[Z]=(uint32_t)eeprom_read_dword(&EE_mfz);
+    maximum_feedrate_P[E]=(uint32_t)eeprom_read_dword(&EE_mfe);
+    
+    maximum_jerk_P[X]=maximum_jerk_P[Y]=(uint32_t)eeprom_read_dword(&EE_jerkx);
+    maximum_jerk_P[Z]=(uint32_t)eeprom_read_dword(&EE_jerkz);
+    
+    _ACCELERATION=eeprom_read_dword(&EE_accel)/1000;    
+    #ifdef DELTA_PRINTER
+     _DELTA_SEGMENTS   = (uint32_t)(eeprom_read_dword(&EE_deltasegment));
+     delta_diagonal_rod   = (uint32_t)(eeprom_read_dword(&EE_delta_diagonal_rod) >> 4);
+     DELTA_DIAGONAL_ROD_2 = delta_diagonal_rod*delta_diagonal_rod;
+     delta_radius         = (uint32_t)(eeprom_read_dword(&EE_delta_radius));
+
+      delta_tower1_x       = (int32_t)(COS(DegToRad(TOWER_X_ANGLE_DEG)) * delta_radius) >> 4;
+      delta_tower1_y       = (int32_t)(SIN(DegToRad(TOWER_X_ANGLE_DEG)) * delta_radius) >> 4;
+      delta_tower2_x       = (int32_t)(COS(DegToRad(TOWER_Y_ANGLE_DEG)) * delta_radius) >> 4;
+      delta_tower2_y       = (int32_t)(SIN(DegToRad(TOWER_Y_ANGLE_DEG)) * delta_radius) >> 4;
+      delta_tower3_x       = (int32_t)(COS(DegToRad(TOWER_Z_ANGLE_DEG)) * delta_radius) >> 4;
+      delta_tower3_y       = (int32_t)(SIN(DegToRad(TOWER_Z_ANGLE_DEG)) * delta_radius) >> 4;
+      delta_radius = delta_radius >>4;
+     
+    #endif
+}
+ 
+void recalc_acceleration(uint8_t readeeprom){
+    if (readeeprom) reload_acceleration_eeprom();
+      
+        
+
+      axis_qn_P[0]=(uint32_t)_STEPS_PER_M[X] / UM_PER_METER;
+      axis_qn_P[1]=(uint32_t)_STEPS_PER_M[Y] / UM_PER_METER;
+      axis_qn_P[2]=(uint32_t)_STEPS_PER_M[Z] / UM_PER_METER;
+      axis_qn_P[3]=(uint32_t)_STEPS_PER_M[E] / UM_PER_METER;
+  
+
+
+      axis_qr_P[0]=(uint32_t)_STEPS_PER_M[X] % UM_PER_METER;
+      axis_qr_P[1]=(uint32_t)_STEPS_PER_M[Y] % UM_PER_METER;
+      axis_qr_P[2]=(uint32_t)_STEPS_PER_M[Z] % UM_PER_METER;
+      axis_qr_P[3]=(uint32_t)_STEPS_PER_M[E] % UM_PER_METER;
+
+      c0_P[0]=(uint32_t)(F_CPU / sqrt((_STEPS_PER_M[X] * _ACCELERATION) / 2000.));
+      c0_P[1]=(uint32_t)(F_CPU / sqrt((_STEPS_PER_M[Y] * _ACCELERATION) / 2000.));
+      c0_P[2]=(uint32_t)(F_CPU / sqrt((_STEPS_PER_M[Z] * _ACCELERATION) / 2000.));
+      c0_P[3]=(uint32_t)(F_CPU / sqrt((_STEPS_PER_M[E] * _ACCELERATION) / 2000.));
+ 
+      acc_ramp_div_P[0]=(uint32_t)((7200000.0f * _ACCELERATION) / _STEPS_PER_M[X]);
+      acc_ramp_div_P[1]=(uint32_t)((7200000.0f * _ACCELERATION) / _STEPS_PER_M[Y]);
+      acc_ramp_div_P[2]=(uint32_t)((7200000.0f * _ACCELERATION) / _STEPS_PER_M[Z]);
+      acc_ramp_div_P[3]=(uint32_t)((7200000.0f * _ACCELERATION) / _STEPS_PER_M[E]);
+
+}
+
+void reset_eeprom(void){
+    
+    eeprom_write_dword((uint32_t *) &EE_real_zmax, Z_MAX*1000);
+    eeprom_write_dword((uint32_t *) &EE_adjust_temp,0 );
+    eeprom_write_dword((uint32_t *) &EE_stepe, STEPS_PER_M_E );
+    eeprom_write_dword((uint32_t *) &EE_stepx, STEPS_PER_M_X);
+    eeprom_write_dword((uint32_t *) &EE_stepy,STEPS_PER_M_Y);
+    eeprom_write_dword((uint32_t *) &EE_stepz,STEPS_PER_M_Z);
+    eeprom_write_dword((uint32_t *) &EE_mfx,MAXIMUM_FEEDRATE_X);
+    eeprom_write_dword((uint32_t *) &EE_mfy,MAXIMUM_FEEDRATE_Y);
+    eeprom_write_dword((uint32_t *) &EE_mfz,MAXIMUM_FEEDRATE_Z);
+    eeprom_write_dword((uint32_t *) &EE_mfe,MAXIMUM_FEEDRATE_E);
+    eeprom_write_dword((uint32_t *) &EE_jerkx,MAX_JERK_X);
+    eeprom_write_dword((uint32_t *) &EE_jerkz,MAX_JERK_Z);
+    eeprom_write_dword((uint32_t *) &EE_accel,ACCELERATION*1000);
+    #ifdef DELTA_PRINTER
+    eeprom_write_dword((uint32_t *) &EE_x_endstop_adj,0);
+    eeprom_write_dword((uint32_t *) &EE_y_endstop_adj,0);
+    eeprom_write_dword((uint32_t *) &EE_z_endstop_adj,0);
+    eeprom_write_dword((uint32_t *) &EE_delta_diagonal_rod,DEFAULT_DELTA_DIAGONAL_ROD);
+    eeprom_write_dword((uint32_t *) &EE_delta_radius,DEFAULT_DELTA_RADIUS);
+    #ifdef DELTASEGMENTS_TIME
+    eeprom_write_dword((uint32_t *) &EE_deltasegment,DELTA_SEGMENTS_PER_SECOND*1000);
+    #else
+    eeprom_write_dword((uint32_t *) &EE_deltasegment,DELTA_SEGMENTS_UM);
+    #endif
+    #endif
+    recalc_acceleration(1);
+}
 
 /*! Set the direction of the 'n' axis
 */
@@ -98,6 +253,12 @@ int8_t get_direction(DDA *dda, enum axis_e n) {
 /*! Inititalise DDA movement structures
 */
 void dda_init(void) {
+
+#ifdef DELTA_PRINTER
+   bypass_delta=0;
+   dda_new_startpoint();
+#endif
+
 	// set up default feedrate
 	if (startpoint.F == 0)
 		startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
@@ -112,8 +273,29 @@ void dda_init(void) {
 	This is needed for example after homing or a G92. The new location must be in startpoint already.
 */
 void dda_new_startpoint(void) {
+  #ifdef DELTA_PRINTER
+  enum axis_e i;
+  
+     if (bypass_delta == 0)
+     {
+        TARGET temp;
+        temp = delta_from_cartesian(&startpoint);
+        for (i = X; i < AXIS_COUNT; i++)
+           startpoint_steps.axis[i] = um_to_steps(temp.axis[i], i);
+
+        if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA))
+            sersendf_P(PSTR("Delta Startpoint: cart(%ld,%ld,%ld,E:%ld) delta(%ld,%ld,%ld,E:%ld) \n"),
+                      startpoint.axis[X], startpoint.axis[Y], startpoint.axis[Z],startpoint.axis[E],
+                      temp.axis[X],temp.axis[Y],temp.axis[Z],temp.axis[E]);
+        
+     } else {
+        for (i = X; i < AXIS_COUNT; i++)
+           startpoint_steps.axis[i] = um_to_steps(startpoint.axis[i], i);
+     }
+  #else
 	axes_um_to_steps(startpoint.axis, startpoint_steps.axis);
-  startpoint_steps.axis[E] = um_to_steps(startpoint.axis[E], E);
+    startpoint_steps.axis[E] = um_to_steps(startpoint.axis[E], E);
+  #endif	
 }
 
 /**
@@ -152,7 +334,7 @@ void dda_new_startpoint(void) {
 void dda_create(DDA *dda, const TARGET *target) {
   axes_uint32_t delta_um;
   axes_int32_t steps;
-	uint32_t	distance, c_limit, c_limit_calc;
+	uint32_t	distance, c_limit;
   enum axis_e i;
   #ifdef ACCELERATION_RAMPING
   // Number the moves to identify them; allowed to overflow.
@@ -169,16 +351,17 @@ void dda_create(DDA *dda, const TARGET *target) {
   memcpy(&(dda->endpoint), target, sizeof(TARGET));
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
-    sersendf_P(PSTR("\nCreate: X %lq  Y %lq  Z %lq  F %lu\n"),
+    sersendf_P(PSTR("\nCreate: X %lq  Y %lq  Z %lq  E %lq F %lu\n"),
                dda->endpoint.axis[X], dda->endpoint.axis[Y],
-               dda->endpoint.axis[Z], dda->endpoint.F);
+               dda->endpoint.axis[Z], dda->endpoint.axis[E],dda->endpoint.F);
 
   // Apply feedrate multiplier.
-  if (dda->endpoint.f_multiplier != 256 && ! dda->endstop_check) {
+  
+  /*if (dda->endpoint.f_multiplier != 256 && ! dda->endstop_check) {
     dda->endpoint.F *= dda->endpoint.f_multiplier;
     dda->endpoint.F += 128;
     dda->endpoint.F /= 256;
-  }
+  }*/
 
   #ifdef LOOKAHEAD
     // Set the start and stop speeds to zero for now = full stops between
@@ -194,6 +377,13 @@ void dda_create(DDA *dda, const TARGET *target) {
 
   // Handle bot axes. They're subject to kinematics considerations.
   code_axes_to_stepper_axes(&startpoint, target, delta_um, steps);
+
+  if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA))
+     sersendf_P(PSTR("dda_create After: start_steps(%ld,%ld,%ld,%ld) steps(%ld,%ld,%ld)\n"),
+                startpoint_steps.axis[X],startpoint_steps.axis[Y],startpoint_steps.axis[Z],
+                steps[X],steps[Y],steps[Z]);
+  
+
   for (i = X; i < E; i++) {
     int32_t delta_steps;
 
@@ -209,11 +399,12 @@ void dda_create(DDA *dda, const TARGET *target) {
   steps[E] = um_to_steps(target->axis[E], E);
 
   // Apply extrusion multiplier.
-  if (target->e_multiplier != 256) {
+  /*if (target->e_multiplier != 256) {
     steps[E] *= target->e_multiplier;
     steps[E] += 128;
     steps[E] /= 256;
-  }
+  }*/
+  
 
   if ( ! target->e_relative) {
     int32_t delta_steps;
@@ -224,6 +415,20 @@ void dda_create(DDA *dda, const TARGET *target) {
     startpoint_steps.axis[E] = steps[E];
 
     set_direction(dda, E, delta_steps);
+
+    if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA))
+     sersendf_P(PSTR("dda_create (NR) After: delta_um[E]=%ld steps[E]=%ld F:%ld ER:%u\n"),
+                delta_steps,steps[E],target->F,target->e_relative);
+    
+
+    #ifdef LOOKAHEAD
+      // Also displacements in micrometers, but for the lookahead alogrithms.
+      // TODO: this is redundant. delta_um[] and dda->delta_um[] differ by
+      //       just signedness and storage location. Ideally, dda is used
+      //       as storage place only if neccessary (LOOKAHEAD turned on?)
+      //       because this space is multiplied by the movement queue size.
+      // dda->delta_um[E] = (delta_steps >= 0) ?(int32_t)delta_um[E] : -(int32_t)delta_um[E];
+    #endif
   }
   else {
     // When we get more extruder axes:
@@ -231,6 +436,10 @@ void dda_create(DDA *dda, const TARGET *target) {
     delta_um[E] = (uint32_t)labs(target->axis[E]);
     dda->delta[E] = (uint32_t)labs(steps[E]);
     dda->e_direction = (target->axis[E] >= 0)?1:0;
+    if (DEBUG_DELTA && (debug_flags & DEBUG_DELTA))
+     sersendf_P(PSTR("dda_create (R) After: delta_um[E]=%ld steps[E]=%ld F:%ld ER:%u\n"),
+                delta_um[E],steps[E],target->F,target->e_relative);
+    
 	}
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
@@ -253,6 +462,7 @@ void dda_create(DDA *dda, const TARGET *target) {
 
 	if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
     sersendf_P(PSTR(" [ts:%lu"), dda->total_steps);
+    //sersendf_P(PSTR("Total Step:%lu\n"), dda->total_steps);
 
 	if (dda->total_steps == 0) {
 		dda->nullmove = 1;
@@ -265,9 +475,10 @@ void dda_create(DDA *dda, const TARGET *target) {
 		x_enable();
 		y_enable();
     #ifndef Z_AUTODISABLE
-      z_enable();
+        z_enable();
     // #else Z is enabled in dda_start().
     #endif
+
 		e_enable();
 
 		// since it's unusual to combine X, Y and Z changes in a single move on reprap, check if we can use simpler approximations before trying the full 3d approximation.
@@ -283,6 +494,7 @@ void dda_create(DDA *dda, const TARGET *target) {
 
 		if (DEBUG_DDA && (debug_flags & DEBUG_DDA))
 			sersendf_P(PSTR(",ds:%lu"), distance);
+        //sersendf_P(PSTR("Distance:%lu\n"), distance);    
 
     #ifdef	ACCELERATION_TEMPORAL
       // bracket part of this equation in an attempt to avoid overflow:
@@ -292,7 +504,7 @@ void dda_create(DDA *dda, const TARGET *target) {
       move_duration = distance * ((60 * F_CPU) / (dda->endpoint.F * 1000UL));
       for (i = X; i < AXIS_COUNT; i++) {
         md_candidate = dda->delta[i] * ((60 * F_CPU) /
-                       (pgm_read_dword(&maximum_feedrate_P[i]) * 1000UL));
+                       (maximum_feedrate_P[i] * 1000UL));
         if (md_candidate > move_duration)
           move_duration = md_candidate;
       }
@@ -322,10 +534,11 @@ void dda_create(DDA *dda, const TARGET *target) {
     //       ACCELERATION_TEMPORAL above. This should make re-calculating the
     //       allowed F easier.
     c_limit = 0;
+    float c_limit_calc;
     for (i = X; i < AXIS_COUNT; i++) {
-      c_limit_calc = (delta_um[i] * 2400L) /
+      c_limit_calc = ((int32_t)delta_um[i] * 2400.0) /
                      dda->total_steps * (F_CPU / 40000) /
-                     pgm_read_dword(&maximum_feedrate_P[i]);
+                     maximum_feedrate_P[i];
       if (c_limit_calc > c_limit)
         c_limit = c_limit_calc;
     }
@@ -384,16 +597,18 @@ void dda_create(DDA *dda, const TARGET *target) {
 		else
 			dda->accel = 0;
 		#elif defined ACCELERATION_RAMPING
+              
+      //sersendf_P(PSTR(",md:%lu,c:%lu"), move_duration, dda->c);
+
       dda->c_min = move_duration / dda->endpoint.F;
-      if (dda->c_min < c_limit) {
+      if (dda->c_min < c_limit) { // weird for delta, cause freeze/slow speed
         dda->c_min = c_limit;
         dda->endpoint.F = move_duration / dda->c_min;
       }
 
       // Lookahead can deal with 16 bits ( = 1092 mm/s), only.
-      if (dda->endpoint.F > 65535)
-        dda->endpoint.F = 65535;
-
+      if (dda->endpoint.F > 65535) dda->endpoint.F = 65535;
+      //if (dda->endpoint.F < 2000) dda->endpoint.F = 2000;  
       // Acceleration ramps are based on the fast axis, not the combined speed.
       dda->rampup_steps =
         acc_ramp_len(muldiv(dda->fast_um, dda->endpoint.F, distance),
@@ -402,7 +617,9 @@ void dda_create(DDA *dda, const TARGET *target) {
       if (dda->rampup_steps > dda->total_steps / 2)
         dda->rampup_steps = dda->total_steps / 2;
       dda->rampdown_steps = dda->total_steps - dda->rampup_steps;
-
+      dda->rampdown_steps = 0;
+      
+       //sersendf_P(PSTR("md:%lu,F%lq,clim,%lu cmin:%lu,c:%lu\n"), move_duration, dda->endpoint.F,c_limit,dda->c_min, dda->c);  
       #ifdef LOOKAHEAD
         dda->distance = distance;
         dda_find_crossing_speed(prev_dda, dda);
@@ -412,15 +629,18 @@ void dda_create(DDA *dda, const TARGET *target) {
         dda_join_moves(prev_dda, dda);
         dda->n = dda->start_steps;
         if (dda->n == 0)
-          dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
+          //dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
+          dda->c = c0_P[dda->fast_axis];
         else
-          dda->c = (pgm_read_dword(&c0_P[dda->fast_axis]) *
+//          dda->c = (pgm_read_dword(&c0_P[dda->fast_axis]) *
+          dda->c = (c0_P[dda->fast_axis] *
                     int_inv_sqrt(dda->n)) >> 13;
         if (dda->c < dda->c_min)
           dda->c = dda->c_min;
       #else
         dda->n = 0;
-        dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
+        //dda->c = pgm_read_dword(&c0_P[dda->fast_axis]);
+        dda->c = c0_P[dda->fast_axis];
       #endif
 
 		#elif defined ACCELERATION_TEMPORAL
@@ -619,6 +839,7 @@ void dda_step(DDA *dda) {
       short-delays consecutively and to give sufficient time on average.
     */
     // This is the time which led to this call of dda_step().
+    
     move_state.last_time = move_state.time[dda->axis_to_step] +
                            dda->step_interval[dda->axis_to_step];
 
@@ -697,6 +918,9 @@ void dda_step(DDA *dda) {
       // Z stepper is only enabled while moving.
       z_disable();
     #endif
+   #ifndef DELTA_PRINTER
+		z_disable();
+    #endif
 
     // No need to restart timer here.
     // After having finished, dda_start() will do it.
@@ -763,7 +987,7 @@ void dda_clock() {
         move_state.debounce_count_x++;
       else
         move_state.debounce_count_x = 0;
-      endstop_trigger = move_state.debounce_count_x >= ENDSTOP_STEPS;
+    endstop_trigger |= (move_state.debounce_count_x >= ENDSTOP_STEPS);
     }
     #endif
     #ifdef X_MAX_PIN
@@ -772,7 +996,7 @@ void dda_clock() {
         move_state.debounce_count_x++;
       else
         move_state.debounce_count_x = 0;
-      endstop_trigger = move_state.debounce_count_x >= ENDSTOP_STEPS;
+      endstop_trigger |= move_state.debounce_count_x >= ENDSTOP_STEPS;
     }
     #endif
 
@@ -782,7 +1006,7 @@ void dda_clock() {
         move_state.debounce_count_y++;
       else
         move_state.debounce_count_y = 0;
-      endstop_trigger = move_state.debounce_count_y >= ENDSTOP_STEPS;
+      endstop_trigger |= move_state.debounce_count_y >= ENDSTOP_STEPS;
     }
     #endif
     #ifdef Y_MAX_PIN
@@ -791,7 +1015,7 @@ void dda_clock() {
         move_state.debounce_count_y++;
       else
         move_state.debounce_count_y = 0;
-      endstop_trigger = move_state.debounce_count_y >= ENDSTOP_STEPS;
+      endstop_trigger |= move_state.debounce_count_y >= ENDSTOP_STEPS;
     }
     #endif
 
@@ -801,7 +1025,7 @@ void dda_clock() {
         move_state.debounce_count_z++;
       else
         move_state.debounce_count_z = 0;
-      endstop_trigger = move_state.debounce_count_z >= ENDSTOP_STEPS;
+      endstop_trigger |= move_state.debounce_count_z >= ENDSTOP_STEPS;
     }
     #endif
     #ifdef Z_MAX_PIN
@@ -810,7 +1034,7 @@ void dda_clock() {
         move_state.debounce_count_z++;
       else
         move_state.debounce_count_z = 0;
-      endstop_trigger = move_state.debounce_count_z >= ENDSTOP_STEPS;
+      endstop_trigger |= move_state.debounce_count_z >= ENDSTOP_STEPS;
     }
     #endif
 
@@ -819,7 +1043,8 @@ void dda_clock() {
       #ifdef ACCELERATION_RAMPING
         // For always smooth operations, don't halt apruptly,
         // but start deceleration here.
-        ATOMIC_START
+        dda->live = 0;
+        /*ATOMIC_START
           move_state.endstop_stop = 1;
           if (move_state.step_no < dda->rampup_steps)  // still accelerating
             dda->total_steps = move_state.step_no * 2;
@@ -831,6 +1056,7 @@ void dda_clock() {
         ATOMIC_END
         // Not atomic, because not used in dda_step().
         dda->rampup_steps = 0; // in case we're still accelerating
+        */
       #else
         dda->live = 0;
       #endif
@@ -869,12 +1095,14 @@ void dda_clock() {
     }
     if (recalc_speed) {
       if (move_n == 0)
-        move_c = pgm_read_dword(&c0_P[dda->fast_axis]);
+        //move_c = pgm_read_dword(&c0_P[dda->fast_axis]);
+        move_c = c0_P[dda->fast_axis];
       else
         // Explicit formula: c0 * (sqrt(n + 1) - sqrt(n)),
         // approximation here: c0 * (1 / (2 * sqrt(n))).
         // This >> 13 looks odd, but is verified with the explicit formula.
-        move_c = (pgm_read_dword(&c0_P[dda->fast_axis]) *
+//        move_c = (pgm_read_dword(&c0_P[dda->fast_axis]) *
+        move_c = (c0_P[dda->fast_axis] *
                   int_inv_sqrt(move_n)) >> 13;
 
       // TODO: most likely this whole check is obsolete. It was left as a
@@ -923,16 +1151,12 @@ void dda_clock() {
 }
 
 /// update global current_position struct
+  //static const axes_uint32_t PROGMEM steps_per_m_P = {
+
 void update_current_position() {
   DDA *dda = mb_tail_dda;
   enum axis_e i;
 
-  static const axes_uint32_t PROGMEM steps_per_m_P = {
-    STEPS_PER_M_X,
-    STEPS_PER_M_Y,
-    STEPS_PER_M_Z,
-    STEPS_PER_M_E
-  };
 
   if (dda != NULL) {
     uint32_t axis_steps, axis_um;
@@ -944,7 +1168,7 @@ void update_current_position() {
       #else
         axis_steps = move_state.steps[i];
       #endif
-      axis_um = muldiv(axis_steps, 1000000, pgm_read_dword(&steps_per_m_P[i]));
+      axis_um = muldiv(axis_steps, 1000000, _STEPS_PER_M[i]);
       current_position.axis[i] =
         dda->endpoint.axis[i] - (int32_t)get_direction(dda, i) * axis_um;
     }

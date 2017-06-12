@@ -69,6 +69,7 @@ typedef struct {
 } EE_factor;
 
 EE_factor EEMEM EE_factors[NUM_HEATERS];
+uint32_t EEMEM EE_adjust_temp;
 #endif /* EECONFIG */
 
 

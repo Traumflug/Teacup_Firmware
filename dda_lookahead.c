@@ -30,7 +30,9 @@
 
 /// \var maximum_jerk_P
 /// \brief maximum allowed feedrate jerk on each axis
-static const axes_uint32_t PROGMEM maximum_jerk_P = {
+
+//static const axes_uint32_t PROGMEM maximum_jerk_P = {
+axes_uint32_t maximum_jerk_P = {
   MAX_JERK_X,
   MAX_JERK_Y,
   MAX_JERK_Z,
@@ -76,7 +78,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
   //       these 8 muldiv()s.
   //       Caveat: bail out condition above and some other non-continuous
   //               situations might need some extra code for handling.
-  for (i = X; i < AXIS_COUNT; i++) {
+  for (i = X; i < E; i++) { // AXIS_COUNT
     prevF[i] = muldiv(prev->delta[i], F, prev->total_steps);
     currF[i] = muldiv(current->delta[i], F, current->total_steps);
   }
@@ -109,7 +111,7 @@ void dda_find_crossing_speed(DDA *prev, DDA *current) {
    */
   max_speed_factor = (uint32_t)2 << 8;
 
-  for (i = X; i < AXIS_COUNT; i++) {
+  for (i = X; i < E; i++) { // AXIS_COUNT
     if (get_direction(prev, i) == get_direction(current, i))
       dv = currF[i] > prevF[i] ? currF[i] - prevF[i] : prevF[i] - currF[i];
     else
@@ -192,7 +194,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
       sersendf_P(PSTR("Initial crossing speed: %lu\n"), current->crossF);
 
   // Make sure we have 2 moves and the previous move is not already active
-  if (prev->live == 0) {
+  if (prev->live == 0) { // originally ==
     // Copy DDA ids to verify later that nothing changed during calculations
     ATOMIC_START
       prev_id = prev->id;
@@ -310,7 +312,7 @@ void dda_join_moves(DDA *prev, DDA *current) {
       // Determine if we are fast enough - if not, just leave the moves
       // Note: to test if the previous move was already executed and replaced by a new
       // move, we compare the DDA id.
-      if(prev->live == 0 && prev->id == prev_id && current->live == 0 && current->id == this_id) {
+      if(prev->live == 0 && prev->id == prev_id && current->live == 0 && current->id == this_id) { // >= originally ==
         prev->end_steps = prev_F_end_in_steps;
         prev->rampup_steps = prev_rampup;
         prev->rampdown_steps = prev_rampdown;
@@ -325,6 +327,9 @@ void dda_join_moves(DDA *prev, DDA *current) {
       #ifdef DEBUG
         else
           timeout = 1;
+      #else
+        else 
+          sersendf_P(PSTR("// Notice: look ahead not fast enough\n"));
       #endif
     ATOMIC_END
 
