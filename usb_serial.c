@@ -757,6 +757,7 @@ ISR(USB_GEN_vect)
 
 
 // Misc functions to wait for ready and send/receive packets
+static void usb_wait_in_ready(void) __attribute__ ((always_inline));
 inline void usb_wait_in_ready(void)
 {
 	while (!(UEINTX & (1<<TXINI))) ;
