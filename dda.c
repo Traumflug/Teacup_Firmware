@@ -58,6 +58,7 @@ static const axes_uint32_t PROGMEM maximum_feedrate_P = {
   MAXIMUM_FEEDRATE_E
 };
 
+#ifdef ACCELERATION_RAMPING
 /// \var c0_P
 /// \brief Initialization constant for the ramping algorithm. Timer cycles for
 ///        first step interval.
@@ -67,6 +68,7 @@ static const axes_uint32_t PROGMEM c0_P = {
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_Z * ACCELERATION / 2000.)),
   (uint32_t)((double)F_CPU / SQRT((double)STEPS_PER_M_E * ACCELERATION / 2000.))
 };
+#endif
 
 /*! Set the direction of the 'n' axis
 */
