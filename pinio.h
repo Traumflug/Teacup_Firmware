@@ -114,7 +114,7 @@
       LPC_IOCON->IO ## _CMSIS = (IO ## _OUTPUT | IO_MODEMASK_INACTIVE); \
     } while (0)
 
-#elif defined __ARM_STM32F411__
+#elif defined __ARM_STM32__
   /// Read a pin.
   #define _READ(IO) 		(IO ## _PORT->IDR & MASK(IO ## _PIN))
   /// Write to a pin.
@@ -213,7 +213,7 @@
   #define _PULLUP_ON(IO)   _WRITE(IO, 1)
   #define _PULL_OFF(IO)    _WRITE(IO, 0)
 
-#endif /* __AVR__, __ARM_LPC1114__, __ARM_STM32F411__, SIMULATOR */
+#endif /* __AVR__, __ARM_LPC1114__, __ARM_STM32__, SIMULATOR */
 
 /**
   Why double up on these macros?

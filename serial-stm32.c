@@ -10,7 +10,7 @@
   Code here is heavily inspired by serial_api.c of MBED
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
+#if defined TEACUP_C_INCLUDE && defined __ARM_STM32__
 
 #include "arduino.h"
 #include "pinio.h"
@@ -214,4 +214,4 @@ void serial_writechar(uint8_t data) {
   uartx_writechar(UART_SERIAL, data);
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__ */
+#endif /* defined TEACUP_C_INCLUDE && defined __ARM_STM32__ */

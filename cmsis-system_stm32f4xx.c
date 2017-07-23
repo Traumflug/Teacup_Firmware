@@ -73,13 +73,13 @@
 
   - Prefixed names of #include files with mbed- to match the names of the
     copies in the Teacup repo.
-  - Wrapped the whole file in #ifdef __ARM_STM32F411__ to not cause conflicts with
+  - Wrapped the whole file in #ifdef __ARM_STM32__ to not cause conflicts with
     AVR builds.
   - Rebuild SystemInit() and SetSysClock() to get rid of most mbed-files. Please take a look into history.
   - Rework SetSysClock completely
 */
 
-#ifdef __ARM_STM32F411__
+#ifdef __ARM_STM32__
 
 #include "cmsis-stm32f4xx.h"
 #include "arduino_stm32f411.h"

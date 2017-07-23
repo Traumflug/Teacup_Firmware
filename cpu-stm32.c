@@ -5,7 +5,7 @@
   To be included from cpu.c, for details see there.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
+#if defined TEACUP_C_INCLUDE && defined __ARM_STM32__
   
 #include "config_wrapper.h"
 
@@ -21,4 +21,4 @@ void cpu_init() {
                   RCC_AHB1ENR_GPIOHEN;
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__ */
+#endif /* defined TEACUP_C_INCLUDE && defined __ARM_STM32__ */

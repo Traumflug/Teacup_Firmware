@@ -73,7 +73,7 @@
     #include "arduino_lpc1114.h"
   #endif
 
-  #if defined (__ARM_STM32F411__)
+  #if defined (__ARM_STM32__)
     #include "arduino_stm32f411.h"
   #endif
 

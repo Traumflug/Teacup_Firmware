@@ -3,7 +3,7 @@
   \brief SPI routines, STM32F411 specific part.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
+#if defined TEACUP_C_INCLUDE && defined __ARM_STM32__
 
 /** Initialise SPI subsystem.
 
@@ -130,4 +130,4 @@ void spi_speed_max() {
   SPI2->CR1 |= SPI_CR1_BR_1 | SPI_CR1_BR_0;    // 1/16 -> SPI2 = 3.125MHz
 }
 
-#endif /* TEACUP_C_INCLUDE && defined __ARM_STM32F411__ */
+#endif /* TEACUP_C_INCLUDE && defined __ARM_STM32__ */

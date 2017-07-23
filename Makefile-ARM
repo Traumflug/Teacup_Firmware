@@ -146,7 +146,7 @@ ifeq ($(MCU), lpc1114)
 else ifeq ($(findstring stm32, $(MCU)), stm32)
   CFLAGS += -mthumb -mcpu=cortex-m4
   CFLAGS += -mtune=cortex-m4
-  CFLAGS += -D__ARM_STM32F411__
+  CFLAGS += -D__ARM_STM32__
   CFLAGS += -mfpu=fpv4-sp-d16
   CFLAGS += -mfloat-abi=hard
   CFLAGS += -mlittle-endian
