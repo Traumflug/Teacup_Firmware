@@ -56,7 +56,7 @@
 #endif
 
 // #define __SYSTEM_CLOCK 96000000
-#define __SYSTEM_CLOCK 100000000
+// #define __SYSTEM_CLOCK 100000000
 // #define __SYSTEM_CLOCK 108000000 // Overclocking is not recommended!
 
 /* 

@@ -41,13 +41,21 @@
 ##############################################################################
 
 # MCU ?= lpc1114
-MCU ?= stm32f411
+MCU ?= stm32f401
+# MCU ?= stm32f411
+# MCU ?= stm32f446
 
 # some size parameters. Not important for flashing and compiling.
 ifeq ($(MCU), lpc1114)
   FLASH_SIZE = 32
   RAM_SIZE = 4
+else ifeq ($(MCU), stm32f401)
+  FLASH_SIZE = 256
+  RAM_SIZE = 64
 else ifeq ($(MCU), stm32f411)
+  FLASH_SIZE = 512
+  RAM_SIZE = 128
+else ifeq ($(MCU), stm32f446)
   FLASH_SIZE = 512
   RAM_SIZE = 128
 endif
@@ -85,7 +93,7 @@ F_CRYSTAL ?= 12000000
 ifeq ($(MCU), lpc1114)
   UPLOADER ?= lpc21isp -control
   UPLOAD_FILE = $(PROGRAM).hex
-else ifeq ($(MCU), stm32f411)
+else ifeq ($(findstring stm32, $(MCU)), stm32)
   UPLOADER ?= st-flash --reset write
   UPLOAD_FILE = $(BUILDDIR)/$(PROGRAM).bin
 endif
@@ -94,7 +102,7 @@ ifeq ($(MCU), lpc1114)
   UPLOADER_FLAGS = $(UPLOADER_PORT)
   UPLOADER_FLAGS += 115200
   UPLOADER_FLAGS += $(F_CRYSTAL)
-else ifeq ($(MCU), stm32f411)
+else ifeq ($(findstring stm32, $(MCU)), stm32)
   UPLOADER_FLAGS = 0x8000000
 endif
 
@@ -121,8 +129,12 @@ SOURCES = $(wildcard *.c)
 # Other target MCU specific adjustments:
 ifeq ($(MCU), lpc1114)
   STARTUP_FILE = cmsis-startup_lpc11xx.s
+else ifeq ($(MCU), stm32f401)
+  STARTUP_FILE = cmsis-startup_stm32f401xx.s
 else ifeq ($(MCU), stm32f411)
   STARTUP_FILE = cmsis-startup_stm32f411xe.s
+else ifeq ($(MCU), stm32f446)
+  STARTUP_FILE = cmsis-startup_stm32f446xx.s
 endif
 
 # Startup definitions. Not target MCU specific.
@@ -131,7 +143,7 @@ ifeq ($(MCU), lpc1114)
   CFLAGS += -mthumb -mcpu=cortex-m0
   CFLAGS += -mtune=cortex-m0
   CFLAGS += -D__ARM_LPC1114__
-else ifeq ($(MCU), stm32f411)
+else ifeq ($(findstring stm32, $(MCU)), stm32)
   CFLAGS += -mthumb -mcpu=cortex-m4
   CFLAGS += -mtune=cortex-m4
   CFLAGS += -D__ARM_STM32F411__
@@ -140,6 +152,16 @@ else ifeq ($(MCU), stm32f411)
   CFLAGS += -mlittle-endian
   CFLAGS += -D__FPU_PRESENT=1
   CFLAGS += -fomit-frame-pointer
+endif
+ifeq ($(MCU), stm32f401)
+  CFLAGS += -DSTM32F401xx
+  CFLAGS += -D__SYSTEM_CLOCK=84000000
+else ifeq ($(MCU), stm32f411)
+  CFLAGS += -DSTM32F411xE
+  CFLAGS += -D__SYSTEM_CLOCK=100000000
+else ifeq ($(MCU), stm32f446)
+  CFLAGS += -DSTM32F446xx
+  CFLAGS += -D__SYSTEM_CLOCK=180000000
 endif
 # Other options ...
 CFLAGS += -Wall
@@ -154,8 +176,12 @@ LDFLAGS  = --specs=nano.specs
 LDFLAGS += --specs=nosys.specs
 ifeq ($(MCU), lpc1114)
   LDFLAGS += -T cmsis-lpc1114.ld
+else ifeq ($(MCU), stm32f401)
+  LDFLAGS += -T cmsis-stm32f401xx.ld
 else ifeq ($(MCU), stm32f411)
   LDFLAGS += -T cmsis-stm32f411xe.ld
+else ifeq ($(MCU), stm32f446)
+  LDFLAGS += -T cmsis-stm32f446xx.ld
 endif
 LDFLAGS += -Wl,--as-needed
 LDFLAGS += -Wl,--gc-sections
@@ -182,7 +208,7 @@ define upload_echo
 	@echo "Gen7-ARM, PIO0_1 is the Step pin of the Z stepper driver."
 	@echo
 endef
-else ifeq ($(MCU), stm32f411)
+else ifeq ($(findstring stm32, $(MCU)), stm32)
 define upload_echo
 	@echo
 	@echo "Starting upload..."
