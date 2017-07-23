@@ -5,7 +5,7 @@
   each channel. We are using DMA instead.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
+#if defined TEACUP_C_INCLUDE && defined __ARM_STM32__
 
 #include "cmsis-stm32f4xx.h"
 #include "arduino.h"
@@ -215,4 +215,4 @@ void start_adc() {
                ADC_CR2_SWSTART;
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__ */
+#endif /* defined TEACUP_C_INCLUDE && defined __ARM_STM32__ */

@@ -10,7 +10,7 @@
 
   #include "cmsis-lpc11xx.h"  // For __ASM().
 
-#elif defined __ARM_STM32F411__
+#elif defined __ARM_STM32__
 
   #include "cmsis-stm32f4xx.h"  // For __ASM().
 

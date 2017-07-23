@@ -6,7 +6,7 @@
 #include "analog.h"
 #include "temp.h"
 
-#ifndef __ARM_STM32F411__
+#ifndef __ARM_STM32__
 /**
   OR-combined mask of all channels. Auto-magically generated from
   DEFINE_TEMP_SENSOR() entries in config_wrapper.h

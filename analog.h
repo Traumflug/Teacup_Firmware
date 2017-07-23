@@ -57,9 +57,9 @@
 #define NEEDS_START_ADC
 
 /* #endif __AVR__ */
-#elif __ARM_STM32F411__
+#elif __ARM_STM32__
   #define NEEDS_START_ADC
-#endif /* __ARM_STM32F411__ */
+#endif /* __ARM_STM32__ */
 
 void 			analog_init(void);
 

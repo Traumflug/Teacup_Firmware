@@ -3,7 +3,7 @@
   \brief Delay routines, ARM specific part.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
+#if defined TEACUP_C_INCLUDE && defined __ARM_STM32__
 
 #include "cmsis-stm32f4xx.h"  // For __ASM() and ...
 
@@ -47,4 +47,4 @@ void delay_us(uint16_t delay) {
     }
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__ */
+#endif /* defined TEACUP_C_INCLUDE && defined __ARM_STM32__ */

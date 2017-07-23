@@ -121,7 +121,7 @@ inline uint8_t spi_rw(uint8_t byte) {
   return SPDR;
 }
 
-#elif defined __ARM_STM32F411__
+#elif defined __ARM_STM32__
 
 void spi_speed_100_400(void);
 void spi_speed_max(void);

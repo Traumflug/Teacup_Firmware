@@ -5,7 +5,7 @@
   To be included from timer.c.
 */
 
-#if defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__
+#if defined TEACUP_C_INCLUDE && defined __ARM_STM32__
 
 #include "cmsis-core_cm4.h"
 #include "clock.h"
@@ -226,4 +226,4 @@ void timer_stop() {
   SysTick->CTRL = 0;
 }
 
-#endif /* defined TEACUP_C_INCLUDE && defined __ARM_STM32F411__ */
+#endif /* defined TEACUP_C_INCLUDE && defined __ARM_STM32__ */
