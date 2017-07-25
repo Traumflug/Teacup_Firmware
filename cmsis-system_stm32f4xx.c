@@ -325,7 +325,7 @@ void SetSysClock(void)
     #define LATENCY FLASH_ACR_LATENCY_2WS
   #elif __SYSTEM_CLOCK == 180000000
     #if !defined(STM32F446xx)
-      #warning You are running the controller out of specification! 180 MHz!
+      #error You are running the controller out of specification! 180 MHz!
     #endif
     #define PLLM 4
     #define PLLN 180
@@ -371,6 +371,8 @@ void SetSysClock(void)
 
   RCC->CFGR &= ~(RCC_CFGR_PPRE1 | RCC_CFGR_PPRE2);
   RCC->CFGR |= PPRE1_DIV | PPRE2_DIV;
+
+  RCC->DCKCFGR |= RCC_DCKCFGR_TIMPRE;
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

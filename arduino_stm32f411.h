@@ -24,8 +24,8 @@
 */
 #define RX_UART1            PA_10
 #define TX_UART1            PA_9
-#define RX_UART2             PA_3
-#define TX_UART2             PA_2
+#define RX_UART2            PA_3
+#define TX_UART2            PA_2
 #define RX_UART6            PA_12
 #define TX_UART6            PA_11
 
@@ -33,8 +33,13 @@
 */
 #define F_CPU __SYSTEM_CLOCK
 
-#define PPRE1_DIV (RCC_CFGR_PPRE1_DIV2) // 0x1000
-#define PPRE2_DIV (RCC_CFGR_PPRE2_DIV1) // 0x0000
+#if defined STM32F411xE
+  #define PPRE1_DIV (RCC_CFGR_PPRE1_DIV2)
+  #define PPRE2_DIV (RCC_CFGR_PPRE2_DIV1)
+#elif defined STM32F446xx
+  #define PPRE1_DIV (RCC_CFGR_PPRE1_DIV4)
+  #define PPRE2_DIV (RCC_CFGR_PPRE2_DIV2)
+#endif
 
 #if PPRE1_DIV > 0
   #define APB1_DIV (1 << ((PPRE1_DIV >> 10) - 3))
