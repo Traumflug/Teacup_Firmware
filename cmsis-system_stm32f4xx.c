@@ -332,6 +332,17 @@ void SetSysClock(void)
     #define PLLP 2
     #define PLLQ 8
     #define LATENCY FLASH_ACR_LATENCY_5WS
+  #elif __SYSTEM_CLOCK == 250000000
+    #if !defined(STM32F446xx)
+      #error You are running the controller out of specification! 250 MHz!
+    #else
+      #warning You are running the controller out of specification! 250 MHz!
+    #endif
+    #define PLLM 4
+    #define PLLN 250
+    #define PLLP 2
+    #define PLLQ 9
+    #define LATENCY FLASH_ACR_LATENCY_5WS
   #endif
 
   RCC->PLLCFGR =  RCC_PLLCFGR_PLLSRC_HSE |
@@ -368,6 +379,8 @@ void SetSysClock(void)
     FLASH->ACR &= ~(FLASH_ACR_LATENCY);
     FLASH->ACR |= LATENCY;
   }
+
+  FLASH->ACR |= FLASH_ACR_PRFTEN | FLASH_ACR_ICEN | FLASH_ACR_DCEN;
 
   RCC->CFGR &= ~(RCC_CFGR_PPRE1 | RCC_CFGR_PPRE2);
   RCC->CFGR |= PPRE1_DIV | PPRE2_DIV;
