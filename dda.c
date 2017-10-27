@@ -829,16 +829,16 @@ void dda_clock() {
         // For always smooth operations, don't halt apruptly,
         // but start deceleration here.
         ATOMIC_START
+          move_state.endstop_stop = 1;
           move_step_no = dda->total_steps - move_state.steps[dda->fast_axis];
 
-          move_state.endstop_stop = 1;
-          if (move_step_no < dda->rampup_steps)  // still accelerating
-            dda->total_steps = move_step_no * 2;
-          else
-            // A "-=" would overflow earlier.
-            dda->total_steps = dda->total_steps - dda->rampdown_steps +
-                               move_step_no;
+          if (move_step_no > dda->rampup_steps) {  // cruising?
+            move_step_no = dda->total_steps - dda->rampdown_steps;
+          }
+
           dda->rampdown_steps = move_step_no;
+          dda->total_steps = move_step_no * 2;
+          move_state.steps[dda->fast_axis] = move_step_no;
         ATOMIC_END
         // Not atomic, because not used in dda_step().
         dda->rampup_steps = 0; // in case we're still accelerating
