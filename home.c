@@ -82,7 +82,8 @@ void home() {
 /// find X MIN endstop
 void home_x_negative() {
 	#if defined X_MIN_PIN
-		TARGET t = startpoint;
+    TARGET t = startpoint;
+    startpoint.axis[X] = 0;
 
     t.axis[X] = -MAX_DELTA_UM;
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) // Preprocessor can't check this :-/
@@ -115,7 +116,8 @@ void home_x_positive() {
 		#warning X_MAX_PIN defined, but not X_MAX. home_x_positive() disabled.
 	#endif
 	#if defined X_MAX_PIN && defined X_MAX
-		TARGET t = startpoint;
+    TARGET t = startpoint;
+    startpoint.axis[X] = 0;
 
     t.axis[X] = +MAX_DELTA_UM;
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X)
@@ -141,7 +143,8 @@ void home_x_positive() {
 /// fund Y MIN endstop
 void home_y_negative() {
 	#if defined Y_MIN_PIN
-		TARGET t = startpoint;
+    TARGET t = startpoint;
+    startpoint.axis[Y] = 0;
 
     t.axis[Y] = -MAX_DELTA_UM;
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y)
@@ -173,7 +176,8 @@ void home_y_positive() {
 		#warning Y_MAX_PIN defined, but not Y_MAX. home_y_positive() disabled.
 	#endif
 	#if defined Y_MAX_PIN && defined Y_MAX
-		TARGET t = startpoint;
+    TARGET t = startpoint;
+    startpoint.axis[Y] = 0;
 
     t.axis[Y] = +MAX_DELTA_UM;
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y)
@@ -199,7 +203,8 @@ void home_y_positive() {
 /// find Z MIN endstop
 void home_z_negative() {
 	#if defined Z_MIN_PIN
-		TARGET t = startpoint;
+    TARGET t = startpoint;
+    startpoint.axis[Z] = 0;
 
     t.axis[Z] = -MAX_DELTA_UM;
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z)
@@ -231,7 +236,8 @@ void home_z_positive() {
 		#warning Z_MAX_PIN defined, but not Z_MAX. home_z_positive() disabled.
 	#endif
 	#if defined Z_MAX_PIN && defined Z_MAX
-		TARGET t = startpoint;
+    TARGET t = startpoint;
+    startpoint.axis[Z] = 0;
 
     t.axis[Z] = +MAX_DELTA_UM;
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z)
