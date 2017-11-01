@@ -84,7 +84,7 @@ void home_x_negative() {
 	#if defined X_MIN_PIN
 		TARGET t = startpoint;
 
-    t.axis[X] = -(MAX_DELTA_UM / 2);
+    t.axis[X] = -MAX_DELTA_UM;
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) // Preprocessor can't check this :-/
       t.F = SEARCH_FAST_X;
     else
@@ -93,7 +93,7 @@ void home_x_negative() {
 
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
 			// back off slowly
-      t.axis[X] = +(MAX_DELTA_UM / 2);
+      t.axis[X] = 0;
 			t.F = SEARCH_FEEDRATE_X;
       enqueue_home(&t, 0x01, 0);
     }
@@ -117,7 +117,7 @@ void home_x_positive() {
 	#if defined X_MAX_PIN && defined X_MAX
 		TARGET t = startpoint;
 
-    t.axis[X] = +(MAX_DELTA_UM / 2);
+    t.axis[X] = +MAX_DELTA_UM;
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X)
       t.F = SEARCH_FAST_X;
     else
@@ -125,7 +125,7 @@ void home_x_positive() {
     enqueue_home(&t, 0x02, 1);
 
     if (SEARCH_FAST_X > SEARCH_FEEDRATE_X) {
-      t.axis[X] = -(MAX_DELTA_UM / 2);
+      t.axis[X] = 0;
 			t.F = SEARCH_FEEDRATE_X;
       enqueue_home(&t, 0x02, 0);
     }
@@ -143,7 +143,7 @@ void home_y_negative() {
 	#if defined Y_MIN_PIN
 		TARGET t = startpoint;
 
-    t.axis[Y] = -(MAX_DELTA_UM / 2);
+    t.axis[Y] = -MAX_DELTA_UM;
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y)
       t.F = SEARCH_FAST_Y;
     else
@@ -151,7 +151,7 @@ void home_y_negative() {
     enqueue_home(&t, 0x04, 1);
 
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
-      t.axis[Y] = +(MAX_DELTA_UM / 2);
+      t.axis[Y] = 0;
 			t.F = SEARCH_FEEDRATE_Y;
       enqueue_home(&t, 0x04, 0);
     }
@@ -175,7 +175,7 @@ void home_y_positive() {
 	#if defined Y_MAX_PIN && defined Y_MAX
 		TARGET t = startpoint;
 
-    t.axis[Y] = +(MAX_DELTA_UM / 2);
+    t.axis[Y] = +MAX_DELTA_UM;
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y)
       t.F = SEARCH_FAST_Y;
     else
@@ -183,7 +183,7 @@ void home_y_positive() {
     enqueue_home(&t, 0x08, 1);
 
     if (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) {
-      t.axis[Y] = -(MAX_DELTA_UM / 2);
+      t.axis[Y] = 0;
 			t.F = SEARCH_FEEDRATE_Y;
       enqueue_home(&t, 0x08, 0);
     }
@@ -201,7 +201,7 @@ void home_z_negative() {
 	#if defined Z_MIN_PIN
 		TARGET t = startpoint;
 
-    t.axis[Z] = -(MAX_DELTA_UM / 2);
+    t.axis[Z] = -MAX_DELTA_UM;
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z)
       t.F = SEARCH_FAST_Z;
     else
@@ -209,7 +209,7 @@ void home_z_negative() {
     enqueue_home(&t, 0x10, 1);
 
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z) {
-      t.axis[Z] = +(MAX_DELTA_UM / 2);
+      t.axis[Z] = 0;
 			t.F = SEARCH_FEEDRATE_Z;
       enqueue_home(&t, 0x10, 0);
     }
@@ -233,7 +233,7 @@ void home_z_positive() {
 	#if defined Z_MAX_PIN && defined Z_MAX
 		TARGET t = startpoint;
 
-    t.axis[Z] = +(MAX_DELTA_UM / 2);
+    t.axis[Z] = +MAX_DELTA_UM;
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z)
       t.F = SEARCH_FAST_Z;
     else
@@ -241,7 +241,7 @@ void home_z_positive() {
     enqueue_home(&t, 0x20, 1);
 
     if (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z) {
-      t.axis[Z] = -(MAX_DELTA_UM / 2);
+      t.axis[Z] = 0;
 			t.F = SEARCH_FEEDRATE_Z;
       enqueue_home(&t, 0x20, 0);
     }
