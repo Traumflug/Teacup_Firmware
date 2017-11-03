@@ -113,3 +113,13 @@
 #if defined __ARMEL__ && defined BANG_BANG
   #undef BANG_BANG
 #endif
+
+/**
+  for ceedling unit testing we redefine statics, so we can test them
+  ceedling activates also SIMULATOR for mocking hardware
+*/
+#ifndef SIMULATOR
+  #define STATIC static
+#else
+  #define STATIC
+#endif
