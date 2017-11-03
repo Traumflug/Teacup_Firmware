@@ -162,7 +162,7 @@ void temp_init() {
   inter-/extrapolate.
 */
 #if defined TEMP_THERMISTOR || defined TEMP_MCP3008
-static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
+STATIC uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
   uint8_t lo, hi;
   uint8_t table_num = temp_sensors[sensor].additional;
 
@@ -235,7 +235,7 @@ static uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
 #endif /* TEMP_THERMISTOR || TEMP_MCP3008 */
 
 #ifdef TEMP_MAX6675
-static uint16_t temp_max6675_read(temp_sensor_t i) {
+STATIC uint16_t temp_max6675_read(temp_sensor_t i) {
   // Note: value reading in this section was rewritten without
   //       testing when spi.c/.h was introduced. --Traumflug
   // Note: MAX6675 can give a reading every 0.22s
@@ -263,7 +263,7 @@ static uint16_t temp_max6675_read(temp_sensor_t i) {
   return temp;
 }
 
-static uint16_t temp_read_max6675(temp_sensor_t i) {
+STATIC uint16_t temp_read_max6675(temp_sensor_t i) {
   switch (temp_sensors_runtime[i].active++) {
     case 1:
       return temp_max6675_read(i);
@@ -277,7 +277,7 @@ static uint16_t temp_read_max6675(temp_sensor_t i) {
 #endif /* TEMP_MAX6675 */
 
 #ifdef TEMP_THERMISTOR
-static uint16_t temp_read_thermistor(temp_sensor_t i) {
+STATIC uint16_t temp_read_thermistor(temp_sensor_t i) {
   // Needs to be 'static', else GCC diagnostics emits a warning "'result' may
   // be used uninitialized". No surprise about this warning, it's part of the
   // logic that in some configurations temp_sensors_runtime[i].active never
@@ -320,7 +320,7 @@ static uint16_t temp_read_thermistor(temp_sensor_t i) {
 
     https://www.adafruit.com/datasheets/MCP3008.pdf.
 */
-static uint16_t temp_mcp3008_read(uint8_t channel) {
+STATIC uint16_t temp_mcp3008_read(uint8_t channel) {
   uint8_t temp_h, temp_l;
 
   spi_select_mcp3008();
@@ -337,7 +337,7 @@ static uint16_t temp_mcp3008_read(uint8_t channel) {
   return temp_h << 8 | temp_l;
 }
 
-static uint16_t temp_read_mcp3008(temp_sensor_t i) {
+STATIC uint16_t temp_read_mcp3008(temp_sensor_t i) {
   switch (temp_sensors_runtime[i].active++) {
     case 1:
       return temp_table_lookup(temp_mcp3008_read(temp_sensors[i].temp_pin), i);
@@ -349,7 +349,7 @@ static uint16_t temp_read_mcp3008(temp_sensor_t i) {
 #endif /* TEMP_MCP3008 */
 
 #ifdef TEMP_AD595
-static uint16_t temp_read_ad595(temp_sensor_t i) {
+STATIC uint16_t temp_read_ad595(temp_sensor_t i) {
   // Needs to be 'static', see comment in temp_read_thermistor().
   static uint16_t result;
 
@@ -380,7 +380,7 @@ static uint16_t temp_read_ad595(temp_sensor_t i) {
 #endif /* TEMP_AD595 */
 
 #ifdef TEMP_INTERCOM
-static uint16_t temp_read_intercom(temp_sensor_t i) {
+STATIC uint16_t temp_read_intercom(temp_sensor_t i) {
   switch (temp_sensors_runtime[i].active++) {
     case 1:
       return read_temperature(temp_sensors[i].temp_pin);
@@ -392,9 +392,9 @@ static uint16_t temp_read_intercom(temp_sensor_t i) {
 #endif /* TEMP_INTERCOM */
 
 #ifdef TEMP_DUMMY
-static uint16_t dummy_temp[NUM_TEMP_SENSORS];
+STATIC uint16_t dummy_temp[NUM_TEMP_SENSORS];
 
-static uint16_t temp_read_dummy(temp_sensor_t i) {
+STATIC uint16_t temp_read_dummy(temp_sensor_t i) {
   if (temp_sensors_runtime[i].target_temp > dummy_temp[i])
     dummy_temp[i]++;
   else if (temp_sensors_runtime[i].target_temp < dummy_temp[i])
@@ -410,7 +410,7 @@ static uint16_t temp_read_dummy(temp_sensor_t i) {
 }
 #endif /* TEMP_DUMMY */
 
-static uint16_t read_temp_sensor(temp_sensor_t i) {
+STATIC uint16_t read_temp_sensor(temp_sensor_t i) {
   switch (temp_sensors[i].temp_type) {
     #ifdef TEMP_MAX6675
       case TT_MAX6675:
@@ -453,7 +453,7 @@ static uint16_t read_temp_sensor(temp_sensor_t i) {
   }
 }
 
-static void run_pid_loop(int i) {
+STATIC void run_pid_loop(int i) {
   if (temp_sensors[i].heater < NUM_HEATERS) {
     heater_tick(temp_sensors[i].heater, temp_sensors[i].temp_type,
                 temp_sensors_runtime[i].last_read_temp,
@@ -616,7 +616,7 @@ uint16_t temp_get(temp_sensor_t index) {
 
 // extruder doesn't have sersendf_P
 #ifndef	EXTRUDER
-static void single_temp_print(temp_sensor_t index) {
+STATIC void single_temp_print(temp_sensor_t index) {
 	uint8_t c = (temp_sensors_runtime[index].last_read_temp & 3) * 25;
 	sersendf_P(PSTR("%u.%u"), temp_sensors_runtime[index].last_read_temp >> 2, c);
   #ifdef REPORT_TARGET_TEMPS
