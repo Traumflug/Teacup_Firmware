@@ -99,7 +99,9 @@ static struct {
 #define EWMA_ALPHA  ((TEMP_EWMA * EWMA_SCALE + 500) / 1000)
 
 // If EWMA is used, continuously update analog reading for more data points.
-#define TEMP_READ_CONTINUOUS (EWMA_ALPHA < EWMA_SCALE)
+#ifndef TEMP_READ_CONTINUOUS
+  #define TEMP_READ_CONTINUOUS (EWMA_ALPHA < EWMA_SCALE)
+#endif
 #define TEMP_NOT_READY       0xffff
 
 /**
@@ -162,7 +164,7 @@ void temp_init() {
   inter-/extrapolate.
 */
 #if defined TEMP_THERMISTOR || defined TEMP_MCP3008
-STATIC uint16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
+STATIC int16_t temp_table_lookup(uint16_t temp, uint8_t sensor) {
   uint8_t lo, hi;
   uint8_t table_num = temp_sensors[sensor].additional;
 
@@ -277,7 +279,7 @@ STATIC uint16_t temp_read_max6675(temp_sensor_t i) {
 #endif /* TEMP_MAX6675 */
 
 #ifdef TEMP_THERMISTOR
-STATIC uint16_t temp_read_thermistor(temp_sensor_t i) {
+STATIC int16_t temp_read_thermistor(temp_sensor_t i) {
   // Needs to be 'static', else GCC diagnostics emits a warning "'result' may
   // be used uninitialized". No surprise about this warning, it's part of the
   // logic that in some configurations temp_sensors_runtime[i].active never
@@ -410,7 +412,7 @@ STATIC uint16_t temp_read_dummy(temp_sensor_t i) {
 }
 #endif /* TEMP_DUMMY */
 
-STATIC uint16_t read_temp_sensor(temp_sensor_t i) {
+STATIC int16_t read_temp_sensor(temp_sensor_t i) {
   switch (temp_sensors[i].temp_type) {
     #ifdef TEMP_MAX6675
       case TT_MAX6675:
@@ -474,7 +476,7 @@ void temp_sensor_tick() {
         temp_sensors_runtime[i].active = 1;
 
     if (temp_sensors_runtime[i].active) {
-      uint16_t temp = read_temp_sensor(i);
+      int16_t temp = read_temp_sensor(i);
 
       if (temp == TEMP_NOT_READY)
         continue;
