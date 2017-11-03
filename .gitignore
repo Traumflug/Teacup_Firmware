@@ -21,3 +21,6 @@ configtool.ini
 *.atsuo
 *.componentinfo.xml
 *.cproj
+
+# Ceedling test framework
+vendor/
