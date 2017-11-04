@@ -40,8 +40,8 @@
 #                                                                            #
 ##############################################################################
 
-# MCU ?= lpc1114
-MCU ?= stm32f411
+MCU ?= lpc1114
+# MCU ?= stm32f411
 
 # some size parameters. Not important for flashing and compiling.
 ifeq ($(MCU), lpc1114)
