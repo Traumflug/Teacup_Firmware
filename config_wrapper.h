@@ -113,3 +113,15 @@
 #if defined __ARMEL__ && defined BANG_BANG
   #undef BANG_BANG
 #endif
+
+/**
+ * TEMP_EWMA changed from float 0.0 - 1.0 to integer 1000
+ * Some people could accidentally change the 1.0 to 1 which will have effect
+ * in very slow temperature readings. Let's force any value <= 1.0 to 1000
+ * and give them a warning.
+*/
+#if TEMP_EWMA < 2
+#undef TEMP_EWMA
+#define TEMP_EWMA 1000
+#warning TEMP_EWMA scaling changed! Take a look in your printer.xxx.h.
+#endif
