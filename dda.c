@@ -21,6 +21,7 @@
 #include	"sersendf.h"
 #include	"pinio.h"
 #include "memory_barrier.h"
+#include "home.h"
 //#include "graycode.c"
 
 #ifdef	DC_EXTRUDER
@@ -767,7 +768,7 @@ void dda_clock() {
   //          endstop search, but as part of normal operations.
   if (dda->endstop_check && ! move_state.endstop_stop) {
     #ifdef X_MIN_PIN
-    if (dda->endstop_check & 0x01) {
+    if (dda->endstop_check & X_MIN_ENDSTOP) {
       if (x_min() == dda->endstop_stop_cond)
         move_state.debounce_count_x++;
       else
@@ -776,7 +777,7 @@ void dda_clock() {
     }
     #endif
     #ifdef X_MAX_PIN
-    if (dda->endstop_check & 0x02) {
+    if (dda->endstop_check & X_MAX_ENDSTOP) {
       if (x_max() == dda->endstop_stop_cond)
         move_state.debounce_count_x++;
       else
@@ -786,7 +787,7 @@ void dda_clock() {
     #endif
 
     #ifdef Y_MIN_PIN
-    if (dda->endstop_check & 0x04) {
+    if (dda->endstop_check & Y_MIN_ENDSTOP) {
       if (y_min() == dda->endstop_stop_cond)
         move_state.debounce_count_y++;
       else
@@ -795,7 +796,7 @@ void dda_clock() {
     }
     #endif
     #ifdef Y_MAX_PIN
-    if (dda->endstop_check & 0x08) {
+    if (dda->endstop_check & Y_MAX_ENDSTOP) {
       if (y_max() == dda->endstop_stop_cond)
         move_state.debounce_count_y++;
       else
@@ -805,7 +806,7 @@ void dda_clock() {
     #endif
 
     #ifdef Z_MIN_PIN
-    if (dda->endstop_check & 0x10) {
+    if (dda->endstop_check & Z_MIN_ENDSTOP) {
       if (z_min() == dda->endstop_stop_cond)
         move_state.debounce_count_z++;
       else
@@ -814,7 +815,7 @@ void dda_clock() {
     }
     #endif
     #ifdef Z_MAX_PIN
-    if (dda->endstop_check & 0x20) {
+    if (dda->endstop_check & Z_MAX_ENDSTOP) {
       if (z_max() == dda->endstop_stop_cond)
         move_state.debounce_count_z++;
       else

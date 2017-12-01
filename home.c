@@ -66,7 +66,7 @@ static const uint32_t PROGMEM search_feedrate_P[3] = {
 };
 
 uint8_t get_endstop_check(enum axis_e n, int8_t dir);
-void home_axis(enum axis_e n, int8_t dir);
+void home_axis(enum axis_e n, int8_t dir, enum axis_endstop_e endstop_check);
 void set_axis_home_position(enum axis_e n, int8_t dir);
 
 /// home all 3 axes
@@ -97,7 +97,7 @@ void home() {
 /// find X MIN endstop
 void home_x_negative() {
   #if defined X_MIN_PIN
-    home_axis(X, -1);
+    home_axis(X, -1, X_MIN_ENDSTOP);
   #endif
 }
 
@@ -107,14 +107,14 @@ void home_x_positive() {
     #warning X_MAX_PIN defined, but not X_MAX. home_x_positive() disabled.
   #endif
   #if defined X_MAX_PIN && defined X_MAX
-    home_axis(X, 1);
+    home_axis(X, 1, X_MAX_ENDSTOP);
   #endif
 }
 
 /// fund Y MIN endstop
 void home_y_negative() {
   #if defined Y_MIN_PIN
-    home_axis(Y, -1);
+    home_axis(Y, -1, Y_MIN_ENDSTOP);
   #endif
 }
 
@@ -124,14 +124,14 @@ void home_y_positive() {
     #warning Y_MAX_PIN defined, but not Y_MAX. home_y_positive() disabled.
   #endif
   #if defined Y_MAX_PIN && defined Y_MAX
-    home_axis(Y, 1);
+    home_axis(Y, 1, Y_MAX_ENDSTOP);
   #endif
 }
 
 /// find Z MIN endstop
 void home_z_negative() {
   #if defined Z_MIN_PIN
-    home_axis(Z, -1);
+    home_axis(Z, -1, Z_MIN_ENDSTOP);
   #endif
 }
 
@@ -141,23 +141,13 @@ void home_z_positive() {
     #warning Z_MAX_PIN defined, but not Z_MAX. home_z_positive() disabled.
   #endif
   #if defined Z_MAX_PIN && defined Z_MAX
-    home_axis(Z, 1);
+    home_axis(Z, 1, Z_MAX_ENDSTOP);
   #endif
 }
 
-uint8_t get_endstop_check(enum axis_e n, int8_t dir) {
-  uint8_t endstop_check;
-  if (dir < 0)
-    endstop_check = 1 << (n * 2);
-  else
-    endstop_check = 1 << (n * 2 + 1);
-  return endstop_check;
-}
-
-void home_axis(enum axis_e n, int8_t dir) {
+void home_axis(enum axis_e n, int8_t dir, enum axis_endstop_e endstop_check) {
   TARGET t = startpoint;
   startpoint.axis[n] = 0;
-  uint8_t endstop_check = get_endstop_check(n, dir);
 
   t.axis[n] = dir * MAX_DELTA_UM;
   t.F = pgm_read_dword(&fast_feedrate_P[n]);
