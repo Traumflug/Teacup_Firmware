@@ -53,8 +53,18 @@
             sqrt((double)2 * ACCELERATION * ENDSTOP_CLEARANCE_Z / 1000.))
 #endif
 
-uint32_t get_fast_feedrate(enum axis_e n);
-uint32_t get_search_feedrate(enum axis_e n);
+static const uint32_t PROGMEM fast_feedrate_P[3] = {
+  (SEARCH_FAST_X > SEARCH_FEEDRATE_X) ? SEARCH_FAST_X : SEARCH_FEEDRATE_X,
+  (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) ? SEARCH_FAST_Y : SEARCH_FEEDRATE_Y,
+  (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z) ? SEARCH_FAST_Z : SEARCH_FEEDRATE_Z,
+};
+
+static const uint32_t PROGMEM search_feedrate_P[3] = {
+  (SEARCH_FAST_X > SEARCH_FEEDRATE_X) ? SEARCH_FEEDRATE_X : 0,
+  (SEARCH_FAST_Y > SEARCH_FEEDRATE_Y) ? SEARCH_FEEDRATE_Y : 0,
+  (SEARCH_FAST_Z > SEARCH_FEEDRATE_Z) ? SEARCH_FEEDRATE_Z : 0,
+};
+
 uint8_t get_endstop_check(enum axis_e n, int8_t dir);
 void home_axis(enum axis_e n, int8_t dir);
 void set_axis_home_position(enum axis_e n, int8_t dir);
@@ -135,28 +145,6 @@ void home_z_positive() {
   #endif
 }
 
-uint32_t get_fast_feedrate(enum axis_e n) {
-  uint32_t feedrate = 0;
-  if (n == X)
-    feedrate = SEARCH_FAST_X > SEARCH_FEEDRATE_X ? SEARCH_FAST_X : SEARCH_FEEDRATE_X;
-  else if (n == Y)
-    feedrate = SEARCH_FAST_Y > SEARCH_FEEDRATE_Y ? SEARCH_FAST_Y : SEARCH_FEEDRATE_Y;
-  else if (n == Z)
-    feedrate = SEARCH_FAST_Z > SEARCH_FEEDRATE_Z ? SEARCH_FAST_Z : SEARCH_FEEDRATE_Z;
-  return feedrate;
-}
-
-uint32_t get_search_feedrate(enum axis_e n) {
-  uint32_t feedrate = 0;
-  if (n == X)
-    feedrate = SEARCH_FAST_X > SEARCH_FEEDRATE_X ? SEARCH_FEEDRATE_X : 0;
-  else if (n == Y)
-    feedrate = SEARCH_FAST_Y > SEARCH_FEEDRATE_Y ? SEARCH_FEEDRATE_Y : 0;
-  else if (n == Z)
-    feedrate = SEARCH_FAST_Z > SEARCH_FEEDRATE_Z ? SEARCH_FEEDRATE_Z : 0;
-  return feedrate;
-}
-
 uint8_t get_endstop_check(enum axis_e n, int8_t dir) {
   uint8_t endstop_check;
   if (dir < 0)
@@ -172,11 +160,11 @@ void home_axis(enum axis_e n, int8_t dir) {
   uint8_t endstop_check = get_endstop_check(n, dir);
 
   t.axis[n] = dir * MAX_DELTA_UM;
-  t.F = get_fast_feedrate(n);
+  t.F = pgm_read_dword(&fast_feedrate_P[n]);
   enqueue_home(&t, endstop_check, 1);
 
   uint32_t search_feedrate;
-  search_feedrate = get_search_feedrate(n);
+  search_feedrate = pgm_read_dword(&search_feedrate_P[n]);
   if (search_feedrate) {
     // back off slowly
     t.axis[n] = 0;
