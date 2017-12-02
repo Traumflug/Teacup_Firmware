@@ -54,10 +54,13 @@ void process_gcode_command() {
 
 	// E relative movement.
 	// Matches Sprinter's behaviour as of March 2012.
-	if (next_target.option_all_relative || next_target.option_e_relative)
+	if (next_target.option_e_relative)
 		next_target.target.e_relative = 1;
 	else
 		next_target.target.e_relative = 0;
+
+	if (next_target.option_all_relative && !next_target.option_e_relative)
+		next_target.target.axis[E] += startpoint.axis[E];
 
 	// implement axis limits
 	#ifdef	X_MIN
