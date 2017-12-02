@@ -461,6 +461,8 @@ void dda_create(DDA *dda, const TARGET *target) {
 
     // next dda starts where we finish
     memcpy(&startpoint, &dda->endpoint, sizeof(TARGET));
+    if (startpoint.e_relative)
+      startpoint.axis[E] = 0;
     #ifdef LOOKAHEAD
       prev_dda = dda;
     #endif
