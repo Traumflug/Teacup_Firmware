@@ -970,11 +970,6 @@ void update_current_position() {
       current_position.axis[i] = dda->endpoint.axis[i] - delta_um[i];
     }
 
-    if (dda->endpoint.e_relative) {
-      // We support only one extruder, so axis_um is already valid.
-      current_position.axis[E] = axis_um;
-    }
-
     current_position.F = dda->endpoint.F;
 	}
   else {
