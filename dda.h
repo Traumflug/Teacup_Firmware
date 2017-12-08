@@ -1,14 +1,14 @@
-#ifndef	_DDA_H
-#define	_DDA_H
+#ifndef _DDA_H
+#define _DDA_H
 
-#include	<stdint.h>
+#include <stdint.h>
 
-#include	"config_wrapper.h"
+#include "config_wrapper.h"
 
 #ifdef ACCELERATION_REPRAP
-	#ifdef ACCELERATION_RAMPING
-		#error Cant use ACCELERATION_REPRAP and ACCELERATION_RAMPING together.
-	#endif
+  #ifdef ACCELERATION_RAMPING
+    #error Cant use ACCELERATION_REPRAP and ACCELERATION_RAMPING together.
+  #endif
 #endif
 
 // The distance of any move and a single axis should never go above this limit.
@@ -35,10 +35,10 @@ typedef uint32_t axes_uint32_t[AXIS_COUNT];
 typedef int32_t axes_int32_t[AXIS_COUNT];
 
 /**
-	\struct TARGET
-	\brief target is simply a point in space/time
+  \struct TARGET
+  \brief target is simply a point in space/time
 
-	X, Y, Z and E are in micrometers unless explcitely stated. F is in mm/min.
+  X, Y, Z and E are in micrometers unless explcitely stated. F is in mm/min.
 */
 typedef struct {
   axes_int32_t axis;
@@ -50,10 +50,10 @@ typedef struct {
 } TARGET;
 
 /**
-	\struct MOVE_STATE
-	\brief this struct is made for tracking the current state of the movement
+  \struct MOVE_STATE
+  \brief this struct is made for tracking the current state of the movement
 
-	Parts of this struct are initialised only once per reboot, so make sure dda_step() leaves them with a value compatible to begin a new movement at the end of the movement. Other parts are filled in by dda_start().
+  Parts of this struct are initialised only once per reboot, so make sure dda_step() leaves them with a value compatible to begin a new movement at the end of the movement. Other parts are filled in by dda_start().
 */
 typedef struct {
   // bresenham counters
@@ -170,7 +170,7 @@ extern TARGET startpoint_steps;
 extern TARGET current_position;
 
 /*
-	methods
+  methods
 */
 
 int8_t get_direction(DDA *dda, enum axis_e n);
@@ -196,4 +196,4 @@ void dda_clock(void);
 // update current_position
 void update_current_position(void);
 
-#endif	/* _DDA_H */
+#endif /* _DDA_H */

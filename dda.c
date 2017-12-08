@@ -1,35 +1,34 @@
-#include	"dda.h"
+#include "dda.h"
 
 /** \file
-	\brief Digital differential analyser - this is where we figure out which steppers need to move, and when they need to move
+  \brief Digital differential analyser - this is where we figure out which steppers need to move, and when they need to move
 */
 
-#include	<string.h>
-#include	<stdlib.h>
-#include	<math.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 
-#include	"dda_maths.h"
+#include "dda_maths.h"
 #include "dda_kinematics.h"
-#include	"dda_lookahead.h"
+#include "dda_lookahead.h"
 #include "cpu.h"
-#include	"timer.h"
-#include	"serial.h"
-#include	"gcode_parse.h"
-#include	"dda_queue.h"
-#include	"debug.h"
-#include	"sersendf.h"
-#include	"pinio.h"
+#include "timer.h"
+#include "serial.h"
+#include "gcode_parse.h"
+#include "dda_queue.h"
+#include "debug.h"
+#include "sersendf.h"
+#include "pinio.h"
 #include "memory_barrier.h"
 #include "home.h"
 //#include "graycode.c"
 
-#ifdef	DC_EXTRUDER
-	#include	"heater.h"
+#ifdef DC_EXTRUDER
+  #include "heater.h"
 #endif
 
-
 /*
-	position tracking
+  position tracking
 */
 
 /// \var startpoint
@@ -100,9 +99,9 @@ int8_t get_direction(DDA *dda, enum axis_e n) {
 /*! Inititalise DDA movement structures
 */
 void dda_init(void) {
-	// set up default feedrate
-	if (startpoint.F == 0)
-		startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
+  // set up default feedrate
+  if (startpoint.F == 0)
+    startpoint.F = next_target.target.F = SEARCH_FEEDRATE_Z;
   if (startpoint.e_multiplier == 0)
     startpoint.e_multiplier = next_target.target.e_multiplier = 256;
   if (startpoint.f_multiplier == 0)
@@ -111,10 +110,10 @@ void dda_init(void) {
 
 /*! Distribute a new startpoint to DDA's internal structures without any movement.
 
-	This is needed for example after homing or a G92. The new location must be in startpoint already.
+  This is needed for example after homing or a G92. The new location must be in startpoint already.
 */
 void dda_new_startpoint(void) {
-	axes_um_to_steps(startpoint.axis, startpoint_steps.axis);
+  axes_um_to_steps(startpoint.axis, startpoint_steps.axis);
   startpoint_steps.axis[E] = um_to_steps(startpoint.axis[E], E);
 }
 
@@ -122,14 +121,14 @@ void dda_new_startpoint(void) {
   Create a DDA using startpoint, startpoint_steps and a target, save to passed
   location so we can write directly into the queue.
 
-	\param *dda pointer to a dda_queue entry to overwrite
-	\param *target the target position of this move
+  \param *dda pointer to a dda_queue entry to overwrite
+  \param *target the target position of this move
 
-	\ref startpoint the beginning position of this move
+  \ref startpoint the beginning position of this move
 
-	This function does a /lot/ of math. It works out directions for each axis, distance travelled, the time between the first and second step
+  This function does a /lot/ of math. It works out directions for each axis, distance travelled, the time between the first and second step
 
-	It also pre-fills any data that the selected accleration algorithm needs, and can be pre-computed for the whole move.
+  It also pre-fills any data that the selected accleration algorithm needs, and can be pre-computed for the whole move.
 
   This algorithm is the main limiting factor when queuing movements and can
   become a limitation to print speed if there are lots of tiny, fast movements.
@@ -154,7 +153,7 @@ void dda_new_startpoint(void) {
 void dda_create(DDA *dda, const TARGET *target) {
   axes_uint32_t delta_um;
   axes_int32_t steps;
-  uint32_t	distance;
+  uint32_t distance;
   #ifndef ACCELERATION_TEMPORAL
   uint32_t c_limit, c_limit_calc;
   #endif
@@ -580,33 +579,33 @@ void dda_step(DDA *dda) {
     }
   #endif
 
-	#ifdef ACCELERATION_REPRAP
-		// linear acceleration magic, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
-		if (dda->accel) {
+  #ifdef ACCELERATION_REPRAP
+    // linear acceleration magic, courtesy of http://www.embedded.com/design/mcus-processors-and-socs/4006438/Generate-stepper-motor-speed-profiles-in-real-time
+    if (dda->accel) {
       if ((dda->c > dda->end_c) && (dda->n > 0)) {
-				uint32_t new_c = dda->c - (dda->c * 2) / dda->n;
+        uint32_t new_c = dda->c - (dda->c * 2) / dda->n;
         if (new_c <= dda->c && new_c > dda->end_c) {
-					dda->c = new_c;
-					dda->n += 4;
-				}
-				else
+          dda->c = new_c;
+          dda->n += 4;
+        }
+        else
           dda->c = dda->end_c;
-			}
+      }
       else if ((dda->c < dda->end_c) && (dda->n < 0)) {
-				uint32_t new_c = dda->c + ((dda->c * 2) / -dda->n);
+        uint32_t new_c = dda->c + ((dda->c * 2) / -dda->n);
         if (new_c >= dda->c && new_c < dda->end_c) {
-					dda->c = new_c;
-					dda->n += 4;
-				}
-				else
+          dda->c = new_c;
+          dda->n += 4;
+        }
+        else
           dda->c = dda->end_c;
-			}
+      }
       else if (dda->c != dda->end_c) {
         dda->c = dda->end_c;
-			}
-			// else we are already at target speed
-		}
-	#endif
+      }
+      // else we are already at target speed
+    }
+  #endif
 
   #ifdef ACCELERATION_TEMPORAL
     /** How is this ACCELERATION TEMPORAL expected to work?
@@ -694,16 +693,16 @@ void dda_step(DDA *dda) {
         move_state.steps[Z] == 0 && move_state.steps[E] == 0)
   #endif
   {
-		dda->live = 0;
+    dda->live = 0;
     dda->done = 1;
     #ifdef LOOKAHEAD
     // If look-ahead was using this move, it could have missed our activation:
     // make sure the ids do not match.
     dda->id--;
     #endif
-		#ifdef	DC_EXTRUDER
-			heater_set(DC_EXTRUDER, 0);
-		#endif
+    #ifdef	DC_EXTRUDER
+      heater_set(DC_EXTRUDER, 0);
+    #endif
     #ifdef Z_AUTODISABLE
       // Z stepper is only enabled while moving.
       z_disable();
@@ -711,18 +710,18 @@ void dda_step(DDA *dda) {
 
     // No need to restart timer here.
     // After having finished, dda_start() will do it.
-	}
+  }
   else {
-		psu_timeout = 0;
+    psu_timeout = 0;
     #ifndef ACCELERATION_TEMPORAL
       timer_set(dda->c, 0);
     #endif
   }
 
-	// turn off step outputs, hopefully they've been on long enough by now to register with the drivers
-	// if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something.
-	// we also hope that we don't step before the drivers register the low- limit maximum speed if you think this is a problem.
-	unstep();
+  // turn off step outputs, hopefully they've been on long enough by now to register with the drivers
+  // if not, too bad. or insert a (very!) small delay here, or fire up a spare timer or something.
+  // we also hope that we don't step before the drivers register the low- limit maximum speed if you think this is a problem.
+  unstep();
 }
 
 /*! Do regular movement maintenance.
@@ -960,8 +959,8 @@ void update_current_position() {
 
     for (i = X; i < AXIS_COUNT; i++) {
       axis_um = muldiv(move_state.steps[i], 
-                       1000000, 
-                       pgm_read_dword(&steps_per_m_P[i]));
+                      1000000, 
+                      pgm_read_dword(&steps_per_m_P[i]));
 
       delta_um[i] = (int32_t)get_direction(dda, i) * axis_um;
     }
@@ -973,8 +972,8 @@ void update_current_position() {
     }
 
     current_position.F = dda->endpoint.F;
-	}
+  }
   else {
     memcpy(&current_position, &startpoint, sizeof(TARGET));
-	}
+  }
 }
