@@ -125,3 +125,16 @@
 #define TEMP_EWMA 1000
 #warning TEMP_EWMA scaling changed! Take a look in your printer.xxx.h.
 #endif
+
+/**
+ * With GCC major >= 5 we can calculate constant sqrt expressions
+ * lower versions, e.g. in the Arduino IDE, need for this a
+ * __builtin_ function.
+ * 
+ * "warning: initializer element is not a constant expression"
+ * 
+ * Someone may extend this later also for sin/cos.
+*/
+#if (__GNUC__ <= 4)
+#define sqrt __builtin_sqrt
+#endif
