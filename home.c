@@ -1,14 +1,14 @@
-#include	"home.h"
+#include "home.h"
 
 /** \file
   \brief Homing routines
 */
 
 #include <math.h>
-#include	"dda.h"
-#include	"dda_queue.h"
-#include	"pinio.h"
-#include	"gcode_parse.h"
+#include "dda.h"
+#include "dda_queue.h"
+#include "pinio.h"
+#include "gcode_parse.h"
 
 // Check configuration.
 #if defined X_MIN_PIN || defined X_MAX_PIN
