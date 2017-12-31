@@ -41,13 +41,13 @@ static void open_file() {
   // No more files
   if (i > g_argc) return;
 
-  sim_info("opening %s", filename);
-  sim_assert(!stat(filename, &st), "Could not stat file.");
+  sim_info("Opening G-code source %s.", filename);
+  sim_assert(!stat(filename, &st), "Could not stat G-code source.");
 
   if (!st.st_rdev) {
     // Normal file
     gcode_fd = open(filename, O_RDONLY );
-    sim_assert(gcode_fd, "Could not open file.");
+    sim_assert(gcode_fd, "Could not open G-code file.");
   } else {
     // Some kind of device (treat as TTY)
     open_tty(filename);

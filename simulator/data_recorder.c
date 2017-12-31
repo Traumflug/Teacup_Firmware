@@ -30,8 +30,9 @@ static void recorder_close(void) {
 void recorder_init(const char* filename) {
   sim_assert( ! file, "Recorder already initialized");
 
+  sim_info("Opening recorder file %s.", filename);
   file = fopen(filename, "w");
-  sim_assert(file, "record_init: failed to create file");
+  sim_assert(file, "record_init: failed to create recorder file.");
 
   time_t t = time(NULL);
   fprintf(file, "# Teacup_Firmware simulator v1.0\n");
