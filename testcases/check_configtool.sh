@@ -27,12 +27,12 @@ git ls-files "config/*.h" | while read IN; do
   perl -p0 -e 's#/\*.*?\*/##sg' "${IN}" > "${OUT}.cmp"
 
   # Fail if the result is different except in whitespace.
-  if ! diff -qBbw "${OUT}" "${OUT}.cmp" ; then
+  if ! diff -qBb "${OUT}" "${OUT}.cmp" ; then
     echo "Configtool integrity test failed on file ${IN}"
     echo "  Executed: ./configtool.py --load=\"${IN}\" --save=\"${OUT}\" --quit"
     echo "  Expected resulting settings to match, but they do not."
 
-    diff -uBbw "${OUT}" "${OUT}.cmp" | sed -e 's/^/    /' || :
+    diff -uBb "${OUT}" "${OUT}.cmp" | sed -e 's/^/    /' || :
     exit 1
   fi
 done

@@ -65,8 +65,8 @@
 //#define Y_INVERT_MAX
 //#define Y_INVERT_ENABLE
 
-// #define Z_STEP_PIN               PB_5
-// #define Z_DIR_PIN                PA_8
+//#define Z_STEP_PIN               PB_5
+//#define Z_DIR_PIN                PA_8
 //#define Z_MIN_PIN                PA_7
 //#define Z_MAX_PIN                DIO31
 //#define Z_ENABLE_PIN             PA_9
