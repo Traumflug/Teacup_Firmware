@@ -32,7 +32,7 @@ git ls-files "config/*.h" | while read IN; do
     echo "  Executed: ./configtool.py --load=\"${IN}\" --save=\"${OUT}\" --quit"
     echo "  Expected resulting settings to match, but they do not."
 
-    diff -Bbw "${OUT}" "${OUT}.cmp" | sed -e 's/^/    /' || :
+    diff -uBbw "${OUT}" "${OUT}.cmp" | sed -e 's/^/    /' || :
     exit 1
   fi
 done
