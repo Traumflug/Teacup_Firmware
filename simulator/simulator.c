@@ -43,7 +43,7 @@ enum {
 
 int verbose = 1;                ///< 0=quiet, 1=normal, 2=noisy, 3=debug, etc.
 int use_color = 1;              ///< 0=No ANSI colors, 1=Use ANSI colors
-int show_pintous = 0;           ///< Show pin activity on console
+int show_pinouts = 0;           ///< Show pin activity on console
 int trace_gcode = 0;            ///< show gcode on the console
 int trace_pos = 0;              ///< show print head position on the console
 
@@ -51,7 +51,7 @@ const char * shortopts = "qgpvt:o::T::";
 struct option opts[] = {
   { "no-color", no_argument, &use_color , 0 },
   { "color", no_argument, &use_color , 1 },
-  { "pinouts", no_argument, &show_pintous , 1 },
+  { "pinouts", no_argument, &show_pinouts , 1 },
   { "quiet", no_argument, &verbose , 0 },
   { "verbose", no_argument, NULL, 'v' },
   { "gcode", no_argument, NULL, 'g' },
@@ -228,7 +228,7 @@ void sim_debug(const char fmt[], ...) {
 }
 
 void sim_tick(char ch) {
-  if (!show_pintous) return;
+  if (!show_pinouts) return;
   fcyan();
   fprintf(stdout, "%c", ch);
   fbreset();
