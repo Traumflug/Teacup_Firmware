@@ -12,7 +12,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define ACCELERATION 10 // mm/s^2
+#define ACCELERATION_X 10 // mm/s^2
+#define ACCELERATION_Y 10 // mm/s^2
+#define ACCELERATION_Z 10 // mm/s^2
+#define ACCELERATION_E 10 // mm/s^2
 
 
 typedef struct {
