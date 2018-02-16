@@ -865,7 +865,7 @@ void dda_clock() {
     move_step_no = dda->total_steps - move_step;
 
     recalc_speed = 0;
-    if (move_step_no < dda->rampup_steps) {
+    if (move_step_no <= dda->rampup_steps) {
       #ifdef LOOKAHEAD
         move_n = dda->start_steps + move_step_no;
       #else
@@ -896,9 +896,6 @@ void dda_clock() {
                   int_inv_sqrt(move_n)) >> 13;
         #endif
 
-      // TODO: most likely this whole check is obsolete. It was left as a
-      //       safety margin, only. Rampup steps calculation should be accurate
-      //       now and give the requested target speed within a few percent.
       if (move_c < dda->c_min) {
         // We hit max speed not always exactly.
         move_c = dda->c_min;
