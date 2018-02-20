@@ -151,7 +151,10 @@ DEFINE_HOMING(x_negative, y_negative, z_negative, none)
     Units: mm/s^2
     Useful range: 1 to 10'000
 */
-#define ACCELERATION             1000
+#define ACCELERATION_X           1000
+#define ACCELERATION_Y           1000
+#define ACCELERATION_Z           1000
+#define ACCELERATION_E           1000
 
 /** \def LOOKAHEAD
   Define this to enable look-ahead during *ramping* acceleration to smoothly

@@ -12,12 +12,17 @@ class AccelerationPage(wx.Panel, Page):
 
     self.accTypeKeys = ['ACCELERATION_REPRAP', 'ACCELERATION_RAMPING',
                         'ACCELERATION_TEMPORAL']
+    self.accKeys = ['ACCELERATION_X', 'ACCELERATION_Y', 'ACCELERATION_Z',
+                    'ACCELERATION_E']
     self.jerkKeys = ['MAX_JERK_X', 'MAX_JERK_Y', 'MAX_JERK_Z', 'MAX_JERK_E']
 
     self.labels = {'ACCELERATION_REPRAP': "RepRap",
                    'ACCELERATION_RAMPING': "Ramping",
                    'ACCELERATION_TEMPORAL': "Temporal",
-                   'ACCELERATION': "Acceleration:",
+                   'ACCELERATION_X': "X:",
+                   'ACCELERATION_Y': "Y:",
+                   'ACCELERATION_Z': "Z:",
+                   'ACCELERATION_E': "E:",
                    'LOOKAHEAD': "Look Ahead",
                    'MAX_JERK_X': "X:", 'MAX_JERK_Y': "Y:", 'MAX_JERK_Z': "Z:",
                    'MAX_JERK_E': "E:"}
@@ -44,17 +49,17 @@ class AccelerationPage(wx.Panel, Page):
     sbox.AddSpacer((5, 5))
     sz.Add(sbox, pos = (1, 1))
 
-    b = wx.StaticBox(self, wx.ID_ANY, "Ramping Parameters")
+    b = wx.StaticBox(self, wx.ID_ANY, "Ramping Acceleration Parameters")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
     sbox.AddSpacer((5, 5))
 
-    k = 'ACCELERATION'
-    tc = self.addTextCtrl(k, 80, self.onTextCtrlFloat)
-    self.textControls[k].Enable(False)
 
-    sbox.Add(tc)
-    sbox.AddSpacer((5, 5))
+    for k in self.accKeys:
+      tc = self.addTextCtrl(k, 80, self.onTextCtrlFloat)
+      self.textControls[k].Enable(False)
+      sbox.Add(tc)
+      sbox.AddSpacer((5, 5))
 
     k = 'LOOKAHEAD'
     cb = self.addCheckBox(k, self.onCheckBox)
@@ -96,20 +101,23 @@ class AccelerationPage(wx.Panel, Page):
       ena = False
 
     self.checkBoxes['LOOKAHEAD'].Enable(ena)
-    self.textControls['ACCELERATION'].Enable(ena)
+    for k in self.accKeys:
+      self.textControls[k].Enable(ena)
     evt.Skip()
 
   def insertValues(self, cfgValues):
     Page.insertValues(self, cfgValues)
 
     self.checkBoxes['LOOKAHEAD'].Enable(False)
-    self.textControls['ACCELERATION'].Enable(False)
+    for k in self.accKeys:
+      self.textControls[k].Enable(False)
     for tag in self.accTypeKeys:
       if tag in cfgValues.keys() and cfgValues[tag]:
         self.radioButtons[tag].SetValue(True)
         if tag == 'ACCELERATION_RAMPING':
           self.checkBoxes['LOOKAHEAD'].Enable(True)
-          self.textControls['ACCELERATION'].Enable(True)
+          for k in self.accKeys:
+            self.textControls[k].Enable(True)
 
   def getValues(self):
     result = Page.getValues(self)

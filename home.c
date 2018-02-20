@@ -42,15 +42,15 @@
 //   units: / 1000 for um -> mm; * 60 for mm/s -> mm/min
 #ifdef ENDSTOP_CLEARANCE_X
   #define SEARCH_FAST_X (uint32_t)((double)60. * \
-            sqrt((double)2 * ACCELERATION * ENDSTOP_CLEARANCE_X / 1000.))
+            sqrt((double)2 * ACCELERATION_X * ENDSTOP_CLEARANCE_X / 1000.))
 #endif
 #ifdef ENDSTOP_CLEARANCE_Y
   #define SEARCH_FAST_Y (uint32_t)((double)60. * \
-            sqrt((double)2 * ACCELERATION * ENDSTOP_CLEARANCE_Y / 1000.))
+            sqrt((double)2 * ACCELERATION_Y * ENDSTOP_CLEARANCE_Y / 1000.))
 #endif
 #ifdef ENDSTOP_CLEARANCE_Z
   #define SEARCH_FAST_Z (uint32_t)((double)60. * \
-            sqrt((double)2 * ACCELERATION * ENDSTOP_CLEARANCE_Z / 1000.))
+            sqrt((double)2 * ACCELERATION_Z * ENDSTOP_CLEARANCE_Z / 1000.))
 #endif
 
 static const uint32_t PROGMEM fast_feedrate_P[3] = {

@@ -273,10 +273,10 @@ const uint8_t msbloc (uint32_t v) {
   Pre-calculated constant values for acceleration ramp calculations.
 */
 static const axes_uint32_t PROGMEM acc_ramp_div_P = {
-  (uint32_t)((7200000.0f * ACCELERATION) / STEPS_PER_M_X),
-  (uint32_t)((7200000.0f * ACCELERATION) / STEPS_PER_M_Y),
-  (uint32_t)((7200000.0f * ACCELERATION) / STEPS_PER_M_Z),
-  (uint32_t)((7200000.0f * ACCELERATION) / STEPS_PER_M_E)
+  (uint32_t)((7200000.0f * ACCELERATION_X) / STEPS_PER_M_X),
+  (uint32_t)((7200000.0f * ACCELERATION_Y) / STEPS_PER_M_Y),
+  (uint32_t)((7200000.0f * ACCELERATION_Z) / STEPS_PER_M_Z),
+  (uint32_t)((7200000.0f * ACCELERATION_E) / STEPS_PER_M_E)
 };
 
 /*! Acceleration ramp length in steps.
