@@ -96,6 +96,9 @@ void sim_start(int argc, char** argv) {
 
   while ((c = getopt_long (argc, argv, shortopts, opts, &index)) != -1)
     switch (c) {
+    case 0:
+      // Long option without short counterpart.
+      break;
     case 'q':
       verbose = 0;
       break;
