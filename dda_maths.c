@@ -28,6 +28,13 @@ const axes_uint32_t PROGMEM axis_qr_P = {
   (uint32_t)STEPS_PER_M_E % UM_PER_METER
 };
 
+const axes_uint32_t PROGMEM steps_per_m_P = {
+  (uint32_t)STEPS_PER_M_X,
+  (uint32_t)STEPS_PER_M_Y,
+  (uint32_t)STEPS_PER_M_Z,
+  (uint32_t)STEPS_PER_M_E
+};
+
 /*!
   Integer multiply-divide algorithm. Returns the same as muldiv(multiplicand, multiplier, divisor), but also allowing to use precalculated quotients and remainders.
 

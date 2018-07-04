@@ -21,6 +21,7 @@
 #include "pinio.h"
 #include "memory_barrier.h"
 #include "home.h"
+#include "bed_leveling.h"
 //#include "graycode.c"
 
 #ifdef DC_EXTRUDER
@@ -112,7 +113,13 @@ void dda_init(void) {
 
   This is needed for example after homing or a G92. The new location must be in startpoint already.
 */
-void dda_new_startpoint(void) {
+void dda_new_startpoint() {
+  if (DEBUG_DDA && (debug_flags & DEBUG_DDA)) {
+    int32_t z_offset = bed_level_offset(startpoint.axis);
+    sersendf_P(PSTR("\nReset: X %lq  Y %lq  Z %lq  Zofs %lq  F %lu\n"),
+               startpoint.axis[X], startpoint.axis[Y],
+               startpoint.axis[Z], z_offset, startpoint.F);
+  }
   axes_um_to_steps(startpoint.axis, startpoint_steps.axis);
   startpoint_steps.axis[E] = um_to_steps(startpoint.axis[E], E);
 }
@@ -943,22 +950,12 @@ void update_current_position() {
   DDA *dda = mb_tail_dda;
   enum axis_e i;
 
-  static const axes_uint32_t PROGMEM steps_per_m_P = {
-    STEPS_PER_M_X,
-    STEPS_PER_M_Y,
-    STEPS_PER_M_Z,
-    STEPS_PER_M_E
-  };
-
   if (dda != NULL) {
     uint32_t axis_um;
     axes_int32_t delta_um;
 
     for (i = X; i < AXIS_COUNT; i++) {
-      axis_um = muldiv(move_state.steps[i], 
-                      1000000, 
-                      pgm_read_dword(&steps_per_m_P[i]));
-
+      axis_um = steps_to_um(move_state.steps[i], i);
       delta_um[i] = (int32_t)get_direction(dda, i) * axis_um;
     }
 
@@ -967,6 +964,9 @@ void update_current_position() {
     for (i = X; i < AXIS_COUNT; i++) {
       current_position.axis[i] = dda->endpoint.axis[i] - delta_um[i];
     }
+
+    // Compensate for bed-leveling z-offset
+    current_position.axis[Z] -= bed_level_offset(current_position.axis);
 
     current_position.F = dda->endpoint.F;
   }

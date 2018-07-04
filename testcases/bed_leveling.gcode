@@ -1,0 +1,46 @@
+(Test bed leveling)
+m111 s32
+
+G28
+G29 S5
+G29 S1 X20.000 Y20.000  Z-2.000
+G29 S1 X220.000 Y120.000  Z-1.700
+G29 S1 X120.000 Y220.000  Z-0.700
+
+g29 s0
+
+m114
+g1 x100 y100
+m114
+G28
+M114
+
+G4 ; dwell
+G1 x200 y0
+G4 ; dwell
+m114
+G1 x199
+G4 ; dwell
+G1 x198
+G4 ; dwell
+G1 x197
+G4 ; dwell
+G1 x196
+G4 ; dwell
+G1 x195
+G4 ; dwell
+G1 x194
+G4 ; dwell
+g28
+M114
+G1 x1 y1
+G4 ; dwell
+m114
+
+G28
+G29 S5
+G29 S1 X20.000 Y20.000  Z-0.300
+G29 S1 X220.000 Y120.000  Z-1.700
+G29 S1 X120.000 Y220.000  Z-0.700
+
+g29 s0

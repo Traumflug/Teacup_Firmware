@@ -34,6 +34,13 @@ inline int32_t um_to_steps(int32_t distance, enum axis_e a) {
                   pgm_read_dword(&axis_qr_P[a]), UM_PER_METER);
 }
 
+extern const axes_uint32_t steps_per_m_P;
+
+static int32_t steps_to_um(int32_t, enum axis_e) __attribute__ ((always_inline));
+inline int32_t steps_to_um(int32_t steps, enum axis_e a) {
+  return muldiv(steps, UM_PER_METER, pgm_read_dword(&steps_per_m_P[a]));
+}
+
 // approximate 2D distance
 uint32_t approx_distance(uint32_t dx, uint32_t dy);
 

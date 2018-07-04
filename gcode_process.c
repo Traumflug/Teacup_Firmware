@@ -24,7 +24,7 @@
 #include	"config_wrapper.h"
 #include	"home.h"
 #include "sd.h"
-
+#include "bed_leveling.h"
 
 /// the current tool
 uint8_t tool;
@@ -223,6 +223,62 @@ void process_gcode_command() {
 					home();
 				}
 				break;
+
+#ifdef BED_LEVELING
+      case 29:
+        //? --- G29: Bed leveling registration ---
+        //?
+        //? Example: G29 S1
+        //?
+        //? Registers the Z-offset for a specific point on the print bed.
+        //? In this case the current position is used as the registration
+        //? point, but a different position can be specified by including
+        //? the X, Y and Z coordinate values.
+        //?
+        //? Three points must be registered before the dynamic bed leveling
+        //? feature is activated. Once three points are registered, the bed
+        //? is mapped assuming a flat plane and Z-offsets are adjusted
+        //? automatically during movements to follow the mapped plane. The
+        //? adjusted position is not displayed to the client, for example
+        //? in M114 results.
+        //?
+        //? The S value controls the action as follows:
+        //?   S0 displays the current bed leveling status
+        //?   S1 registers a new point on the 3-point plane mapping
+        //?   S5 clears all registered points and disables dynamic leveling
+        //?
+        //?   G29 S1 X100 Y50 Z-0.3
+        //?
+        //? This command registers the specific point 100,50 => -0.3
+        //?
+        //?   G29 S1
+        //?
+        //? This command registers the current head position as a point in
+        //? the plane map.
+        //?
+
+        queue_wait();
+
+        if (next_target.seen_S) {
+          switch (next_target.S) {
+            case 5:   // reset bed leveling registration points
+              bed_level_reset();
+              break;
+
+            case 1:   // Register a new registration point
+              bed_level_register(next_target.target.axis[X], next_target.target.axis[Y], next_target.target.axis[Z]);
+              break;
+
+            case 0:   // Report leveling status
+              bed_level_report();
+              break;
+          }
+        }
+
+        // Restore position, ignoring any axes included in G29 cmd
+        next_target.target = startpoint;
+        break;
+#endif /* BED_LEVELING */
 
 			case 90:
 				//? --- G90: Set to Absolute Positioning ---

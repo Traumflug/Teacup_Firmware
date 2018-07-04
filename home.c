@@ -1,5 +1,5 @@
 #include "home.h"
-
+#include "bed_leveling.h"
 /** \file
   \brief Homing routines
 */
@@ -159,6 +159,12 @@ void home_axis(enum axis_e n, int8_t dir, enum axis_endstop_e endstop_check) {
   queue_wait();
   set_axis_home_position(n, dir);
   dda_new_startpoint();
+
+#ifdef BED_LEVELING
+  // Move to calculated Z-plane offset
+  if (n==Z)
+    enqueue(&next_target.target);
+#endif /* BED_LEVELING */
 }
 
 void set_axis_home_position(enum axis_e n, int8_t dir) {
@@ -198,4 +204,8 @@ void set_axis_home_position(enum axis_e n, int8_t dir) {
     }
   }
   startpoint.axis[n] = next_target.target.axis[n] = home_position;
+  if (n == Z) {
+    // Compensate for z-offset that will be added in by next move
+    startpoint.axis[n] -= bed_level_offset(startpoint.axis);
+  }
 }

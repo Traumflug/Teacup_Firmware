@@ -13,6 +13,7 @@ class MiscellaneousPage(wx.Panel, Page):
     self.font = font
 
     self.labels = {'USE_INTERNAL_PULLUPS': "Use Internal Pullups",
+                   'BED_LEVELING': "Enable dynamic bed leveling",
                    'Z_AUTODISABLE': "Z Autodisable",
                    'EECONFIG': "Enable EEPROM Storage",
                    'BANG_BANG': "Enable",
@@ -78,6 +79,10 @@ class MiscellaneousPage(wx.Panel, Page):
     k = 'Z_AUTODISABLE'
     cb = self.addCheckBox(k, self.onCheckBox)
     sz.Add(cb, pos = (7, 1))
+
+    k = 'BED_LEVELING'
+    cb = self.addCheckBox(k, self.onCheckBox)
+    sz.Add(cb, pos = (8, 1))
 
     b = wx.StaticBox(self, wx.ID_ANY, "BANG BANG Bed Control")
     b.SetFont(font)

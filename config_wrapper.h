@@ -86,6 +86,15 @@
 #endif
 
 /**
+  LOOKAHEAD won't work if Z-jerk is zero and bed leveling is active
+  because most moves will have Z-steps and lookahead will be skipped.
+*/
+#if defined BED_LEVELING && defined LOOKAHEAD && MAX_JERK_Z==0
+  #warning When bed-leveling is activated, lookahead will be ineffective \
+           because MAX_JERK_Z is zero.
+#endif
+
+/**
   Silently discard EECONFIG on ARM. Silently to not disturb regression tests.
 
   TODO:

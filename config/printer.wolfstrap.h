@@ -184,8 +184,16 @@ DEFINE_HOMING(x_negative, y_negative, z_negative, none)
 */
 #define MAX_JERK_X               20
 #define MAX_JERK_Y               20
-#define MAX_JERK_Z               0
+#define MAX_JERK_Z               2
 #define MAX_JERK_E               200
+
+/** \def BED_LEVELING
+  Define this to enable dynamic bed leveling using the G29 command and
+  3-point planar bed mapping. Allows the printer to compensate dynamically
+  for a print bed which is flat but is not quite level.
+  Enabling bed-leveling requires about 2400 bytes of flash memory.
+*/
+//#define BED_LEVELING
 
 
 /***************************************************************************\
