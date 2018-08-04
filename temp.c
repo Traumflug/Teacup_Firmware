@@ -108,6 +108,11 @@ static struct {
 static uint8_t wait_for_temp = 0;
 
 
+// Automatic temperature report period (AUTOREPORT_TEMP)
+static uint8_t          periodic_temp_seconds;
+static temp_sensor_t    periodic_temp_index;
+static uint8_t          periodic_temp_timer;
+
 /// Set up temp sensors.
 void temp_init() {
 	temp_sensor_t i;
@@ -624,6 +629,27 @@ static void single_temp_print(temp_sensor_t index) {
     c = (temp_sensors_runtime[index].target_temp & 3) * 25;
     sersendf_P(PSTR("%u.%u"), temp_sensors_runtime[index].target_temp >> 2, c);
   #endif
+}
+
+/// set parameters for periodic temperature reporting
+/// \param secs reporting interval in seconds; 0 to disable reporting
+/// \param index sensor to report
+void temp_periodic_config(uint8_t secs, temp_sensor_t index) {
+  periodic_temp_seconds = secs;
+  periodic_temp_index = index;
+  periodic_temp_timer = secs;
+}
+
+/// send temperatures to the host periodically.
+/// Called once per second from clock.c
+void temp_periodic_print() {
+  if (periodic_temp_seconds == 0)
+    return;
+  if (--periodic_temp_timer != 0)
+    return;
+
+  temp_print(periodic_temp_index);
+  periodic_temp_timer = periodic_temp_seconds;
 }
 
 /// send temperatures to host

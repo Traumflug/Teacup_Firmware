@@ -40,6 +40,9 @@ void temp_heater_tick(void);
 
 void temp_residency_tick(void);
 
+void temp_periodic_config(uint8_t secs, temp_sensor_t index);
+void temp_periodic_print(void);
+
 uint8_t	temp_achieved(void);
 
 void temp_set_wait(void);

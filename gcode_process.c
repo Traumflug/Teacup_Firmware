@@ -644,7 +644,12 @@ void process_gcode_command() {
 				//?  FIRMWARE_NAME:Teacup FIRMWARE_URL:http://github.com/traumflug/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:1 TEMP_SENSOR_COUNT:1 HEATER_COUNT:1
 				//?
 
-				sersendf_P(PSTR("FIRMWARE_NAME:Teacup FIRMWARE_URL:http://github.com/traumflug/Teacup_Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d\n"), 1, NUM_TEMP_SENSORS, NUM_HEATERS);
+        sersendf_P(PSTR("FIRMWARE_NAME:Teacup "
+                        "FIRMWARE_URL:http://github.com/traumflug/Teacup_Firmware/ "
+                        "PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:%d "
+                        "TEMP_SENSOR_COUNT:%d HEATER_COUNT:%d\n"
+                        "cap:AUTOREPORT_TEMP:%d\n"),
+                        1, NUM_TEMP_SENSORS, NUM_HEATERS, 1);
 				break;
 
 			case 116:
@@ -789,6 +794,35 @@ void process_gcode_command() {
 					temp_set(HEATER_BED, next_target.S);
 				#endif
 				break;
+
+      case 155:
+        //? --- M155: Report Temperature(s) Periodically ---
+        //?
+        //? Example: M155 Sn
+        //?
+        //? turns on periodic reporting of the temperatures of the current
+        //? extruder and the build base in degrees Celsius. The reporting
+        //? interval is given in seconds as the S parameter. Use S0 to disable
+        //? periodic temperature reporting. The reporting format is the same
+        //? as for M105, except there is no "ok" at the start of each report.
+        //? For example, the line sent to the host periodically looks like
+        //?
+        //? <tt>T:201 B:117</tt>
+        //?
+        //? Teacup supports an optional P parameter as a zero-based temperature
+        //? sensor index to address.
+        //?
+
+        // S<period-seconds> is required
+        if ( ! next_target.seen_S)
+          break;
+        #ifdef ENFORCE_ORDER
+          queue_wait();
+        #endif
+        if ( ! next_target.seen_P)
+          next_target.P = TEMP_SENSOR_none;
+        temp_periodic_config(next_target.S, next_target.P);
+        break;
 
       case 220:
         //? --- M220: Set speed factor override percentage ---
