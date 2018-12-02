@@ -25,10 +25,8 @@ import os.path
 import inspect
 
 from configtool.settings import Settings
-from configtool.gui import StartGui
 from configtool.board import Board
 from configtool.printer import Printer
-
 
 cmdFolder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile(
                              inspect.currentframe()))[0]))
@@ -182,4 +180,6 @@ def CommandLine(argv):
 
 if __name__ == '__main__':
   CommandLine(sys.argv[1:])
+
+  from configtool.gui import StartGui
   StartGui(getSettings())

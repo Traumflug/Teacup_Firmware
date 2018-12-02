@@ -14,7 +14,8 @@ import os.path
 
 from configtool.data import reHelpText
 from configtool.decoration import Decoration
-from configtool.settings import Settings, SettingsDlg
+from configtool.settings import Settings
+from configtool.settingsdlg import SettingsDlg
 from configtool.printerpanel import PrinterPanel
 from configtool.boardpanel import BoardPanel
 from configtool.build import Build, Upload
