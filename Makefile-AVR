@@ -113,6 +113,10 @@ TARGET = $(PROGRAM).hex
 # to keep this working and can take a shortcut:
 SOURCES = $(wildcard *.c)
 
+# Link time optimization is on by default
+ifeq ($(USE_FLTO),)
+  USE_FLTO=yes
+endif
 CFLAGS  = $(EXTRA_CFLAGS)
 CFLAGS += -DF_CPU=$(F_CPU)
 CFLAGS += -DMCU_STR=\"$(MCU)\"
@@ -132,7 +136,9 @@ CFLAGS += -Os
 CFLAGS += -ffunction-sections
 CFLAGS += -finline-functions-called-once
 CFLAGS += -mcall-prologues
-CFLAGS += -flto
+ifeq ($(USE_FLTO),yes)
+  CFLAGS += -flto
+endif
 CFLAGS += -Wa,-adhlns=$(@:.o=.al)
 #CFLAGS += -dM -E # To list all predefined macros into the .o file.
 
