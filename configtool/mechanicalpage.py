@@ -62,61 +62,61 @@ class MechanicalPage(wx.Panel, Page):
     labelWidthHoming = 60;
 
     sz = wx.GridBagSizer()
-    sz.AddSpacer((10, 10), pos = (0, 0))
-    sz.AddSpacer((90, 10), pos = (0, 4))
+    sz.Add((10, 10), pos = (0, 0))
+    sz.Add((90, 10), pos = (0, 4))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Steps Per Meter")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     for k in self.spmKeys:
       tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
       sbox.Add(tc)
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (1, 1))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Maximum Feedrate")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     for k in self.mfrKeys:
       tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
       sbox.Add(tc)
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (1, 5))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Search Feedrate")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     for k in self.msrKeys:
       tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
       sbox.Add(tc)
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (1, 7))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Endstop Clearance")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     for k in self.eclKeys:
       tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlInteger)
       sbox.Add(tc)
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (3, 5))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Travel Limits")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     for k in self.minmaxKeys:
       tc = self.addTextCtrl(k, labelWidth + 20, self.onTextCtrlFloat)
       sbox.Add(tc)
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (3, 7))
 
@@ -125,14 +125,14 @@ class MechanicalPage(wx.Panel, Page):
     b = wx.StaticBox(self, wx.ID_ANY, "Kinematics")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     style = wx.RB_GROUP
     for k in self.kinematicsKeys:
       rb = self.addRadioButton(k, style, self.onKinematicsSelect, b)
       style = 0
 
       sbox.Add(rb, 1, wx.LEFT + wx.RIGHT, 16)
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     vsz.Add(sbox, 1, wx.LEFT, 10)
 
@@ -146,7 +146,7 @@ class MechanicalPage(wx.Panel, Page):
     b = wx.Button(self, wx.ID_ANY, "Calculate\nBelt Driven", size = BSIZE)
     b.SetBackgroundColour(self.deco.getBackgroundColour())
     b.SetFont(font)
-    b.SetToolTipString("Open the calculator for axes that are belt-driven.")
+    b.SetToolTip("Open the calculator for axes that are belt-driven.")
     self.Bind(wx.EVT_BUTTON, self.onCalcBelt, b)
     self.bCalcBelt = b
 
@@ -155,7 +155,7 @@ class MechanicalPage(wx.Panel, Page):
     b.SetBackgroundColour(self.deco.getBackgroundColour())
     b.SetFont(font)
     bsz.Add(b, 1, wx.ALL, 5)
-    b.SetToolTipString("Open the calculator for axes that are screw-driven.")
+    b.SetToolTip("Open the calculator for axes that are screw-driven.")
     self.Bind(wx.EVT_BUTTON, self.onCalcScrew, b)
     self.bCalcScrew = b
 
@@ -164,12 +164,12 @@ class MechanicalPage(wx.Panel, Page):
     b = wx.StaticBox(self, wx.ID_ANY, "Homing Order")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     for k, ctype in self.homingKeys:
       if ctype == 2:
         tc = self.addChoice(k, [], 0, labelWidthHoming, self.onChoice)
         sbox.Add(tc)
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
     sz.Add(sbox, pos = (3, 3))
 
     self.enableAll(False)
@@ -206,7 +206,7 @@ class MechanicalPage(wx.Panel, Page):
     Page.setHelpText(self, ht)
     if 'KINEMATICS' in ht.keys():
       for k in self.kinematicsKeys:
-        self.radioButtons[k].SetToolTipString(ht['KINEMATICS'])
+        self.radioButtons[k].SetToolTip(ht['KINEMATICS'])
 
   def prepareHomingValues(self, name, i, cfgValues):
     self.choices[name].Clear()

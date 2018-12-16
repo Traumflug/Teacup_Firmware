@@ -163,7 +163,7 @@ class Page:
     self.setFieldValidity(name, valid)
 
     if valid:
-      tc.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      tc.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
     else:
       tc.SetBackgroundColour("pink")
     tc.Refresh()
@@ -186,7 +186,7 @@ class Page:
     self.setFieldValidity(name, valid)
 
     if valid:
-      tc.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      tc.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
     else:
       tc.SetBackgroundColour("pink")
     tc.Refresh()
@@ -213,26 +213,26 @@ class Page:
   def setHelpText(self, ht):
     for k in self.textControls.keys():
       if k in ht.keys():
-        self.textControls[k].SetToolTipString(ht[k])
+        self.textControls[k].SetToolTip(ht[k])
 
     for k in self.checkBoxes.keys():
       if k in ht.keys():
-        self.checkBoxes[k].SetToolTipString(ht[k])
+        self.checkBoxes[k].SetToolTip(ht[k])
 
     for k in self.radioButtons.keys():
       if k in ht.keys():
-        self.radioButtons[k].SetToolTipString(ht[k])
+        self.radioButtons[k].SetToolTip(ht[k])
         if k in self.radioButtonBoxes.keys():
-          self.radioButtonBoxes[k].SetToolTipString(ht[k])
+          self.radioButtonBoxes[k].SetToolTip(ht[k])
 
     for k in self.choices.keys():
       if k in ht.keys():
-        self.choices[k].SetToolTipString(ht[k])
+        self.choices[k].SetToolTip(ht[k])
 
     for k in self.boolChoices.keys():
       for candidate in ht.keys():
         if candidate.startswith(k):
-          self.boolChoices[k].SetToolTipString(ht[candidate])
+          self.boolChoices[k].SetToolTip(ht[candidate])
           break
 
   def insertValues(self, cfgValues):

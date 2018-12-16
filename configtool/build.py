@@ -164,10 +164,10 @@ class Build(wx.Dialog):
     self.cancelPending = False
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)
-    hsz.AddSpacer((10, 10))
+    hsz.Add((10, 10))
 
     sz = wx.BoxSizer(wx.VERTICAL)
-    sz.AddSpacer((10, 10))
+    sz.Add((10, 10))
 
     tc = wx.TextCtrl(self, wx.ID_ANY, size = (900, 300),
                      style = wx.TE_READONLY + wx.TE_MULTILINE)
@@ -177,9 +177,9 @@ class Build(wx.Dialog):
     tc.SetFont(f)
     self.log = tc
 
-    sz.AddSpacer((10, 10))
+    sz.Add((10, 10))
     hsz.Add(sz, 1, wx.EXPAND)
-    hsz.AddSpacer((10, 10))
+    hsz.Add((10, 10))
 
     self.SetSizer(hsz)
 
@@ -384,10 +384,10 @@ class Upload(wx.Dialog):
     self.cancelPending = False
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)
-    hsz.AddSpacer((10, 10))
+    hsz.Add((10, 10))
 
     sz = wx.BoxSizer(wx.VERTICAL)
-    sz.AddSpacer((10, 10))
+    sz.Add((10, 10))
 
     tc = wx.TextCtrl(self, wx.ID_ANY, size = (900, 300),
                      style = wx.TE_READONLY + wx.TE_MULTILINE)
@@ -397,9 +397,9 @@ class Upload(wx.Dialog):
     tc.SetFont(f)
     self.log = tc
 
-    sz.AddSpacer((10, 10))
+    sz.Add((10, 10))
     hsz.Add(sz, 1, wx.EXPAND)
-    hsz.AddSpacer((10, 10))
+    hsz.Add((10, 10))
 
     self.SetSizer(hsz)
 

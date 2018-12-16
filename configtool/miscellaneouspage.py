@@ -38,17 +38,17 @@ class MiscellaneousPage(wx.Panel, Page):
     self.processors = []
 
     sz = wx.GridBagSizer()
-    sz.AddSpacer((20, 40), pos = (0, 0))
-    sz.AddSpacer((40, 40), pos = (0, 2))
-    sz.AddSpacer((40, 40), pos = (0, 4))
-    sz.AddSpacer((20, 30), pos = (1, 0))
-    sz.AddSpacer((20, 30), pos = (2, 0))
-    sz.AddSpacer((20, 30), pos = (3, 0))
-    sz.AddSpacer((20, 30), pos = (4, 0))
-    sz.AddSpacer((20, 30), pos = (5, 0))
-    sz.AddSpacer((20, 30), pos = (6, 0))
-    sz.AddSpacer((20, 30), pos = (7, 0))
-    sz.AddSpacer((20, 30), pos = (8, 0))
+    sz.Add((20, 40), pos = (0, 0))
+    sz.Add((40, 40), pos = (0, 2))
+    sz.Add((40, 40), pos = (0, 4))
+    sz.Add((20, 30), pos = (1, 0))
+    sz.Add((20, 30), pos = (2, 0))
+    sz.Add((20, 30), pos = (3, 0))
+    sz.Add((20, 30), pos = (4, 0))
+    sz.Add((20, 30), pos = (5, 0))
+    sz.Add((20, 30), pos = (6, 0))
+    sz.Add((20, 30), pos = (7, 0))
+    sz.Add((20, 30), pos = (8, 0))
 
     labelWidth = 140
 
@@ -87,39 +87,39 @@ class MiscellaneousPage(wx.Panel, Page):
     b = wx.StaticBox(self, wx.ID_ANY, "BANG BANG Bed Control")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
 
     k = 'BANG_BANG'
     cb = self.addCheckBox(k, self.onCheckBox)
     sbox.Add(cb, 1, wx.LEFT, 60)
-    sbox.AddSpacer((5, 20))
+    sbox.Add((5, 20))
 
     k = 'BANG_BANG_ON'
     tc = self.addTextCtrl(k, 100, self.onTextCtrlInteger)
     sbox.Add(tc)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
 
     k = 'BANG_BANG_OFF'
     tc = self.addTextCtrl(k, 100, self.onTextCtrlInteger)
     sbox.Add(tc)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (1, 3), span = (5, 1), flag = wx.ALIGN_CENTER_HORIZONTAL)
 
     b = wx.StaticBox(self, wx.ID_ANY, "DC Motor Extruder")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
 
     k = 'DC_EXTRUDER'
     ch = self.addChoice(k, self.heaterNames, 0, 60, self.onChoice)
     sbox.Add(ch)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
 
     k = 'DC_EXTRUDER_PWM'
     tc = self.addTextCtrl(k, 60, self.onTextCtrlInteger)
     sbox.Add(tc)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (6, 3), span=(3, 1), flag = wx.ALIGN_CENTER_HORIZONTAL)
 

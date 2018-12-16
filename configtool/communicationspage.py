@@ -17,7 +17,7 @@ class CommunicationsPage(wx.Panel, Page):
                    'USB_SERIAL': "USB Serial"}
 
     sz = wx.GridBagSizer()
-    sz.AddSpacer((20, 40), pos = (0, 0))
+    sz.Add((20, 40), pos = (0, 0))
 
     k = 'USB_SERIAL'
     cb = self.addCheckBox(k, self.onUSBCheckBox)
@@ -30,7 +30,7 @@ class CommunicationsPage(wx.Panel, Page):
     cb = self.addCheckBox('XONXOFF', self.onCheckBox)
     sz.Add(cb, pos = (3, 3))
 
-    sz.AddSpacer((100, 10), pos = (2, 2))
+    sz.Add((100, 10), pos = (2, 2))
 
     self.SetSizer(sz)
     self.enableAll(False)

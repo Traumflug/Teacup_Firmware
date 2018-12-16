@@ -23,59 +23,59 @@ class AccelerationPage(wx.Panel, Page):
                    'MAX_JERK_E': "E:"}
 
     sz = wx.GridBagSizer()
-    sz.AddSpacer((20, 40), pos = (0, 0))
+    sz.Add((20, 40), pos = (0, 0))
     b = wx.StaticBox(self, wx.ID_ANY, "Acceleration Type")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     style = wx.RB_GROUP
     for k in self.accTypeKeys:
       rb = self.addRadioButton(k, style, self.onAccTypeSelect, b)
       style = 0
 
       sbox.Add(rb, 1, wx.LEFT + wx.RIGHT, 16)
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     self.rbNone = wx.RadioButton(self, wx.ID_ANY, "None", style = style)
     self.rbNone.SetFont(font)
     self.rbNone.SetValue(True)
     self.Bind(wx.EVT_RADIOBUTTON, self.onAccTypeSelect, self.rbNone)
     sbox.Add(self.rbNone, 1, wx.LEFT + wx.RIGHT, 16)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     sz.Add(sbox, pos = (1, 1))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Ramping Parameters")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
 
     k = 'ACCELERATION'
     tc = self.addTextCtrl(k, 80, self.onTextCtrlFloat)
     self.textControls[k].Enable(False)
 
     sbox.Add(tc)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
 
     k = 'LOOKAHEAD'
     cb = self.addCheckBox(k, self.onCheckBox)
     self.checkBoxes[k].Enable(False)
 
     sbox.Add(cb, 1, wx.ALIGN_CENTER_HORIZONTAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (1, 3))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Maximum Jerk")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     for k in self.jerkKeys:
       tc = self.addTextCtrl(k, 40, self.onTextCtrlInteger)
 
       sbox.Add(tc)
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
-    sz.AddSpacer((80, 20), pos = (1, 4))
+    sz.Add((80, 20), pos = (1, 4))
     sz.Add(sbox, pos = (1, 5))
 
     self.SetSizer(sz)

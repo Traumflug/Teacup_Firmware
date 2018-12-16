@@ -6,7 +6,7 @@ try:
 except:
   print("ImportError: No module named wx\n\n"
         "wxPython is not installed. This program requires wxPython to run.\n"
-        "See your package manager and/or http://wxpython.org/download.php.")
+        "See your package manager and/or https://wxpython.org/pages/downloads/.")
   time.sleep(10)
   sys.exit(-1)
 

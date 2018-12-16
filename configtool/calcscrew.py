@@ -15,17 +15,17 @@ class CalcScrew(wx.Dialog):
     labelWidth = 150
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)
-    hsz.AddSpacer((10, 10))
+    hsz.Add((10, 10))
 
     sz = wx.BoxSizer(wx.VERTICAL)
-    sz.AddSpacer((10, 10))
+    sz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "Step Angle:", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
     lsz.Add(st, 1, wx.TOP, offsetChLabel)
-    lsz.AddSpacer((5, 5))
+    lsz.Add((5, 5))
 
     stepAngles = ["1.8 (200 per revolution)", "0.9 (400 per revolution)",
                   "7.5 (48 per revolution)"]
@@ -35,18 +35,18 @@ class CalcScrew(wx.Dialog):
     tc.SetSelection(0)
     tc.Bind(wx.EVT_CHOICE, self.onChoice)
     lsz.Add(tc)
-    tc.SetToolTipString("Step angle. Depends on your type of stepper motor.")
+    tc.SetToolTip("Step angle. Depends on your type of stepper motor.")
     self.tcStep = tc
 
     sz.Add(lsz)
-    sz.AddSpacer((10, 10))
+    sz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "Microstepping:",
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(font)
     lsz.Add(st, 1, wx.TOP, offsetChLabel)
-    lsz.AddSpacer((5, 5))
+    lsz.Add((5, 5))
 
     microStepping = ["1 - full step", "1/2 - half step", "1/4 - quarter step",
                      "1/8", "1/16", "1/32", "1/64", "1/128"]
@@ -56,30 +56,30 @@ class CalcScrew(wx.Dialog):
     tc.Bind(wx.EVT_CHOICE, self.onChoice)
     tc.SetSelection(4)
     lsz.Add(tc)
-    tc.SetToolTipString("Microstepping. Most boards allow to change this by "
+    tc.SetToolTip("Microstepping. Most boards allow to change this by "
                         "setting jumpers. The value here must match the "
                         "setting on the board in conjunction with the type "
                         "of stepper driver chip.")
     self.tcMicroStepping = tc
 
     sz.Add(lsz)
-    sz.AddSpacer((10, 10))
+    sz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "Screw Pitch (mm/rev):",
                        size = (labelWidth, -1), style = wx.ALIGN_RIGHT)
     st.SetFont(font)
     lsz.Add(st, 1, wx.TOP, offsetTcLabel)
-    lsz.AddSpacer((5, 5))
+    lsz.Add((5, 5))
 
     tc = wx.TextCtrl(self, wx.ID_ANY, "2", style = wx.TE_RIGHT)
     tc.SetFont(font)
     tc.Bind(wx.EVT_TEXT, self.onTextCtrlFloat)
     lsz.Add(tc)
-    tc.SetToolTipString("Screw pitch. Defined by the pitch of the screw.")
+    tc.SetToolTip("Screw pitch. Defined by the pitch of the screw.")
     self.tcScrewPitch = tc
 
-    lsz.AddSpacer((5, 5))
+    lsz.Add((5, 5))
 
     screwPresets = ["-", "M8 - metric (1.25 mm/rev)", "M6 - metric (1 mm/rev)",
                     "M5 - metric (0.8 mm/rev)", "12 (12 mm/rev)",
@@ -94,48 +94,48 @@ class CalcScrew(wx.Dialog):
     tc.SetSelection(0)
     tc.Bind(wx.EVT_CHOICE, self.onPresetChoice)
     lsz.Add(tc)
-    tc.SetToolTipString("Screw pitch presets.")
+    tc.SetToolTip("Screw pitch presets.")
     self.tcPresets = tc
 
     sz.Add(lsz)
-    sz.AddSpacer((10, 10))
+    sz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "Gear Ratio:", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
     lsz.Add(st, 1, wx.TOP, offsetTcLabel)
-    lsz.AddSpacer((5, 5))
+    lsz.Add((5, 5))
 
     tc = wx.TextCtrl(self, wx.ID_ANY, "1", size = (40, -1), style = wx.TE_RIGHT)
     tc.SetFont(font)
     tc.Bind(wx.EVT_TEXT, self.onTextCtrlFloat)
     lsz.Add(tc)
-    tc.SetToolTipString("Gear ratio. 1:1 if there is no gear.")
+    tc.SetToolTip("Gear ratio. 1:1 if there is no gear.")
     self.tcRatioTop = tc
 
-    lsz.AddSpacer((5, 5))
+    lsz.Add((5, 5))
     st = wx.StaticText(self, wx.ID_ANY, ":")
     st.SetFont(font)
     lsz.Add(st)
-    lsz.AddSpacer((5, 5))
+    lsz.Add((5, 5))
 
     tc = wx.TextCtrl(self, wx.ID_ANY, "1", size = (40, -1), style = wx.TE_RIGHT)
     tc.SetFont(font)
     tc.Bind(wx.EVT_TEXT, self.onTextCtrlFloat)
     lsz.Add(tc)
-    tc.SetToolTipString("Gear ratio. 1:1 if there is no gear.")
+    tc.SetToolTip("Gear ratio. 1:1 if there is no gear.")
     self.tcRatioBottom = tc
 
     sz.Add(lsz)
-    sz.AddSpacer((30, 30))
+    sz.Add((30, 30))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "Result:", size = (labelWidth, -1),
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
     lsz.Add(st)
-    lsz.AddSpacer((5, 5))
+    lsz.Add((5, 5))
 
     tc = wx.StaticText(self, wx.ID_ANY, "", size = (300, -1),
                        style = wx.ALIGN_LEFT)
@@ -149,7 +149,7 @@ class CalcScrew(wx.Dialog):
                        style = wx.ALIGN_RIGHT)
     st.SetFont(font)
     lsz.Add(st)
-    lsz.AddSpacer((5, 5))
+    lsz.Add((5, 5))
 
     tc = wx.StaticText(self, wx.ID_ANY, "", size = (300, -1),
                        style = wx.ALIGN_LEFT)
@@ -159,7 +159,7 @@ class CalcScrew(wx.Dialog):
 
     sz.Add(lsz)
 
-    sz.AddSpacer((20, 20))
+    sz.Add((20, 20))
 
     bsz = wx.BoxSizer(wx.HORIZONTAL)
     b = wx.Button(self, wx.ID_ANY, "Use for X", size = BSIZESMALL)
@@ -167,21 +167,21 @@ class CalcScrew(wx.Dialog):
     self.Bind(wx.EVT_BUTTON, self.onUseForX, b)
     bsz.Add(b)
     self.bUseForX = b
-    bsz.AddSpacer((5, 5))
+    bsz.Add((5, 5))
 
     b = wx.Button(self, wx.ID_ANY, "Use for Y", size = BSIZESMALL)
     b.SetFont(font)
     self.Bind(wx.EVT_BUTTON, self.onUseForY, b)
     bsz.Add(b)
     self.bUseForY = b
-    bsz.AddSpacer((5, 5))
+    bsz.Add((5, 5))
 
     b = wx.Button(self, wx.ID_ANY, "Use for Z", size = BSIZESMALL)
     b.SetFont(font)
     self.Bind(wx.EVT_BUTTON, self.onUseForZ, b)
     bsz.Add(b)
     self.bUseForZ = b
-    bsz.AddSpacer((5, 5))
+    bsz.Add((5, 5))
 
     b = wx.Button(self, wx.ID_ANY, "Use for E", size = BSIZESMALL)
     b.SetFont(font)
@@ -190,10 +190,10 @@ class CalcScrew(wx.Dialog):
     self.bUseForE = b
 
     sz.Add(bsz, flag = wx.ALIGN_CENTER_HORIZONTAL)
-    sz.AddSpacer((10, 10))
+    sz.Add((10, 10))
 
     hsz.Add(sz)
-    hsz.AddSpacer((10, 10))
+    hsz.Add((10, 10))
 
     self.enableUseButtons(False)
 
@@ -285,7 +285,7 @@ class CalcScrew(wx.Dialog):
         valid = False
 
     if valid:
-      tc.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      tc.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
     else:
       tc.SetBackgroundColour("pink")
     tc.Refresh()

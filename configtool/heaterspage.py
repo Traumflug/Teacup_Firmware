@@ -17,20 +17,20 @@ class HeatersPage(wx.Panel, Page):
     self.labels = {'FORCE_SOFTWARE_PWM':"Force software PWM"}
 
     sz = wx.GridBagSizer()
-    sz.AddSpacer((30, 30), pos = (0, 0))
+    sz.Add((30, 30), pos = (0, 0))
 
     self.heaters = []
     self.validPins = pinNames
 
     self.lb = HeaterList(self, font)
     sz.Add(self.lb, pos = (1, 1))
-    sz.AddSpacer((20, 20), pos = (1, 2))
+    sz.Add((20, 20), pos = (1, 2))
 
     k = 'FORCE_SOFTWARE_PWM'
     cb = self.addCheckBox(k, self.onCheckBox)
 
     sz.Add(cb, pos = (2, 1))
-    sz.AddSpacer((20, 20), pos = (2, 2))
+    sz.Add((20, 20), pos = (2, 2))
 
     bsz = wx.BoxSizer(wx.VERTICAL)
 
@@ -38,27 +38,27 @@ class HeatersPage(wx.Panel, Page):
     self.bAdd.SetBackgroundColour(self.deco.getBackgroundColour())
     self.bAdd.SetFont(font)
     self.Bind(wx.EVT_BUTTON, self.doAdd, self.bAdd)
-    self.bAdd.SetToolTipString("Add a heater to the configuration.")
+    self.bAdd.SetToolTip("Add a heater to the configuration.")
     bsz.Add(self.bAdd)
 
-    bsz.AddSpacer((10, 10))
+    bsz.Add((10, 10))
 
     self.bModify = wx.Button(self, wx.ID_ANY, "Modify", size = BSIZESMALL)
     self.bModify.SetBackgroundColour(self.deco.getBackgroundColour())
     self.bModify.SetFont(font)
     self.bModify.Enable(False)
     self.Bind(wx.EVT_BUTTON, self.doModify, self.bModify)
-    self.bModify.SetToolTipString("Modify the selected heater.")
+    self.bModify.SetToolTip("Modify the selected heater.")
     bsz.Add(self.bModify)
 
-    bsz.AddSpacer((10, 10))
+    bsz.Add((10, 10))
 
     self.bDelete = wx.Button(self, wx.ID_ANY, "Delete", size = BSIZESMALL)
     self.bDelete.SetBackgroundColour(self.deco.getBackgroundColour())
     self.bDelete.SetFont(font)
     self.bDelete.Enable(False)
     self.Bind(wx.EVT_BUTTON, self.doDelete, self.bDelete)
-    self.bDelete.SetToolTipString("Remove the selected heater from the "
+    self.bDelete.SetToolTip("Remove the selected heater from the "
                                   "configuration.")
     bsz.Add(self.bDelete)
 
@@ -186,4 +186,4 @@ class HeatersPage(wx.Panel, Page):
 
     k = 'DEFINE_HEATER'
     if k in ht.keys():
-      self.bAdd.SetToolTipString(ht[k])
+      self.bAdd.SetToolTip(ht[k])

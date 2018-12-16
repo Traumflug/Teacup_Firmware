@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Note: syntax in this file has to be kept compatible with Pyton 3, else
+# Note: syntax in this file has to be kept compatible with Python 3, else
 #       Python errors in the compilation stage already, without showing
 #       user help about the incompatibility. To test, simply run
 #
@@ -14,8 +14,8 @@
 import sys
 import time
 if sys.version_info.major >= 3:
-  print("You are currently running Python3. Python3 is not supported, because\n"
-        "there is no wxPython for Python3. Please try running with Python2.\n"
+  print("You are currently running Python3. Python3 is not supported.\n"
+        "Please try running with Python2.\n\n"
         "It often works to type \"python2 configtool.py\" in the command line.")
   time.sleep(10)
   sys.exit(-1)

@@ -67,12 +67,12 @@ class PinoutsPage(wx.Panel, Page):
     labelWidth = 120
 
     sz = wx.GridBagSizer()
-    sz.AddSpacer((10, 10), pos = (0, 0))
+    sz.Add((10, 10), pos = (0, 0))
 
     b = wx.StaticBox(self, wx.ID_ANY, "X Axis")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     for k, ctype in pinXkeys:
       if ctype == 0:
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
@@ -84,14 +84,14 @@ class PinoutsPage(wx.Panel, Page):
         cb = self.addCheckBox(k, self.onCheckBox)
         sbox.Add(cb, 1, wx.LEFT, 30)
 
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (1, 1))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Y Axis")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     for k, ctype in pinYkeys:
       if ctype == 0:
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
@@ -103,14 +103,14 @@ class PinoutsPage(wx.Panel, Page):
         cb = self.addCheckBox(k, self.onCheckBox)
         sbox.Add(cb, 1, wx.LEFT, 30)
 
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (1, 3))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Z Axis")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     for k, ctype in pinZkeys:
       if ctype == 0:
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
@@ -122,14 +122,14 @@ class PinoutsPage(wx.Panel, Page):
         cb = self.addCheckBox(k, self.onCheckBox)
         sbox.Add(cb, 1, wx.LEFT, 30)
 
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (1, 5))
 
     b = wx.StaticBox(self, wx.ID_ANY, "E Axis")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     for k, ctype in pinEkeys:
       if ctype == 0:
         tc = self.addTextCtrl(k, labelWidth, self.onTextCtrlPin)
@@ -141,7 +141,7 @@ class PinoutsPage(wx.Panel, Page):
         cb = self.addCheckBox(k, self.onCheckBox)
         sbox.Add(cb, 1, wx.LEFT, 30)
 
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     sz.Add(sbox, pos = (1, 7))
 
@@ -149,7 +149,7 @@ class PinoutsPage(wx.Panel, Page):
     tc = self.addPinChoice(k, labelWidth + 20)
     sz.Add(tc, pos = (3, 1))
 
-    sz.AddSpacer((10, 10), pos = (4, 1))
+    sz.Add((10, 10), pos = (4, 1))
 
     k = "STEPPER_INVERT_ENABLE"
     cb = self.addCheckBox(k, self.onCheckBox)

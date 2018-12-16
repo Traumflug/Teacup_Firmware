@@ -29,12 +29,12 @@ class DisplayPage(wx.Panel, Page):
                    'DISPLAY_D7_PIN': "D7 pin"}
 
     sz = wx.GridBagSizer()
-    sz.AddSpacer((20, 40), pos = (0, 0))
+    sz.Add((20, 40), pos = (0, 0))
 
     ch = self.addBoolChoice('DISPLAY_BUS', True, 100, self.onBusChoice,
                             size = (160, -1))
     sz.Add(ch, pos = (1, 1))
-    sz.AddSpacer((100, 10), pos = (1, 2))
+    sz.Add((100, 10), pos = (1, 2))
 
     ch = self.addBoolChoice('DISPLAY_TYPE', False, 100, self.onChoice,
                             size = (240, -1))
@@ -43,13 +43,13 @@ class DisplayPage(wx.Panel, Page):
     b = wx.StaticBox(self, wx.ID_ANY, "Direct 4-bit Bus Pins:")
     b.SetFont(font)
     self.pinbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    self.pinbox.AddSpacer((5, 5))
+    self.pinbox.Add((5, 5))
     for k in ('DISPLAY_RS_PIN', 'DISPLAY_RW_PIN', 'DISPLAY_E_PIN',
               'DISPLAY_D4_PIN', 'DISPLAY_D5_PIN', 'DISPLAY_D6_PIN',
               'DISPLAY_D7_PIN'):
       tc = self.addPinChoice(k, 200)
       self.pinbox.Add(tc)
-      self.pinbox.AddSpacer((5, 5))
+      self.pinbox.Add((5, 5))
     sz.Add(self.pinbox, pos = (3, 1))
 
     self.SetSizer(sz)

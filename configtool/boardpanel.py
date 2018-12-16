@@ -165,7 +165,7 @@ class BoardPanel(wx.Panel):
 
     dlg = wx.FileDialog(self, message = "Choose a board config file",
                         defaultDir = self.dir, defaultFile = "",
-                        wildcard = wildcard, style = wx.OPEN | wx.CHANGE_DIR)
+                        wildcard = wildcard, style = wx.FD_OPEN | wx.FD_CHANGE_DIR)
 
     path = None
     if dlg.ShowModal() == wx.ID_OK:

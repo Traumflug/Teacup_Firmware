@@ -52,10 +52,10 @@ class AddSensorDlg(wx.Dialog):
     sizer = wx.BoxSizer(wx.VERTICAL)
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)
-    hsz.AddSpacer((10, 10))
+    hsz.Add((10, 10))
 
     csz = wx.BoxSizer(wx.VERTICAL)
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "Heater Name:", size = (labelWidth, -1),
@@ -82,13 +82,13 @@ class AddSensorDlg(wx.Dialog):
     self.tcName.SetFont(font)
     self.tcName.Bind(wx.EVT_CHOICE, self.onHeaterName)
     lsz.Add(self.tcName)
-    self.tcName.SetToolTipString("Choose the name of the corresponding heater. "
+    self.tcName.SetToolTip("Choose the name of the corresponding heater. "
                                  "This may require to define that heater "
                                  "first.")
     self.tcName.SetSelection(0)
 
     csz.Add(lsz)
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "Sensor Type:", size = (labelWidth, -1),
@@ -119,7 +119,7 @@ class AddSensorDlg(wx.Dialog):
     lsz.Add(ch)
 
     csz.Add(lsz)
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "Pin:", size = (labelWidth, -1),
@@ -137,10 +137,10 @@ class AddSensorDlg(wx.Dialog):
     else:
       self.chPin.SetSelection(i)
     lsz.Add(self.chPin)
-    self.chPin.SetToolTipString("Choose a pin name for this sensor.")
+    self.chPin.SetToolTip("Choose a pin name for this sensor.")
 
     csz.Add(lsz)
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
@@ -156,7 +156,7 @@ class AddSensorDlg(wx.Dialog):
     lsz.Add(self.param0)
 
     csz.Add(lsz)
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
@@ -171,7 +171,7 @@ class AddSensorDlg(wx.Dialog):
     lsz.Add(self.param1)
 
     csz.Add(lsz)
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
@@ -186,7 +186,7 @@ class AddSensorDlg(wx.Dialog):
     lsz.Add(self.param2)
 
     csz.Add(lsz)
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
@@ -201,7 +201,7 @@ class AddSensorDlg(wx.Dialog):
     lsz.Add(self.param3)
 
     csz.Add(lsz)
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
@@ -216,7 +216,7 @@ class AddSensorDlg(wx.Dialog):
     lsz.Add(self.param4)
 
     csz.Add(lsz)
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
@@ -231,7 +231,7 @@ class AddSensorDlg(wx.Dialog):
     lsz.Add(self.param5)
 
     csz.Add(lsz)
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "", size = (labelWidth, -1),
@@ -246,15 +246,15 @@ class AddSensorDlg(wx.Dialog):
     lsz.Add(self.param6)
 
     csz.Add(lsz)
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
-    csz.AddSpacer((10, 10))
+    csz.Add((10, 10))
 
     hsz.Add(csz)
-    hsz.AddSpacer((10, 10))
+    hsz.Add((10, 10))
 
     csz = wx.BoxSizer(wx.VERTICAL)
-    csz.AddSpacer((30, 45))
+    csz.Add((30, 45))
 
     lsz = wx.BoxSizer(wx.HORIZONTAL)
     st = wx.StaticText(self, wx.ID_ANY, "Presets:",
@@ -272,12 +272,12 @@ class AddSensorDlg(wx.Dialog):
     lsz.Add(ch)
 
     csz.Add(lsz)
-    csz.AddSpacer((10, 50))
+    csz.Add((10, 50))
 
     b = wx.StaticBox(self, wx.ID_ANY, "Temp Table Algorithm")
     b.SetFont(font)
     sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
-    sbox.AddSpacer((5, 5))
+    sbox.Add((5, 5))
     style = wx.RB_GROUP
     self.rbMethod = []
     for k in MethodLabels:
@@ -288,13 +288,13 @@ class AddSensorDlg(wx.Dialog):
       style = 0
 
       sbox.Add(rb, 1, wx.LEFT + wx.RIGHT, 16)
-      sbox.AddSpacer((5, 5))
+      sbox.Add((5, 5))
 
     self.rbMethod[self.currentMethod].SetValue(True);
     csz.Add(sbox)
 
     hsz.Add(csz)
-    hsz.AddSpacer((10, 10))
+    hsz.Add((10, 10))
 
     sizer.Add(hsz)
 
@@ -306,7 +306,7 @@ class AddSensorDlg(wx.Dialog):
     bsz.Add(self.bSave)
     self.bSave.Enable(False)
 
-    bsz.AddSpacer((30, 10))
+    bsz.Add((30, 10))
 
     self.bCancel = wx.Button(self, wx.ID_ANY, "Cancel", size = BSIZESMALL)
     self.bCancel.SetFont(font)
@@ -314,7 +314,7 @@ class AddSensorDlg(wx.Dialog):
     bsz.Add(self.bCancel)
 
     sizer.Add(bsz, flag = wx.ALIGN_CENTER_HORIZONTAL)
-    sizer.AddSpacer((10, 10))
+    sizer.Add((10, 10))
 
     self.SetSizer(sizer)
     self.Fit()
@@ -367,7 +367,7 @@ class AddSensorDlg(wx.Dialog):
         valid = False
 
     if valid:
-      tc.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      tc.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
     else:
       tc.SetBackgroundColour("pink")
 
@@ -391,7 +391,7 @@ class AddSensorDlg(wx.Dialog):
         valid = False
 
     if valid:
-      tc.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+      tc.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
     else:
       tc.SetBackgroundColour("pink")
     tc.Refresh()
@@ -518,58 +518,58 @@ class AddSensorDlg(wx.Dialog):
   def setDialogMode(self):
     if self.currentMode == MODE_THERMISTOR:
       if self.currentMethod == METHOD_BETA:
-        self.param0.SetToolTipString("Nominal resistance of the thermistor. "
+        self.param0.SetToolTip("Nominal resistance of the thermistor. "
                                      "Typically 10000 ( = 10k) or 100000 "
                                      "( = 100k).")
         self.label0.SetLabel("R0:")
-        self.param1.SetToolTipString("Thermistor beta value. Can be found in "
+        self.param1.SetToolTip("Thermistor beta value. Can be found in "
                                      "the datasheet or measured like described "
                                      "in http://reprap.org/wiki/"
                                      "MeasuringThermistorBeta")
         self.label1.SetLabel("Beta:")
-        self.param2.SetToolTipString("Resistance value of the secondary "
+        self.param2.SetToolTip("Resistance value of the secondary "
                                      "resistor. This is not a property of the "
                                      "thermistor, but one of the board. "
                                      "Typical values are 4700 ( = 4k7 ohms) "
                                      "or 1000 ( = 1k ohms).")
         self.label2.SetLabel("R2:")
-        self.param3.SetToolTipString("Comparison voltage used by the "
+        self.param3.SetToolTip("Comparison voltage used by the "
                                      "controller. Usually the same as the "
                                      "controller's supply voltage, 3.3 or 5.0 "
                                      "(volts).")
         self.label3.SetLabel("Vadc:")
         self.label4.SetLabel("")
         self.param4.SetToolTip(None)
-        self.param4.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+        self.param4.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
         self.param4.Refresh()
         self.label5.SetLabel("")
         self.param5.SetToolTip(None)
-        self.param5.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+        self.param5.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
         self.param5.Refresh()
         self.label6.SetLabel("")
         self.param6.SetToolTip(None)
-        self.param6.SetBackgroundColour(wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+        self.param6.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
         self.param6.Refresh()
         self.param4.Enable(False)
         self.param5.Enable(False)
         self.param6.Enable(False)
       else:
-        self.param0.SetToolTipString("Reference resistance value.")
+        self.param0.SetToolTip("Reference resistance value.")
         self.label0.SetLabel("Rp:")
-        self.param1.SetToolTipString("First data point, temperature at which "
+        self.param1.SetToolTip("First data point, temperature at which "
                                      "resistance is equal to R0.")
         self.label1.SetLabel("T0:")
-        self.param2.SetToolTipString("Resistance when temperature is T0.")
+        self.param2.SetToolTip("Resistance when temperature is T0.")
         self.label2.SetLabel("R0:")
-        self.param3.SetToolTipString("Second data point, temperature at which "
+        self.param3.SetToolTip("Second data point, temperature at which "
                                      "resistance is equal to R1.")
         self.label3.SetLabel("T1:")
-        self.param4.SetToolTipString("Resistance when temperature is T1.")
+        self.param4.SetToolTip("Resistance when temperature is T1.")
         self.label4.SetLabel("R1:")
-        self.param5.SetToolTipString("Third data point, temperature at which "
+        self.param5.SetToolTip("Third data point, temperature at which "
                                      "resistance is equal to R2.")
         self.label5.SetLabel("T2:")
-        self.param6.SetToolTipString("Resistance when temperature is T2.")
+        self.param6.SetToolTip("Resistance when temperature is T2.")
         self.label6.SetLabel("R2:")
         self.param4.Enable(True)
         self.param5.Enable(True)
@@ -601,43 +601,43 @@ class AddSensorDlg(wx.Dialog):
       self.param0.SetToolTip(None)
       self.label0.SetLabel("")
       self.param0.SetBackgroundColour(
-            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
       self.param0.Refresh()
 
       self.param1.SetToolTip(None)
       self.label1.SetLabel("")
       self.param1.SetBackgroundColour(
-            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
       self.param1.Refresh()
 
       self.param2.SetToolTip(None)
       self.label2.SetLabel("")
       self.param2.SetBackgroundColour(
-            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
       self.param2.Refresh()
 
       self.param3.SetToolTip(None)
       self.label3.SetLabel("")
       self.param3.SetBackgroundColour(
-            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
       self.param3.Refresh()
 
       self.param4.SetToolTip(None)
       self.label4.SetLabel("")
       self.param4.SetBackgroundColour(
-            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
       self.param4.Refresh()
 
       self.param5.SetToolTip(None)
       self.label5.SetLabel("")
       self.param5.SetBackgroundColour(
-            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
       self.param5.Refresh()
 
       self.param6.SetToolTip(None)
       self.label6.SetLabel("")
       self.param6.SetBackgroundColour(
-            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
       self.param6.Refresh()
 
       self.param0.Enable(False);

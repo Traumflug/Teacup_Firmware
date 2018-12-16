@@ -77,10 +77,10 @@ class SettingsDlg(wx.Dialog):
     self.teList = []
 
     hsz = wx.BoxSizer(wx.HORIZONTAL)
-    hsz.AddSpacer((10, 10))
+    hsz.Add((10, 10))
 
     sz = wx.BoxSizer(wx.VERTICAL)
-    sz.AddSpacer((10, 10))
+    sz.Add((10, 10))
 
     labelWidth = 140
     for f in self.fields:
@@ -90,18 +90,18 @@ class SettingsDlg(wx.Dialog):
       t.SetFont(settings.font)
       lsz.Add(t, 1, wx.TOP, offsetTcLabel)
 
-      lsz.AddSpacer((8, 8))
+      lsz.Add((8, 8))
 
       te = wx.TextCtrl(self, wx.ID_ANY, f[1], size = (600, -1))
       te.Bind(wx.EVT_TEXT, self.onTextCtrl)
-      te.SetToolTipString(f[2])
+      te.SetToolTip(f[2])
       lsz.Add(te)
       self.teList.append(te)
 
       sz.Add(lsz)
-      sz.AddSpacer((10, 10))
+      sz.Add((10, 10))
 
-    sz.AddSpacer((20, 20))
+    sz.Add((20, 20))
 
     bsz = wx.BoxSizer(wx.HORIZONTAL)
     b = wx.Button(self, wx.ID_ANY, "Save", size = BSIZESMALL)
@@ -109,7 +109,7 @@ class SettingsDlg(wx.Dialog):
     self.Bind(wx.EVT_BUTTON, self.onSave, b)
     bsz.Add(b)
     self.bSave = b
-    bsz.AddSpacer((5, 5))
+    bsz.Add((5, 5))
 
     b = wx.Button(self, wx.ID_ANY, "Exit", size = BSIZESMALL)
     b.SetFont(settings.font)
@@ -118,10 +118,10 @@ class SettingsDlg(wx.Dialog):
     self.bExit = b
 
     sz.Add(bsz, 1, wx.ALIGN_CENTER_HORIZONTAL)
-    sz.AddSpacer((10, 10))
+    sz.Add((10, 10))
 
     hsz.Add(sz)
-    hsz.AddSpacer((10, 10))
+    hsz.Add((10, 10))
 
     self.SetSizer(hsz)
     self.setModified(False)

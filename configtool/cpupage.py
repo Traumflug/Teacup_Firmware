@@ -15,12 +15,12 @@ class CpuPage(wx.Panel, Page):
     self.processors = []
 
     sz = wx.GridBagSizer()
-    sz.AddSpacer((20, 40), pos = (0, 0))
+    sz.Add((20, 40), pos = (0, 0))
 
     k = 'F_CPU'
     ch = self.addChoice(k, self.clocks, 0, 100, self.onChoice, size = (140, -1))
     sz.Add(ch, pos = (1, 1))
-    sz.AddSpacer((100, 10), pos = (1, 2))
+    sz.Add((100, 10), pos = (1, 2))
 
     k = 'CPU'
     ch = self.addChoice(k, self.processors, 0, 100, self.onChoice,
