@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import wx
 import os.path
@@ -25,9 +26,9 @@ class Decoration(object):
         if backPic.IsOk():
           self.backPic = backPic
         else:
-          print "Background picture %s damaged." % backPicPath
+          print("Background picture %s damaged." % backPicPath)
       else:
-        print "Background picture %s doesn't exist." % backPicPath
+        print("Background picture %s doesn't exist." % backPicPath)
 
   def getBackgroundColour(self):
     return wx.Colour(237, 237, 237)

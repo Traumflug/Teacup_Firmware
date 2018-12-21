@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 
 import os
-from thermistor import SHThermistor, BetaThermistor
+from .thermistor import SHThermistor, BetaThermistor
 
 
 class ThermistorTableFile:

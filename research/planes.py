@@ -8,6 +8,7 @@
 
 
 # Translate a point relative to some origin
+from __future__ import print_function
 def translate(point, origin):
   return tuple([a-b for a,b in zip(point, origin)])
 
@@ -55,21 +56,21 @@ def validate(plane, point):
 
 
 def verify_plane(points):
-  print '  ', '\n   '.join([str(p) for p in points])
+  print('  ', '\n   '.join([str(p) for p in points]))
 
   plane = plane_from_three_points( *points)
-  print 'Plane coordinates: ', plane
+  print('Plane coordinates: ', plane)
 
   if plane[2] == 0:
-    print '   Error: points are colinear'
+    print('   Error: points are colinear')
     return
 
   valid = True
   for p in points:
     if not validate(plane, p):
-      print "Failed: sample point not on plane, ", p
+      print("Failed: sample point not on plane, ", p)
       valid = False
-  print "Validation:", "Failed" if not valid else "Passed"
+  print("Validation:", "Failed" if not valid else "Passed")
 
 
 
@@ -97,11 +98,11 @@ samples = [
 for points in samples:
   verify_plane(points)
 
-  print "====[Translated]========="
+  print("====[Translated]=========")
   # Translate plane to origin at P (simplifies by removing K coefficient)
   # A*x' + B*y' + C*z' = 0
   P = points[0]
   T = translate((0,0,0), P)
   xpoints = [translate(p, P) for p in points]
   verify_plane(xpoints)
-  print "=========================\n"
+  print("=========================\n")

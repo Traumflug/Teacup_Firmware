@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import os
 import re
@@ -180,17 +181,17 @@ class Board:
 
     # Parsing done. All parsed stuff is now in these arrays and dicts.
     if self.settings.verbose >= 2:
-      print self.sensors
-      print self.heaters
-      print self.candHeatPins
-      print self.candThermPins
-      print self.candProcessors
-      print self.candClocks
-      print self.tempTables
-      print self.cfgValues  # #defines with a value.
-      print self.cfgNames   # Names found in the generic file.
+      print(self.sensors)
+      print(self.heaters)
+      print(self.candHeatPins)
+      print(self.candThermPins)
+      print(self.candProcessors)
+      print(self.candClocks)
+      print(self.tempTables)
+      print(self.cfgValues)  # #defines with a value.
+      print(self.cfgNames)   # Names found in the generic file.
     if self.settings.verbose >= 3:
-      print self.helpText
+      print(self.helpText)
 
     for k in range(len(self.sensors)):
       tn = self.sensors[k][0].upper()
@@ -348,7 +349,7 @@ class Board:
     if self.settings.verbose >= 1:
       print("Saving board: %s." % path)
     if self.settings.verbose >= 2:
-      print values
+      print(values)
 
     fp = file(path, 'w')
     self.configFile = path
@@ -479,7 +480,7 @@ class Board:
             # Known to be absent in the GUI, also won't be added anytime soon.
             fp.write(ln)
           else:
-            print "Boolean key " + t[0] + " not found in GUI."
+            print("Boolean key " + t[0] + " not found in GUI.")
 
         continue
 

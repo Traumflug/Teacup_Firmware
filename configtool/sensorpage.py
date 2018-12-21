@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 
 import wx
 from configtool.page import Page
 from configtool.data import pinNames, BSIZESMALL
-from sensorlist import SensorList
-from addsensordlg import AddSensorDlg
+from .sensorlist import SensorList
+from .addsensordlg import AddSensorDlg
 
 
 class SensorsPage(wx.Panel, Page):
