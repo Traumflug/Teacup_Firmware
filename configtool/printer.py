@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import os
 import re
@@ -136,10 +137,10 @@ class Printer:
 
     # Parsing done. All parsed stuff is now in these array and dicts.
     if self.settings.verbose >= 2:
-      print self.cfgValues  # #defines with a value.
-      print self.cfgNames   # Names found in the generic file.
+      print(self.cfgValues)  # #defines with a value.
+      print(self.cfgNames)   # Names found in the generic file.
     if self.settings.verbose >= 3:
-      print self.helpText
+      print(self.helpText)
 
     return True, None
 
@@ -237,7 +238,7 @@ class Printer:
     if self.settings.verbose >= 1:
       print("Saving printer: %s." % path)
     if self.settings.verbose >= 2:
-      print values
+      print(values)
 
     fp = file(path, 'w')
     self.configFile = path
@@ -291,7 +292,7 @@ class Printer:
             #       done, this will lead to duplicates.
             fp.write(ln)
           else:
-            print "Value key " + t[0] + " not found in GUI."
+            print("Value key " + t[0] + " not found in GUI.")
 
         continue
 
@@ -305,7 +306,7 @@ class Printer:
             fp.write("//")
           fp.write(defineBoolFormat % t[0])
         else:
-          print "Boolean key " + t[0] + " not found in GUI."
+          print("Boolean key " + t[0] + " not found in GUI.")
 
         continue
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from math import *
 import sys
@@ -77,7 +78,7 @@ class BetaThermistor:
     try:
       return (self.beta / log(r / self.k)) - 273.15
     except:
-      print "// error for ADC = {adc}, {v}, {r}".format(adc = adc, v = v, r = r)
+      print("// error for ADC = {adc}, {v}, {r}".format(adc = adc, v = v, r = r))
       return None
 
   def resistance(self, t):

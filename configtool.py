@@ -11,6 +11,7 @@
 # If you feel like porting Configtool to Python 3 compatibility altogether:
 # patches are welcome! See https://docs.python.org/3/howto/pyporting.html
 
+from __future__ import print_function
 import sys
 import time
 if sys.version_info.major >= 3:

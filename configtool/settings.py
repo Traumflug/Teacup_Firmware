@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import ConfigParser
 import os
@@ -78,9 +79,9 @@ class Settings:
         elif opt == "uploadspeed":
           self.uploadspeed = value
         else:
-          print "Unknown %s option: %s - ignoring." % (self.section, opt)
+          print("Unknown %s option: %s - ignoring." % (self.section, opt))
     else:
-      print "Missing %s section - assuming defaults." % self.section
+      print("Missing %s section - assuming defaults." % self.section)
       return False
 
     return True
