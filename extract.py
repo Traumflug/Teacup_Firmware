@@ -12,6 +12,6 @@ doc = open("gcode_doc.txt", "wt")
 for line in f.readlines():
     m = re_comment.match(line)
     if m:
-	doc.write(m.group(1) + "\n")
+        doc.write(m.group(1) + "\n")
 f.close()
 doc.close()
