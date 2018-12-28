@@ -1,11 +1,18 @@
 import wx.lib.newevent
-import thread, shlex, subprocess
-import os, re
+
+try:
+    import thread as _thread
+except ImportError:
+    import _thread
+import shlex
+import subprocess
+import os
+import re
 from os.path import isfile, join
 from sys import platform
 
 if platform.startswith("win"):
-    from _subprocess import STARTF_USESHOWWINDOW
+    from subprocess import STARTF_USESHOWWINDOW
 
 (scriptEvent, EVT_SCRIPT_UPDATE) = wx.lib.newevent.NewEvent()
 SCRIPT_RUNNING = 1
@@ -80,7 +87,7 @@ class ScriptThread:
     def Start(self):
         self.running = True
         self.cancelled = False
-        thread.start_new_thread(self.Run, ())
+        _thread.start_new_thread(self.Run, ())
 
     def Stop(self):
         self.cancelled = True
