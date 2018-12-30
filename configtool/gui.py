@@ -653,28 +653,33 @@ class ConfigFrame(wx.Frame):
 
     def onAbout(self, evt):
         # Get the contributors' top 10 with something like this:
-        #   export B=experimental
-        #   git log $B | grep "Author:" | sort | uniq | while \
-        #     read A; do N=$(git log $B | grep "$A" | wc -l); echo "$N $A"; done | \
-        #     sort -rn
+        #   git shortlog experimental -sne | perl -ne \
+        #      '/([0-9]+)\s*(.*)\s*(\<.*)/g && \
+        #       printf  "\n%12s\"    %s (%d commits)\\n\"", "", $2, $1; \
+        #       END { print ",\n" }'
+        #
+        # Most recent commiters are in the .mailmap
         self.message(
             "Teacup Firmware is a 3D Printer and CNC machine controlling "
             "firmware with emphasis on performance, efficiency and "
             "outstanding quality. What Teacup does, shall it do very well."
             "\n\n\n"
             "Lots of people hard at work! Top 10 contributors:\n\n"
-            "    Markus Hitter (542 commits)\n"
-            "    Michael Moon (322 commits)\n"
-            "    Phil Hord (55 commits)\n"
-            "    Jeff Bernardis (51 commits)\n"
-            "    Markus Amsler (47 commits)\n"
+            "    Markus Hitter (870 commits)\n"
+            "    Michael Moon (325 commits)\n"
+            "    Nico Tonnhofer (137 commits)\n"
+            "    Phil Hord (117 commits)\n"
+            "    Jeff Bernardis (55 commits)\n"
+            "    Markus Amsler (48 commits)\n"
             "    David Forrest (27 commits)\n"
             "    Jim McGee (15 commits)\n"
             "    Ben Jackson (12 commits)\n"
+            "    Robert Konklewski (12 commits)\n"
             "    Bas Laarhoven (10 commits)\n"
             "    Stephan Walter (9 commits)\n"
+            "    Ruslan Popov (8 commits)\n"
+            "    Jens Ch. Restemeier (3 commits)\n"
             "    Roland Brochard (3 commits)\n"
-            "    Jens Ch. Restemeier (3 commits)\n",
             "About Teacup",
             style=wx.OK,
         )
