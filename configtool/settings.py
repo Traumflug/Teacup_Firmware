@@ -1,6 +1,20 @@
 from __future__ import print_function
+from six import iteritems
 
-import ConfigParser
+import time
+import sys
+
+try:
+    import configparser
+except ImportError:
+    print(
+        "ImportError: No module named configparser\n\n"
+        "configparser is not installed. This program requires configparser to run.\n"
+        "Your package manager may help you."
+    )
+    time.sleep(10)
+    sys.exit(-1)
+
 import os
 from configtool.data import BSIZESMALL, offsetTcLabel
 
@@ -33,7 +47,7 @@ class Settings:
         # Runtime settings
         self.verbose = 0
 
-        self.cfg = ConfigParser.ConfigParser()
+        self.cfg = configparser.ConfigParser()
         self.cfg.optionxform = str
 
         self.loaded = self.readConfig(ini)
@@ -52,36 +66,28 @@ class Settings:
                     return False
 
         if self.cfg.has_section(self.section):
-            for opt, value in self.cfg.items(self.section):
-                value = value.replace("\n", " ")
-                if opt == "arduinodir":
-                    self.arduinodir = value
-                elif opt == "cflags":
-                    self.cflags = value
-                elif opt == "ldflags":
-                    self.ldflags = value
-                elif opt == "programmer":
-                    self.programmer = value
-                elif opt == "port":
-                    self.port = value
-                elif opt == "objcopyflags":
-                    self.objcopyflags = value
-                elif opt == "programflags":
-                    self.programflags = value
-                elif opt == "t0":
-                    self.t0 = value
-                elif opt == "r1":
-                    self.r1 = value
-                elif opt == "numtemps":
-                    self.numTemps = value
-                elif opt == "maxadc":
-                    self.maxAdc = value
-                elif opt == "minadc":
-                    self.minAdc = value
-                elif opt == "uploadspeed":
-                    self.uploadspeed = value
-                else:
-                    print("Unknown %s option: %s - ignoring." % (self.section, opt))
+            cfg = self.cfg[self.section]
+            values = self.getValues()
+
+            def cfg_get(key):
+                val = cfg.get(key, values[key])
+                val = val.replace("\n", " ")
+                return val
+
+            self.arduinodir = cfg_get("arduinodir")
+            self.cflags = cfg_get("cflags")
+            self.ldflags = cfg_get("ldflags")
+            self.objcopyflags = cfg_get("objcopyflags")
+            self.programflags = cfg_get("programflags")
+            self.programmer = cfg_get("programmer")
+            self.port = cfg_get("port")
+            self.t0 = cfg_get("t0")
+            self.r1 = cfg_get("r1")
+            self.numTemps = cfg_get("numtemps")
+            self.maxAdc = cfg_get("maxadc")
+            self.minAdc = cfg_get("minadc")
+            self.uploadspeed = cfg_get("uploadspeed")
+
         else:
             print("Missing %s section - assuming defaults." % self.section)
             return False
@@ -94,6 +100,7 @@ class Settings:
             "cflags": str(self.cflags),
             "ldflags": str(self.ldflags),
             "objcopyflags": str(self.objcopyflags),
+            "programflags": str(self.programflags),
             "programmer": str(self.programmer),
             "port": str(self.port),
             "t0": str(self.t0),
@@ -111,15 +118,15 @@ class Settings:
         self.section = "configtool"
         try:
             self.cfg.add_section(self.section)
-        except ConfigParser.DuplicateSectionError:
+        except configparser.DuplicateSectionError:
             pass
 
         values = self.getValues()
-        for k in values.keys():
-            self.cfg.set(self.section, k, values[k])
+        for k, v in iteritems(values):
+            self.cfg[self.section][k] = v.replace("%", "%%")
 
         try:
-            cfp = open(inifile, "wb")
+            cfp = open(inifile, "w")
         except:
             print("Unable to open settings file %s for writing." % inifile)
             return False
