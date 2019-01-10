@@ -378,7 +378,7 @@ class Board:
         if self.settings.verbose >= 2:
             print(values)
 
-        fp = file(path, "w")
+        fp = open(path, "w")
         self.configFile = path
 
         skipToSensorEnd = False

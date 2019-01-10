@@ -206,7 +206,7 @@ class Printer:
         if self.settings.verbose >= 2:
             print(values)
 
-        fp = file(path, "w")
+        fp = open(path, "w")
         self.configFile = path
 
         for ln in self.cfgBuffer:
