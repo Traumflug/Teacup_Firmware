@@ -126,7 +126,7 @@ class ScriptThread:
                 return
             obuf = ""
             while not self.cancelled:
-                o = p.stdout.read(1)
+                o = p.stdout.read(1).decode("utf-8", "ignore")
                 if o == "":
                     break
                 if o == "\r" or o == "\n":
