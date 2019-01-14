@@ -71,9 +71,9 @@ void set_axis_home_position(enum axis_e n, int8_t dir);
 
 /// home all 3 axes
 void home() {
-  #ifdef DEFINE_HOMING
-    #undef DEFINE_HOMING
-      #define DEFINE_HOMING(first, second, third, fourth) \
+  #ifdef DEFINE_HOMING_ACTUAL
+    #undef DEFINE_HOMING_ACTUAL
+      #define DEFINE_HOMING_ACTUAL(first, second, third, fourth) \
         { \
           home_##first(); \
           home_##second(); \
@@ -81,7 +81,7 @@ void home() {
           home_##fourth(); \
         };
       #include "config_wrapper.h"
-    #undef DEFINE_HOMING
+    #undef DEFINE_HOMING_ACTUAL
   #endif
 }
 
