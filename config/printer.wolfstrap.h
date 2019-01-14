@@ -112,9 +112,8 @@
 #define E_ABSOLUTE
 
 /** \def HOMING_OPT
-
-  Options for homing movements. 'none' means no movement at all. For each
-  option XXX, a function home_XXX() has to exist, typically in home.c/.h.
+  Options for homing movements a user should be able to choose from in configtool. All
+  commented out.
 */
 //#define HOMING_OPT none
 //#define HOMING_OPT x_negative
@@ -125,15 +124,10 @@
 //#define HOMING_OPT z_positive
 
 /** \def DEFINE_HOMING
-
-  Order (and number) of homing movements.
+  Order (and number) of homing movements. Up to 4 homing steps are allowed.
+  If you don't need even one axis just DEFINE_HOMING(none).
 */
-#ifndef DEFINE_HOMING
-  #define DEFINE_HOMING(...)
-#endif
-//DEFINE_HOMING_START
-DEFINE_HOMING(x_negative, y_negative, z_negative, none)
-//DEFINE_HOMING_END
+DEFINE_HOMING(x_negative, y_negative, z_negative)
 
 /** \def ACCELERATION_REPRAP ACCELERATION_RAMPING ACCELERATION_TEMPORAL
   Choose optionally one of ACCELERATION_REPRAP, ACCELERATION_RAMPING or
