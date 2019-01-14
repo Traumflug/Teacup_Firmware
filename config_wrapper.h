@@ -24,6 +24,18 @@
 #define DHTR_5(name, pin, invert, pwm, max_pwm)  DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_pwm)
 #define DHTR_6(name, pin, invert, pwm, max_pwm, arg6)  DEFINE_HEATER_ACTUAL(name, pin, invert, pwm, max_pwm)
 
+#ifndef DEFINE_HOMING_ACTUAL
+  #define DEFINE_HOMING_ACTUAL(...)
+#endif
+
+// Homing movements helpers.
+#define GET_MACRO_HOME(_1, _2, _3, _4, NAME, ...) NAME
+#define DEFINE_HOMING(...) GET_MACRO_HOME(__VA_ARGS__, DHM_4, DHM_3, DHM_2, DHM_1)(__VA_ARGS__)
+#define DHM_1(STEP_1) DEFINE_HOMING_ACTUAL(STEP_1, none, none, none)
+#define DHM_2(STEP_1, STEP_2) DEFINE_HOMING_ACTUAL(STEP_1, STEP_2, none, none)
+#define DHM_3(STEP_1, STEP_2, STEP_3) DEFINE_HOMING_ACTUAL(STEP_1, STEP_2, STEP_3, none)
+#define DHM_4(STEP_1, STEP_2, STEP_3, STEP_4) DEFINE_HOMING_ACTUAL(STEP_1, STEP_2, STEP_3, STEP_4)
+
 /**
   This wrapper config header is used to allow makefiles and test scripts to
   replace or augment the user's 'config.h' file in a controlled manner. A
