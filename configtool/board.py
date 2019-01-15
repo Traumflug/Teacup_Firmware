@@ -99,7 +99,7 @@ class Board:
         helpKey = None
 
         self.cfgValues = {}
-        self.cfgNames = []
+        self.cfgNames = set()
         self.helpText = {}
 
         prevLines = ""
@@ -230,7 +230,7 @@ class Board:
         if m:
             t = m.groups()
             if len(t) == 1:
-                self.cfgNames.append(t[0])
+                self.cfgNames.add(t[0])
             return True
 
         return False
