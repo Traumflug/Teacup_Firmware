@@ -16,16 +16,27 @@ from configtool.data import (
     reDefQSm2,
     reDefBool,
     reDefBoolBL,
+    reCandHomingOptions,
+    reDefHoming,
+    reHoming,
 )
 
 
 class Printer:
     def __init__(self, settings):
+        self.settings = settings
         self.configFile = None
+        self.cfgDir = os.path.join(self.settings.folder, "configtool")
 
         self.cfgValues = {}
-        self.settings = settings
-        self.cfgDir = os.path.join(self.settings.folder, "configtool")
+        self.homing = []
+        self.candHomingOptions = []
+        self.homingKeys = [
+            "HOMING_STEP1",
+            "HOMING_STEP2",
+            "HOMING_STEP3",
+            "HOMING_STEP4",
+        ]
 
     def getValues(self):
         vars = [(x, self.cfgValues[x]) for x in self.cfgValues]
@@ -51,6 +62,8 @@ class Printer:
 
         self.configFile = fn
 
+        self.homing = []
+        self.candHomingOptions = []
         gatheringHelpText = False
         helpTextString = ""
         helpKey = None
@@ -129,7 +142,20 @@ class Printer:
                 ln = prevLines + ln
                 prevLines = ""
 
-            self.parseDefineValue(ln)
+            if self.parseCandidateValues(ln):
+                continue
+
+            if self.parseDefineValue(ln):
+                continue
+
+            m = reDefHoming.search(ln)
+            if m:
+                t = m.groups()
+                if len(t) == 1:
+                    s = self.parseHoming(t[0])
+                    if s:
+                        self.homing = s
+                        continue
 
         # Parsing done. All parsed stuff is now in these array and dicts.
         if self.settings.verbose >= 2:
@@ -197,6 +223,27 @@ class Printer:
 
         return False
 
+    def parseCandidateValues(self, ln):
+        m = reCandHomingOptions.match(ln)
+        if m:
+            t = m.groups()
+            if len(t) == 1:
+                self.candHomingOptions.append(t[0])
+            return True
+
+    def parseHoming(self, s):
+        m = re.findall(reHoming, s)
+        if not m:
+            return None
+
+        for i, tag in enumerate(self.homingKeys):
+            try:
+                self.cfgValues[tag] = m[i], True
+            except IndexError:
+                self.cfgValues[tag] = "none", False
+
+        return m
+
     def saveConfigFile(self, path, values):
         if not values:
             values = self.cfgValues
@@ -209,7 +256,23 @@ class Printer:
         fp = open(path, "w")
         self.configFile = path
 
+        homingWritten = False
+
         for ln in self.cfgBuffer:
+            if reDefHoming.match(ln):
+                if not homingWritten:
+                    home = []
+                    for h in self.homingKeys:
+                        home.append(values[h][0])
+                    while "none" in home:
+                        home.remove("none")
+                    if not home:
+                        home = ["none"]
+                    homing_str = "DEFINE_HOMING({})\n".format(", ".join(home))
+                    fp.write(homing_str)
+                    homingWritten = True
+                continue
+
             m = reDefine.match(ln)
             if m:
                 t = m.groups()
