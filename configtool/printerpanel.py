@@ -198,7 +198,10 @@ class PrinterPanel(wx.Panel):
         else:
             self.protFileLoaded = False
             self.parent.enableSavePrinter(True, True)
+
         self.parent.setPrinterTabFile(os.path.basename(fn))
+        self.pgMech.setCandidateHomingOptions(self.printer.candHomingOptions)
+        self.pgMech.setHoming(self.printer.homing)
 
         for pg in self.pages:
             pg.insertValues(self.printer.cfgValues)

@@ -13,6 +13,8 @@ class MechanicalPage(wx.Panel, Page):
         self.parent = parent
         self.font = font
 
+        self.homing = []
+
         self.spmKeys = [
             "STEPS_PER_M_X",
             "STEPS_PER_M_Y",
@@ -39,6 +41,13 @@ class MechanicalPage(wx.Panel, Page):
 
         self.kinematicsKeys = ["KINEMATICS_STRAIGHT", "KINEMATICS_COREXY"]
 
+        self.homingKeys = [
+            "HOMING_STEP1",
+            "HOMING_STEP2",
+            "HOMING_STEP3",
+            "HOMING_STEP4",
+        ]
+
         self.labels = {
             "STEPS_PER_M_X": "X:",
             "STEPS_PER_M_Y": "Y:",
@@ -63,6 +72,17 @@ class MechanicalPage(wx.Panel, Page):
             "E_ABSOLUTE": "Absolute E Coordinates",
             "KINEMATICS_STRAIGHT": "Straight",
             "KINEMATICS_COREXY": "CoreXY",
+            "HOMING_STEP1": "Step 1:",
+            "HOMING_STEP2": "Step 2:",
+            "HOMING_STEP3": "Step 3:",
+            "HOMING_STEP4": "Step 4:",
+            "none": "-",
+            "x_negative": "X min",
+            "x_positive": "X max",
+            "y_negative": "Y min",
+            "y_positive": "Y max",
+            "z_negative": "Z min",
+            "z_positive": "Z max",
         }
 
         labelWidth = 40
@@ -167,6 +187,16 @@ class MechanicalPage(wx.Panel, Page):
 
         sz.Add(bsz, pos=(1, 3))
 
+        b = wx.StaticBox(self, wx.ID_ANY, "Homing Order")
+        b.SetFont(font)
+        sbox = wx.StaticBoxSizer(b, wx.VERTICAL)
+        sbox.Add((5, 5))
+        for k in self.homingKeys:
+            tc = self.addChoice(k, self.homing, 0, labelWidth + 20, self.onChoice)
+            sbox.Add(tc)
+            sbox.Add((5, 5))
+        sz.Add(sbox, pos=(3, 3))
+
         self.enableAll(False)
         self.SetSizer(sz)
 
@@ -203,12 +233,28 @@ class MechanicalPage(wx.Panel, Page):
             for k in self.kinematicsKeys:
                 self.radioButtons[k].SetToolTip(ht["KINEMATICS"])
 
+    def setCandidateHomingOptions(self, hlist):
+        for k in self.homingKeys:
+            self.choices[k].Clear()
+            self.choices[k].AppendItems(hlist)
+            self.homingOptions = hlist
+
+    def setHoming(self, homing):
+        self.homing = homing
+
     def insertValues(self, cfgValues):
         Page.insertValues(self, cfgValues)
 
         for tag in self.kinematicsKeys:
             if tag in cfgValues.keys() and cfgValues[tag]:
                 self.radioButtons[tag].SetValue(True)
+
+        for i, k in enumerate(self.homingKeys):
+            try:
+                index = self.homingOptions.index(self.homing[i])
+                self.choices[k].SetSelection(index)
+            except IndexError:
+                self.choices[k].SetSelection(0)
 
     def getValues(self):
         result = Page.getValues(self)
