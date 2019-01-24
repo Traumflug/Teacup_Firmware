@@ -57,7 +57,7 @@ class HeaterList(wx.ListCtrl):
             self.setRowValidity(i, flag)
 
     def OnItemSelected(self, event):
-        self.currentItem = event.m_itemIndex
+        self.currentItem = event.GetIndex()
         self.parent.setItemSelected(self.currentItem)
 
     def OnItemDeselected(self, event):
