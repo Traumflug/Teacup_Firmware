@@ -209,7 +209,9 @@ program: $(UPLOAD_FILE) config.h
 	$(call upload_echo)
 	$(UPLOADER) $< $(UPLOADER_FLAGS)
 
-$(BUILDDIR)/teacup.elf: $(BUILDDIR)/startup.o
+$(BUILDDIR)/teacup.elf: $(BUILDDIR)/startup.o $(OBJ)
+	@echo "  LINK      $@"
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 $(BUILDDIR)/startup.o: $(STARTUP_FILE) | $(BUILDDIR)
 	@echo "  CC        $@"
