@@ -282,27 +282,56 @@ void SetSysClock(void)
   // PLLP:      PLLCLK = 96 MHz (384 MHz / 4)
   // PLLQ:      USB clock = 48 MHz (384 MHz / 8) --> 48MHz is best choice for USB
   #if __SYSTEM_CLOCK == 96000000
+    #if !defined(STM32F411xE) && !defined(STM32F446xx)
+      #warning You are running the controller out of specification! 96 MHz!
+    #endif
     #define PLLM 4
     #define PLLN 192
     #define PLLP 4
     #define PLLQ 8
+    #define LATENCY FLASH_ACR_LATENCY_3WS
   #elif __SYSTEM_CLOCK == 100000000
+    #if !defined(STM32F411xE) && !defined(STM32F446xx)
+      #warning You are running the controller out of specification! 100 MHz!
+    #endif
     #define PLLM 4
     #define PLLN 200
     #define PLLP 4
     #define PLLQ 8
+    #define LATENCY FLASH_ACR_LATENCY_3WS
   #elif __SYSTEM_CLOCK == 108000000
-    #warning You are running the controller out of specification!
+    #if !defined(STM32F446xx)
+      #warning You are running the controller out of specification! 108 MHz!
+    #endif
     #define PLLM 4
     #define PLLN 216
     #define PLLP 4
     #define PLLQ 9
+    #define LATENCY FLASH_ACR_LATENCY_3WS
   #elif __SYSTEM_CLOCK == 125000000
-    #warning You are running the controller out of specification!
+    #if !defined(STM32F446xx)
+      #warning You are running the controller out of specification! 125 MHz!
+    #endif
     #define PLLM 4
     #define PLLN 250
     #define PLLP 4
     #define PLLQ 10
+    #define LATENCY FLASH_ACR_LATENCY_4WS
+  #elif __SYSTEM_CLOCK == 84000000
+    #define PLLM 4
+    #define PLLN 168
+    #define PLLP 4
+    #define PLLQ 7
+    #define LATENCY FLASH_ACR_LATENCY_2WS
+  #elif __SYSTEM_CLOCK == 180000000
+    #if !defined(STM32F446xx)
+      #warning You are running the controller out of specification! 180 MHz!
+    #endif
+    #define PLLM 4
+    #define PLLN 180
+    #define PLLP 2
+    #define PLLQ 8
+    #define LATENCY FLASH_ACR_LATENCY_5WS
   #endif
 
   RCC->PLLCFGR =  RCC_PLLCFGR_PLLSRC_HSE |
@@ -320,11 +349,11 @@ void SetSysClock(void)
     (HCLK) and the supply voltage of the device. */
 
   /* Increasing the CPU frequency */
-  if(FLASH_ACR_LATENCY_3WS > (FLASH->ACR & FLASH_ACR_LATENCY))
+  if(LATENCY > (FLASH->ACR & FLASH_ACR_LATENCY))
   {
     /* Program the new number of wait states to the LATENCY bits in the FLASH_ACR register */
     FLASH->ACR &= ~(FLASH_ACR_LATENCY);
-    FLASH->ACR |= FLASH_ACR_LATENCY_3WS;
+    FLASH->ACR |= LATENCY;
 
     RCC->CFGR &= ~(RCC_CFGR_HPRE | RCC_CFGR_SW);
     RCC->CFGR |= RCC_CFGR_HPRE_DIV1 | RCC_CFGR_SW_PLL;
@@ -337,7 +366,7 @@ void SetSysClock(void)
 
     /* Program the new number of wait states to the LATENCY bits in the FLASH_ACR register */
     FLASH->ACR &= ~(FLASH_ACR_LATENCY);
-    FLASH->ACR |= FLASH_ACR_LATENCY_3WS;
+    FLASH->ACR |= LATENCY;
   }
 
   RCC->CFGR &= ~(RCC_CFGR_PPRE1 | RCC_CFGR_PPRE2);
