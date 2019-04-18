@@ -2,9 +2,17 @@
 import sys
 import time
 try:
-  import wx
-  if wx.__version__[0] < 4:
-    print("Configtool needs wxPython 4.x. Please check https://wxpython.org/pages/downloads/.")
+    import wx
+    if int(wx.__version__[0]) < 4:
+        print("Configtool needs wxPython 4.x. Please check https://wxpython.org/pages/downloads/.")
+        time.sleep(10)
+        sys.exit(-1)
+except:
+    print(
+        "ImportError: No module named wx\n\n"
+        "wxPython is not installed. This program requires wxPython to run.\n"
+        "See your package manager and/or https://wxpython.org/pages/downloads/."
+    )
     time.sleep(10)
     sys.exit(-1)
 except:
