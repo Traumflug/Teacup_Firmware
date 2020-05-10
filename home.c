@@ -172,34 +172,34 @@ void set_axis_home_position(enum axis_e n, int8_t dir) {
   if (dir < 0) {
     if (n == X) {
       #ifdef X_MIN
-      home_position = (int32_t)(X_MIN * 1000);
+      home_position = (int32_t)(X_MIN * 1000L);
       #endif
     }
     else if (n == Y) {
       #ifdef Y_MIN
-      home_position = (int32_t)(Y_MIN * 1000);
+      home_position = (int32_t)(Y_MIN * 1000L);
       #endif
     }
     else if (n == Z) {
       #ifdef Z_MIN
-      home_position = (int32_t)(Z_MIN * 1000);
+      home_position = (int32_t)(Z_MIN * 1000L);
       #endif
     }
   }
   else {
     if (n == X) {
       #ifdef X_MAX
-      home_position = (int32_t)(X_MAX * 1000);
+      home_position = (int32_t)(X_MAX * 1000L);
       #endif
     }
     else if (n == Y) {
       #ifdef Y_MAX
-      home_position = (int32_t)(Y_MAX * 1000);
+      home_position = (int32_t)(Y_MAX * 1000L);
       #endif
     }
     else if (n == Z) {
       #ifdef Z_MAX
-      home_position = (int32_t)(Z_MAX * 1000);
+      home_position = (int32_t)(Z_MAX * 1000L);
       #endif
     }
   }
