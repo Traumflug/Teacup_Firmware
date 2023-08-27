@@ -1,3 +1,17 @@
+Archiving hint: In late summer 2023, Github started to enforce 2FA (Two Factor
+                Authentication), so I had to archive the repository before
+                losing control over it.  See also https://github.com/Traumflug/Teacup_Firmware/issues/338
+
+                At the point of archiving, Teacup Firmware happens to work
+                just fine within the limits of ATmegas, Cortex-Ms and 32-bit
+                integers.  Performance is as excellent as it can get.  Which
+                is why development pretty much ceased a while ago already,
+                simply because there was nothing left to fix or to improve.
+                A masterpiece of low-level embedded software.
+
+                Traumflug, August 2023
+
+
 ##############################################################################
 #                                                                            #
 # Teacup - lean and efficient firmware for RepRap printers                   #
